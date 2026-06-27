@@ -163,7 +163,9 @@ export class HUD {
 
     for (const char of characters) {
       const worldX = char.position.x;
-      const worldY = char.position.y - 32;
+      // pos.y is physics feet; sprite is 116px tall with bottom-centre origin,
+      // so head is at pos.y - 116. Place bar 20px above head.
+      const worldY = char.position.y - 136;
 
       // Convert to screen space
       const sx = (worldX - cam.scrollX) * cam.zoom + cam.x + (cam.width / 2) * (1 - cam.zoom);

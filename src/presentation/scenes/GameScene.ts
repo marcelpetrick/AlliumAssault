@@ -5,7 +5,6 @@ import { TerrainRenderer } from '../renderers/TerrainRenderer';
 import { HUD } from '../hud/HUD';
 import { AudioManager } from '../audio/AudioManager';
 import { weaponRegistry } from '@core/weapons/WeaponRegistry';
-import { CHARACTER_HEIGHT } from '@core/physics/CharacterPhysics';
 
 interface CharacterSprite {
   sprite: Phaser.GameObjects.Image;
@@ -72,9 +71,11 @@ export class GameScene extends Phaser.Scene {
     // Physics position y is the CHARACTER centre; feet are at y + CHARACTER_HEIGHT/2.
     for (const team of state.teams) {
       for (const char of team.characters) {
+        // char.position.y is the physics feet (ground contact); origin (0.5,1.0)
+        // = bottom-centre anchor means the sprite grows upward from the feet.
         const img = this.add.image(
           char.position.x,
-          char.position.y + CHARACTER_HEIGHT / 2,
+          char.position.y,
           'garlic_placeholder',
         );
         img.setOrigin(0.5, 1.0);
@@ -258,7 +259,7 @@ export class GameScene extends Phaser.Scene {
       for (const char of team.characters) {
         const cs = this.charSprites.get(char.id);
         if (cs) {
-          cs.sprite.setPosition(char.position.x, char.position.y + CHARACTER_HEIGHT / 2);
+          cs.sprite.setPosition(char.position.x, char.position.y);
           cs.sprite.setFlipX(char.facing === 'left');
         }
       }
@@ -534,8 +535,9 @@ export class GameScene extends Phaser.Scene {
     let dotOn = true;
 
     for (let i = 1; i < total; i++) {
-      const prev = points[i - 1]!;
-      const curr = points[i]!;
+      const prev = points[i - 1];
+      const curr = points[i];
+      if (!prev || !curr) continue;
       const t = i / total; // 0 = launch, 1 = end
 
       // Green → yellow → orange → red
@@ -559,8 +561,9 @@ export class GameScene extends Phaser.Scene {
 
     // Arrowhead at last point
     if (total >= 2) {
-      const last = points[total - 1]!;
-      const prev = points[total - 2]!;
+      const last = points[total - 1];
+      const prev = points[total - 2];
+      if (!last || !prev) return;
       const dx = last.x - prev.x;
       const dy = last.y - prev.y;
       const len = Math.hypot(dx, dy);
