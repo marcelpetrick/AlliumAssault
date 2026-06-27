@@ -1,8 +1,16 @@
 # Allium Assault
 
+‼️ **NOTE: stopped development, Don't like the way this went.** ‼️
+
 A turn-based 2D artillery game starring garlic clove characters — think Worms Armageddon but cuter, smellier, and entirely browser-native.
 
 Play locally in Firefox, Chromium, or Safari. No account, no server, no internet required after the first load.
+
+**Author: Marcel Petrick <mail@marcelpetrick.it>**
+
+**Note: projected is generated with AI.**
+
+**License: GPLv3 or later. See `LICENSE`.**
 
 ---
 
