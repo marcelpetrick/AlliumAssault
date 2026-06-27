@@ -5,3 +5,4 @@ dist-types/
 coverage/
 *.local
 .DS_Store
+.claude/worktrees/
