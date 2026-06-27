@@ -38,13 +38,26 @@ export function generateTerrain(options: TerrainOptions, maxCharacters: number):
     const effectiveSeed = attempt === 0 ? options.seed : `${options.seed}:retry${attempt}`;
     const result = tryGenerate({ ...options, seed: effectiveSeed }, options, maxCharacters);
     if (result.spawnPoints.length >= maxCharacters) {
-      // Return with the original seed in the result so the caller always sees the input seed
       return { ...result, seed: options.seed };
     }
   }
-  // Return last attempt regardless of spawn count
   const final = tryGenerate(options, options, maxCharacters);
   return { ...final, seed: options.seed };
+}
+
+function smoothArray(arr: Float32Array, radius: number): Float32Array {
+  const out = new Float32Array(arr.length);
+  for (let i = 0; i < arr.length; i++) {
+    let sum = 0;
+    let count = 0;
+    for (let d = -radius; d <= radius; d++) {
+      const j = Math.max(0, Math.min(arr.length - 1, i + d));
+      sum += arr[j] ?? 0;
+      count++;
+    }
+    out[i] = sum / count;
+  }
+  return out;
 }
 
 function tryGenerate(
@@ -60,74 +73,63 @@ function tryGenerate(
 
   const mask = new CollisionMask(width, height);
 
-  // Step 1: Base ground envelope
+  // ── Step 1: Build rolling-hill surface envelope ─────────────────────────────
+  // Only two low-frequency octaves → smooth rolling hills, no jagged spikes.
+  // n1: very wide undulation (hills 800px apart)
+  // n2: medium variation (bumps 300px apart)
+  // No high-freq component — that's what caused the spikes.
   const groundY = new Float32Array(width);
-  const envMin = height * 0.325;
-  const envRange = height * 0.325; // min + range = 0.65 * height
+  const envMin = height * 0.30;
+  const envRange = height * 0.38; // keeps terrain comfortably above water
   for (let x = 0; x < width; x++) {
-    const n1 = shapeNoise.sample(x / 800, 0) * 0.5;
-    const n2 = shapeNoise.sample(x / 300, 0.5) * 0.3;
-    const n3 = shapeNoise.sample(x / 100, 1.0) * 0.2 * opts.roughness;
-    groundY[x] = envMin + ((n1 + n2 + n3 + 1) / 2) * envRange;
+    const n1 = shapeNoise.sample(x / 800, 0) * 0.65;
+    const n2 = shapeNoise.sample(x / 300, 0.5) * 0.35;
+    groundY[x] = envMin + ((n1 + n2 + 1) / 2) * envRange;
   }
 
-  // Step 2: 2D rock fill
-  const threshold = 0.15 - opts.terrainDensity * 0.3;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const gy = groundY[x] ?? height * 0.5;
-      const bias = (y - gy) / (height * 0.3);
-      const broad = shapeNoise.sample(x / 400, y / 400) * 0.5;
-      const med = shapeNoise.sample(x / 120, y / 120) * 0.3;
-      const local = shapeNoise.sample(x / 40, y / 40) * 0.2;
-      const density = bias + broad + med + local;
-      if (density > threshold) {
-        mask.setSolid(x, y, true);
-      }
+  // Smooth the heightmap with a wide box-blur pass to round off any remaining
+  // kinks from noise sampling.  Radius 40 = ~80px smoothing window.
+  const smoothed = smoothArray(smoothArray(groundY, 40), 20);
+
+  // ── Step 2: Pure heightmap fill ─────────────────────────────────────────────
+  // Everything at or below the surface line is solid.
+  // This guarantees clean, spike-free rolling hills.
+  for (let x = 0; x < width; x++) {
+    const gy = Math.round(smoothed[x] ?? height * 0.5);
+    for (let y = gy; y < height; y++) {
+      mask.setSolid(x, y, true);
     }
   }
 
-  // Step 3: Feature stamps — cave blobs (sizes scaled to map dimensions)
+  // ── Step 3: Cave blobs carved into the solid mass ───────────────────────────
   const scaleFactor = Math.min(1, (width * height) / (5000 * 2000));
-  const numCaves = Math.floor((4 + Math.floor(caveRng() * 6 * opts.caveDensity)) * scaleFactor) + 2;
-  const maxCaveR = Math.floor(Math.min(80, width * 0.08) * (0.5 + opts.caveDensity * 0.5));
+  const numCaves = Math.floor((3 + Math.floor(caveRng() * 5 * opts.caveDensity)) * scaleFactor) + 2;
+  const maxCaveR = Math.floor(Math.min(90, width * 0.09) * (0.5 + opts.caveDensity * 0.5));
   for (let i = 0; i < numCaves; i++) {
     const cx = Math.floor(caveRng() * width);
-    const cy = Math.floor(height * 0.35 + caveRng() * height * 0.5);
-    const r = Math.floor(20 + caveRng() * maxCaveR);
+    // Carve only well below the surface so caves don't break the hill shape
+    const minCaveY = Math.round(smoothed[cx] ?? height * 0.5) + 60;
+    const cy = Math.floor(minCaveY + caveRng() * (height * 0.92 - minCaveY));
+    const r = Math.floor(30 + caveRng() * maxCaveR);
     carveCircleInMask(mask, cx, cy, r);
   }
 
-  // Step 3b: Island stamps in upper air
+  // ── Step 4: Optional floating islands in upper air ──────────────────────────
   if (opts.islandDensity > 0.3) {
-    const numIslands = Math.floor(opts.islandDensity * 6);
+    const numIslands = Math.floor(opts.islandDensity * 5);
     for (let i = 0; i < numIslands; i++) {
       const cx = Math.floor(caveRng() * width);
-      const cy = Math.floor(height * 0.1 + caveRng() * height * 0.25);
-      const r = 30 + Math.floor(caveRng() * 50);
+      const cy = Math.floor(height * 0.08 + caveRng() * height * 0.18);
+      const r = 25 + Math.floor(caveRng() * 45);
       addCircleToMask(mask, cx, cy, r);
     }
   }
 
-  // Step 4: Morphological cleanup (simplified — remove tiny floaters)
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      if (mask.isSolid(x, y)) {
-        const neighbours =
-          (mask.isSolid(x - 1, y) ? 1 : 0) +
-          (mask.isSolid(x + 1, y) ? 1 : 0) +
-          (mask.isSolid(x, y - 1) ? 1 : 0) +
-          (mask.isSolid(x, y + 1) ? 1 : 0);
-        if (neighbours < 2) mask.setSolid(x, y, false);
-      }
-    }
-  }
-
-  // Step 5: Guarantee foundation — bottom 8% always solid
+  // ── Step 5: Guarantee solid foundation (bottom 8%) ──────────────────────────
   const foundationY = Math.floor(height * 0.92);
   mask.fillRect(0, foundationY, width, height - foundationY, true);
 
-  // Step 6 + 7: Surface analysis and spawn placement
+  // ── Step 6 & 7: Spawn placement ──────────────────────────────────────────────
   const spawnPoints = collectSpawnPoints(mask, waterLevel, width, height);
   const selected = selectFairSpawns(spawnPoints, maxCharacters, width, spawnRng);
 
@@ -175,30 +177,26 @@ function collectSpawnPoints(
   for (let x = 10; x < W - 10; x += 4) {
     for (let y = 10; y < H - 10; y++) {
       if (!mask.isSolid(x, y) && mask.isSolid(x, y + 1)) {
-        // This is a surface pixel
-        if (y + 1 >= waterLevel - 15) continue; // too close to water
+        if (y + 1 >= waterLevel - 15) continue;
 
-        // Measure clearance above
         let clearance = 0;
-        for (let dy = 1; dy <= 40; dy++) {
+        for (let dy = 1; dy <= 60; dy++) {
           if (mask.isSolid(x, y - dy)) break;
           clearance++;
         }
-        if (clearance < 20) continue;
+        if (clearance < 30) continue;
 
-        // Measure platform width
         let pw = 1;
-        for (let dx = 1; dx <= 20; dx++) {
+        for (let dx = 1; dx <= 30; dx++) {
           if (!mask.isSolid(x + dx, y + 1)) break;
           pw++;
         }
-        for (let dx = 1; dx <= 20; dx++) {
+        for (let dx = 1; dx <= 30; dx++) {
           if (!mask.isSolid(x - dx, y + 1)) break;
           pw++;
         }
-        if (pw < 12) continue;
+        if (pw < 20) continue;
 
-        // Approximate surface normal
         const nx = (mask.isSolid(x - 1, y) ? 1 : 0) - (mask.isSolid(x + 1, y) ? 1 : 0);
         const ny = (mask.isSolid(x, y + 1) ? 1 : 0) - (mask.isSolid(x, y - 1) ? 1 : 0);
         const normal = vec2Normalise(vec2(nx, ny));
@@ -210,7 +208,7 @@ function collectSpawnPoints(
           platformWidth: pw,
           clearanceAbove: clearance,
         });
-        break; // one spawn per x-column scan
+        break;
       }
     }
   }
@@ -226,7 +224,6 @@ function selectFairSpawns(
 ): SpawnPoint[] {
   if (candidates.length === 0) return [];
 
-  // Divide map into horizontal sectors and pick from each
   const sectors = Math.min(count, 4);
   const sectorWidth = worldWidth / sectors;
   const selected: SpawnPoint[] = [];
@@ -240,7 +237,6 @@ function selectFairSpawns(
       );
       if (inSector.length === 0) continue;
 
-      // Pick random candidate from sector; check min distance from already selected
       const shuffled = [...inSector].sort(() => rng() - 0.5);
       for (const sp of shuffled) {
         const idx = candidates.indexOf(sp);

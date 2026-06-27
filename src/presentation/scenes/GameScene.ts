@@ -5,6 +5,7 @@ import { TerrainRenderer } from '../renderers/TerrainRenderer';
 import { HUD } from '../hud/HUD';
 import { AudioManager } from '../audio/AudioManager';
 import { weaponRegistry } from '@core/weapons/WeaponRegistry';
+import { CHARACTER_HEIGHT } from '@core/physics/CharacterPhysics';
 
 interface CharacterSprite {
   sprite: Phaser.GameObjects.Image;
@@ -67,12 +68,17 @@ export class GameScene extends Phaser.Scene {
     this.terrain.initialise();
 
     // Character sprites
+    // Origin (0.5, 1.0) = bottom-centre so feet sit on the physics ground line.
+    // Physics position y is the CHARACTER centre; feet are at y + CHARACTER_HEIGHT/2.
     for (const team of state.teams) {
       for (const char of team.characters) {
-        const img = this.add.image(char.position.x, char.position.y, 'garlic_placeholder');
-        // Scale 40×48 texture to ~24×29 world-pixel display — chonky but not giant
-        img.setDisplaySize(24, 29);
-        // Subtle team colour tint on the sprite (not full override — just a wash)
+        const img = this.add.image(
+          char.position.x,
+          char.position.y + CHARACTER_HEIGHT / 2,
+          'garlic_placeholder',
+        );
+        img.setOrigin(0.5, 1.0);
+        img.setDisplaySize(96, 116);
         img.setTint(Phaser.Display.Color.IntegerToColor(team.color).lighten(60).color);
         img.setDepth(20);
         this.charSprites.set(char.id, { sprite: img });
@@ -252,7 +258,7 @@ export class GameScene extends Phaser.Scene {
       for (const char of team.characters) {
         const cs = this.charSprites.get(char.id);
         if (cs) {
-          cs.sprite.setPosition(char.position.x, char.position.y);
+          cs.sprite.setPosition(char.position.x, char.position.y + CHARACTER_HEIGHT / 2);
           cs.sprite.setFlipX(char.facing === 'left');
         }
       }

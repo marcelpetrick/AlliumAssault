@@ -124,7 +124,6 @@ export class MatchStateMachine {
 
   private updateTurnIntro(dt: number, events: SimEvent[]): void {
     if (this.state.stateTimer === 0) {
-      // Emit TurnStarted on first tick of TURN_INTRO
       this.pickNewWind(events);
       const team = this.getActiveTeam();
       const char = team ? getActiveCharacter(team) : undefined;
@@ -138,9 +137,24 @@ export class MatchStateMachine {
         });
       }
     }
+
+    // Apply gravity to all living characters during intro so nobody floats
+    for (const team of this.state.teams) {
+      for (const char of team.characters) {
+        if (!char.alive) continue;
+        const physEvents = stepCharacter(
+          char,
+          { moveLeft: false, moveRight: false, jump: false },
+          this.state.terrain,
+          this.state.waterLevel,
+          dt,
+        );
+        this.handlePhysicsEvents(physEvents, events);
+      }
+    }
+
     this.state.stateTimer += dt;
     if (this.state.stateTimer >= TURN_INTRO_DURATION) {
-      // Auto-select bazooka so the player can fire immediately
       if (!this.state.selectedWeaponId) {
         this.state.selectedWeaponId = 'bazooka';
       }
