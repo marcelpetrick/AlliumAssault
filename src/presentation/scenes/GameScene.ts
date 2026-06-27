@@ -97,7 +97,7 @@ export class GameScene extends Phaser.Scene {
 
     // Camera
     this.cameras.main.setBounds(0, 0, worldW, worldH);
-    this.cameras.main.setZoom(1);
+    this.cameras.main.setZoom(2.0);
 
     // Follow active character
     this.focusActiveCharacter();
@@ -643,12 +643,14 @@ export class GameScene extends Phaser.Scene {
     const activeChar = activeTeam.characters.find((c) => c.alive);
     if (!activeChar) return;
 
-    // Smooth follow
+    // Smooth follow — viewport centre in world coords = scrollX + viewportW / (2*zoom)
     const cam = this.cameras.main;
     const targetX = activeChar.position.x;
     const targetY = activeChar.position.y;
-    const cx = cam.scrollX + cam.width / 2;
-    const cy = cam.scrollY + cam.height / 2;
+    const halfW = cam.width / (2 * cam.zoom);
+    const halfH = cam.height / (2 * cam.zoom);
+    const cx = cam.scrollX + halfW;
+    const cy = cam.scrollY + halfH;
     const lerpSpeed = 0.08;
     cam.scrollX += (targetX - cx) * lerpSpeed;
     cam.scrollY += (targetY - cy) * lerpSpeed;

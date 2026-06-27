@@ -88,109 +88,103 @@ export class TerrainRenderer {
     }
   }
 
-  // ─── Sky & background ───────────────────────────────────────────────────────
+  // ─── Sky & background (screen-space, scrollFactor=0) ────────────────────────
+  // All background elements are anchored to the SCREEN, not the world.
+  // This ensures the full gradient is always visible regardless of where
+  // the camera is looking in the world.
 
-  private paintSky(worldW: number, worldH: number): void {
+  private paintSky(_worldW: number, _worldH: number): void {
     const t = this.theme;
+    const sw = this.scene.scale.width;
+    const sh = this.scene.scale.height;
 
-    // Gradient sky — 32 horizontal strips with mid-colour inflection
+    // Single graphics object — everything screen-space, behind all world objects
     const sky = this.scene.add.graphics();
-    sky.setDepth(-10);
+    sky.setScrollFactor(0);
+    sky.setDepth(-100);
+
+    // ── Gradient: 32 strips, top → mid → horizon ─────────────────────────────
     const STEPS = 32;
-    // Derive a mid-sky colour: blend top and horizon with slight saturation boost
     const skyMid = lerpColor(t.skyTop, t.skyHorizon, 0.45);
     for (let i = 0; i < STEPS; i++) {
       const frac = i / (STEPS - 1);
-      // Two-segment gradient: top→mid (0–0.5) then mid→horizon (0.5–1)
       const color =
         frac < 0.5
           ? lerpColor(t.skyTop, skyMid, frac * 2)
           : lerpColor(skyMid, t.skyHorizon, (frac - 0.5) * 2);
-      const y = Math.floor((worldH * i) / STEPS);
-      const h = Math.ceil(worldH / STEPS) + 1;
       sky.fillStyle(color);
-      sky.fillRect(0, y, worldW, h);
-    }
-    // Horizon haze — soft bright band just above water level
-    sky.fillStyle(brightenColor(t.skyHorizon, 20), 0.18);
-    sky.fillRect(0, worldH * 0.8, worldW, worldH * 0.1);
-
-    if (t.hasStars) this.paintStars(sky, worldW, worldH);
-    if (t.hasMoon) this.paintMoon(worldW, worldH);
-    if (t.hasTreeSilhouettes) this.paintTrees(worldW, worldH);
-
-    // Hell: ember glow at horizon
-    if (t.id === 'hell') {
-      const glow = this.scene.add.graphics();
-      glow.setDepth(-9);
-      glow.fillStyle(0x8b0000, 0.18);
-      glow.fillRect(0, worldH * 0.45, worldW, worldH * 0.15);
+      sky.fillRect(0, Math.floor((sh * i) / STEPS), sw, Math.ceil(sh / STEPS) + 1);
     }
 
-    // Snow: aurora ribbons
-    if (t.id === 'snow') {
-      const aurora = this.scene.add.graphics();
-      aurora.setDepth(-9);
-      for (let i = 0; i < 4; i++) {
-        const ax = (i * 1300) % worldW;
-        aurora.fillStyle(0x00ff88, 0.04 + i * 0.015);
-        aurora.fillRect(ax, 0, 800 + i * 200, worldH * 0.18);
+    // Horizon haze at the bottom of the sky area
+    sky.fillStyle(brightenColor(t.skyHorizon, 22), 0.2);
+    sky.fillRect(0, sh * 0.75, sw, sh * 0.15);
+
+    // ── Stars ────────────────────────────────────────────────────────────────
+    if (t.hasStars) {
+      for (let i = 0; i < 220; i++) {
+        const sx = (i * 7919) % sw;
+        const sy = (i * 6131) % (sh * 0.68);
+        const alpha = 0.3 + ((i * 137) % 10) * 0.06;
+        sky.fillStyle(0xffffff, alpha);
+        sky.fillCircle(sx, sy, i % 15 === 0 ? 1.5 : 1);
       }
     }
 
-    // Cheese: distant planet/star
+    // ── Moon (upper-right corner of screen) ──────────────────────────────────
+    if (t.hasMoon) {
+      const moonColor = t.id === 'snow' ? 0xddeeff : 0xfffde0;
+      const mx = sw * 0.80;
+      const my = sh * 0.13;
+      sky.fillStyle(moonColor, 0.12);
+      sky.fillCircle(mx, my, 52);
+      sky.fillStyle(moonColor, 0.92);
+      sky.fillCircle(mx, my, 40);
+      sky.fillStyle(0x000000, 0.07);
+      sky.fillCircle(mx + 10, my - 7, 9);
+      sky.fillCircle(mx - 13, my + 9, 6);
+    }
+
+    // ── Tree silhouettes along the horizon ───────────────────────────────────
+    if (t.hasTreeSilhouettes) {
+      // Horizon sits at ~70% of screen height.
+      // Two layers: distant (darker, taller) and near (slightly lighter).
+      const horizY = sh * 0.72;
+
+      // Far trees
+      for (let i = 0; i < 38; i++) {
+        const tx = (i * 131 + 17) % (sw + 60) - 30;
+        const th = 72 + ((i * 37) % 80);
+        const tw = 26 + ((i * 23) % 28);
+        sky.fillStyle(0x0d2418, 0.6);
+        sky.fillTriangle(tx, horizY - th, tx - tw / 2, horizY, tx + tw / 2, horizY);
+      }
+      // Near trees — overlapping offset
+      for (let i = 0; i < 30; i++) {
+        const tx = (i * 97 + 54) % (sw + 50) - 25;
+        const th = 48 + ((i * 53) % 55);
+        const tw = 19 + ((i * 17) % 21);
+        sky.fillStyle(0x1a3a22, 0.45);
+        sky.fillTriangle(tx, horizY - th, tx - tw / 2, horizY, tx + tw / 2, horizY);
+      }
+    }
+
+    // ── Theme-specific decorations ────────────────────────────────────────────
+    if (t.id === 'hell') {
+      sky.fillStyle(0x8b0000, 0.22);
+      sky.fillRect(0, sh * 0.55, sw, sh * 0.22);
+    }
+    if (t.id === 'snow') {
+      for (let i = 0; i < 4; i++) {
+        sky.fillStyle(0x00ff88, 0.04 + i * 0.013);
+        sky.fillRect((i * sw) / 4, 0, sw / 4 + 80, sh * 0.24);
+      }
+    }
     if (t.id === 'cheese') {
-      const planet = this.scene.add.graphics();
-      planet.setDepth(-9);
-      planet.fillStyle(0xc0a0ff, 0.5);
-      planet.fillCircle(worldW * 0.15, worldH * 0.06, 35);
-      planet.fillStyle(0xc0a0ff, 0.12);
-      planet.fillCircle(worldW * 0.15, worldH * 0.06, 48);
-    }
-  }
-
-  private paintStars(g: Phaser.GameObjects.Graphics, worldW: number, worldH: number): void {
-    const maxY = worldH * 0.6;
-    for (let i = 0; i < 220; i++) {
-      const sx = (i * 7919) % worldW;
-      const sy = (i * 6131) % maxY;
-      const alpha = 0.3 + ((i * 137) % 10) * 0.06;
-      const size = i % 15 === 0 ? 1.5 : 1;
-      g.fillStyle(0xffffff, alpha);
-      g.fillCircle(sx, sy, size);
-    }
-  }
-
-  private paintMoon(worldW: number, worldH: number): void {
-    const mx = worldW * 0.78;
-    const my = worldH * 0.07;
-    const moonColor = this.theme.id === 'snow' ? 0xddeeff : 0xfffde0;
-    const moon = this.scene.add.graphics();
-    moon.setDepth(-9);
-    moon.fillStyle(moonColor, 0.12);
-    moon.fillCircle(mx, my, 70);
-    moon.fillStyle(moonColor, 0.9);
-    moon.fillCircle(mx, my, 55);
-    // Subtle crater
-    moon.fillStyle(0x000000, 0.06);
-    moon.fillCircle(mx + 18, my - 10, 14);
-    moon.fillCircle(mx - 20, my + 15, 9);
-  }
-
-  private paintTrees(worldW: number, worldH: number): void {
-    const trees = this.scene.add.graphics();
-    trees.setDepth(-8);
-    trees.setScrollFactor(0.3, 0.3);
-    for (let i = 0; i < 50; i++) {
-      const tx = (i * 113) % worldW;
-      const ty = worldH * 0.52 + ((i * 71) % 120);
-      const th = 70 + ((i * 37) % 90);
-      const tw = 28 + ((i * 23) % 32);
-      trees.fillStyle(0x1a3a22, 0.5);
-      trees.fillTriangle(tx, ty, tx - tw / 2, ty + th, tx + tw / 2, ty + th);
-      // Second layer (slightly lighter)
-      trees.fillStyle(0x234a2c, 0.35);
-      trees.fillTriangle(tx, ty + th * 0.3, tx - tw * 0.4, ty + th, tx + tw * 0.4, ty + th);
+      sky.fillStyle(0xc0a0ff, 0.55);
+      sky.fillCircle(sw * 0.14, sh * 0.11, 28);
+      sky.fillStyle(0xc0a0ff, 0.14);
+      sky.fillCircle(sw * 0.14, sh * 0.11, 42);
     }
   }
 

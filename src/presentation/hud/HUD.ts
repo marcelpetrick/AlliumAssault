@@ -167,9 +167,9 @@ export class HUD {
       // so head is at pos.y - 116. Place bar 20px above head.
       const worldY = char.position.y - 136;
 
-      // Convert to screen space
-      const sx = (worldX - cam.scrollX) * cam.zoom + cam.x + (cam.width / 2) * (1 - cam.zoom);
-      const sy = (worldY - cam.scrollY) * cam.zoom + cam.y + (cam.height / 2) * (1 - cam.zoom);
+      // Convert world → screen:  screenPos = (worldPos - scroll) * zoom + camOrigin
+      const sx = (worldX - cam.scrollX) * cam.zoom + cam.x;
+      const sy = (worldY - cam.scrollY) * cam.zoom + cam.y;
 
       let bar = this.healthBars.get(char.id);
       if (!bar) {
