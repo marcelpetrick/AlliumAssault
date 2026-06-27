@@ -443,6 +443,7 @@ export class GameScene extends Phaser.Scene {
     if (!activeTeam) return;
     const activeChar = activeTeam.characters.find((c) => c.alive);
     if (!activeChar) return;
+    const def = state.selectedWeaponId ? weaponRegistry.get(state.selectedWeaponId) : undefined;
 
     const cs = this.charSprites.get(activeChar.id);
     if (!cs) return;
@@ -454,22 +455,146 @@ export class GameScene extends Phaser.Scene {
     g.clear().setVisible(true);
 
     const facing = activeChar.facing === 'right' ? 1 : -1;
-    const angle = state.aimAngle * facing;
-    const len = 60;
-    g.lineStyle(2, 0xffff00, 0.7);
-    g.lineBetween(
-      activeChar.position.x,
-      activeChar.position.y - 14,
-      activeChar.position.x + Math.cos(angle) * len * facing,
-      activeChar.position.y - 14 + Math.sin(angle) * len,
-    );
-    // Dotted extension
-    g.lineStyle(1, 0xffff00, 0.3);
-    for (let i = 1; i <= 3; i++) {
-      const dx = Math.cos(angle) * (len + i * 20) * facing;
-      const dy = Math.sin(angle) * (len + i * 20);
-      g.fillStyle(0xffff00, 0.3);
-      g.fillCircle(activeChar.position.x + dx, activeChar.position.y - 14 + dy, 2);
+    const aimAngle = state.aimAngle;
+    // Match fireWeapon's angle convention exactly
+    const launchAngle = aimAngle * facing;
+
+    const muzzleX = activeChar.position.x + facing * 14;
+    const muzzleY = activeChar.position.y - 14;
+
+    if (!def || def.executionType === 'melee') {
+      // Melee: simple punch arc indicator
+      const arcR = 36;
+      g.lineStyle(3, 0xff8800, 0.85);
+      g.beginPath();
+      const startA = facing > 0 ? -0.6 : Math.PI + 0.6;
+      const endA   = facing > 0 ?  0.6 : Math.PI - 0.6;
+      g.arc(activeChar.position.x, muzzleY, arcR, startA, endA, false);
+      g.strokePath();
+      // Arrow tip
+      g.fillStyle(0xff8800, 0.9);
+      const tipX = activeChar.position.x + Math.cos(endA) * arcR;
+      const tipY = muzzleY + Math.sin(endA) * arcR;
+      g.fillTriangle(
+        tipX, tipY,
+        tipX - facing * 6, tipY - 5,
+        tipX - facing * 6, tipY + 5,
+      );
+      return;
+    }
+
+    // Projectile: simulate physics trajectory
+    const power = def.usesPowerMeter
+      ? (state.chargePower > 0.01 ? state.chargePower : 0.5)
+      : 1.0;
+    const speed =
+      def.minimumLaunchSpeed + (def.maximumLaunchSpeed - def.minimumLaunchSpeed) * power;
+
+    let vx = Math.cos(launchAngle) * speed * facing;
+    let vy = Math.sin(launchAngle) * speed;
+    let px = muzzleX;
+    let py = muzzleY;
+
+    const terrain = state.terrain;
+    const worldW = terrain.getWidth();
+    const worldH = terrain.getHeight();
+    const DT = 1 / 30;
+    const GRAVITY_SIM = 980;
+    const MAX_STEPS = 120;
+
+    const points: Array<{ x: number; y: number }> = [{ x: px, y: py }];
+    let hitX = -1;
+    let hitY = -1;
+
+    for (let i = 0; i < MAX_STEPS; i++) {
+      vy += GRAVITY_SIM * def.gravityScale * DT;
+      vx += state.wind.x * def.windInfluence * DT;
+      const nx = px + vx * DT;
+      const ny = py + vy * DT;
+
+      if (
+        nx < 0 || nx > worldW ||
+        ny > worldH ||
+        terrain.isSolid(Math.round(nx), Math.round(ny))
+      ) {
+        hitX = nx;
+        hitY = ny;
+        break;
+      }
+      px = nx;
+      py = ny;
+      points.push({ x: px, y: py });
+    }
+
+    // Draw arc as colour-ramped dashes
+    const total = points.length;
+    const DASH = 10; // px between dots
+
+    let distAcc = 0;
+    let dotOn = true;
+
+    for (let i = 1; i < total; i++) {
+      const prev = points[i - 1]!;
+      const curr = points[i]!;
+      const t = i / total; // 0 = launch, 1 = end
+
+      // Green → yellow → orange → red
+      const r = Math.min(255, Math.round(t < 0.5 ? t * 2 * 255 : 255));
+      const gv = Math.min(255, Math.round(t < 0.5 ? 255 : (1 - t) * 2 * 255));
+      const color = (r << 16) | (gv << 8);
+
+      const segLen = Math.hypot(curr.x - prev.x, curr.y - prev.y);
+      distAcc += segLen;
+
+      if (distAcc >= DASH) {
+        distAcc = 0;
+        dotOn = !dotOn;
+      }
+
+      if (dotOn) {
+        g.lineStyle(3, color, 0.9 - t * 0.3);
+        g.lineBetween(prev.x, prev.y, curr.x, curr.y);
+      }
+    }
+
+    // Arrowhead at last point
+    if (total >= 2) {
+      const last = points[total - 1]!;
+      const prev = points[total - 2]!;
+      const dx = last.x - prev.x;
+      const dy = last.y - prev.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 0.1) {
+        const nx2 = dx / len;
+        const ny2 = dy / len;
+        g.fillStyle(0xff2200, 0.9);
+        g.fillTriangle(
+          last.x + nx2 * 10, last.y + ny2 * 10,
+          last.x - ny2 * 7,  last.y + nx2 * 7,
+          last.x + ny2 * 7,  last.y - nx2 * 7,
+        );
+      }
+    }
+
+    // Target crosshair where arc hits terrain
+    if (hitX >= 0) {
+      const cx = hitX;
+      const cy = hitY;
+      const cr = 10;
+      g.lineStyle(2, 0xff2200, 0.85);
+      g.strokeCircle(cx, cy, cr);
+      g.lineBetween(cx - cr - 4, cy, cx + cr + 4, cy);
+      g.lineBetween(cx, cy - cr - 4, cx, cy + cr + 4);
+    }
+
+    // Power ring at muzzle — bright circle scaled by power
+    if (def.usesPowerMeter) {
+      const ringR = 6 + power * 14;
+      const pr = Math.round(power * 255);
+      const pg = Math.round((1 - power) * 255);
+      const ringColor = (pr << 16) | (pg << 8);
+      g.lineStyle(2, ringColor, 0.8);
+      g.strokeCircle(muzzleX, muzzleY, ringR);
     }
   }
 
