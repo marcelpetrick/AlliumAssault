@@ -671,30 +671,62 @@ export class GameScene extends Phaser.Scene {
   }
 
   private spawnExplosionEffect(x: number, y: number): void {
+    // Outer fireball
     const g = this.add.graphics().setDepth(50);
-    g.fillStyle(0xffaa00, 0.9);
-    g.fillCircle(x, y, 20);
+    g.fillStyle(0xff6600, 0.92);
+    g.fillCircle(x, y, 32);
     this.tweens.add({
       targets: g,
-      scaleX: 3,
-      scaleY: 3,
+      scaleX: 4.5,
+      scaleY: 4.5,
       alpha: 0,
-      duration: 350,
+      duration: 500,
       ease: 'Power2',
       onComplete: () => g.destroy(),
     });
-    // Inner flash
-    const flash = this.add.graphics().setDepth(51);
+
+    // Mid ring (darker orange)
+    const mid = this.add.graphics().setDepth(51);
+    mid.fillStyle(0xffaa00, 0.8);
+    mid.fillCircle(x, y, 22);
+    this.tweens.add({
+      targets: mid,
+      scaleX: 3,
+      scaleY: 3,
+      alpha: 0,
+      duration: 380,
+      ease: 'Power3',
+      onComplete: () => mid.destroy(),
+    });
+
+    // White core flash
+    const flash = this.add.graphics().setDepth(52);
     flash.fillStyle(0xffffff, 1);
-    flash.fillCircle(x, y, 10);
+    flash.fillCircle(x, y, 16);
     this.tweens.add({
       targets: flash,
+      scaleX: 1.6,
+      scaleY: 1.6,
       alpha: 0,
-      duration: 120,
+      duration: 150,
       onComplete: () => flash.destroy(),
     });
-    // Camera shake proportional to explosion
-    this.cameras.main.shake(180, 0.008);
+
+    // Smoke ring (lingers)
+    const smoke = this.add.graphics().setDepth(49);
+    smoke.lineStyle(4, 0x555555, 0.6);
+    smoke.strokeCircle(x, y, 18);
+    this.tweens.add({
+      targets: smoke,
+      scaleX: 5,
+      scaleY: 5,
+      alpha: 0,
+      duration: 700,
+      ease: 'Sine.easeOut',
+      onComplete: () => smoke.destroy(),
+    });
+
+    this.cameras.main.shake(220, 0.012);
   }
 
   private maybeDispatchAI(): void {

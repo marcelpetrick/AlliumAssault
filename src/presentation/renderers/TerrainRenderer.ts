@@ -60,7 +60,21 @@ export class TerrainRenderer {
   }
 
   markDirty(chunkIds: number[]): void {
-    for (const id of chunkIds) this.dirtyChunks.add(id);
+    // Also dirty the 8 neighbours of each chunk so outline pixels that sit
+    // just outside the carved area are repainted with the correct edge colour.
+    for (const id of chunkIds) {
+      const cx = id % this.hChunks;
+      const cy = Math.floor(id / this.hChunks);
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          if (nx >= 0 && nx < this.hChunks && ny >= 0 && ny < this.vChunks) {
+            this.dirtyChunks.add(nx + ny * this.hChunks);
+          }
+        }
+      }
+    }
   }
 
   update(time = 0): void {
