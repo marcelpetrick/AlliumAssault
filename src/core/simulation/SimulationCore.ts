@@ -17,6 +17,7 @@ export interface TeamConfig {
 
 export interface MatchConfig {
   seed: string;
+  themeId?: string;
   teams: TeamConfig[];
   worldWidth: number;
   worldHeight: number;
@@ -80,7 +81,7 @@ export class SimulationCore {
         generatorVersion: 1,
         width: config.worldWidth,
         height: config.worldHeight,
-        themeId: 'forest',
+        themeId: config.themeId ?? 'forest',
         terrainDensity: 0.5,
         caveDensity: 0.3,
         islandDensity: 0.2,

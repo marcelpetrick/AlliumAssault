@@ -65,16 +65,16 @@ describe('SimulationCore step — turn progression', () => {
     sim = SimulationCore.createMatch(makeConfig());
   });
 
-  it('stepping through TURN_INTRO transitions to MOVEMENT', () => {
-    // TURN_INTRO lasts 0.5s; step just past it
+  it('stepping through TURN_INTRO transitions to AIMING', () => {
+    // TURN_INTRO lasts 0.5s; step just past it — now goes to AIMING (bazooka auto-selected)
     for (let i = 0; i < 40; i++) sim.step(1 / 60, []);
-    expect(sim.getState().turnState).toBe('MOVEMENT');
+    expect(sim.getState().turnState).toBe('AIMING');
   });
 
-  it('EndTurn command in MOVEMENT transitions to RETREAT', () => {
+  it('EndTurn command in AIMING transitions to RETREAT', () => {
     // advance past TURN_INTRO
     for (let i = 0; i < 40; i++) sim.step(1 / 60, []);
-    expect(sim.getState().turnState).toBe('MOVEMENT');
+    expect(sim.getState().turnState).toBe('AIMING');
 
     sim.step(1 / 60, [{ type: 'EndTurn' }]);
     expect(sim.getState().turnState).toBe('RETREAT');
@@ -89,7 +89,7 @@ describe('SimulationCore step — turn progression', () => {
     expect(events).toContain('TurnStarted');
   });
 
-  it('turn timer decrements in MOVEMENT', () => {
+  it('turn timer decrements in AIMING', () => {
     for (let i = 0; i < 40; i++) sim.step(1 / 60, []); // pass TURN_INTRO
     const before = sim.getState().turnTimeRemaining;
     sim.step(1 / 60, []);
@@ -97,7 +97,7 @@ describe('SimulationCore step — turn progression', () => {
   });
 
   it('after retreat expires, world settling begins', () => {
-    // advance to MOVEMENT
+    // advance to AIMING
     for (let i = 0; i < 40; i++) sim.step(1 / 60, []);
     // end turn
     sim.step(1 / 60, [{ type: 'EndTurn' }]);

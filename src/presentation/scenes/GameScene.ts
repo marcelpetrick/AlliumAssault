@@ -29,24 +29,25 @@ export class GameScene extends Phaser.Scene {
     three: Phaser.Input.Keyboard.Key;
     four: Phaser.Input.Keyboard.Key;
   };
+  private matchConfig!: MatchConfig;
   private aiWorker?: Worker;
   private aiPending = false;
   private weaponPanelOpen = false;
   private gameOver = false;
   private powerBar?: Phaser.GameObjects.Graphics;
+  private spaceWasDown = false;
 
   constructor() {
     super('GameScene');
   }
 
   init(data: { config: MatchConfig }): void {
-    // Reset per-scene state
     this.charSprites = new Map();
     this.projSprites = new Map();
     this.weaponPanelOpen = false;
     this.gameOver = false;
     this.aiPending = false;
-
+    this.matchConfig = data.config;
     this.sim = SimulationCore.createMatch(data.config);
   }
 
@@ -55,11 +56,13 @@ export class GameScene extends Phaser.Scene {
     const worldW = state.terrain.getWidth();
     const worldH = state.terrain.getHeight();
 
-    // Background parallax layers
-    this.createBackground(worldW, worldH);
-
-    // Terrain renderer
-    this.terrain = new TerrainRenderer(this, state.terrain, state.waterLevel);
+    // Terrain renderer — includes sky gradient + decorations + water
+    this.terrain = new TerrainRenderer(
+      this,
+      state.terrain,
+      state.waterLevel,
+      this.matchConfig.themeId ?? 'forest',
+    );
     this.terrain.initialise();
 
     // Character sprites
@@ -118,40 +121,6 @@ export class GameScene extends Phaser.Scene {
 
     // Initialise audio on first pointer down
     this.input.once('pointerdown', () => this.audio.init());
-  }
-
-  private createBackground(worldW: number, worldH: number): void {
-    // Sky gradient
-    const sky = this.add.graphics();
-    sky.fillGradientStyle(0x1a0a2e, 0x1a0a2e, 0x3d1a6b, 0x3d1a6b, 1);
-    sky.fillRect(0, 0, worldW, worldH);
-    sky.setDepth(-10);
-
-    // Stars — fixed pattern from deterministic positions
-    for (let i = 0; i < 200; i++) {
-      const x = (i * 7919) % worldW;
-      const y = (i * 6131) % (worldH * 0.5);
-      const alpha = 0.3 + (i % 5) * 0.14;
-      const star = this.add.circle(x, y, 1, 0xffffff, alpha);
-      star.setDepth(-9);
-    }
-
-    // Distant tree silhouettes (parallax factor 0.3)
-    const trees = this.add.graphics();
-    trees.setDepth(-8);
-    for (let i = 0; i < 40; i++) {
-      const tx = (i * 130) % worldW;
-      const ty = worldH * 0.5 + ((i * 71) % 100);
-      const th = 80 + ((i * 37) % 80);
-      const tw = 30 + ((i * 23) % 30);
-      trees.fillStyle(0x1a3a22, 0.6);
-      trees.fillTriangle(tx, ty, tx - tw / 2, ty + th, tx + tw / 2, ty + th);
-    }
-    trees.setScrollFactor(0.3, 0.3);
-
-    // Moon
-    this.add.circle(worldW * 0.8, worldH * 0.08, 60, 0xfffdd0, 0.85).setDepth(-9);
-    this.add.circle(worldW * 0.8, worldH * 0.08, 70, 0xfffdd0, 0.12).setDepth(-9);
   }
 
   private subscribeToEvents(): void {
@@ -291,8 +260,8 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Update terrain dirty chunks
-    this.terrain.update();
+    // Update terrain dirty chunks + water shimmer
+    this.terrain.update(_time);
 
     // Update HUD
     const activeTeam = state.teams[state.activeTeamIndex];
@@ -354,15 +323,22 @@ export class GameScene extends Phaser.Scene {
     const cmds: Command[] = [];
     const turnState = state.turnState;
 
+    const spaceDown = this.keys.space.isDown;
+    const spaceJustPressed = spaceDown && !this.spaceWasDown;
+    const spaceJustReleased = !spaceDown && this.spaceWasDown;
+    this.spaceWasDown = spaceDown;
+
     if (turnState === 'MOVEMENT') {
       if (this.cursors.left.isDown) cmds.push({ type: 'MoveLeft' });
       else if (this.cursors.right.isDown) cmds.push({ type: 'MoveRight' });
       else cmds.push({ type: 'StopMove' });
 
-      if (Phaser.Input.Keyboard.JustDown(this.keys.space)) cmds.push({ type: 'Jump' });
+      // Space = jump; Up arrow also jumps
+      if (spaceJustPressed || Phaser.Input.Keyboard.JustDown(this.cursors.up))
+        cmds.push({ type: 'Jump' });
       if (Phaser.Input.Keyboard.JustDown(this.keys.backspace)) cmds.push({ type: 'EndTurn' });
 
-      // Quick weapon select
+      // 1-4: select weapon (enters AIMING directly)
       if (Phaser.Input.Keyboard.JustDown(this.keys.one))
         cmds.push({ type: 'SelectWeapon', weaponId: 'bazooka' });
       if (Phaser.Input.Keyboard.JustDown(this.keys.two))
@@ -371,6 +347,10 @@ export class GameScene extends Phaser.Scene {
         cmds.push({ type: 'SelectWeapon', weaponId: 'garlic_uppercut' });
       if (Phaser.Input.Keyboard.JustDown(this.keys.four))
         cmds.push({ type: 'SelectWeapon', weaponId: 'classic_grenade' });
+
+      // Enter/down arrow in movement — also selects bazooka if nothing selected
+      if (!state.selectedWeaponId && Phaser.Input.Keyboard.JustDown(this.cursors.down))
+        cmds.push({ type: 'SelectWeapon', weaponId: 'bazooka' });
 
       // Tab to open weapon panel
       if (Phaser.Input.Keyboard.JustDown(this.keys.tab)) {
@@ -392,25 +372,44 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (turnState === 'AIMING') {
+      // Walk left/right while aiming (character can reposition before firing)
+      if (this.cursors.left.isDown) cmds.push({ type: 'MoveLeft' });
+      else if (this.cursors.right.isDown) cmds.push({ type: 'MoveRight' });
+      else cmds.push({ type: 'StopMove' });
+
+      // Up arrow: jump (JustDown) + aim higher (isDown)
+      if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) cmds.push({ type: 'Jump' });
       if (this.cursors.up.isDown) cmds.push({ type: 'AdjustAim', angleDelta: -0.03 });
       if (this.cursors.down.isDown) cmds.push({ type: 'AdjustAim', angleDelta: 0.03 });
 
       const def = state.selectedWeaponId ? weaponRegistry.get(state.selectedWeaponId) : undefined;
       if (def?.executionType === 'melee') {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.space))
-          cmds.push({ type: 'ActivateMelee' });
+        if (spaceJustPressed) cmds.push({ type: 'ActivateMelee' });
       } else {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.space)) cmds.push({ type: 'StartCharge' });
-        if (Phaser.Input.Keyboard.JustUp(this.keys.space)) cmds.push({ type: 'ReleaseCharge' });
+        // SPACE: hold to charge power, release to fire
+        if (spaceJustPressed) cmds.push({ type: 'StartCharge' });
+        if (spaceJustReleased) cmds.push({ type: 'ReleaseCharge' });
       }
 
-      if (Phaser.Input.Keyboard.JustDown(this.keys.escape)) cmds.push({ type: 'CancelAim' });
+      // 1-4: switch weapon while aiming
+      if (Phaser.Input.Keyboard.JustDown(this.keys.one))
+        cmds.push({ type: 'SelectWeapon', weaponId: 'bazooka' });
+      if (Phaser.Input.Keyboard.JustDown(this.keys.two))
+        cmds.push({ type: 'SelectWeapon', weaponId: 'impact_clove' });
+      if (Phaser.Input.Keyboard.JustDown(this.keys.three))
+        cmds.push({ type: 'SelectWeapon', weaponId: 'garlic_uppercut' });
+      if (Phaser.Input.Keyboard.JustDown(this.keys.four))
+        cmds.push({ type: 'SelectWeapon', weaponId: 'classic_grenade' });
+
+      if (Phaser.Input.Keyboard.JustDown(this.keys.backspace)) cmds.push({ type: 'EndTurn' });
+      if (Phaser.Input.Keyboard.JustDown(this.keys.escape)) cmds.push({ type: 'EndTurn' });
     }
 
     if (turnState === 'RETREAT') {
       if (this.cursors.left.isDown) cmds.push({ type: 'MoveLeft' });
       else if (this.cursors.right.isDown) cmds.push({ type: 'MoveRight' });
-      if (Phaser.Input.Keyboard.JustDown(this.keys.space)) cmds.push({ type: 'Jump' });
+      if (spaceJustPressed || Phaser.Input.Keyboard.JustDown(this.cursors.up))
+        cmds.push({ type: 'Jump' });
     }
 
     return cmds;
@@ -454,22 +453,36 @@ export class GameScene extends Phaser.Scene {
   private updatePowerBar(state: ReturnType<typeof this.sim.getState>): void {
     if (!this.powerBar) return;
     this.powerBar.clear();
-    if (state.turnState !== 'AIMING' || !state.isCharging) return;
+    if (state.turnState !== 'AIMING') return;
+
+    const def = state.selectedWeaponId ? weaponRegistry.get(state.selectedWeaponId) : undefined;
+    if (!def?.usesPowerMeter) return;
 
     const { width, height } = this.scale;
-    const barW = 160;
-    const barH = 16;
+    const barW = 200;
+    const barH = 18;
     const x = (width - barW) / 2;
-    const y = height - 60;
+    const y = height - 64;
 
-    this.powerBar.fillStyle(0x000000, 0.6);
+    // Background
+    this.powerBar.fillStyle(0x000000, 0.7);
+    this.powerBar.fillRect(x - 2, y - 2, barW + 4, barH + 4);
+    // Empty bar (dark)
+    this.powerBar.fillStyle(0x333333, 0.9);
     this.powerBar.fillRect(x, y, barW, barH);
-    const color =
-      state.chargePower < 0.5 ? 0x44ff44 : state.chargePower < 0.8 ? 0xffaa00 : 0xff3333;
-    this.powerBar.fillStyle(color);
-    this.powerBar.fillRect(x, y, barW * state.chargePower, barH);
-    this.powerBar.lineStyle(1, 0xffffff, 0.5);
+    // Filled portion
+    if (state.chargePower > 0) {
+      const color =
+        state.chargePower < 0.5 ? 0x44ff44 : state.chargePower < 0.8 ? 0xffaa00 : 0xff3333;
+      this.powerBar.fillStyle(color);
+      this.powerBar.fillRect(x, y, Math.round(barW * state.chargePower), barH);
+    }
+    // Border
+    this.powerBar.lineStyle(1, 0xffffff, 0.6);
     this.powerBar.strokeRect(x, y, barW, barH);
+    // Hint text via label — always visible in AIMING
+    this.powerBar.fillStyle(0xffffff, 0.5);
+    this.powerBar.fillRect(x, y + barH + 4, barW, 1); // underline hint area
   }
 
   private updateCamera(_dt: number): void {

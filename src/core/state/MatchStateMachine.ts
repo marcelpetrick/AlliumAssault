@@ -140,7 +140,11 @@ export class MatchStateMachine {
     }
     this.state.stateTimer += dt;
     if (this.state.stateTimer >= TURN_INTRO_DURATION) {
-      this.transition('MOVEMENT');
+      // Auto-select bazooka so the player can fire immediately
+      if (!this.state.selectedWeaponId) {
+        this.state.selectedWeaponId = 'bazooka';
+      }
+      this.transition('AIMING');
     }
   }
 
@@ -206,14 +210,35 @@ export class MatchStateMachine {
       ? weaponRegistry.get(this.state.selectedWeaponId)
       : undefined;
 
+    // Movement input (character can still walk/jump while aiming)
+    let physInput: PhysicsInput = { moveLeft: false, moveRight: false, jump: false };
+
     for (const cmd of commands) {
       switch (cmd.type) {
+        case 'MoveLeft':
+          physInput = { ...physInput, moveLeft: true };
+          break;
+        case 'MoveRight':
+          physInput = { ...physInput, moveRight: true };
+          break;
+        case 'Jump':
+          physInput = { ...physInput, jump: true };
+          break;
         case 'AdjustAim':
           this.state.aimAngle = Math.max(
             -MAX_AIM_ANGLE,
             Math.min(MAX_AIM_ANGLE, this.state.aimAngle + cmd.angleDelta),
           );
           break;
+        case 'SelectWeapon': {
+          const newDef = weaponRegistry.get(cmd.weaponId);
+          if (newDef) {
+            this.state.selectedWeaponId = cmd.weaponId;
+            this.state.chargePower = 0;
+            this.state.isCharging = false;
+          }
+          break;
+        }
         case 'StartCharge':
           if (!this.state.isCharging) this.state.isCharging = true;
           break;
@@ -229,13 +254,15 @@ export class MatchStateMachine {
             return;
           }
           break;
-        case 'CancelAim':
         case 'EndTurn':
-          this.state.selectedWeaponId = null;
-          this.transition('MOVEMENT');
+          this.transition('RETREAT');
           return;
       }
     }
+
+    // Step character physics (walk/jump while in aiming state)
+    const physEvents = stepCharacter(char, physInput, this.state.terrain, this.state.waterLevel, dt);
+    this.handlePhysicsEvents(physEvents, events);
 
     // Charge power
     if (this.state.isCharging && def?.usesPowerMeter) {
