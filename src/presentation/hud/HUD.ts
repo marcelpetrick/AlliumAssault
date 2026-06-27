@@ -20,6 +20,7 @@ export class HUD {
   private messageTween?: Phaser.Tweens.Tween;
   private healthBars = new Map<string, HealthBar>();
   private weaponPanel: Phaser.GameObjects.Container | undefined;
+  private hintText!: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -96,6 +97,20 @@ export class HUD {
       .setAlpha(0)
       .setDepth(110);
     this.container.add(this.messageText);
+
+    // Control hint strip — bottom center, above power bar
+    this.hintText = scene.add
+      .text(width / 2, height - 84, '', {
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        color: '#aabbcc',
+        stroke: '#000000',
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5, 1)
+      .setScrollFactor(0)
+      .setDepth(102);
+    this.container.add(this.hintText);
   }
 
   updateTurnInfo(teamName: string, charName: string, timeRemaining: number): void {
@@ -237,6 +252,153 @@ export class HUD {
     }
   }
 
+  // ─── In-game help overlay ────────────────────────────────────────────────────
+
+  private helpOverlay: Phaser.GameObjects.Container | undefined;
+
+  toggleHelp(): void {
+    if (this.helpOverlay) {
+      this.helpOverlay.destroy(true);
+      this.helpOverlay = undefined;
+    } else {
+      this.showHelp();
+    }
+  }
+
+  private showHelp(): void {
+    const { width, height } = this.scene.scale;
+    const panelW = Math.min(640, width - 40);
+    const panelH = Math.min(520, height - 40);
+    const px = (width - panelW) / 2;
+    const py = (height - panelH) / 2;
+
+    const items: Phaser.GameObjects.GameObject[] = [];
+
+    // Background
+    const bg = this.scene.add.graphics().setScrollFactor(0).setDepth(200);
+    bg.fillStyle(0x000000, 0.75);
+    bg.fillRect(0, 0, width, height);
+    bg.fillStyle(0x0d1b3e, 0.97);
+    bg.fillRoundedRect(px, py, panelW, panelH, 12);
+    bg.lineStyle(2, 0x4a7fcc, 0.9);
+    bg.strokeRoundedRect(px, py, panelW, panelH, 12);
+    items.push(bg);
+
+    const style = (size: string, color = '#e8e0c8') => ({
+      fontFamily: 'monospace',
+      fontSize: size,
+      color,
+    });
+
+    const tx = (text: string, x: number, y: number, sz: string, col?: string) => {
+      const t = this.scene.add
+        .text(x, y, text, style(sz, col))
+        .setScrollFactor(0)
+        .setDepth(201);
+      items.push(t);
+      return t;
+    };
+
+    // Title
+    tx('ALLIUM ASSAULT — HELP', px + panelW / 2, py + 18, '18px', '#ffe066').setOrigin(0.5, 0);
+
+    // Divider
+    const div = this.scene.add.graphics().setScrollFactor(0).setDepth(201);
+    div.lineStyle(1, 0x4a7fcc, 0.6);
+    div.lineBetween(px + 20, py + 46, px + panelW - 20, py + 46);
+    items.push(div);
+
+    // Controls column
+    let cy = py + 58;
+    const col1 = px + 24;
+    const col2 = px + panelW / 2 + 8;
+
+    tx('── CONTROLS ──', col1, cy, '13px', '#aaccff');
+    cy += 22;
+
+    const controls: [string, string][] = [
+      ['←  →  arrows', 'Walk left / right'],
+      ['↑  arrow', 'Jump + aim higher'],
+      ['↓  arrow', 'Aim lower'],
+      ['SPACE  (hold)', 'Charge weapon power'],
+      ['SPACE  (release)', 'Fire!'],
+      ['1 2 3 4', 'Switch weapon'],
+      ['TAB', 'Weapon list'],
+      ['BACKSPACE / ESC', 'Skip turn (retreat)'],
+      ['H', 'Toggle this help'],
+    ];
+
+    for (const [key, desc] of controls) {
+      tx(key, col1, cy, '12px', '#ffe066');
+      tx(desc, col1 + 148, cy, '12px');
+      cy += 19;
+    }
+
+    // Weapons column
+    cy = py + 58;
+    tx('── WEAPONS ──', col2, cy, '13px', '#aaccff');
+    cy += 22;
+
+    const weapons: [string, string, string][] = [
+      ['1  Bazooka', '∞', 'Hold SPACE, release to fire. Wind-affected arc.'],
+      ['2  Impact Clove', '5', 'Throwable garlic. High gravity, fast fuse.'],
+      ['3  Garlic Uppercut', '∞', 'Press SPACE once for instant melee punch!'],
+      ['4  Classic Grenade', '3', 'Bounces, then explodes after 3 seconds.'],
+    ];
+
+    for (const [name, ammo, howTo] of weapons) {
+      tx(`${name}  [${ammo}]`, col2, cy, '12px', '#ffe066');
+      cy += 16;
+      // Word-wrap by splitting manually at ~35 chars
+      const words = howTo.split(' ');
+      let line = '';
+      for (const word of words) {
+        if ((line + word).length > 32) {
+          tx(line.trim(), col2 + 8, cy, '11px', '#b0c8e0');
+          cy += 14;
+          line = word + ' ';
+        } else {
+          line += word + ' ';
+        }
+      }
+      if (line.trim()) { tx(line.trim(), col2 + 8, cy, '11px', '#b0c8e0'); cy += 14; }
+      cy += 6;
+    }
+
+    // Tips
+    cy = Math.max(cy, py + panelH - 58);
+    const tipDiv = this.scene.add.graphics().setScrollFactor(0).setDepth(201);
+    tipDiv.lineStyle(1, 0x4a7fcc, 0.4);
+    tipDiv.lineBetween(px + 20, cy, px + panelW - 20, cy);
+    items.push(tipDiv);
+    cy += 8;
+    tx('TIP: Charge to ~70% power (yellow bar) for optimal range.', px + panelW / 2, cy, '11px', '#88aa66')
+      .setOrigin(0.5, 0);
+    tx('Press H or click anywhere to close', px + panelW / 2, cy + 18, '11px', '#886644').setOrigin(
+      0.5,
+      0,
+    );
+
+    this.helpOverlay = this.scene.add
+      .container(0, 0, items)
+      .setScrollFactor(0)
+      .setDepth(200);
+
+    // Close on click
+    this.scene.input.once('pointerdown', () => {
+      this.helpOverlay?.destroy(true);
+      this.helpOverlay = undefined;
+    });
+  }
+
+  showControlHint(text: string): void {
+    this.hintText.setText(text);
+  }
+
+  clearControlHint(): void {
+    this.hintText.setText('');
+  }
+
   destroy(): void {
     this.container.destroy(true);
     for (const bar of this.healthBars.values()) {
@@ -246,5 +408,6 @@ export class HUD {
     }
     this.healthBars.clear();
     this.hideWeaponPanel();
+    this.helpOverlay?.destroy(true);
   }
 }

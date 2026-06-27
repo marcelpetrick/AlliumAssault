@@ -28,6 +28,7 @@ export class GameScene extends Phaser.Scene {
     two: Phaser.Input.Keyboard.Key;
     three: Phaser.Input.Keyboard.Key;
     four: Phaser.Input.Keyboard.Key;
+    h: Phaser.Input.Keyboard.Key;
   };
   private matchConfig!: MatchConfig;
   private aiWorker?: Worker;
@@ -69,7 +70,10 @@ export class GameScene extends Phaser.Scene {
     for (const team of state.teams) {
       for (const char of team.characters) {
         const img = this.add.image(char.position.x, char.position.y, 'garlic_placeholder');
-        img.setTint(team.color);
+        // Scale 40×48 texture to ~24×29 world-pixel display — chonky but not giant
+        img.setDisplaySize(24, 29);
+        // Subtle team colour tint on the sprite (not full override — just a wash)
+        img.setTint(Phaser.Display.Color.IntegerToColor(team.color).lighten(60).color);
         img.setDepth(20);
         this.charSprites.set(char.id, { sprite: img });
       }
@@ -103,10 +107,14 @@ export class GameScene extends Phaser.Scene {
       two: kb.addKey(Phaser.Input.Keyboard.KeyCodes.TWO),
       three: kb.addKey(Phaser.Input.Keyboard.KeyCodes.THREE),
       four: kb.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR),
+      h: kb.addKey(Phaser.Input.Keyboard.KeyCodes.H),
     };
 
     // Prevent Tab from losing focus
     kb.on('keydown-TAB', (e: KeyboardEvent) => e.preventDefault());
+
+    // H key → help overlay
+    this.keys.h.on('down', () => this.hud.toggleHelp());
 
     // Subscribe to simulation events
     this.subscribeToEvents();
@@ -289,14 +297,23 @@ export class GameScene extends Phaser.Scene {
     );
     this.hud.updateHealthBars(livingChars);
 
-    // Weapon info
+    // Weapon info + contextual hint
     if (state.selectedWeaponId && activeTeam) {
       const def = weaponRegistry.get(state.selectedWeaponId);
       const stock = activeTeam.inventory.weapons.get(state.selectedWeaponId);
       if (def && stock) {
         this.hud.updateWeapon(def.displayName, stock.unlimited ? 'unlimited' : stock.count);
+        if (state.turnState === 'AIMING') {
+          const hint =
+            def.executionType === 'melee'
+              ? 'SPACE = punch  |  ↑↓ aim  |  1-4 weapon  |  H help'
+              : 'Hold SPACE to charge  →  release to fire  |  ↑↓ aim  |  H help';
+          this.hud.showControlHint(hint);
+        }
       }
       this.updateAimLine(state);
+    } else {
+      this.hud.clearControlHint();
     }
 
     // Power bar
