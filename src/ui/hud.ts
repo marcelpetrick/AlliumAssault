@@ -159,8 +159,10 @@ export class Hud {
     const def = WEAPONS[g.weapon];
     this.text(
       '.hint',
-      !human
-        ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
+      g.phase === 'gameOver'
+        ? 'Match over'
+        : !human
+          ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'
           : `${def.charge ? 'Hold Space to charge, release to fire' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–4 weapons · Esc menu`,
