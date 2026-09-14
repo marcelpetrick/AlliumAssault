@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [0.4.0] — 2026-09-14
+
+### Added
+- Babylon.js 3D rendering: extruded, bevelled terrain chunks with procedural texturing and scorch marks.
+- Garlic buddy models with facial animation, team bandanas, squash & stretch and held weapons.
+- Sky shader, animated water, hill ranges with forests, clouds, ground props.
+- Explosion, smoke, debris, splash and tracer effects; cascaded shadows, bloom and tone mapping.
+- Themes: Garlic Meadow, Golden Sunset, Moonlit Grove.
+
 ## [0.3.0] — 2026-09-14
 
 ### Added
