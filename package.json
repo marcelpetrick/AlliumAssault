@@ -1,0 +1,28 @@
+{
+  "name": "allium-assault",
+  "version": "0.2.0",
+  "description": "Turn-based 3D artillery game with garlic buddies, in the spirit of Worms Armageddon. Runs in the browser.",
+  "private": true,
+  "type": "module",
+  "author": "Marcel Petrick <mail@marcelpetrick.it>",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "verify": "npm run typecheck && npm test && npm run build && npm run e2e"
+  },
+  "dependencies": {
+    "@babylonjs/core": "9.26.1",
+    "simplex-noise": "4.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.0",
+    "vitest": "5.0.0"
+  }
+}
