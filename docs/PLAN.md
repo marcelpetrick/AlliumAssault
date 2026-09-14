@@ -56,14 +56,15 @@ World 128 × 64 units, density grid 0.25 units, water surface y = 3.
 
 ## 4. Milestones (each = tagged version, atomic commits inside)
 
-| Version | Milestone | Done when |
-|---|---|---|
-| 0.2.0 | Scaffold: Vite, TS, Babylon, Vitest, Playwright, docs | `npm run verify` green, blank 3D scene in Chrome |
-| 0.3.0 | Core simulation: terrain, contour, physics, weapons, match FSM | Unit tests cover generation, craters, collision, turns, damage, victory |
-| 0.4.0 | 3D rendering: terrain mesh, environment, buddies, effects | Screenshot shows good-looking world |
-| 0.5.0 | Playable: input, camera, HUD, menu, setup, victory | Full hot-seat match playable in Chrome |
-| 0.6.0 | AI opponents + audio | Human vs AI match runs to the end |
-| 1.0.0 | Polish + E2E suite + README | E2E plays a match in Chrome, all checks green |
+| Version | Milestone | Done when | Status |
+|---|---|---|---|
+| 0.2.0 | Scaffold: Vite, TS, Babylon, Vitest, Playwright, docs | `npm run verify` green, blank 3D scene in Chrome | ✅ |
+| 0.3.0 | Core simulation: terrain, contour, physics, weapons, match FSM, AI | Unit tests cover generation, craters, collision, turns, damage, victory, AI match | ✅ |
+| 0.4.0 | 3D rendering: terrain mesh, environment, buddies, effects | Screenshot shows good-looking world | ✅ |
+| 0.5.0 | Playable: input, camera, HUD, menus, setup, victory, audio | Full hot-seat / vs-AI match playable in Chrome | ✅ |
+| 1.0.0 | E2E suite, README, screenshots | E2E plays in Chrome, all checks green | ✅ |
+
+The AI moved into 0.3.0 because the headless AI-vs-AI match is the strongest core test.
 
 ## 5. Verification
 
