@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.0.0] — 2026-09-14
+
+### Added
+- Playwright E2E suite on Google Chrome: title demo, a full human turn (jump, aim, shotgun crater,
+  bazooka, retreat), AI-vs-AI match to the victory screen and rematch, custom setup, pause menu.
+- README with screenshots, controls, weapons, architecture and testing guide.
+
+### Changed
+- Brighter Moonlit Grove lighting; HUD shows "Match over" after victory.
+
 ## [0.5.0] — 2026-09-14
 
 ### Added
