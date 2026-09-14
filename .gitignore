@@ -1,8 +1,0 @@
-node_modules/
-dist/
-dist-types/
-.vite/
-coverage/
-*.local
-.DS_Store
-.claude/worktrees/
