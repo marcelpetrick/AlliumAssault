@@ -1,19 +1,15 @@
-import { Engine } from '@babylonjs/core/Engines/engine';
-import { Scene } from '@babylonjs/core/scene';
-import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
-import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
-import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Color4 } from '@babylonjs/core/Maths/math.color';
+import './ui/styles.css';
+import { App } from './app';
 
 const canvas = document.getElementById('stage') as HTMLCanvasElement;
-const engine = new Engine(canvas, true);
-const scene = new Scene(engine);
-scene.clearColor = new Color4(0.45, 0.7, 0.95, 1);
-new ArcRotateCamera('cam', -Math.PI / 2, Math.PI / 2.5, 6, Vector3.Zero(), scene);
-new HemisphericLight('light', new Vector3(0, 1, 0), scene);
-MeshBuilder.CreateSphere('garlic', { diameter: 2 }, scene);
+const app = new App(canvas, document.getElementById('ui')!);
 
-engine.runRenderLoop(() => scene.render());
-window.addEventListener('resize', () => engine.resize());
-(window as unknown as { __allium: object }).__allium = { ready: true };
+const hook = {
+  ready: false,
+  app,
+  state: () => app.state(),
+  startMatch: (config: Parameters<App['startMatch']>[0]) => app.startMatch(config),
+  fastForward: (seconds: number) => app.fastForward(seconds),
+};
+(window as unknown as { __allium: typeof hook }).__allium = hook;
+app.engine.onEndFrameObservable.addOnce(() => (hook.ready = true));
