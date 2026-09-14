@@ -10,7 +10,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     channel: 'chrome',
-    viewport: { width: 1600, height: 900 },
+    viewport: { width: 1280, height: 720 },
     launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] },
   },
   webServer: {
