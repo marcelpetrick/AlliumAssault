@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [0.5.0] — 2026-09-14
+
+### Added
+- Playable game: title screen with live demo battle, custom match setup, HUD, pause, help and victory screens.
+- Keyboard and mouse controls, camera pan and zoom.
+- Synthesized Web Audio sound effects with mute toggle.
+
 ## [0.4.0] — 2026-09-14
 
 ### Added
