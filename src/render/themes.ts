@@ -1,0 +1,117 @@
+import { Color3 } from '@babylonjs/core';
+
+export interface Theme {
+  id: string;
+  name: string;
+  skyTop: Color3;
+  skyHorizon: Color3;
+  fog: Color3;
+  fogDensity: number;
+  sunDirection: [number, number, number];
+  sunColor: Color3;
+  sunIntensity: number;
+  ambientSky: Color3;
+  ambientGround: Color3;
+  ambientIntensity: number;
+  grass: Color3;
+  grassDark: Color3;
+  dirt: Color3;
+  rock: Color3;
+  rockDark: Color3;
+  waterShallow: Color3;
+  waterDeep: Color3;
+  hills: [Color3, Color3, Color3];
+  foliage: Color3;
+  trunk: Color3;
+  clouds: Color3;
+  stars: boolean;
+  exposure: number;
+}
+
+const hex = Color3.FromHexString;
+
+export const THEMES: Record<string, Theme> = {
+  meadow: {
+    id: 'meadow',
+    name: 'Garlic Meadow',
+    skyTop: hex('#1c6ad8'),
+    skyHorizon: hex('#a6daf6'),
+    fog: hex('#b6dcf0'),
+    fogDensity: 0.0022,
+    sunDirection: [-0.45, -0.8, 0.55],
+    sunColor: hex('#fff1d6'),
+    sunIntensity: 1.5,
+    ambientSky: hex('#dcefff'),
+    ambientGround: hex('#9a8a72'),
+    ambientIntensity: 0.6,
+    grass: hex('#74c94c'),
+    grassDark: hex('#3f8f34'),
+    dirt: hex('#8a5a3b'),
+    rock: hex('#a8835f'),
+    rockDark: hex('#66503e'),
+    waterShallow: hex('#46c0d8'),
+    waterDeep: hex('#155a8a'),
+    hills: [hex('#6fa77c'), hex('#8fbcae'), hex('#b3d3d9')],
+    foliage: hex('#4c9a3a'),
+    trunk: hex('#6b4a2e'),
+    clouds: hex('#ffffff'),
+    stars: false,
+    exposure: 1.05,
+  },
+  sunset: {
+    id: 'sunset',
+    name: 'Golden Sunset',
+    skyTop: hex('#3a3c7e'),
+    skyHorizon: hex('#ffae68'),
+    fog: hex('#f2a27c'),
+    fogDensity: 0.0032,
+    sunDirection: [0.55, -0.32, 0.77],
+    sunColor: hex('#ffc088'),
+    sunIntensity: 1.7,
+    ambientSky: hex('#ffcfa6'),
+    ambientGround: hex('#7a5a66'),
+    ambientIntensity: 0.55,
+    grass: hex('#9cc43f'),
+    grassDark: hex('#5f8a2c'),
+    dirt: hex('#9a5f3a'),
+    rock: hex('#b9846a'),
+    rockDark: hex('#6a4448'),
+    waterShallow: hex('#6a9cc0'),
+    waterDeep: hex('#283d6c'),
+    hills: [hex('#7c4f68'), hex('#a8697a'), hex('#d38f86')],
+    foliage: hex('#5f8a3a'),
+    trunk: hex('#5a3a2a'),
+    clouds: hex('#ffd6b8'),
+    stars: false,
+    exposure: 1.05,
+  },
+  night: {
+    id: 'night',
+    name: 'Moonlit Grove',
+    skyTop: hex('#050a22'),
+    skyHorizon: hex('#2a4478'),
+    fog: hex('#1d2d52'),
+    fogDensity: 0.004,
+    sunDirection: [-0.3, -0.75, 0.6],
+    sunColor: hex('#b9cdff'),
+    sunIntensity: 1.0,
+    ambientSky: hex('#6474b8'),
+    ambientGround: hex('#3c3452'),
+    ambientIntensity: 0.55,
+    grass: hex('#52b070'),
+    grassDark: hex('#2f7a4a'),
+    dirt: hex('#6a4a4a'),
+    rock: hex('#7a7490'),
+    rockDark: hex('#403b55'),
+    waterShallow: hex('#2f78a6'),
+    waterDeep: hex('#08203f'),
+    hills: [hex('#1f2d4c'), hex('#2b3d60'), hex('#3b5076')],
+    foliage: hex('#2e6a4a'),
+    trunk: hex('#3a2a2a'),
+    clouds: hex('#8090c0'),
+    stars: true,
+    exposure: 1.25,
+  },
+};
+
+export const THEME_IDS = Object.keys(THEMES);
