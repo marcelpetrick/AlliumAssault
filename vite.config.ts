@@ -4,7 +4,8 @@ export default defineConfig({
   base: './',
   build: {
     target: 'es2022',
-    chunkSizeWarningLimit: 4000,
+    // Babylon.js is one large chunk by design; it is cached after the first load.
+    chunkSizeWarningLimit: 8000,
   },
   test: {
     include: ['tests/**/*.test.ts'],
