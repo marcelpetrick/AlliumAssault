@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [0.3.0] — 2026-09-14
+
+### Added
+- Headless game core: seeded density-field terrain with craters, marching squares contouring,
+  circle-vs-field character physics, swept projectiles, wind.
+- Match state machine with turns, retreat, settling, fall damage, drowning, death explosions, victory.
+- Weapons: bazooka, grenade, shotgun, garlic punch. Trajectory-search AI (easy/normal/hard).
+- 25 Vitest unit tests including a full AI-vs-AI match.
+
 ## [0.2.0] — 2026-09-14
 
 ### Changed
