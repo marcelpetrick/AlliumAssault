@@ -145,6 +145,21 @@ describe('AI', () => {
     expect(plan.facing).toBe(1);
   });
 
+  it('re-plans with the current weapon after the first shotgun shot', () => {
+    const g = flatGame([40, 52], [team('A', 1, 'ai'), team('B', 1)]);
+    const me = g.buddies[0];
+    runUntil(g, () => g.phase === 'aiming', 5);
+    g.selectWeapon('shotgun');
+    me.facing = -1;
+    me.aim = 1;
+    g.pressFire();
+    expect(g.shotsLeft).toBe(1);
+    const plan = planAttack(g, me, 'hard', mulberry32(5), 'shotgun');
+    expect(plan.weapon).toBe('shotgun');
+    expect(plan.facing).toBe(1);
+    expect(Math.abs(plan.aim)).toBeLessThan(0.1);
+  });
+
   it('plays an AI-vs-AI match to the end on a generated map', () => {
     const g = new Game(config([team('A', 2, 'ai'), team('B', 2, 'ai')], { seed: 'duel', turnTime: 25, windMax: 0.3 }));
     g.simulate(60 * 15);

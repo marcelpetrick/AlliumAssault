@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.8] — 2026-09-15
+
+### Fixed
+- AI finishes a shotgun turn by aiming its second shot at an enemy instead of re-planning for a
+  weapon it cannot switch to and wasting the shot.
+
 ## [1.1.7] — 2026-09-15
 
 ### Fixed

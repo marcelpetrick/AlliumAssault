@@ -58,21 +58,27 @@ export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: Wea
   return gain > 0 ? gain - loss : -loss * 5 - nearestEnemy;
 }
 
-export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng): AttackPlan {
+/**
+ * Choose the best attack for `me`. With `only` set, just that weapon is considered — used when a
+ * multi-shot weapon is already in use and cannot be switched.
+ */
+export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only?: WeaponId): AttackPlan {
   const cfg = LEVELS[level];
   const team = game.teams[me.team];
+  const allowed = (weapon: WeaponId) => (only ? weapon === only : team.ammo[weapon] > 0);
   const enemies = game.buddies.filter((b) => b.alive && b.team !== me.team);
   const nearest = enemies.reduce<Buddy | null>((best, b) => (!best || Math.abs(b.body.x - me.body.x) < Math.abs(best.body.x - me.body.x) ? b : best), null);
+  const directAim = (target: Buddy) => clamp(Math.atan2(target.body.y - me.body.y, Math.abs(target.body.x - me.body.x)), AIM_MIN, AIM_MAX);
   let best: AttackPlan = {
-    weapon: 'bazooka',
+    weapon: only ?? 'bazooka',
     facing: nearest && nearest.body.x < me.body.x ? -1 : 1,
-    aim: 0.8,
+    aim: only === 'shotgun' && nearest ? directAim(nearest) : 0.8,
     power: 0.7,
     score: -Infinity,
   };
 
   for (const weapon of ['bazooka', 'grenade'] as const) {
-    if (team.ammo[weapon] <= 0) continue;
+    if (!allowed(weapon)) continue;
     for (const facing of [1, -1] as const) {
       for (let a = 0; a < cfg.angles; a++) {
         const aim = lerp(-0.35, 1.4, a / (cfg.angles - 1));
@@ -92,14 +98,14 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng): Att
     const dy = enemy.body.y - me.body.y;
     const facing: 1 | -1 = dx < 0 ? -1 : 1;
     const dist = Math.hypot(dx, dy);
-    if (dist < WEAPONS.punch.range + BUDDY_RADIUS * 1.5) {
+    if (allowed('punch') && dist < WEAPONS.punch.range + BUDDY_RADIUS * 1.5) {
       const score = WEAPONS.punch.damage + (enemy.hp <= WEAPONS.punch.damage ? 40 : 0) + 5;
-      if (score > best.score) best = { weapon: 'punch', facing, aim: clamp(Math.atan2(dy, Math.abs(dx)), AIM_MIN, AIM_MAX), power: 1, score };
+      if (score > best.score) best = { weapon: 'punch', facing, aim: directAim(enemy), power: 1, score };
     }
-    if (team.ammo.shotgun > 0 && dist < WEAPONS.shotgun.range && lineOfSight(game, me, enemy)) {
+    if (allowed('shotgun') && dist < WEAPONS.shotgun.range && lineOfSight(game, me, enemy)) {
       const damage = WEAPONS.shotgun.damage * 2;
       const score = damage * 0.9 + (enemy.hp <= damage ? 40 : 0);
-      if (score > best.score) best = { weapon: 'shotgun', facing, aim: clamp(Math.atan2(dy, Math.abs(dx)), AIM_MIN, AIM_MAX), power: 1, score };
+      if (score > best.score) best = { weapon: 'shotgun', facing, aim: directAim(enemy), power: 1, score };
     }
   }
 
@@ -157,7 +163,8 @@ export class AiDriver {
     switch (this.stage) {
       case 'think': {
         if (this.timer < LEVELS[this.level].think) return;
-        const plan = planAttack(game, me, this.level, this.rng);
+        const midUse = game.shotsLeft < WEAPONS[game.weapon].shots;
+        const plan = planAttack(game, me, this.level, this.rng, midUse ? game.weapon : undefined);
         this.plan = plan;
         game.selectWeapon(plan.weapon);
         game.face(plan.facing);
