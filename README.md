@@ -109,6 +109,13 @@ The page exposes `window.__allium` (`state()`, `startMatch()`, `fastForward()`) 
 Continuous integration runs lint, typecheck, unit tests, build and the Chrome E2E suite on every
 push. Pushing a `v*` tag builds and publishes a GitHub release with the zipped static site.
 
+## Versioning
+
+The project follows [Semantic Versioning](https://semver.org/). Every commit on `master` carries
+its own version: bump `package.json` (patch for fixes, docs and dependency updates; minor for
+features; major for breaking changes), add a matching entry to [`CHANGELOG.md`](CHANGELOG.md), and
+tag the commit `vX.Y.Z`. Pushing the tag publishes a GitHub release with the web build.
+
 ## More screenshots
 
 | Title screen | Floating islands |
@@ -117,7 +124,7 @@ push. Pushing a `v*` tag builds and publishes a GitHub release with the zipped s
 
 ## History
 
-Earlier 2D Phaser prototypes were discarded in favour of this 3D rewrite; they remain available as
-git tags `archive/phaser-mvp` and `archive/secondTry_landscape`. See [`CHANGELOG.md`](CHANGELOG.md).
+Version 1 replaced two earlier 2D prototypes with this 3D rewrite. See [`CHANGELOG.md`](CHANGELOG.md)
+for the release history.
 
 Game mechanics are inspired by Team17's Worms series; all design, art, sound and code are original.

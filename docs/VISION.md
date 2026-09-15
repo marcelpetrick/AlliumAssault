@@ -40,7 +40,7 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 
 ## Controls
 
-Following the last user decision in the 2D prototype (`8646a77`):
+Following the last control decision made in the 2D prototype:
 
 | Key | Action |
 |---|---|

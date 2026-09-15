@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.5] — 2026-09-15
+
+### Fixed
+- Removed stale references to the deleted archive tags and old branch from README and docs.
+
+### Added
+- Versioning section in the README: every commit carries its own SemVer version and tag.
+
 ## [1.1.4] — 2026-09-15
 
 ### Changed

@@ -7,10 +7,10 @@
 | 2026-06-26 | `3f0d881` | Vision from a ChatGPT research session: Worms Armageddon rules, garlic theme, browser-only, hot-seat + AI, seeded terrain, bazooka / grenade / punch, 5 s retreat | **Kept** — rules and theme carried into `docs/VISION.md` |
 | 2026-06-26 | `f98f673`, `66783e2` | 12-phase plan; "full MVP" in Phaser 4 (FSM, AI worker, Dexie, PWA, 80 tests) | **Replaced** — author stopped: "Don't like the way this went" |
 | 2026-06-27 | `d9cb274`…`d2515ab` | Visual fixes on 2D pixel terrain: themes, bigger sprites, trajectory arc, zoom | **Lesson:** fixing 2D pixel visuals after the fact did not produce a pretty game |
-| 2026-07-09 | branch `mpe/secondTry_landscape` (14 commits) | Restart phase by phase: terrain mask, chunk renderer, physics, 1 worm, bazooka/grenade/shotgun, Enter=jump, Space=charge | **Kept ideas:** controls, fixed-step physics, swept projectiles, charge bar |
+| 2026-07-09 | branch `mpe/secondTry_landscape` (14 commits, since deleted) | Restart phase by phase: terrain mask, chunk renderer, physics, 1 worm, bazooka/grenade/shotgun, Enter=jump, Space=charge | **Kept ideas:** controls, fixed-step physics, swept projectiles, charge bar |
 | 2026-09-14 | this plan | Rewrite in 3D with Babylon.js | — |
 
-Archived as tags `archive/phaser-mvp` and `archive/secondTry_landscape`; only `master` remains.
+The old code and branch have been removed; only `master` remains.
 
 ## 2. Requirements mapping
 
@@ -23,7 +23,7 @@ Archived as tags `archive/phaser-mvp` and `archive/secondTry_landscape`; only `m
 | Nice-looking settings | HTML/CSS match setup screen |
 | Testable, play it in Chrome | Vitest core tests + Playwright E2E on Google Chrome; `window.__allium` test hook |
 | Version bumps, atomic commits | SemVer in `package.json`, `CHANGELOG.md`, tag per milestone |
-| One clean branch | Old code removed, old branch deleted (archived as tags) |
+| One clean branch | Old code removed, old branch deleted |
 
 ## 3. Architecture
 
