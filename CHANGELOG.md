@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.10] — 2026-09-15
+
+### Fixed
+- Explosions update ground props with one GPU buffer upload per prop type and skip props that are
+  already hidden.
+
 ## [1.1.9] — 2026-09-15
 
 ### Fixed

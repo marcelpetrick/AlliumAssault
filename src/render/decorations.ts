@@ -9,6 +9,7 @@ interface Placement {
   x: number;
   y: number;
   matrix: Matrix;
+  hidden: boolean;
 }
 
 /**
@@ -53,7 +54,7 @@ export class Decorations {
         const z = front ? -2.9 + rng() * 1.2 : 0.9 + rng() * 2.1;
         const s = 0.7 + rng() * 0.6;
         const matrix = Matrix.Compose(new Vector3(s, s, s), Quaternion.RotationAxis(Vector3.Up(), rng() * 6.28), new Vector3(x, y - 0.12, z));
-        this.placements.push({ kind, index: buckets[kind].length, x, y, matrix });
+        this.placements.push({ kind, index: buckets[kind].length, x, y, matrix, hidden: false });
         buckets[kind].push(matrix);
         break;
       }
@@ -68,11 +69,18 @@ export class Decorations {
   /** Hide props within `radius` of an explosion or floating after terrain loss. */
   clearAround(x: number, y: number, radius: number): void {
     const hidden = Matrix.Scaling(0, 0, 0);
+    const touched = new Set<Mesh>();
     for (const p of this.placements) {
+      if (p.hidden) continue;
       if (Math.hypot(p.x - x, p.y - y) < radius + 0.6 || this.terrain.sample(p.x, p.y - 0.3) <= 0) {
-        this.templates[p.kind].thinInstanceSetMatrixAt(p.index, hidden, true);
+        p.hidden = true;
+        const mesh = this.templates[p.kind];
+        mesh.thinInstanceSetMatrixAt(p.index, hidden, false);
+        touched.add(mesh);
       }
     }
+    // One GPU upload per affected prop type instead of one per prop.
+    for (const mesh of touched) mesh.thinInstanceBufferUpdated('matrix');
   }
 
   dispose(): void {
