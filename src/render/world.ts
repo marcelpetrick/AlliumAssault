@@ -49,6 +49,8 @@ export class World {
   private distance = 80;
   private goalDistance = 30;
   private manualUntil = -1;
+  /** Keep the camera on a fresh explosion for a moment, like Worms does. */
+  private hold: { x: number; y: number; until: number } | null = null;
   private shakeAmount = 0;
   private time = 0;
 
@@ -148,6 +150,7 @@ export class World {
         case 'explosion':
           this.effects.explosion(e.x, e.y, e.radius, this.theme.dirt);
           this.decorations.clearAround(e.x, e.y, e.radius);
+          if (e.radius > 1.5) this.hold = { x: e.x, y: e.y, until: this.time + 1.8 };
           break;
         case 'shot':
           this.effects.tracer(e.x0, e.y0, e.x1, e.y1);
@@ -169,6 +172,7 @@ export class World {
           break;
         case 'turnStart':
           this.manualUntil = -1;
+          this.hold = null;
           break;
       }
     }
@@ -234,6 +238,7 @@ export class World {
     const g = this.game;
     const p = g.projectiles[0];
     if (p) return { x: p.x, y: p.y, fast: true };
+    if (this.hold && this.time < this.hold.until) return { x: this.hold.x, y: this.hold.y, fast: true };
     if (g.phase === 'settling' || g.phase === 'deaths' || g.phase === 'gameOver') {
       const doomed = g.buddies.find((b) => b.alive && b.hp <= 0);
       if (g.phase === 'deaths' && doomed) return { x: doomed.body.x, y: doomed.body.y, fast: false };

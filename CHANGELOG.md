@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.2] — 2026-09-15
+
+### Fixed
+- Camera now holds on explosions instead of snapping back to the retreating buddy.
+
 ## [1.1.1] — 2026-09-15
 
 ### Added
