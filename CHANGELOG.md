@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.0.1] — 2026-09-15
+
+### Added
+- ESLint with typescript-eslint; `npm run lint` is part of `npm run verify`.
+
 ## [1.0.0] — 2026-09-14
 
 ### Added
@@ -40,8 +45,7 @@ All notable changes to this project are documented here. Versions follow SemVer.
 ## [0.2.0] — 2026-09-14
 
 ### Changed
-- Restarted the project as a 3D rewrite on Babylon.js; the Phaser 2D prototypes are removed
-  (preserved as tags `archive/phaser-mvp` and `archive/secondTry_landscape`).
+- Restarted the project as a 3D rewrite on Babylon.js; the Phaser 2D prototypes are removed.
 
 ### Added
 - `docs/VISION.md` (v2 vision), `docs/PLAN.md` (history mapping and milestones).
