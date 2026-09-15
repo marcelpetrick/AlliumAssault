@@ -92,7 +92,8 @@ distance to the surface. Physics queries the field directly (smooth normals, no 
 explosions subtract discs from it, and the renderer rebuilds only dirty 8×8-unit chunks by
 extruding the marching-squares contour into a bevelled 3D slab.
 
-Design documents: [`docs/VISION.md`](docs/VISION.md), [`docs/PLAN.md`](docs/PLAN.md); the original
+Design documents: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (C4 model with Mermaid diagrams),
+[`docs/VISION.md`](docs/VISION.md), [`docs/PLAN.md`](docs/PLAN.md); the original
 research session is archived in [`docs/archive/`](docs/archive/).
 
 ## Testing

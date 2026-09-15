@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.11] — 2026-09-15
+
+### Added
+- `docs/ARCHITECTURE.md`: C4 architecture documentation (context, containers, components) with
+  Mermaid diagrams for the frame loop, turn state machine, explosions, AI turns and delivery.
+
 ## [1.1.10] — 2026-09-15
 
 ### Fixed
