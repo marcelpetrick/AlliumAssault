@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.4] — 2026-09-15
+
+### Changed
+- vitest 5.0.0 → 5.0.1. TypeScript stays on 6.0.3 until typescript-eslint supports 7.x.
+
 ## [1.1.3] — 2026-09-15
 
 ### Added
