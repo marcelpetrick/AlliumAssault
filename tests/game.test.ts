@@ -70,6 +70,18 @@ describe('match flow', () => {
     expect(g.buddies[1].hp).toBeLessThanOrEqual(100 - 44 + 1);
   });
 
+  it('finishes a shotgun turn even when the first shot used the last ammo', () => {
+    const g = flatGame([40, 70], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.teams[0].ammo.shotgun = 1;
+    g.selectWeapon('shotgun');
+    g.pressFire();
+    expect(g.teams[0].ammo.shotgun).toBe(0);
+    expect(g.phase).toBe('aiming');
+    g.pressFire();
+    expect(g.phase).toBe('retreat');
+  });
+
   it('punch launches an adjacent enemy upwards', () => {
     const g = flatGame([40, 41.2], [team('A', 1), team('B', 1)]);
     toAiming(g);

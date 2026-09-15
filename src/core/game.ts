@@ -259,8 +259,12 @@ export class Game {
   /** Space pressed: start charging, or fire instantly for non-charge weapons. */
   pressFire(): void {
     const team = this.activeTeamData;
-    if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || team.ammo[this.weapon] <= 0 || this.charge !== null) return;
-    if (WEAPONS[this.weapon].charge) this.charge = 0;
+    const def = WEAPONS[this.weapon];
+    if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || this.charge !== null) return;
+    // Ammo is consumed on the first shot, so a multi-shot weapon may finish with zero ammo left.
+    const midUse = this.shotsLeft < def.shots;
+    if (team.ammo[this.weapon] <= 0 && !midUse) return;
+    if (def.charge) this.charge = 0;
     else this.fire(1);
   }
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.6] — 2026-09-15
+
+### Fixed
+- The second shotgun shot can be fired when the first shot used the team's last ammo; the turn no
+  longer stalls until the timer runs out.
+
 ## [1.1.5] — 2026-09-15
 
 ### Fixed
