@@ -1,10 +1,26 @@
 # 🧄 Allium Assault
 
+[![CI](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml/badge.svg)](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/marcelpetrick/AlliumAssault)](https://github.com/marcelpetrick/AlliumAssault/releases/latest)
+[![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+
+<p align="center">
+  <img src="docs/screenshots/battle.gif" alt="Garlic buddies trading bazooka fire: missile flight, explosion, crater and knockback" width="100%">
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/action-1.jpg" alt="Bazooka missile streaking towards the enemy team"></td>
+    <td width="50%"><img src="docs/screenshots/action-2.jpg" alt="Explosion carving a crater and launching a garlic buddy"></td>
+  </tr>
+</table>
+
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
 garlic buddies. Destructible islands, wind, bazookas, grenades, shotguns and a mighty garlic
 punch — rendered with real-time 3D graphics in your browser.
 
-![Gameplay](docs/screenshots/gameplay.jpg)
+**Download:** grab the ready-to-host web build from the [latest release](https://github.com/marcelpetrick/AlliumAssault/releases/latest),
+unzip it and serve the folder with any static web server (e.g. `npx serve`).
 
 **Author:** Marcel Petrick <mail@marcelpetrick.it> · **License:** GPL-3.0-or-later · Built with AI assistance.
 
@@ -89,6 +105,15 @@ npm run verify       # all of the above plus production build
 ```
 
 The page exposes `window.__allium` (`state()`, `startMatch()`, `fastForward()`) for automated tests.
+
+Continuous integration runs lint, typecheck, unit tests, build and the Chrome E2E suite on every
+push. Pushing a `v*` tag builds and publishes a GitHub release with the zipped static site.
+
+## More screenshots
+
+| Title screen | Floating islands |
+|---|---|
+| ![Title](docs/screenshots/title.jpg) | ![Islands](docs/screenshots/islands.jpg) |
 
 ## History
 

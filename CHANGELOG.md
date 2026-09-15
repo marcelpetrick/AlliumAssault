@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.3] — 2026-09-15
+
+### Added
+- Animated battle GIF, action screenshots and CI, release and license badges at the top of the README.
+
 ## [1.1.2] — 2026-09-15
 
 ### Fixed
