@@ -273,6 +273,11 @@ export class Game {
     if (this.charge !== null) this.fire(Math.max(this.charge, 0.05));
   }
 
+  /** Drop a charge without firing (pause, lost focus). */
+  cancelCharge(): void {
+    this.charge = null;
+  }
+
   skipTurn(): void {
     if (this.phase === 'aiming') this.endTurnEarly();
   }

@@ -94,7 +94,7 @@ export class App {
   pause(): void {
     if (this.demo || this.paused) return;
     this.paused = true;
-    this.game?.releaseFire();
+    this.game?.cancelCharge();
     this.menu.showPause();
   }
 
@@ -256,7 +256,7 @@ export class App {
     });
     window.addEventListener('blur', () => {
       this.keys.clear();
-      if (!this.demo) this.game?.releaseFire();
+      if (!this.demo && this.game?.isHumanTurn) this.game.cancelCharge();
     });
 
     this.canvas.addEventListener('pointerdown', (e) => {

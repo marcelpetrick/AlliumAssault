@@ -113,6 +113,19 @@ describe('match flow', () => {
     expect(g.buddies[1].alive).toBe(false);
   });
 
+  it('cancelling a charge fires nothing and keeps the turn', () => {
+    const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.pressFire();
+    g.simulate(0.4);
+    g.cancelCharge();
+    g.releaseFire();
+    g.simulate(0.2);
+    expect(g.charge).toBeNull();
+    expect(g.projectiles).toHaveLength(0);
+    expect(g.phase).toBe('aiming');
+  });
+
   it('walking is blocked while charging', () => {
     const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
     toAiming(g);

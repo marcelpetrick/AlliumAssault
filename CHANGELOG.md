@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.7] — 2026-09-15
+
+### Fixed
+- Pausing or switching away from the window while charging cancels the shot instead of firing it.
+
 ## [1.1.6] — 2026-09-15
 
 ### Fixed
