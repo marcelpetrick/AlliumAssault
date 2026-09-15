@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.1] — 2026-09-15
+
+### Added
+- GitHub Actions: CI (lint, typecheck, unit tests, build, Chrome E2E) and tag-triggered releases
+  publishing the zipped web build with a checksum.
+
 ## [1.1.0] — 2026-09-15
 
 ### Added
