@@ -75,6 +75,8 @@ export interface Team {
   buddies: Buddy[];
   cursor: number;
   ammo: Record<WeaponId, number>;
+  /** Weapon this team last selected; restored at the start of its turns. */
+  weapon: WeaponId;
 }
 
 export interface Projectile {
@@ -165,6 +167,7 @@ export class Game {
       buddies: [],
       cursor: 0,
       ammo: Object.fromEntries(WEAPON_ORDER.map((id) => [id, WEAPONS[id].ammo])) as Record<WeaponId, number>,
+      weapon: 'bazooka' as WeaponId,
     }));
     let slot = 0;
     const maxPerTeam = Math.max(...config.teams.map((t) => t.buddyNames.length));
@@ -242,6 +245,7 @@ export class Game {
     if (this.phase !== 'aiming' && this.phase !== 'turnStart') return;
     if (!team || this.charge !== null || this.shotsLeft < WEAPONS[this.weapon].shots || team.ammo[id] <= 0) return;
     this.weapon = id;
+    team.weapon = id;
     this.shotsLeft = WEAPONS[id].shots;
     this.emit({ type: 'weapon', weapon: id });
   }
@@ -419,7 +423,7 @@ export class Game {
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
     const team = this.activeTeamData!;
-    if (team.ammo[this.weapon] <= 0) this.weapon = 'bazooka';
+    this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
     this.shotsLeft = WEAPONS[this.weapon].shots;
     Object.assign(this.input, { left: false, right: false, up: false, down: false });
     this.ai.get(this.activeTeam)?.reset();

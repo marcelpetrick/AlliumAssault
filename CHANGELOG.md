@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.9] — 2026-09-15
+
+### Fixed
+- Each team starts its turn with the weapon it last selected instead of the previous team's choice.
+
 ## [1.1.8] — 2026-09-15
 
 ### Fixed

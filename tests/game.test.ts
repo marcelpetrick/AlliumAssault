@@ -19,6 +19,18 @@ describe('match flow', () => {
     expect(order).toEqual(['A1', 'B1', 'A2', 'B2', 'A1']);
   });
 
+  it('remembers the selected weapon per team', () => {
+    const g = flatGame([20, 80], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('grenade');
+    g.skipTurn();
+    runUntil(g, () => g.activeTeam === 1 && g.phase === 'aiming', 10);
+    expect(g.weapon).toBe('bazooka');
+    g.skipTurn();
+    runUntil(g, () => g.activeTeam === 0 && g.phase === 'aiming', 10);
+    expect(g.weapon).toBe('grenade');
+  });
+
   it('ends the turn when the timer runs out', () => {
     const g = flatGame([20, 80], [team('A', 1), team('B', 1)], { turnTime: 3 });
     toAiming(g);
