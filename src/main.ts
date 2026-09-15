@@ -10,6 +10,8 @@ const hook = {
   state: () => app.state(),
   startMatch: (config: Parameters<App['startMatch']>[0]) => app.startMatch(config),
   fastForward: (seconds: number) => app.fastForward(seconds),
+  stepFrames: (count: number, dt?: number) => app.stepFrames(count, dt),
+  setManual: (manual: boolean) => (app.manual = manual),
 };
 (window as unknown as { __allium: typeof hook }).__allium = hook;
 app.engine.onEndFrameObservable.addOnce(() => (hook.ready = true));

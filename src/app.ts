@@ -25,6 +25,8 @@ export class App {
   paused = false;
   /** Simulation time scale; tests may raise it. */
   speed = 1;
+  /** When true the render loop idles and frames only advance via stepFrames(). */
+  manual = false;
   frames = 0;
   private accumulator = 0;
   private readonly keys = new Set<string>();
@@ -113,11 +115,20 @@ export class App {
     }
   }
 
+  /** Switch to manual stepping and advance + render `count` frames with a fixed dt (deterministic capture). */
+  stepFrames(count: number, dt = 1 / 30): void {
+    this.manual = true;
+    for (let k = 0; k < count; k++) this.advance(dt);
+  }
+
   private frame(): void {
+    if (!this.manual) this.advance(Math.min(this.engine.getDeltaTime() / 1000, 0.1));
+  }
+
+  private advance(dt: number): void {
     const game = this.game;
     const world = this.world;
     if (!game || !world) return;
-    const dt = Math.min(this.engine.getDeltaTime() / 1000, 0.1);
     if (!this.paused) {
       this.accumulator += dt * this.speed;
       let steps = 0;

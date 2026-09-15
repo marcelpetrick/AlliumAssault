@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.0] — 2026-09-15
+
+### Added
+- Fixed-step frame capture mode (`window.__allium.stepFrames`) for deterministic recordings.
+
 ## [1.0.1] — 2026-09-15
 
 ### Added
