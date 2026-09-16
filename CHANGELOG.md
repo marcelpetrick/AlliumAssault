@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.6] — 2026-09-16
+
+### Fixed
+
+- Playing a Quick Match no longer overwrites the custom setup saved for the next game (review #4).
+
 ## [1.26.5] — 2026-09-16
 
 ### Fixed

@@ -159,6 +159,11 @@ test('settings persist across reloads, text size scales the UI, Reset all restor
   expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('large');
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ui-scale'))).toBe('1.25');
 
+  // Starting and leaving a Quick Match does not overwrite the saved custom setup.
+  await page.getByRole('button', { name: /Back/ }).click();
+  await page.getByRole('button', { name: /Quick Match/ }).click();
+  await waitFor(page, (s) => !s.demo, 30_000);
+
   // A fresh page load restores everything for the next game.
   await boot(page);
   expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('large');

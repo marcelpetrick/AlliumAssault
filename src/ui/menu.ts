@@ -336,6 +336,8 @@ export class Menu {
         return;
       }
       case 'start':
+        // Only the custom setup is remembered for next time; quick matches leave it alone.
+        this.persist();
         this.actions.start(structuredClone(d));
         return;
       case 'resume': {
@@ -427,10 +429,9 @@ export class Menu {
     this.showSetup();
   }
 
-  /** Remember a started match's config so "Change setup" and the next session start from it. */
+  /** Remember a started match's config so "Change setup" starts from it (in this session only). */
   setDraft(config: MatchConfig): void {
     this.draft = structuredClone(config);
-    this.persist();
   }
 
   private persist(): void {
