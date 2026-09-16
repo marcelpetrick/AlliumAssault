@@ -156,10 +156,9 @@ test('arsenal "Infinite supplies": every weapon slot shows unlimited ammo', asyn
   await page.getByRole('button', { name: /Start Battle/ }).click();
   await waitFor(page, (s) => !s.demo && s.screen === null, 30_000);
   const ammo = page.locator('.weapons .slot .slot-ammo');
-  await expect(ammo.first()).toHaveText('∞');
-  const texts = await ammo.allTextContents();
-  expect(texts.length).toBeGreaterThanOrEqual(15);
-  expect(texts.every((t) => t === '∞')).toBe(true);
+  expect(await ammo.count()).toBeGreaterThanOrEqual(15);
+  // The HUD renders on frames; poll until it shows the new match.
+  await expect.poll(async () => (await ammo.allTextContents()).every((t) => t === '∞'), { timeout: 10_000 }).toBe(true);
   expect(errors).toEqual([]);
 });
 

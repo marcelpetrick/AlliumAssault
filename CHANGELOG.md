@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.18] — 2026-09-16
+
+### Fixed
+
+- The HUD shows a new match right away; for one frame it used to show the previous match's weapon
+  ammo, which also made the infinite-supplies E2E test flaky (about one run in eight).
+
 ## [1.26.17] — 2026-09-16
 
 ### Fixed

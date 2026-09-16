@@ -91,6 +91,8 @@ export class Hud {
           `<div class="team-bar" style="--team:${t.config.color}"><span class="team-bar-name">${esc(t.config.name)}</span><div class="team-bar-track"><div class="team-bar-fill"></div></div></div>`,
       )
       .join('');
+    // Show the new match's state straight away instead of the previous match's until the next frame.
+    this.update(0);
   }
 
   setVisible(visible: boolean): void {
