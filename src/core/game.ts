@@ -106,7 +106,7 @@ export type GameEvent =
   | { type: 'splash'; x: number; y: number }
   | { type: 'jump'; buddy: number }
   | { type: 'land'; buddy: number; speed: number }
-  | { type: 'bounce'; x: number; y: number }
+  | { type: 'bounce'; x: number; y: number; speed: number }
   | { type: 'gameOver'; winner: number | null };
 
 export interface InputState {
@@ -347,7 +347,7 @@ export class Game {
               this.buddies.some((b) => b.alive && (b.id !== p.owner || p.age > 0.3) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + p.radius)
           : undefined;
       const hit = stepProjectile(this.terrain, p, dt, this.wind * WIND_ACCEL * def.windInfluence, -GRAVITY * def.gravityScale, def.restitution, hitTest);
-      if (p.bounces > bounces) this.emit({ type: 'bounce', x: p.x, y: p.y });
+      if (p.bounces > bounces) this.emit({ type: 'bounce', x: p.x, y: p.y, speed: Math.hypot(p.vx, p.vy) });
       if (def.fuse > 0) p.fuse -= dt;
       if (hit === 'terrain' || hit === 'target' || (def.fuse > 0 && p.fuse <= 0)) {
         this.removeProjectile(p);

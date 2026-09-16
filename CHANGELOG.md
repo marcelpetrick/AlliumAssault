@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.2.0] — 2026-09-16
+
+### Added
+- Charge whoosh while Space is held: rises in pitch and loudness with the charge and stops on
+  firing, pausing or losing focus.
+- Flight sounds: bazooka rockets hiss and whistle (dropping in pitch as they fall), grenades whoosh.
+- Weapon-select blip and a ticking clock during the last five seconds of a turn.
+
+### Changed
+- Grenade bounces are a clearly audible clunk scaled by the impact speed.
+
 ## [1.1.14] — 2026-09-16
 
 ### Changed

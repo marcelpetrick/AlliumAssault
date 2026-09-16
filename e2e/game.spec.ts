@@ -25,6 +25,7 @@ interface AppState {
   winner: number | null;
   terrainRevision: number;
   projectiles: number;
+  sound: { charge: boolean; flights: number };
   buddies: BuddyState[];
 }
 
@@ -116,9 +117,13 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
   await page.keyboard.press('Digit1');
   await page.keyboard.down('Space');
   await waitFor(page, (s) => (s.charge ?? 0) > 0.3, 30_000);
+  expect((await state(page)).sound.charge).toBe(true);
   await info.attach('charging', { body: await page.screenshot(), contentType: 'image/png' });
   await page.keyboard.up('Space');
   await waitFor(page, (s) => s.phase === 'retreat' || s.phase === 'settling', 20_000);
+  const afterFire = await state(page);
+  expect(afterFire.sound.charge).toBe(false);
+  if (afterFire.projectiles > 0) expect(afterFire.sound.flights).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
 

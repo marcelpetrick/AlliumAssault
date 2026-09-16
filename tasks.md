@@ -22,11 +22,12 @@ Status: ☐ open · ☑ done
 
 ## Features
 
-- ☐ **T3 — Sound** (minor)
+- ☑ **T3 — Sound** (minor)
   - Continuous sounds: charge whoosh while Space is held (pitch/volume rise with the charge,
     stops on fire, pause, focus loss), flight whistle per projectile in the air.
-  - One-shots: louder impact-scaled grenade bounce, weapon select, last-5-seconds tick, sheep
-    baa/hop, airplane, bomblet pops, crate teleport, crate pickup, heal.
+  - One-shots: louder impact-scaled grenade bounce, weapon select, last-5-seconds tick.
+  - Sheep baa/hop, airplane, bomblet pops, crate teleport, pickup and heal sounds ship with
+    their features (T4–T7).
 - ☐ **T4 — Cluster grenade** (minor)
   - Weapon bar and hotkeys generalised beyond four weapons (1–9), hidden internal weapons.
   - Red grenade, 3 s fuse, 3 per team. Explodes and releases 5 bomblets which explode on

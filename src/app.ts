@@ -1,6 +1,6 @@
 import { Engine } from '@babylonjs/core';
 import pkg from '../package.json';
-import { Audio } from './audio';
+import { Audio, type FlightSound } from './audio';
 import { Game, type GameEvent, type MatchConfig } from './core/game';
 import { WEAPON_ORDER } from './core/weapons';
 import { THEMES } from './render/themes';
@@ -33,6 +33,8 @@ export class App {
   private config: MatchConfig | null = null;
   private drag: { x: number; y: number } | null = null;
   private afterGameOver = -1;
+  /** Last whole second announced by the turn-timer tick. */
+  private lastTick = 0;
   private readonly quality: Quality;
 
   constructor(
@@ -82,7 +84,9 @@ export class App {
     this.paused = false;
     this.accumulator = 0;
     this.afterGameOver = -1;
+    this.lastTick = 0;
     this.keys.clear();
+    this.audio.silence();
     if (!demo) {
       this.config = config;
       this.menu.setDraft(config);
@@ -142,6 +146,7 @@ export class App {
       this.dispatch(game.drainEvents());
       world.update(dt);
     }
+    this.syncSound(game);
     world.render();
     this.hud.update(this.paused ? 0 : dt);
     this.frames++;
@@ -150,6 +155,20 @@ export class App {
       this.afterGameOver -= dt;
       if (this.afterGameOver < 0) this.onGameOverDelay(game);
     }
+  }
+
+  /** Continuous sounds follow the simulation state rather than one-off events. */
+  private syncSound(game: Game): void {
+    if (this.demo || this.paused) {
+      this.audio.silence();
+      return;
+    }
+    this.audio.setCharge(game.charge);
+    const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
+    this.audio.setFlights(flights);
+    const second = game.phase === 'aiming' ? Math.ceil(game.turnTimeLeft) : 0;
+    if (second !== this.lastTick && second > 0 && second <= 5) this.audio.play('tick');
+    this.lastTick = second;
   }
 
   private onGameOverDelay(game: Game): void {
@@ -189,7 +208,10 @@ export class App {
           if (e.speed > 7) this.audio.play('land', e.speed / 15);
           break;
         case 'bounce':
-          this.audio.play('bounce');
+          this.audio.play('bounce', e.speed / 12);
+          break;
+        case 'weapon':
+          if (this.game?.isHumanTurn) this.audio.play('select');
           break;
         case 'splash':
           this.audio.play('splash');
@@ -298,6 +320,7 @@ export class App {
       winner: g?.winner ?? null,
       terrainRevision: g?.terrain.revision ?? 0,
       projectiles: g?.projectiles.length ?? 0,
+      sound: this.audio.voices,
       buddies: (g?.buddies ?? []).map((b) => ({ id: b.id, name: b.name, team: b.team, hp: b.hp, alive: b.alive, x: b.body.x, y: b.body.y, aim: b.aim, facing: b.facing })),
     };
   }

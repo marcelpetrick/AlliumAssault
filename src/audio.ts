@@ -11,7 +11,28 @@ export type Sfx =
   | 'hurt'
   | 'death'
   | 'victory'
-  | 'click';
+  | 'click'
+  | 'select'
+  | 'tick';
+
+/** Something in flight that should be heard for as long as it flies. */
+export interface FlightSound {
+  id: number;
+  /** 'rocket' hisses and whistles, 'lob' only whooshes softly. */
+  kind: 'rocket' | 'lob';
+  vx: number;
+  vy: number;
+}
+
+/** A sound that keeps playing until stopped; its parameters are updated every frame. */
+interface Voice {
+  gain: GainNode;
+  filter: BiquadFilterNode | null;
+  osc: OscillatorNode | null;
+  sources: AudioScheduledSourceNode[];
+}
+
+const MAX_FLIGHT_VOICES = 6;
 
 const MUTE_KEY = 'allium.muted';
 
@@ -20,6 +41,8 @@ export class Audio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
+  private chargeVoice: Voice | null = null;
+  private readonly flightVoices = new Map<number, Voice>();
   muted: boolean;
 
   constructor() {
@@ -51,6 +74,7 @@ export class Audio {
   toggleMute(): boolean {
     this.muted = !this.muted;
     if (this.master) this.master.gain.value = this.muted ? 0 : 0.55;
+    if (this.muted) this.silence();
     try {
       localStorage.setItem(MUTE_KEY, this.muted ? '1' : '0');
     } catch {
@@ -87,7 +111,10 @@ export class Audio {
         this.tone('sine', 150 * pitch, 55, 0.12, 0.25 * i);
         break;
       case 'bounce':
-        this.tone('triangle', 520 * pitch, 300, 0.07, 0.14);
+        // A clunk you can hear: thud body plus a metallic tick, both scaled by the impact.
+        this.noise(0.09, 'lowpass', 1800, 250, 0.45 * i);
+        this.tone('triangle', 330 * pitch, 140, 0.12, 0.3 * i);
+        this.tone('square', 1250 * pitch, 900, 0.04, 0.05 * i);
         break;
       case 'splash':
         this.noise(0.7, 'bandpass', 1600, 350, 0.45);
@@ -108,7 +135,113 @@ export class Audio {
       case 'click':
         this.tone('triangle', 900, 1150, 0.05, 0.08);
         break;
+      case 'select':
+        this.tone('square', 440, 440, 0.04, 0.05);
+        this.tone('triangle', 880, 1320, 0.08, 0.1, 0.04);
+        break;
+      case 'tick':
+        this.tone('square', 1500, 1500, 0.035, 0.07);
+        break;
     }
+  }
+
+  /**
+   * Charge whoosh: plays while `level` (0..1) is not null, rising in pitch and loudness.
+   * Call every frame; null stops it.
+   */
+  setCharge(level: number | null): void {
+    if (level === null || !this.ctx || this.muted) {
+      this.stopVoice(this.chargeVoice);
+      this.chargeVoice = null;
+      return;
+    }
+    this.chargeVoice ??= this.startVoice('bandpass', 'sawtooth');
+    const v = this.chargeVoice;
+    const t = this.ctx.currentTime;
+    v.filter!.frequency.setTargetAtTime(350 + level * level * 2600, t, 0.03);
+    v.filter!.Q.setTargetAtTime(1.2 + level * 3, t, 0.05);
+    v.osc!.frequency.setTargetAtTime(70 + level * 170, t, 0.03);
+    v.gain.gain.setTargetAtTime(0.06 + level * 0.3, t, 0.03);
+  }
+
+  /** Keep one flight voice per airborne projectile; call every frame with what is flying. */
+  setFlights(flights: readonly FlightSound[]): void {
+    const live = new Set<number>();
+    if (this.ctx && !this.muted) {
+      for (const f of flights.slice(0, MAX_FLIGHT_VOICES)) {
+        live.add(f.id);
+        let v = this.flightVoices.get(f.id);
+        if (!v) {
+          v = f.kind === 'rocket' ? this.startVoice('bandpass', 'sine') : this.startVoice('bandpass', null);
+          this.flightVoices.set(f.id, v);
+        }
+        const speed = Math.hypot(f.vx, f.vy);
+        const t = this.ctx.currentTime;
+        if (f.kind === 'rocket') {
+          // Whistle drops in pitch while falling, like a cartoon bomb.
+          v.osc!.frequency.setTargetAtTime(Math.max(380, 1100 + f.vy * 22), t, 0.05);
+          v.filter!.frequency.setTargetAtTime(900 + speed * 45, t, 0.05);
+          v.gain.gain.setTargetAtTime(0.05 + Math.min(speed, 40) * 0.004, t, 0.05);
+        } else {
+          v.filter!.frequency.setTargetAtTime(250 + speed * 40, t, 0.05);
+          v.gain.gain.setTargetAtTime(Math.min(speed, 30) * 0.006, t, 0.05);
+        }
+      }
+    }
+    for (const [id, v] of this.flightVoices) {
+      if (live.has(id)) continue;
+      this.stopVoice(v);
+      this.flightVoices.delete(id);
+    }
+  }
+
+  /** Continuous sounds currently playing (for tests). */
+  get voices(): { charge: boolean; flights: number } {
+    return { charge: this.chargeVoice !== null, flights: this.flightVoices.size };
+  }
+
+  /** Stop every continuous sound (pause, mute, match change). */
+  silence(): void {
+    this.setCharge(null);
+    this.setFlights([]);
+  }
+
+  /** Filtered looping noise, optionally mixed with an oscillator, starting silent. */
+  private startVoice(filterType: BiquadFilterType, oscType: OscillatorType | null): Voice {
+    const ctx = this.ctx!;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.0001;
+    gain.connect(this.master!);
+    const filter = ctx.createBiquadFilter();
+    filter.type = filterType;
+    filter.connect(gain);
+    const noise = ctx.createBufferSource();
+    noise.buffer = this.noiseBuffer;
+    noise.loop = true;
+    noise.connect(filter);
+    noise.start(ctx.currentTime, Math.random() * 0.5);
+    const sources: AudioScheduledSourceNode[] = [noise];
+    let osc: OscillatorNode | null = null;
+    if (oscType) {
+      osc = ctx.createOscillator();
+      osc.type = oscType;
+      const oscGain = ctx.createGain();
+      oscGain.gain.value = oscType === 'sine' ? 0.5 : 0.12;
+      osc.connect(oscGain);
+      oscGain.connect(gain);
+      osc.start();
+      sources.push(osc);
+    }
+    return { gain, filter, osc, sources };
+  }
+
+  private stopVoice(v: Voice | null): void {
+    if (!v || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    v.gain.gain.cancelScheduledValues(t);
+    v.gain.gain.setTargetAtTime(0.0001, t, 0.04);
+    for (const s of v.sources) s.stop(t + 0.3);
+    setTimeout(() => v.gain.disconnect(), 400);
   }
 
   private envelope(gain: number, duration: number, delay: number): GainNode {
