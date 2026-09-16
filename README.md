@@ -4,6 +4,11 @@
 [![Release](https://img.shields.io/github/v/release/marcelpetrick/AlliumAssault)](https://github.com/marcelpetrick/AlliumAssault/releases/latest)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 
+### ▶ [Play Allium Assault in your browser](https://marcelpetrick.github.io/AlliumAssault/)
+
+No install, no account: open **https://marcelpetrick.github.io/AlliumAssault/** in a desktop
+browser and start a Quick Match.
+
 <p align="center">
   <img src="docs/screenshots/battle.gif" alt="Garlic buddies trading bazooka fire: missile flight, explosion, crater and knockback" width="100%">
 </p>
@@ -16,8 +21,9 @@
 </table>
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
-garlic buddies. Destructible islands, wind, bazookas, grenades, shotguns and a mighty garlic
-punch — rendered with real-time 3D graphics in your browser.
+garlic buddies. Destructible islands, wind, fifteen weapons from bazookas and banana bombs to
+flying sheep and a concrete mule, random crates — rendered with real-time 3D graphics in your
+browser.
 
 **Download:** grab the ready-to-host web build from the [latest release](https://github.com/marcelpetrick/AlliumAssault/releases/latest),
 unzip it and serve the folder with any static web server (e.g. `npx serve`).
@@ -25,6 +31,10 @@ unzip it and serve the folder with any static web server (e.g. `npx serve`).
 **Author:** Marcel Petrick <mail@marcelpetrick.it> · **License:** GPL-3.0-or-later · Built with AI assistance.
 
 ## Play
+
+Online: **https://marcelpetrick.github.io/AlliumAssault/** (updated with every release).
+
+Locally:
 
 ```bash
 npm install

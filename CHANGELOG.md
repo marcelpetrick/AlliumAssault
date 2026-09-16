@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.18.1] — 2026-09-16
+
+### Changed
+- README: prominent "Play in your browser" link to https://marcelpetrick.github.io/AlliumAssault/
+  at the top and in the Play section.
+
 ## [1.18.0] — 2026-09-16
 
 ### Changed

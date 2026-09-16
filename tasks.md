@@ -40,6 +40,7 @@ Status: ☐ open · ☑ done
 | T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☐ | |
 | T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
 | T31 | Comic tombstones where buddies die | ☐ | |
+| T37 | Play-in-browser link to GitHub Pages at the top of the README | ☑ | 1.18.1 |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
 | T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
