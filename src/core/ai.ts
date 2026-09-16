@@ -247,7 +247,7 @@ function flyerLaunchClear(game: Game, me: Buddy, facing: 1 | -1, aim: number): b
   const dy = Math.sin(aim);
   const f = { id: 0, owner: me.id, x: me.body.x + dx * MUZZLE_OFFSET, y: me.body.y + dy * MUZZLE_OFFSET, angle: Math.atan2(dy, dx), age: 0 };
   for (let t = 0; t < FLYER_CLEARANCE_TIME; t += 1 / 30) {
-    if (stepFlyer(game.terrain, f, 1 / 30, 0, () => false) !== 'none') return false;
+    if (stepFlyer(game.terrain, f, 1 / 30, { x: 0, y: 0 }, () => false) !== 'none') return false;
   }
   return true;
 }
@@ -273,6 +273,11 @@ function lineOfSight(game: Game, me: Buddy, target: Buddy): boolean {
   }
   return true;
 }
+
+/** Horizontal distance from the target at which a steered flying sheep starts its dive. */
+const FLYER_APPROACH = 6;
+/** Height above the highest ground on the way that a cruising flying sheep keeps. */
+const FLYER_CLEARANCE = 3;
 
 /** Seconds of straight flight a launch must survive: about the blast radius plus a margin. */
 const FLYER_CLEARANCE_TIME = (WEAPONS.flysheep.radius + 2) / FLYER_SPEED;
@@ -324,12 +329,25 @@ export class AiDriver {
     const dx = target.body.x - f.x;
     const dy = target.body.y - f.y;
     if (Math.hypot(dx, dy) < 1.5) return game.pressFire();
-    // Stay high until nearly above the target so hills in between do not catch the sheep.
-    const aimY = Math.abs(dx) > 6 ? Math.max(target.body.y, f.y) + 4 - f.y : dy;
-    const wanted = Math.atan2(aimY, dx);
-    const diff = Math.atan2(Math.sin(wanted - f.angle), Math.cos(wanted - f.angle));
-    if (diff > 0.05) game.input.left = true;
-    else if (diff < -0.05) game.input.right = true;
+    const input = game.input;
+    if (Math.abs(dx) > FLYER_APPROACH) {
+      // Cruise: head for the target while keeping clear of the highest ground on the way.
+      input.right = dx > 0;
+      input.left = dx < 0;
+      let cruise = target.body.y;
+      for (let x = Math.min(f.x, target.body.x); x <= Math.max(f.x, target.body.x); x += 1) cruise = Math.max(cruise, groundBelow(game.terrain, x));
+      cruise += FLYER_CLEARANCE;
+      input.up = f.y < cruise;
+      input.down = f.y > cruise + 2;
+      return;
+    }
+    // Final approach: press the arrow keys (one or two) closest to the direction of the target.
+    const len = Math.hypot(dx, dy);
+    const axis = Math.sin(Math.PI / 8);
+    input.right = dx / len > axis;
+    input.left = dx / len < -axis;
+    input.up = dy / len > axis;
+    input.down = dy / len < -axis;
   }
 
   update(game: Game, dt: number): void {

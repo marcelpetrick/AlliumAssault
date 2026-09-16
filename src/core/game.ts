@@ -607,8 +607,9 @@ export class Game {
   private stepFlyer(dt: number): void {
     const f = this.flyer;
     if (!f) return;
-    // ← turns counter-clockwise, → clockwise.
-    const steer = this.phase === 'guiding' ? Number(this.input.left) - Number(this.input.right) : 0;
+    // The arrow keys point where the sheep should fly, relative to the screen.
+    const i = this.input;
+    const steer = this.phase === 'guiding' ? { x: Number(i.right) - Number(i.left), y: Number(i.up) - Number(i.down) } : { x: 0, y: 0 };
     const result = stepFlyer(this.terrain, f, dt, steer, (x, y) =>
       this.buddies.some((b) => b.alive && (b.id !== f.owner || f.age > 0.4) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + 0.3),
     );

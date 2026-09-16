@@ -183,7 +183,7 @@ export class Hud {
           ? 'Burning through the rock… 🔥'
         : g.phase === 'guiding'
           ? g.flyer
-            ? '← → steer the flying sheep · Space to blow it up! 🦸'
+            ? 'Arrow keys steer the flying sheep · Space to blow it up! 🦸'
             : 'Space to blow up the sheep! 🐑'
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'

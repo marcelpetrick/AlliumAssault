@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.18.0] — 2026-09-16
+
+### Changed
+- Flying Sheep steering: all four arrow keys steer it relative to the screen for the whole flight;
+  it turns towards the pressed direction (diagonals too) and holds that course when released.
+  It flies slower (9 units/s) with a 15 s fuse so there is time to steer around obstacles.
+- The AI steers with the same arrow keys, cruising above the terrain before diving onto its
+  target.
+- Unit and E2E tests steer through several directions in one flight.
+
 ## [1.17.8] — 2026-09-16
 
 ### Changed

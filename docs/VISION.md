@@ -48,7 +48,7 @@ Fifteen weapons. *Special* weapons can be restricted to crates with the arsenal 
 | Minigun (special) | 1 | 14-bullet burst that shoves the victim far |
 | Holy Garlic Grenade (special) | 1 | Explodes 1.6 s after coming to rest, huge blast |
 | Banana Bomb (special) | 1 | Bursts into five bouncing bananas that explode in turn |
-| Flying Sheep (special) | 1 | Steerable with ← →, Space detonates |
+| Flying Sheep (special) | 1 | Steered with the arrow keys for the whole flight, Space detonates |
 | Concrete Mule (special) | 1 | Click a target: falls from the sky and smashes down six times |
 
 ## Crates
@@ -70,7 +70,7 @@ Following the last control decision made in the 2D prototype:
 | Space (hold/release) | Charge and fire; instant weapons fire on press; Space again detonates sheep |
 | 1–9, 0, Shift+1–5 / Tab | Select weapon (or click the weapon bar) |
 | Click on the map | Call the air strike or concrete mule |
-| ← / → while a flying sheep flies | Steer it |
+| Arrow keys while a flying sheep flies | Steer it towards that direction |
 | Mouse wheel / drag | Zoom / pan camera |
 | Esc | Pause menu |
 

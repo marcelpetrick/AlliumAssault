@@ -356,27 +356,39 @@ describe('match flow', () => {
     expect(g.buddies[1].hp).toBeLessThan(60);
   });
 
-  it('flying sheep flies straight, steers with the arrow keys and explodes on impact', () => {
-    const g = flatGame([30, 100], [team('A', 1), team('B', 1)]);
-    for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(60, y, 2);
+  it('flying sheep flies straight, steers with the arrow keys the whole flight and explodes on impact', () => {
+    const g = flatGame([30, 110], [team('A', 1), team('B', 1)]);
+    for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(90, y, 2);
     toAiming(g);
     const me = g.buddies[0];
     me.facing = 1;
-    me.aim = 0.2;
+    me.aim = 1.2;
     g.selectWeapon('flysheep');
     g.pressFire();
     expect(g.phase).toBe('guiding');
     g.simulate(0.5);
-    const straight = { ...g.flyer! };
-    g.input.left = true;
-    g.simulate(0.3);
-    expect(g.flyer!.angle).toBeGreaterThan(straight.angle + 0.5);
-    g.input.left = false;
-    g.input.right = true;
-    g.simulate(0.3);
-    g.input.right = false;
+    const straight = g.flyer!.angle;
+    g.simulate(0.5);
+    expect(g.flyer!.angle).toBeCloseTo(straight, 5);
+    // Each held arrow turns the sheep towards that screen direction and holds it there.
+    const hold = (keys: Partial<typeof g.input>, seconds: number) => {
+      Object.assign(g.input, { left: false, right: false, up: false, down: false }, keys);
+      g.simulate(seconds);
+      Object.assign(g.input, { left: false, right: false, up: false, down: false });
+    };
+    const heading = () => ({ x: Math.cos(g.flyer!.angle), y: Math.sin(g.flyer!.angle) });
+    hold({ right: true }, 1);
+    expect(heading().x).toBeGreaterThan(0.99);
+    hold({ up: true }, 1);
+    expect(heading().y).toBeGreaterThan(0.99);
+    hold({ right: true, down: true }, 1.2);
+    expect(heading().x).toBeGreaterThan(0.65);
+    expect(heading().y).toBeLessThan(-0.65);
+    hold({ right: true }, 0.8);
+    expect(heading().x).toBeGreaterThan(0.99);
+    expect(g.phase).toBe('guiding');
     const revision = g.terrain.revision;
-    runUntil(g, () => g.phase !== 'guiding', 6);
+    runUntil(g, () => g.phase !== 'guiding', 10);
     expect(g.flyer).toBeNull();
     expect(g.terrain.revision).toBeGreaterThan(revision);
     expect(g.phase).toBe('retreat');

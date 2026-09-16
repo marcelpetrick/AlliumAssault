@@ -35,7 +35,7 @@ Status: ☐ open · ☑ done
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☑ | 1.16.0 |
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
-| T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly | ☐ | |
+| T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly | ☑ | 1.18.0 |
 | T28 | Louder sound effects | ☐ | |
 | T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☐ | |
 | T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
@@ -193,7 +193,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   1280 px and wraps on narrow screens. Hotkeys 1–9 and 0 for the first ten, Shift+1–5 for the
   rest, Tab cycles, clicks work for all.
 
-### T27 — Flying Sheep steering ☐
+### T27 — Flying Sheep steering ☑
 - Reproduced in Chrome: ← → did steer repeatedly, but the sheep flew so fast (13 units/s) that it
   usually hit something within two seconds, the controls turned it relative to its own heading,
   and ↑ ↓ did nothing.
@@ -201,6 +201,8 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   direction, diagonals included) for the whole flight until it explodes; slower flight
   (9 units/s) and a longer fuse (15 s) so there is time to steer. E2E test steering in several
   directions one after another.
+- The AI presses arrow keys too: it cruises above the highest ground towards its target (↑ + →
+  climbs at 45°) and dives in the last 6 units.
 
 ### T28 — Louder sounds ☐
 - Raise the master volume and the quieter effects (footsteps, bounces, flight voices) so the game
