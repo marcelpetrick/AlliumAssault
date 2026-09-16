@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.17] — 2026-09-16
+
+### Fixed
+
+- CI now really runs actionlint on the workflows; the job described in 1.26.0 had not been added.
+
 ## [1.26.16] — 2026-09-16
 
 ### Changed
