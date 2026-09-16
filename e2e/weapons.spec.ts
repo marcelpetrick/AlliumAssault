@@ -195,6 +195,34 @@ test('holy garlic grenade: comes to rest, sings, then an enormous blast', async 
   expect(errors).toEqual([]);
 });
 
+test('banana bomb: five bananas scatter and explode one after another', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => window.__allium.app.game!.selectWeapon('banana'));
+  await aim(page, 1.1, 1);
+  const before = await state(page);
+  await chargeAndRelease(page, 0.05);
+  await waitFor(page, (s) => s.projectiles === 1, 10_000);
+  const bananas = await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 5; k++) {
+      app.fastForward(1 / 60);
+      const n = app.game!.projectiles.filter((p) => p.weapon === 'bananalet').length;
+      if (n) return n;
+    }
+    return 0;
+  });
+  expect(bananas).toBe(5);
+  await page.evaluate(() => window.__allium.stepFrames(4, 1 / 30));
+  await info.attach('bananas', { body: await page.screenshot(), contentType: 'image/png' });
+  await page.evaluate(() => window.__allium.setManual(false));
+  await fastForward(page, 4);
+  const after = await state(page);
+  expect(after.projectiles).toBe(0);
+  expect(played(after, 'explosion') - played(before, 'explosion')).toBeGreaterThanOrEqual(4);
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

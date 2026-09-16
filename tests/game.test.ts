@@ -283,6 +283,29 @@ describe('match flow', () => {
     expect(g.projectiles.length).toBe(0);
   });
 
+  it('banana bomb bursts into five bouncing bananas that explode one by one', () => {
+    const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('banana');
+    g.buddies[0].aim = 1;
+    g.pressFire();
+    g.simulate(0.2);
+    g.releaseFire();
+    const booms: number[] = [];
+    let fragments = 0;
+    let bounced = false;
+    runUntil(g, () => {
+      fragments = Math.max(fragments, g.projectiles.filter((p) => p.weapon === 'bananalet').length);
+      bounced ||= g.projectiles.some((p) => p.weapon === 'bananalet' && p.bounces > 0);
+      for (const e of g.drainEvents()) if (e.type === 'explosion') booms.push(g.time);
+      return booms.length >= 6;
+    }, 10);
+    expect(fragments).toBe(5);
+    expect(bounced).toBe(true);
+    expect(booms).toHaveLength(6);
+    expect(booms[5] - booms[1]).toBeGreaterThan(0.7);
+  });
+
   it('a bomblet deals 10 damage on a direct hit', () => {
     const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
     toAiming(g);

@@ -90,6 +90,8 @@ export class Effects {
       bomb: mat('fxBomb', '#2f4a2a'),
       cluster: mat('fxCluster', '#d42a24', 0.15),
       gold: mat('fxGold', '#f2c230', 0.45),
+      banana: mat('fxBanana', '#ffd83a', 0.25),
+      bananaTip: mat('fxBananaTip', '#5a4020'),
       metal: mat('fxMetal', '#9aa3ad'),
       wool: mat('fxWool', '#f4f1ea', 0.25),
       crateWood: mat('fxCrateWood', '#b07a45', 0.08),
@@ -496,6 +498,10 @@ export class Effects {
         return this.createGrenade(this.materials.cluster);
       case 'holy':
         return this.createHolyGrenade();
+      case 'banana':
+        return this.createBanana(1.4);
+      case 'bananalet':
+        return this.createBanana(0.9);
       case 'bomblet':
         return this.createBomblet();
       default:
@@ -559,6 +565,27 @@ export class Effects {
       }),
     );
     return { id, node, body, legs };
+  }
+
+  /** Curved, tapering banana with dark tips. */
+  private createBanana(size: number): ProjectileView {
+    const node = new TransformNode('banana', this.scene);
+    const path: Vector3[] = [];
+    for (let k = 0; k <= 12; k++) {
+      const a = -0.9 + (k / 12) * 1.8;
+      path.push(new Vector3(Math.sin(a) * 0.32, -Math.cos(a) * 0.32 + 0.22, 0));
+    }
+    const body = MeshBuilder.CreateTube('bananaBody', { path, radiusFunction: (i) => 0.035 + Math.sin((i / 12) * Math.PI) * 0.07, tessellation: 10, cap: Mesh.CAP_ALL }, this.scene);
+    body.material = this.materials.banana;
+    body.parent = node;
+    for (const end of [path[0], path[12]]) {
+      const tip = MeshBuilder.CreateSphere('bananaTip', { diameter: 0.07, segments: 6 }, this.scene);
+      tip.material = this.materials.bananaTip;
+      tip.position.copyFrom(end);
+      tip.parent = node;
+    }
+    node.scaling.setAll(size);
+    return { node, trail: null };
   }
 
   private createHolyGrenade(): ProjectileView {

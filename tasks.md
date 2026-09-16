@@ -28,7 +28,7 @@ Status: ☐ open · ☑ done
 | T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☑ | 1.9.0 |
 | T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☐ | |
 | T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☑ | 1.12.0 |
-| T20 | Banana Bomb: bursts into bouncing explosive bananas | ☐ | |
+| T20 | Banana Bomb: bursts into bouncing explosive bananas | ☑ | 1.13.0 |
 | T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☐ | |
 | T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☐ | |
 | T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
@@ -149,7 +149,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   "Hallelujah" chord and explodes 1.6 s later — enormous blast (radius 7, 100 damage). 1 per team.
 - Core: `restFuse` on the weapon definition; golden grenade model with a cross; choir sound.
 
-### T20 — Banana Bomb ☐
+### T20 — Banana Bomb ☑
 - Thrown with a 3 s fuse; bursts into five bananas that bounce around and explode after
   staggered short fuses (30 damage each), wrecking a large area. 1 per team.
 - Core: cluster fragments with bounce and their own fuses; yellow banana models.

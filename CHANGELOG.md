@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.13.0] — 2026-09-16
+
+### Added
+- Banana Bomb (1 per team): thrown with a 3 second fuse (40 damage), then bursts into five
+  bananas that bounce around and explode one after another (30 damage each). Curved banana models.
+- The AI throws banana bombs like the other cluster weapons.
+- Unit and E2E tests.
+
+### Changed
+- Cluster fragments can stagger their fuses.
+
 ## [1.12.0] — 2026-09-16
 
 ### Added

@@ -15,6 +15,7 @@ export class BuddyKit {
   readonly wood: StandardMaterial;
   readonly glove: StandardMaterial;
   readonly bomb: StandardMaterial;
+  readonly bananaSkin: StandardMaterial;
 
   constructor(readonly scene: Scene) {
     const mat = (name: string, color: string, spec = 0.2, emissive = 0) => {
@@ -35,6 +36,7 @@ export class BuddyKit {
     this.wood = mat('wood', '#7a4e2c', 0.1);
     this.glove = mat('glove', '#e0322f', 0.5, 0.1);
     this.bomb = mat('bomb', '#2f4a2a', 0.6);
+    this.bananaSkin = mat('bananaSkin', '#ffd83a', 0.2, 0.15);
   }
 
   teamMaterial(color: Color3): StandardMaterial {
@@ -220,6 +222,9 @@ export class BuddyView {
       holy: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateSphere('holyBall', { diameter: 0.44, segments: 12 }, scene), kit.glove, [0.62, 0, 0], false],
         [MeshBuilder.CreateBox('holyCross', { width: 0.05, height: 0.24, depth: 0.05 }, scene), kit.eyeWhite, [0.62, 0.32, 0], false],
+      ]),
+      banana: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCapsule('heldBanana', { height: 0.6, radius: 0.1, tessellation: 10 }, scene), kit.bananaSkin, [0.6, 0.05, 0], true],
       ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],

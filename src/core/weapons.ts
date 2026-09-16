@@ -1,4 +1,4 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch';
 
 export interface WeaponDef {
@@ -38,7 +38,13 @@ export interface WeaponDef {
   /** Air strikes: bombs dropped around the clicked target. */
   strike?: { weapon: WeaponId; count: number; spacing: number };
   /** Fragments released when this projectile explodes. */
-  cluster?: { weapon: WeaponId; count: number; speed: number };
+  cluster?: {
+    weapon: WeaponId;
+    count: number;
+    speed: number;
+    /** Extra fuse seconds per fragment, so they go off one by one. */
+    stagger?: number;
+  };
 }
 
 export const WEAPONS: Record<WeaponId, WeaponDef> = {
@@ -210,6 +216,47 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 24,
     range: 0,
   },
+  banana: {
+    id: 'banana',
+    name: 'Banana Bomb',
+    icon: '🍌',
+    blurb: '3 second fuse, then five explosive bananas bounce everywhere and go off one by one.',
+    kind: 'projectile',
+    ammo: 1,
+    charge: true,
+    shots: 1,
+    minSpeed: 6,
+    maxSpeed: 30,
+    windInfluence: 0.3,
+    gravityScale: 1,
+    restitution: 0.5,
+    fuse: 3,
+    radius: 3,
+    damage: 40,
+    force: 13,
+    range: 0,
+    cluster: { weapon: 'bananalet', count: 5, speed: 12, stagger: 0.25 },
+  },
+  bananalet: {
+    id: 'bananalet',
+    name: 'Banana',
+    icon: '🍌',
+    blurb: 'Banana bomb fragment; bounces, then explodes.',
+    kind: 'projectile',
+    ammo: 0,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0.2,
+    gravityScale: 1,
+    restitution: 0.5,
+    fuse: 1.4,
+    radius: 2.8,
+    damage: 30,
+    force: 11,
+    range: 0,
+  },
   bomblet: {
     id: 'bomblet',
     name: 'Bomblet',
@@ -338,5 +385,5 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

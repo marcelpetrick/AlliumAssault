@@ -114,7 +114,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     score: -Infinity,
   };
 
-  for (const weapon of ['bazooka', 'grenade', 'cluster', 'holy'] as const) {
+  for (const weapon of ['bazooka', 'grenade', 'cluster', 'holy', 'banana'] as const) {
     if (!allowed(weapon)) continue;
     // Spending limited ammo needs a clearly better shot than an unlimited weapon.
     const cost = team.ammo[weapon] === Infinity ? 0 : 12;

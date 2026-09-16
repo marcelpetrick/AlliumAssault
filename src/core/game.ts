@@ -733,7 +733,8 @@ export class Game {
       const spread = count > 1 ? k / (count - 1) - 0.5 : 0;
       const angle = Math.PI / 2 + spread * 1.9;
       const v = speed * (0.85 + 0.3 * ((k * 7) % count) / count);
-      this.spawnProjectile(cluster.weapon, from.x, from.y + 0.3, Math.cos(angle) * v, Math.sin(angle) * v, from.owner);
+      const p = this.spawnProjectile(cluster.weapon, from.x, from.y + 0.3, Math.cos(angle) * v, Math.sin(angle) * v, from.owner);
+      if (p.fuse > 0) p.fuse += k * (cluster.stagger ?? 0);
     }
   }
 
