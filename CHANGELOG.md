@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.16] — 2026-09-16
+
+### Changed
+
+- Release v1.26.16: plan marks the batch review and the publish step as done. This release brings
+  the drill, napalm strike, tombstones, Candy Shop and Frosty Peaks sceneries, infinite supplies,
+  text size and remembered settings, the about screen, continuous flying sheep steering, louder
+  sound, crate camera pans, SPDX/REUSE compliance, the linter pipeline and the review fixes.
+
 ## [1.26.15] — 2026-09-16
 
 ### Changed
