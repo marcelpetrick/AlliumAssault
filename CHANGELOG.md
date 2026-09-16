@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.1] — 2026-09-16
+
+### Changed
+
+- README badges: play in browser, CI, GitHub Pages deployment, release, license, REUSE compliance,
+  and live versions of Babylon.js, TypeScript, Vite, Vitest and Playwright read from package.json,
+  plus Node.js.
+
 ## [1.26.0] — 2026-09-16
 
 ### Added

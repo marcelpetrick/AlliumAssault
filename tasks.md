@@ -43,7 +43,7 @@ Status: ☐ open · ☑ done
 | T37 | Play-in-browser link to GitHub Pages at the top of the README                                             | ☑      | 1.18.1        |
 | T32 | Review and update all documents and Markdown files, including the architecture                            | ☐      |               |
 | T33 | New screenshots and screen recordings for the README                                                      | ☐      |               |
-| T34 | More README badges, like Cullendula                                                                       | ☐      |               |
+| T34 | More README badges, like Cullendula                                                                       | ☑      | 1.26.1        |
 | T35 | Crate drops: teleport sound and a short camera pan to the new crate                                       | ☑      | 1.18.5        |
 | T36 | Banana bomb throw range reported as tiny                                                                  | ☐      |               |
 | T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☑      | 1.21.0        |

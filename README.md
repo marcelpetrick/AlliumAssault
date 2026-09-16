@@ -1,8 +1,17 @@
 # 🧄 Allium Assault
 
-[![CI](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml/badge.svg)](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml)
+[![Play in browser](https://img.shields.io/badge/play-in%20your%20browser-ff6f91?logo=googlechrome&logoColor=white)](https://marcelpetrick.github.io/AlliumAssault/)
+[![CI](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml)
+[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/marcelpetrick/AlliumAssault/pages.yml?label=GitHub%20Pages&logo=github)](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/pages.yml)
 [![Release](https://img.shields.io/github/v/release/marcelpetrick/AlliumAssault)](https://github.com/marcelpetrick/AlliumAssault/releases/latest)
-[![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+[![License: GPL v3 or later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
+[![REUSE 3.3 compliant](https://img.shields.io/badge/REUSE-3.3%20compliant-green.svg)](https://reuse.software/)
+[![Babylon.js](https://img.shields.io/github/package-json/dependency-version/marcelpetrick/AlliumAssault/@babylonjs/core?label=Babylon.js&color=bb464b)](https://www.babylonjs.com/)
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/marcelpetrick/AlliumAssault/dev/typescript?label=TypeScript&logo=typescript&logoColor=white&color=3178c6)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/github/package-json/dependency-version/marcelpetrick/AlliumAssault/dev/vite?label=Vite&logo=vite&logoColor=white&color=646cff)](https://vite.dev/)
+[![Vitest](https://img.shields.io/github/package-json/dependency-version/marcelpetrick/AlliumAssault/dev/vitest?label=Vitest&logo=vitest&logoColor=white&color=6e9f18)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/github/package-json/dependency-version/marcelpetrick/AlliumAssault/dev/@playwright/test?label=Playwright&logo=playwright&color=2ead33)](https://playwright.dev/)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-5fa04e.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
 ## ▶ [Play Allium Assault in your browser](https://marcelpetrick.github.io/AlliumAssault/)
 
