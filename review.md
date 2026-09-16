@@ -37,6 +37,19 @@ published state before this work, v1.1.11 (`dfafe26`). `origin/master` has since
     With `arsenal: 'crates'` special weapons start empty, but only the setup screen (src/ui/menu.ts:290) makes sure crates are enabled. Any other MatchConfig source (tests, test hook, a future preset) can build a match where special weapons can never appear. Enforce the invariant in Game (or in one config normaliser) rather than in the menu.
 ```
 
+## Resolution (1.17.4)
+
+| # | Status |
+|---|---|
+| 1 | **Fixed (mostly):** limited-ammo projectile weapons search a coarser grid; a full-arsenal decision dropped from 69 ms to 48 ms (bazooka + grenade alone: 34 ms). Spreading the search over several frames stays open if needed. |
+| 2 | **Partly fixed:** AI candidates now come from `WeaponDef.kind` (projectile, strike, melee), so new weapons of those kinds are used automatically. Sounds and models are still keyed by id. |
+| 3 | **Open:** design debt; worth doing before the next timed weapon. |
+| 4 | **Fixed:** the AI only launches the flying sheep along a path that clears the blast radius; test added. |
+| 5 | **Fixed at release:** Pages is enabled with the GitHub Actions source before the release tag is pushed. |
+| 6 | **Fixed:** the clock ticks, and the HUD timer turns urgent, while guiding and torching too; E2E test added. |
+| 7 | **Fixed:** the forced strike zoom is only undone if the player did not zoom meanwhile. |
+| 8 | **Fixed:** the game drops crates at the default chance when the arsenal is crates-only and no crate chance is set; test added. |
+
 ## Verdict
 
 Every feature works and is covered by unit and Chrome E2E tests; nothing here corrupts matches.

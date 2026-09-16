@@ -142,7 +142,7 @@ export class Hud {
     this.text('.timer-caption', retreat ? 'retreat' : 'turn');
     const progress = this.el.querySelector('.progress') as SVGCircleElement;
     progress.style.strokeDashoffset = String(RING * (1 - Math.max(0, seconds) / total));
-    this.el.querySelector('.timer')!.classList.toggle('urgent', (g.phase === 'aiming' || g.phase === 'guiding') && seconds <= 5);
+    this.el.querySelector('.timer')!.classList.toggle('urgent', (g.phase === 'aiming' || g.phase === 'guiding' || g.phase === 'torching') && seconds <= 5);
     this.el.querySelector('.timer')!.classList.toggle('retreat', retreat);
     const fill = this.el.querySelector('.wind-fill') as HTMLElement;
     fill.style.width = `${Math.abs(g.wind) * 50}%`;

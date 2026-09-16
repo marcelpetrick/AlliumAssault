@@ -26,7 +26,7 @@ import {
 import { clamp, lerp, type Point } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
-import { CRATE_BLAST, CRATE_HEAL, MAX_CRATES, rollCrate, type Crate } from './crates';
+import { CRATE_BLAST, CRATE_HEAL, DEFAULT_CRATE_CHANCE, MAX_CRATES, rollCrate, type Crate } from './crates';
 import { stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { PLANE_SPEED, planStrike } from './strike';
@@ -512,7 +512,8 @@ export class Game {
 
   /** At a turn start, maybe teleport a new crate onto a free land spot. */
   private maybeDropCrate(): void {
-    const chance = this.config.crates ?? 0;
+    // Special weapons must be findable when the arsenal restricts them to crates.
+    const chance = this.config.crates || (this.config.arsenal === 'crates' ? DEFAULT_CRATE_CHANCE : 0);
     if (chance <= 0 || this.turn <= 1 || this.crates.length >= MAX_CRATES || this.crateRng() >= chance) return;
     const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body)];
     const crate = rollCrate(this.terrain, this.crateRng, this.nextId++, occupied);

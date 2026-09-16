@@ -52,8 +52,8 @@ export class World {
   private manualUntil = -1;
   /** Keep the camera on a fresh explosion for a moment, like Worms does. */
   private hold: { x: number; y: number; until: number } | null = null;
-  /** Temporary zoom-out while an air strike plays; restored afterwards. */
-  private strikeView: { distance: number; until: number } | null = null;
+  /** Temporary zoom-out while a strike plays: the zoom to restore and the zoom that was forced. */
+  private strikeView: { distance: number; forced: number; until: number } | null = null;
   /** World point under the mouse, for the air strike cursor. */
   private pointer: { x: number; y: number } | null = null;
   private shakeAmount = 0;
@@ -180,8 +180,9 @@ export class World {
         case 'airstrike': {
           if (e.plane) this.effects.plane(e.startX, e.altitude, e.dir, e.speed);
           this.hold = { x: e.target, y: e.ground + (e.altitude - e.ground) * 0.3, until: this.time + 4.5 };
-          if (!this.strikeView) this.strikeView = { distance: this.goalDistance, until: this.time + 4.5 };
+          const previous = this.strikeView?.distance ?? this.goalDistance;
           this.goalDistance = Math.max(this.goalDistance, 44);
+          this.strikeView = { distance: previous, forced: this.goalDistance, until: this.time + 4.5 };
           break;
         }
         case 'crateSpawn':
@@ -223,7 +224,8 @@ export class World {
     const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
     this.effects.setStrikeCursor(targeting ? this.pointer : null, this.time);
     if (this.strikeView && this.time > this.strikeView.until) {
-      this.goalDistance = this.strikeView.distance;
+      // Only undo the forced zoom; if the player zoomed in the meantime, keep their choice.
+      if (this.goalDistance === this.strikeView.forced) this.goalDistance = this.strikeView.distance;
       this.strikeView = null;
     }
     this.effects.updateAim(g, this.time);

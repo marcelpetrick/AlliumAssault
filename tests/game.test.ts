@@ -547,6 +547,14 @@ describe('crates', () => {
     expect(g.weapon).toBe('sheep');
     expect(flatGame([20, 100], [team('A', 1), team('B', 1)]).teams[0].ammo.sheep).toBe(1);
     expect(CRATE_WEAPONS).toEqual(SPECIAL_WEAPONS);
+
+    // Even without a crate setting, crates-only special weapons keep crates dropping.
+    const noCrates = flatGame([20, 100], [team('A', 1), team('B', 1)], { arsenal: 'crates', turnTime: 1 });
+    for (let k = 0; k < 12; k++) {
+      noCrates.skipTurn();
+      runUntil(noCrates, () => noCrates.phase === 'aiming', 20);
+    }
+    expect(noCrates.crates.length).toBeGreaterThan(0);
     expect(SPECIAL_WEAPONS.length).toBeGreaterThanOrEqual(9);
   });
 
@@ -597,6 +605,19 @@ describe('AI', () => {
     runUntil(g, () => g.phase !== 'guiding', 12);
     expect(g.buddies[1].hp).toBeLessThan(60);
     expect(g.buddies[0].hp).toBe(100);
+  });
+
+  it('never launches a flying sheep into the rock right around it', () => {
+    const setup = (ceiling: boolean) => {
+      const g = flatGame([30, 60], [team('A', 1, 'ai'), team('B', 1)]);
+      // A low ceiling over the AI buddy blocks every launch angle.
+      if (ceiling) for (let x = 18; x <= 42; x += 1) g.terrain.addDisc(x, 23.5, 1.2);
+      onlyWeapon(g, 0, 'flysheep');
+      runUntil(g, () => g.phase === 'aiming', 5);
+      return planAttack(g, g.buddies[0], 'hard', mulberry32(3));
+    };
+    expect(setup(false).weapon).toBe('flysheep');
+    expect(setup(true).weapon).not.toBe('flysheep');
   });
 
   it('calls an air strike onto an enemy', () => {

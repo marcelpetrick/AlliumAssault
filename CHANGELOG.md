@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.4] — 2026-09-16
+
+### Fixed
+- AI thinking is faster with the full arsenal: limited-ammo grenades are searched on a coarser
+  grid (69 ms → 48 ms per decision in the benchmark), and projectile, strike and melee candidates
+  come from the weapon table, so new weapons of those kinds are used automatically.
+- The AI no longer launches the flying sheep into rock right next to its own buddy.
+- The last-seconds tick and urgent timer also run while guiding a sheep or torching.
+- The camera keeps the player's zoom if they zoomed during a strike.
+- Matches with a crates-only arsenal always drop crates, even without a crate setting.
+
 ## [1.17.3] — 2026-09-16
 
 ### Added

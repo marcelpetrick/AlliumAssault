@@ -6,6 +6,8 @@ import { SPECIAL_WEAPONS, type WeaponId } from './weapons';
 export const CRATE_RADIUS = 0.45;
 export const MAX_CRATES = 4;
 export const CRATE_HEAL = 25;
+/** Crate chance used when special weapons can only come from crates but none was configured. */
+export const DEFAULT_CRATE_CHANCE = 0.35;
 /** Weapons a weapon crate can contain: every special weapon. */
 export const CRATE_WEAPONS: readonly WeaponId[] = SPECIAL_WEAPONS;
 /** Share of crates that are health crates. */

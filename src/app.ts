@@ -186,7 +186,8 @@ export class App {
     } else {
       this.lastStep = null;
     }
-    const second = game.phase === 'aiming' ? Math.ceil(game.turnTimeLeft) : 0;
+    const counting = game.phase === 'aiming' || game.phase === 'guiding' || game.phase === 'torching';
+    const second = counting ? Math.ceil(game.turnTimeLeft) : 0;
     if (second !== this.lastTick && second > 0 && second <= 5) this.audio.play('tick');
     this.lastTick = second;
   }

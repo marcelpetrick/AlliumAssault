@@ -1,3 +1,4 @@
+import { DEFAULT_CRATE_CHANCE } from '../core/crates';
 import type { AiLevel, Arsenal, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { shuffle } from '../core/rng';
 import { THEME_IDS } from '../render/themes';
@@ -22,7 +23,7 @@ export const ARSENAL_OPTIONS: { label: string; value: Arsenal }[] = [
 ];
 export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },
-  { label: 'Normal', value: 0.35 },
+  { label: 'Normal', value: DEFAULT_CRATE_CHANCE },
   { label: 'Lots', value: 0.7 },
 ];
 

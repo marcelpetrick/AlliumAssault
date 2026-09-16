@@ -50,8 +50,19 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
   await page.evaluate(() => (window.__allium.app.game!.turnTimeLeft = 4.2));
   await waitFor(page, (s) => (s.sound.played as Record<string, number>).tick >= 1, 30_000);
 
-  await page.evaluate(() => window.__allium.app.game!.skipTurn());
-  await waitFor(page, (s) => s.turn === 2 && ((s.sound.played as Record<string, number>).turn ?? 0) >= 1, 30_000);
+  // The clock keeps ticking while a sheep is being guided.
+  const ticks = played(await state(page), 'tick');
+  await select(page, '6', 'sheep');
+  await page.evaluate(() => (window.__allium.app.game!.turnTimeLeft = 30));
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.phase === 'guiding', 10_000);
+  await page.evaluate(() => (window.__allium.app.game!.turnTimeLeft = 3.2));
+  await waitForSound(page, 'tick', ticks + 1);
+  await page.keyboard.press('Space');
+
+  // After the blast and retreat the next turn starts with its chime.
+  await fastForward(page, 12);
+  await waitFor(page, (s) => s.turn >= 2 && ((s.sound.played as Record<string, number>).turn ?? 0) >= 1, 30_000);
 
   await page.keyboard.press('KeyM');
   const muted = await state(page);

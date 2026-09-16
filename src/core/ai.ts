@@ -4,9 +4,10 @@ import { clamp, lerp } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
 import type { Crate } from './crates';
+import { FLYER_SPEED, stepFlyer } from './flyer';
 import { releaseSheep, stepSheep } from './sheep';
 import { groundBelow } from './strike';
-import { WEAPONS, type WeaponDef, type WeaponId } from './weapons';
+import { WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export interface AttackPlan {
   weapon: WeaponId;
@@ -114,14 +115,17 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     score: -Infinity,
   };
 
-  for (const weapon of ['bazooka', 'grenade', 'cluster', 'holy', 'banana'] as const) {
+  for (const weapon of WEAPON_ORDER.filter((id) => WEAPONS[id].kind === 'projectile')) {
     if (!allowed(weapon)) continue;
     // Spending limited ammo needs a clearly better shot than an unlimited weapon.
-    const cost = team.ammo[weapon] === Infinity ? 0 : 12;
+    const limited = team.ammo[weapon] !== Infinity;
+    const cost = limited ? 12 : 0;
+    // Limited weapons are a rare pick, so search them on a coarser grid to keep thinking fast.
+    const stride = limited && !only ? 2 : 1;
     for (const facing of [1, -1] as const) {
-      for (let a = 0; a < cfg.angles; a++) {
+      for (let a = 0; a < cfg.angles; a += stride) {
         const aim = lerp(-0.35, 1.4, a / (cfg.angles - 1));
-        for (let s = 0; s < cfg.powers; s++) {
+        for (let s = 0; s < cfg.powers; s += stride) {
           const power = lerp(0.3, 1, s / (cfg.powers - 1));
           const impact = simulateShot(game, me, weapon, facing, aim, power);
           if (!impact) continue;
@@ -142,7 +146,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     }
   }
 
-  for (const strike of ['airstrike', 'mule'] as const) {
+  for (const strike of WEAPON_ORDER.filter((id) => WEAPONS[id].kind === 'strike')) {
     if (!allowed(strike)) continue;
     const { count, spacing, weapon } = WEAPONS[strike].strike!;
     const bomb = WEAPONS[weapon];
@@ -167,7 +171,9 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const def = WEAPONS.flysheep;
     const score = def.damage * 0.55 + (nearest.hp <= def.damage * 0.55 ? 40 : 0) - 15;
     const facing: 1 | -1 = nearest.body.x < me.body.x ? -1 : 1;
-    if (score > best.score) best = { weapon: 'flysheep', facing, aim: 0.8, power: 1, score };
+    // Only launch along a clear path: a sheep hitting rock right away explodes next to us.
+    const aim = [0.8, 1.2, 0.4, 1.45].find((a) => flyerLaunchClear(game, me, facing, a));
+    if (aim !== undefined && score > best.score) best = { weapon: 'flysheep', facing, aim, power: 1, score };
   }
 
   if (allowed('torch')) {
@@ -200,7 +206,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const dy = enemy.body.y - me.body.y;
     const facing: 1 | -1 = dx < 0 ? -1 : 1;
     const dist = Math.hypot(dx, dy);
-    for (const weapon of ['punch', 'bat'] as const) {
+    for (const weapon of WEAPON_ORDER.filter((id) => WEAPONS[id].kind === 'melee')) {
       const def = WEAPONS[weapon];
       if (!allowed(weapon) || dist >= def.range + BUDDY_RADIUS * 1.5) continue;
       const aim = directAim(enemy);
@@ -235,6 +241,17 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
   };
 }
 
+/** Does a flying sheep launched at `aim` get clear of the rock around the buddy before it can be steered? */
+function flyerLaunchClear(game: Game, me: Buddy, facing: 1 | -1, aim: number): boolean {
+  const dx = Math.cos(aim) * facing;
+  const dy = Math.sin(aim);
+  const f = { id: 0, owner: me.id, x: me.body.x + dx * MUZZLE_OFFSET, y: me.body.y + dy * MUZZLE_OFFSET, angle: Math.atan2(dy, dx), age: 0 };
+  for (let t = 0; t < FLYER_CLEARANCE_TIME; t += 1 / 30) {
+    if (stepFlyer(game.terrain, f, 1 / 30, 0, () => false) !== 'none') return false;
+  }
+  return true;
+}
+
 /** Would a buddy launched with this velocity end up in the water or off the map? */
 function knockedOut(game: Game, target: Buddy, vx: number, vy: number): boolean {
   const body = { ...createBody(target.body.x, target.body.y, target.body.radius), vx, vy };
@@ -256,6 +273,9 @@ function lineOfSight(game: Game, me: Buddy, target: Buddy): boolean {
   }
   return true;
 }
+
+/** Seconds of straight flight a launch must survive: about the blast radius plus a margin. */
+const FLYER_CLEARANCE_TIME = (WEAPONS.flysheep.radius + 2) / FLYER_SPEED;
 
 /** Attacks scoring below this are worth skipping for a crate within reach. */
 const CRATE_WORTH = 15;

@@ -37,7 +37,7 @@ Status: ☐ open · ☑ done
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
-| T12 | Self-review of all changes, fix findings | ☐ | |
+| T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
 | T13 | Push to GitHub and publish a public release | ☐ | |
 
 ## Answered questions
@@ -201,8 +201,10 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 ### T9 — Docs ☐
 README (features, controls, weapons, Pages link), `docs/VISION.md`, `docs/ARCHITECTURE.md`.
 
-### T12 — Self-review ☐
+### T12 — Self-review ☑
 Review the full diff since v1.1.11 for bugs and cleanups, fix findings, re-run `npm run verify`.
+Findings and their resolution are in `review.md`; #3 (in-turn action state as one union) stays
+open as design debt.
 
 ### T13 — Push and public release ☐
 Push `master`, tag the release version, push the tag (the release workflow publishes the GitHub
