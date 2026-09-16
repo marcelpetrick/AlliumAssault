@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.15] — 2026-09-16
+
+### Changed
+
+- README media regenerated: the napalm screenshot now shows the burning ground without the
+  "Retreat!" banner.
+
 ## [1.26.14] — 2026-09-16
 
 ### Changed
