@@ -92,7 +92,7 @@ export class BuddyView {
   readonly root: TransformNode;
   private readonly body: TransformNode;
   private readonly weaponPivot: TransformNode;
-  private readonly weapons: Record<WeaponId, TransformNode>;
+  private readonly weapons: Partial<Record<WeaponId, TransformNode>>;
   private readonly eyes: Mesh[] = [];
   private readonly pupils: Mesh[] = [];
   private readonly feet: Mesh[] = [];
@@ -185,6 +185,10 @@ export class BuddyView {
       grenade: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateSphere('grenade', { diameter: 0.34, segments: 12 }, scene), kit.bomb, [0.6, 0, 0], false],
         [MeshBuilder.CreateTorus('pin', { diameter: 0.12, thickness: 0.025, tessellation: 10 }, scene), kit.metal, [0.6, 0.2, 0], false],
+      ]),
+      cluster: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateSphere('cluster', { diameter: 0.36, segments: 12 }, scene), kit.glove, [0.6, 0, 0], false],
+        [MeshBuilder.CreateTorus('pin', { diameter: 0.12, thickness: 0.025, tessellation: 10 }, scene), kit.metal, [0.6, 0.21, 0], false],
       ]),
       shotgun: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('barrel', { height: 1.1, diameter: 0.1, tessellation: 10 }, scene), kit.metal, [0.5, 0.03, 0], true],

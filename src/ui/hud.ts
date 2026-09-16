@@ -165,7 +165,7 @@ export class Hud {
           ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'
-          : `${def.charge ? 'Hold Space to charge, release to fire' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–4 weapons · Esc menu`,
+          : `${def.charge ? 'Hold Space to charge, release to fire' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–${WEAPON_ORDER.length} weapons · Esc menu`,
     );
 
     // Name tags follow buddies; HP counts down Worms-style.

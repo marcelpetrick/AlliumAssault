@@ -28,7 +28,7 @@ Status: ☐ open · ☑ done
   - One-shots: louder impact-scaled grenade bounce, weapon select, last-5-seconds tick.
   - Sheep baa/hop, airplane, bomblet pops, crate teleport, pickup and heal sounds ship with
     their features (T4–T7).
-- ☐ **T4 — Cluster grenade** (minor)
+- ☑ **T4 — Cluster grenade** (minor)
   - Weapon bar and hotkeys generalised beyond four weapons (1–9), hidden internal weapons.
   - Red grenade, 3 s fuse, 3 per team. Explodes and releases 5 bomblets which explode on
     contact for 10 damage each.

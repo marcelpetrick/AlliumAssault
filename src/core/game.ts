@@ -26,7 +26,7 @@ import { clamp, lerp, type Point } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
-import { WEAPON_ORDER, WEAPONS, type WeaponId } from './weapons';
+import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export type Controller = 'human' | 'ai';
 export type AiLevel = 'easy' | 'normal' | 'hard';
@@ -166,7 +166,7 @@ export class Game {
       config: cfg,
       buddies: [],
       cursor: 0,
-      ammo: Object.fromEntries(WEAPON_ORDER.map((id) => [id, WEAPONS[id].ammo])) as Record<WeaponId, number>,
+      ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, WEAPONS[id].ammo])) as Record<WeaponId, number>,
       weapon: 'bazooka' as WeaponId,
     }));
     let slot = 0;
@@ -351,7 +351,8 @@ export class Game {
       if (def.fuse > 0) p.fuse -= dt;
       if (hit === 'terrain' || hit === 'target' || (def.fuse > 0 && p.fuse <= 0)) {
         this.removeProjectile(p);
-        this.explode(p.x, p.y, def.radius, def.damage, def.force);
+        this.explode(p.x, p.y, def.radius, def.damage, def.force, def.flatDamage);
+        if (def.cluster) this.scatter(p, def.cluster);
       } else if (hit === 'water' || hit === 'out') {
         this.removeProjectile(p);
         if (hit === 'water') this.emit({ type: 'splash', x: p.x, y: this.terrain.waterLevel });
@@ -446,19 +447,7 @@ export class Game {
 
     if (def.kind === 'projectile') {
       const speed = lerp(def.minSpeed, def.maxSpeed, power);
-      this.projectiles.push({
-        id: this.nextId++,
-        weapon: def.id,
-        x: m.x,
-        y: m.y,
-        vx: dir.x * speed,
-        vy: dir.y * speed,
-        radius: 0.15,
-        bounces: 0,
-        fuse: def.fuse,
-        age: 0,
-        owner: b.id,
-      });
+      this.spawnProjectile(def.id, m.x, m.y, dir.x * speed, dir.y * speed, b.id);
     } else if (def.kind === 'melee') {
       this.punch(b, dir);
     } else {
@@ -469,6 +458,23 @@ export class Game {
       this.retreatLeft = this.config.retreatTime;
       this.setPhase('retreat');
     }
+  }
+
+  /** Throw cluster fragments upwards in a fan from an exploded projectile. */
+  private scatter(from: Projectile, cluster: NonNullable<WeaponDef['cluster']>): void {
+    const { count, speed } = cluster;
+    for (let k = 0; k < count; k++) {
+      const spread = count > 1 ? k / (count - 1) - 0.5 : 0;
+      const angle = Math.PI / 2 + spread * 1.9;
+      const v = speed * (0.85 + 0.3 * ((k * 7) % count) / count);
+      this.spawnProjectile(cluster.weapon, from.x, from.y + 0.3, Math.cos(angle) * v, Math.sin(angle) * v, from.owner);
+    }
+  }
+
+  private spawnProjectile(weapon: WeaponId, x: number, y: number, vx: number, vy: number, owner: number): Projectile {
+    const p: Projectile = { id: this.nextId++, weapon, x, y, vx, vy, radius: 0.15, bounces: 0, fuse: WEAPONS[weapon].fuse, age: 0, owner };
+    this.projectiles.push(p);
+    return p;
   }
 
   private punch(b: Buddy, dir: Point): void {
@@ -511,7 +517,7 @@ export class Game {
     }
   }
 
-  explode(x: number, y: number, radius: number, damage: number, force: number): void {
+  explode(x: number, y: number, radius: number, damage: number, force: number, flatDamage = false): void {
     this.terrain.carve(x, y, radius);
     this.emit({ type: 'explosion', x, y, radius });
     for (const b of this.buddies) {
@@ -528,7 +534,7 @@ export class Game {
       b.body.vy += ny * force * f + force * 0.35 * f;
       b.body.grounded = false;
       b.body.restTime = 0;
-      this.damage(b, Math.round(damage * f));
+      this.damage(b, flatDamage ? damage : Math.round(damage * f));
     }
     for (const p of this.projectiles) {
       const dist = Math.hypot(p.x - x, p.y - y);

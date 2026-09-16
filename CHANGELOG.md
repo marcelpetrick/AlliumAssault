@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.3.0] — 2026-09-16
+
+### Added
+- Cluster Bomb (key 5, 3 per team): a red grenade with a 3 second fuse that bursts into five
+  bomblets; each bomblet explodes on contact for 10 damage.
+- Weapon hotkeys now go up to 9; the weapon bar, hints and controls list follow the weapon table.
+- The AI throws cluster bombs when the extra bomblet damage is worth the limited ammo.
+
 ## [1.2.0] — 2026-09-16
 
 ### Added

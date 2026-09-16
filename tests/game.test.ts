@@ -138,6 +138,30 @@ describe('match flow', () => {
     expect(g.phase).toBe('aiming');
   });
 
+  it('cluster bomb bursts into five bomblets after its fuse and uses limited ammo', () => {
+    const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('cluster');
+    g.buddies[0].aim = 0.8;
+    g.pressFire();
+    g.simulate(0.2);
+    g.releaseFire();
+    expect(g.teams[0].ammo.cluster).toBe(2);
+    runUntil(g, () => g.projectiles.length !== 1, 4);
+    expect(g.projectiles.map((p) => p.weapon)).toEqual(Array(5).fill('bomblet'));
+    runUntil(g, () => g.projectiles.length === 0, 5);
+    expect(g.projectiles.length).toBe(0);
+  });
+
+  it('a bomblet deals 10 damage on a direct hit', () => {
+    const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const enemy = g.buddies[1];
+    g.projectiles.push({ id: 999, weapon: 'bomblet', x: enemy.body.x, y: enemy.body.y + 3, vx: 0, vy: -5, radius: 0.15, bounces: 0, fuse: 0, age: 1, owner: g.buddies[0].id });
+    runUntil(g, () => g.projectiles.length === 0, 2);
+    expect(enemy.hp).toBe(90);
+  });
+
   it('walking is blocked while charging', () => {
     const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
     toAiming(g);
@@ -155,6 +179,13 @@ describe('AI', () => {
     const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(3));
     expect(plan.score).toBeGreaterThan(20);
     expect(plan.facing).toBe(1);
+  });
+
+  it('plans a damaging cluster bomb throw', () => {
+    const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)]);
+    const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(3), 'cluster');
+    expect(plan.weapon).toBe('cluster');
+    expect(plan.score).toBeGreaterThan(20);
   });
 
   it('re-plans with the current weapon after the first shotgun shot', () => {

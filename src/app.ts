@@ -269,7 +269,10 @@ export class App {
           game.cycleWeapon();
           break;
         default:
-          if (/^Digit[1-4]$/.test(e.code)) game.selectWeapon(WEAPON_ORDER[Number(e.code.slice(5)) - 1]);
+          if (/^Digit[1-9]$/.test(e.code)) {
+            const id = WEAPON_ORDER[Number(e.code.slice(5)) - 1];
+            if (id) game.selectWeapon(id);
+          }
       }
     });
     window.addEventListener('keyup', (e) => {

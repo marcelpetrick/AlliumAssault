@@ -41,6 +41,17 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
   return null;
 }
 
+/** Blast score plus a rough estimate for cluster fragments raining down around the impact. */
+export function scoreWeapon(game: Game, me: Buddy, x: number, y: number, def: WeaponDef): number {
+  let score = scoreBlast(game, me, x, y, def);
+  if (def.cluster) {
+    const fragment = WEAPONS[def.cluster.weapon];
+    const spread = { ...fragment, radius: 4.5, damage: fragment.damage * def.cluster.count * 0.4 };
+    score += Math.max(scoreBlast(game, me, x, y + 1, spread), -spread.damage * 3);
+  }
+  return score;
+}
+
 /** Expected value of a blast at (x, y): enemy damage minus weighted friendly/self damage. */
 export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: WeaponDef): number {
   let gain = 0;
@@ -77,8 +88,10 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     score: -Infinity,
   };
 
-  for (const weapon of ['bazooka', 'grenade'] as const) {
+  for (const weapon of ['bazooka', 'grenade', 'cluster'] as const) {
     if (!allowed(weapon)) continue;
+    // Spending limited ammo needs a clearly better shot than an unlimited weapon.
+    const cost = team.ammo[weapon] === Infinity ? 0 : 12;
     for (const facing of [1, -1] as const) {
       for (let a = 0; a < cfg.angles; a++) {
         const aim = lerp(-0.35, 1.4, a / (cfg.angles - 1));
@@ -86,7 +99,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
           const power = lerp(0.3, 1, s / (cfg.powers - 1));
           const impact = simulateShot(game, me, weapon, facing, aim, power);
           if (!impact) continue;
-          const score = scoreBlast(game, me, impact.x, impact.y, WEAPONS[weapon]);
+          const score = scoreWeapon(game, me, impact.x, impact.y, WEAPONS[weapon]) - cost;
           if (score > best.score) best = { weapon, facing, aim, power, score };
         }
       }
@@ -152,7 +165,7 @@ export class AiDriver {
 
     if (game.phase === 'retreat') {
       // Scurry away from the target for a moment.
-      if (this.plan && this.plan.weapon !== 'grenade' && game.retreatLeft > game.config.retreatTime - 1) {
+      if (this.plan && WEAPONS[this.plan.weapon].restitution === null && game.retreatLeft > game.config.retreatTime - 1) {
         if (this.plan.facing > 0) input.left = true;
         else input.right = true;
       }

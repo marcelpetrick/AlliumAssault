@@ -1,6 +1,7 @@
 import { Color3, Color4, Mesh, MeshBuilder, ParticleSystem, PointLight, StandardMaterial, TransformNode, Vector3, type Scene, type Texture } from '@babylonjs/core';
 import { MUZZLE_OFFSET } from '../core/constants';
 import type { Game } from '../core/game';
+import type { WeaponId } from '../core/weapons';
 import { createSoftDotTexture } from './textures';
 
 interface Transient {
@@ -61,6 +62,7 @@ export class Effects {
       olive: mat('fxOlive', '#58703a'),
       red: mat('fxRed', '#e0322f', 0.3),
       bomb: mat('fxBomb', '#2f4a2a'),
+      cluster: mat('fxCluster', '#d42a24', 0.15),
       metal: mat('fxMetal', '#9aa3ad'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
       tracer: mat('fxTracer', '#ffe27a', 1),
@@ -205,11 +207,11 @@ export class Effects {
       live.add(p.id);
       let view = this.projectiles.get(p.id);
       if (!view) {
-        view = p.weapon === 'grenade' ? this.createGrenade() : this.createMissile();
+        view = this.createProjectile(p.weapon);
         this.projectiles.set(p.id, view);
       }
       view.node.position.set(p.x, p.y, 0);
-      if (p.weapon === 'grenade') view.node.rotation.z -= p.vx * dt * 2;
+      if (p.weapon !== 'bazooka') view.node.rotation.z -= p.vx * dt * 2;
       else view.node.rotation.z = Math.atan2(p.vy, p.vx);
     }
     for (const [id, view] of this.projectiles) {
@@ -288,10 +290,32 @@ export class Effects {
     return { node, trail };
   }
 
-  private createGrenade(): ProjectileView {
+  private createProjectile(weapon: WeaponId): ProjectileView {
+    switch (weapon) {
+      case 'bazooka':
+        return this.createMissile();
+      case 'cluster':
+        return this.createGrenade(this.materials.cluster);
+      case 'bomblet':
+        return this.createBomblet();
+      default:
+        return this.createGrenade(this.materials.bomb);
+    }
+  }
+
+  private createBomblet(): ProjectileView {
+    const node = new TransformNode('bomblet', this.scene);
+    const ball = MeshBuilder.CreateSphere('bombletBall', { diameter: 0.2, segments: 8 }, this.scene);
+    ball.material = this.materials.cluster;
+    ball.parent = node;
+    this.glow(ball);
+    return { node, trail: null };
+  }
+
+  private createGrenade(material: StandardMaterial): ProjectileView {
     const node = new TransformNode('grenade', this.scene);
     const ball = MeshBuilder.CreateSphere('grenadeBall', { diameter: 0.36, segments: 12 }, this.scene);
-    ball.material = this.materials.bomb;
+    ball.material = material;
     ball.parent = node;
     const cap = MeshBuilder.CreateCylinder('grenadeCap', { height: 0.12, diameter: 0.12, tessellation: 8 }, this.scene);
     cap.position.y = 0.2;

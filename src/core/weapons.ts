@@ -1,4 +1,4 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee';
 
 export interface WeaponDef {
@@ -25,6 +25,10 @@ export interface WeaponDef {
   damage: number;
   force: number;
   range: number;
+  /** Every buddy inside the blast takes the full damage instead of less towards the edge. */
+  flatDamage?: boolean;
+  /** Fragments released when this projectile explodes. */
+  cluster?: { weapon: WeaponId; count: number; speed: number };
 }
 
 export const WEAPONS: Record<WeaponId, WeaponDef> = {
@@ -108,6 +112,50 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 15,
     range: 1.3,
   },
+  cluster: {
+    id: 'cluster',
+    name: 'Cluster Bomb',
+    icon: '🧨',
+    blurb: 'Red grenade with a 3 second fuse. Bursts into five bomblets of 10 damage each.',
+    kind: 'projectile',
+    ammo: 3,
+    charge: true,
+    shots: 1,
+    minSpeed: 6,
+    maxSpeed: 30,
+    windInfluence: 0.3,
+    gravityScale: 1,
+    restitution: 0.45,
+    fuse: 3,
+    radius: 2.2,
+    damage: 25,
+    force: 11,
+    range: 0,
+    cluster: { weapon: 'bomblet', count: 5, speed: 9 },
+  },
+  bomblet: {
+    id: 'bomblet',
+    name: 'Bomblet',
+    icon: '•',
+    blurb: 'Cluster fragment; explodes on contact.',
+    kind: 'projectile',
+    ammo: 0,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0.2,
+    gravityScale: 1,
+    restitution: null,
+    fuse: 0,
+    radius: 1.4,
+    damage: 10,
+    force: 6,
+    range: 0,
+    flatDamage: true,
+  },
 };
 
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch'];
+/** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster'];
+export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
