@@ -73,6 +73,21 @@ test('tombstones: a buddy that dies leaves a comic tombstone with its name', asy
   expect(errors).toEqual([]);
 });
 
+for (const scenery of ['Candy Shop', 'Frosty Peaks']) {
+  test(`scenery "${scenery}" can be picked in the setup and renders a match`, async ({ page }, info) => {
+    const errors = await boot(page);
+    await page.getByRole('button', { name: /Custom Match/ }).click();
+    await page.getByRole('button', { name: scenery }).click();
+    await page.getByRole('button', { name: /Start Battle/ }).click();
+    await waitFor(page, (s) => !s.demo && s.phase === 'aiming', 60_000);
+    await page.waitForTimeout(1500);
+    const shot = await page.screenshot();
+    await info.attach(scenery, { body: shot, contentType: 'image/png' });
+    expect(shot.byteLength).toBeGreaterThan(100_000);
+    expect(errors).toEqual([]);
+  });
+}
+
 test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute silences', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

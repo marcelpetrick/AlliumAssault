@@ -63,7 +63,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   knock around.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real
   trajectories to find its shots.
-- **Three sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove; seeded maps you can share.
+- **Five sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
+  gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice); seeded maps you can share.
 - **Synthesized sound** — all effects generated with Web Audio, no asset files.
 
 ## Controls

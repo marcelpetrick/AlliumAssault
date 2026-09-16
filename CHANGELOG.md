@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.23.0] — 2026-09-16
+
+### Added
+- Candy Shop scenery: pink frosting on chocolate ground, strawberry-milk sea, pastel hills, lollipop
+  trees, gumdrops, candy canes and sprinkles.
+- Frosty Peaks scenery: snow over icy blue rock, snow-capped pines, snowballs and ice crystals.
+
 ## [1.22.0] — 2026-09-16
 
 ### Added

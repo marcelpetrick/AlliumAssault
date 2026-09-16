@@ -31,14 +31,34 @@ export class Decorations {
     this.material.specularColor = new Color3(0.05, 0.05, 0.05);
     this.material.backFaceCulling = false;
 
-    this.templates = [
-      this.grass(scene, theme),
-      this.flower(scene, new Color3(1, 0.85, 0.3)),
-      this.flower(scene, new Color3(0.95, 0.45, 0.7)),
-      this.pebble(scene, theme),
-      this.mushroom(scene),
-      this.sprout(scene, theme),
-    ];
+    const accent = theme.accent ?? Color3.White();
+    this.templates =
+      theme.style === 'candy'
+        ? [
+            this.sprinkles(scene),
+            this.gumdrop(scene, new Color3(0.45, 0.85, 0.4)),
+            this.gumdrop(scene, new Color3(1, 0.55, 0.2)),
+            this.gumdrop(scene, new Color3(0.55, 0.45, 1)),
+            this.candyCane(scene, accent),
+            this.sprout(scene, theme),
+          ]
+        : theme.style === 'snow'
+          ? [
+              this.grass(scene, theme),
+              this.snowball(scene),
+              this.iceCrystal(scene),
+              this.pebble(scene, theme),
+              this.snowball(scene),
+              this.sprout(scene, theme),
+            ]
+          : [
+              this.grass(scene, theme),
+              this.flower(scene, new Color3(1, 0.85, 0.3)),
+              this.flower(scene, new Color3(0.95, 0.45, 0.7)),
+              this.pebble(scene, theme),
+              this.mushroom(scene),
+              this.sprout(scene, theme),
+            ];
     const weights = [0.5, 0.1, 0.1, 0.12, 0.08, 0.1];
 
     const rng = mulberry32(seed);
@@ -142,6 +162,66 @@ export class Decorations {
     const spot = MeshBuilder.CreateIcoSphere('spot', { radius: 0.045, subdivisions: 1 }, scene);
     spot.position.set(0.05, 0.38, -0.1);
     return this.finish([stem, cap, spot], 'mushroom', [new Color3(0.95, 0.9, 0.8), new Color3(0.85, 0.2, 0.18), Color3.White()]);
+  }
+
+  /** Scattered rainbow sprinkles. */
+  private sprinkles(scene: Scene): Mesh {
+    const colors = [new Color3(1, 0.3, 0.3), new Color3(0.3, 0.7, 1), new Color3(1, 0.9, 0.3), new Color3(0.4, 0.9, 0.5), Color3.White()];
+    const parts = colors.map((_, k) => {
+      const s = MeshBuilder.CreateCapsule('sprinkle', { height: 0.2, radius: 0.035, tessellation: 6 }, scene);
+      s.position.set(Math.cos(k * 1.3) * 0.22, 0.04, Math.sin(k * 1.3) * 0.18);
+      s.rotation.set(Math.PI / 2, 0, k * 0.9);
+      return s;
+    });
+    return this.finish(parts, 'sprinkles', colors);
+  }
+
+  /** Sugar-coated gumdrop. */
+  private gumdrop(scene: Scene, color: Color3): Mesh {
+    const drop = MeshBuilder.CreateCylinder('gumdrop', { height: 0.3, diameterTop: 0.16, diameterBottom: 0.34, tessellation: 12 }, scene);
+    drop.position.y = 0.15;
+    const top = MeshBuilder.CreateSphere('gumdropTop', { diameter: 0.17, segments: 6 }, scene);
+    top.position.y = 0.3;
+    return this.finish([drop, top], 'gumdrop', [color, color.scale(1.1)]);
+  }
+
+  /** Striped candy cane standing in the frosting. */
+  private candyCane(scene: Scene, stripe: Color3): Mesh {
+    const red = new Color3(0.9, 0.15, 0.2);
+    const parts: Mesh[] = [];
+    const colors: Color3[] = [];
+    for (let k = 0; k < 5; k++) {
+      const seg = MeshBuilder.CreateCylinder('caneSeg', { height: 0.14, diameter: 0.09, tessellation: 8 }, scene);
+      seg.position.y = 0.07 + k * 0.14;
+      parts.push(seg);
+      colors.push(k % 2 ? stripe : red);
+    }
+    const arc = Array.from({ length: 9 }, (_, k) => {
+      const a = Math.PI - (k / 8) * Math.PI;
+      return new Vector3(0.12 + Math.cos(a) * 0.12, 0.7 + Math.sin(a) * 0.12, 0);
+    });
+    const hook = MeshBuilder.CreateTube('caneHook', { path: arc, radius: 0.045, tessellation: 8 }, scene);
+    parts.push(hook);
+    colors.push(red);
+    return this.finish(parts, 'candyCane', colors);
+  }
+
+  private snowball(scene: Scene): Mesh {
+    const big = MeshBuilder.CreateIcoSphere('snowball', { radius: 0.2, subdivisions: 2 }, scene);
+    big.position.y = 0.14;
+    const small = MeshBuilder.CreateIcoSphere('snowball2', { radius: 0.11, subdivisions: 1 }, scene);
+    small.position.set(0.24, 0.08, 0.05);
+    return this.finish([big, small], 'snowball', [new Color3(0.97, 0.99, 1), new Color3(0.9, 0.95, 1)]);
+  }
+
+  private iceCrystal(scene: Scene): Mesh {
+    const shards = [-0.35, 0, 0.4].map((tilt, k) => {
+      const shard = MeshBuilder.CreateCylinder('iceShard', { height: 0.5 - k * 0.1, diameterTop: 0, diameterBottom: 0.12, tessellation: 4 }, scene);
+      shard.position.set(tilt * 0.3, 0.22, 0);
+      shard.rotation.z = tilt;
+      return shard;
+    });
+    return this.finish(shards, 'ice', [new Color3(0.7, 0.9, 1), new Color3(0.8, 0.95, 1), new Color3(0.6, 0.85, 1)]);
   }
 
   private sprout(scene: Scene, theme: Theme): Mesh {

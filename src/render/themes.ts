@@ -26,6 +26,10 @@ export interface Theme {
   clouds: Color3;
   stars: boolean;
   exposure: number;
+  /** Props: forest (pines, flowers, mushrooms), candy (lollipops, gumdrops, candy canes) or snow (snowy pines, snowballs, ice). */
+  style?: 'forest' | 'candy' | 'snow';
+  /** Second prop colour, e.g. lollipop swirls and candy stripes. */
+  accent?: Color3;
 }
 
 const hex = Color3.FromHexString;
@@ -111,6 +115,67 @@ export const THEMES: Record<string, Theme> = {
     clouds: hex('#8090c0'),
     stars: true,
     exposure: 1.25,
+  },
+  candy: {
+    id: 'candy',
+    name: 'Candy Shop',
+    skyTop: hex('#ff8fc8'),
+    skyHorizon: hex('#ffe3f1'),
+    fog: hex('#ffd6ea'),
+    fogDensity: 0.0026,
+    sunDirection: [-0.4, -0.8, 0.5],
+    sunColor: hex('#fff4fa'),
+    sunIntensity: 1.45,
+    ambientSky: hex('#ffe8f5'),
+    ambientGround: hex('#a86a8a'),
+    ambientIntensity: 0.7,
+    // Pink frosting over chocolate cake.
+    grass: hex('#ff9fd0'),
+    grassDark: hex('#f06aae'),
+    dirt: hex('#6b3a26'),
+    rock: hex('#8a4f33'),
+    rockDark: hex('#4e2a1c'),
+    // Strawberry milk.
+    waterShallow: hex('#ffb3d4'),
+    waterDeep: hex('#d9588f'),
+    hills: [hex('#c9a0ff'), hex('#9fe3d0'), hex('#ffd59a')],
+    foliage: hex('#ff5fa2'),
+    trunk: hex('#fffaf2'),
+    clouds: hex('#ffffff'),
+    stars: false,
+    exposure: 1.02,
+    style: 'candy',
+    accent: hex('#fff6a8'),
+  },
+  frost: {
+    id: 'frost',
+    name: 'Frosty Peaks',
+    skyTop: hex('#5e8fd6'),
+    skyHorizon: hex('#e6f2fb'),
+    fog: hex('#dbe9f5'),
+    fogDensity: 0.003,
+    sunDirection: [0.45, -0.6, 0.65],
+    sunColor: hex('#f4f8ff'),
+    sunIntensity: 1.4,
+    ambientSky: hex('#e8f2ff'),
+    ambientGround: hex('#7f8fa8'),
+    ambientIntensity: 0.75,
+    // Snow over icy blue-grey rock.
+    grass: hex('#f4f9ff'),
+    grassDark: hex('#c9dcef'),
+    dirt: hex('#7d8ea6'),
+    rock: hex('#8fa3bd'),
+    rockDark: hex('#4f5f78'),
+    waterShallow: hex('#9fd8ef'),
+    waterDeep: hex('#1f5b86'),
+    hills: [hex('#b7c9dd'), hex('#cfdceb'), hex('#e4edf6')],
+    foliage: hex('#2f5e4c'),
+    trunk: hex('#4f3a2e'),
+    clouds: hex('#f7fbff'),
+    stars: false,
+    exposure: 0.98,
+    style: 'snow',
+    accent: hex('#ffffff'),
   },
 };
 

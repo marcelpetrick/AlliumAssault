@@ -38,7 +38,7 @@ Status: ☐ open · ☑ done
 | T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly | ☑ | 1.18.0 |
 | T28 | Louder sound effects | ☑ | 1.18.3 |
 | T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☑ | 1.19.0 |
-| T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
+| T30 | More sceneries: Candy Shop and Frosty Peaks | ☑ | 1.23.0 |
 | T31 | Comic tombstones where buddies die | ☑ | 1.22.0 |
 | T37 | Play-in-browser link to GitHub Pages at the top of the README | ☑ | 1.18.1 |
 | T32 | Review and update all documents and Markdown files, including the architecture | ☐ | |
@@ -226,7 +226,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - Third arsenal option next to *All weapons* and *Find in crates*: every weapon has unlimited ammo.
   Unit and E2E tests.
 
-### T30 — More sceneries ☐
+### T30 — More sceneries ☑
 - **Candy Shop**: pink frosting on chocolate ground, strawberry-milk water, pastel hills,
   lollipop trees and gumdrop props.
 - **Frosty Peaks**: snow-covered ground, icy blue rock and water, snowy pines.

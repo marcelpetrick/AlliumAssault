@@ -224,14 +224,38 @@ export class Environment {
       m.setVerticesData(VertexBuffer.ColorKind, colors);
       parts.push(m);
     };
-    const trunk = MeshBuilder.CreateCylinder('trunk', { height: 1.2, diameter: 0.35, tessellation: 6 }, this.scene);
-    trunk.position.y = 0.6;
-    paint(trunk, this.theme.trunk);
-    [0, 1, 2].forEach((k) => {
-      const cone = MeshBuilder.CreateCylinder('cone', { height: 1.9 - k * 0.35, diameterTop: 0, diameterBottom: 2.2 - k * 0.55, tessellation: 7 }, this.scene);
-      cone.position.y = 1.5 + k * 0.85;
-      paint(cone, this.theme.foliage.scale(1 + k * 0.12));
-    });
+    const accent = this.theme.accent ?? Color3.White();
+    if (this.theme.style === 'candy') {
+      // Lollipop: white stick, a round sweet with concentric swirl rings.
+      const stick = MeshBuilder.CreateCylinder('stick', { height: 3.2, diameter: 0.18, tessellation: 6 }, this.scene);
+      stick.position.y = 1.6;
+      paint(stick, this.theme.trunk);
+      const sweet = MeshBuilder.CreateCylinder('sweet', { height: 0.35, diameter: 2.2, tessellation: 18 }, this.scene);
+      sweet.rotation.x = Math.PI / 2;
+      sweet.position.y = 3.6;
+      paint(sweet, this.theme.foliage);
+      [0.75, 1.45].forEach((d, k) => {
+        const ring = MeshBuilder.CreateTorus('swirl', { diameter: d, thickness: 0.16, tessellation: 18 }, this.scene);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(0, 3.6, -0.18);
+        paint(ring, k ? accent : this.theme.grass);
+      });
+    } else {
+      const trunk = MeshBuilder.CreateCylinder('trunk', { height: 1.2, diameter: 0.35, tessellation: 6 }, this.scene);
+      trunk.position.y = 0.6;
+      paint(trunk, this.theme.trunk);
+      [0, 1, 2].forEach((k) => {
+        const cone = MeshBuilder.CreateCylinder('cone', { height: 1.9 - k * 0.35, diameterTop: 0, diameterBottom: 2.2 - k * 0.55, tessellation: 7 }, this.scene);
+        cone.position.y = 1.5 + k * 0.85;
+        paint(cone, this.theme.foliage.scale(1 + k * 0.12));
+        if (this.theme.style === 'snow') {
+          // Snow resting on each tier.
+          const cap = MeshBuilder.CreateCylinder('snowCap', { height: 0.5, diameterTop: 0, diameterBottom: 1.2 - k * 0.3, tessellation: 7 }, this.scene);
+          cap.position.y = 1.5 + k * 0.85 + (1.9 - k * 0.35) / 2 - 0.2;
+          paint(cap, accent);
+        }
+      });
+    }
     const merged = Mesh.MergeMeshes(parts, true)!;
     const mat = new StandardMaterial('treeMat', this.scene);
     mat.specularColor = Color3.Black();
