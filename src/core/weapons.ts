@@ -1,4 +1,4 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch';
 
 export interface WeaponDef {
@@ -31,6 +31,8 @@ export interface WeaponDef {
   burst?: { count: number; interval: number; spread: number };
   /** Upward kick a hitscan hit adds, on top of the push along the shot. */
   lift?: number;
+  /** Seconds between coming to rest and detonating, for projectiles that wait until they stop. */
+  restFuse?: number;
   /** Every buddy inside the blast takes the full damage instead of less towards the edge. */
   flatDamage?: boolean;
   /** Air strikes: bombs dropped around the clicked target. */
@@ -187,6 +189,27 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     range: 0,
     cluster: { weapon: 'bomblet', count: 5, speed: 9 },
   },
+  holy: {
+    id: 'holy',
+    name: 'Holy Garlic Grenade',
+    icon: '✨',
+    blurb: 'Rolls to a stop, sings Hallelujah, then erupts in an enormous blast.',
+    kind: 'projectile',
+    ammo: 1,
+    charge: true,
+    shots: 1,
+    minSpeed: 6,
+    maxSpeed: 28,
+    windInfluence: 0.3,
+    gravityScale: 1,
+    restitution: 0.25,
+    fuse: 0,
+    restFuse: 1.6,
+    radius: 7,
+    damage: 100,
+    force: 24,
+    range: 0,
+  },
   bomblet: {
     id: 'bomblet',
     name: 'Bomblet',
@@ -315,5 +338,5 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

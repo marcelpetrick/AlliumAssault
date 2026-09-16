@@ -222,6 +222,9 @@ export class App {
           else if (e.weapon === 'selfdestruct') this.audio.play('alarm');
           else if (WEAPONS[e.weapon].kind !== 'melee') this.audio.play('fire');
           break;
+        case 'hallelujah':
+          this.audio.play('hallelujah');
+          break;
         case 'sheepHop':
           this.audio.play('hop');
           break;

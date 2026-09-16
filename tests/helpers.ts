@@ -1,6 +1,7 @@
 import { Game, type MatchConfig, type TeamConfig } from '../src/core/game';
 import { Terrain } from '../src/core/terrain';
 import { WATER_LEVEL, WORLD_HEIGHT, WORLD_WIDTH } from '../src/core/constants';
+import type { WeaponId } from '../src/core/weapons';
 
 /** Flat ground with its surface at `groundY`, spanning the whole world. */
 export function flatTerrain(groundY = 20): Terrain {
@@ -30,6 +31,12 @@ export function flatGame(xs: number[], teams: TeamConfig[], overrides: Partial<M
     terrain: flatTerrain(ground),
     spawns: xs.map((x) => ({ x, y: ground + 0.65 })),
   });
+}
+
+/** Leave a team with only one weapon, so AI tests do not depend on the rest of the arsenal. */
+export function onlyWeapon(game: Game, team: number, weapon: WeaponId): void {
+  const ammo = game.teams[team].ammo;
+  for (const id of Object.keys(ammo) as WeaponId[]) if (id !== weapon) ammo[id] = 0;
 }
 
 /** Run until the given predicate holds or the time budget is exhausted. */

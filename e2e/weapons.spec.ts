@@ -174,6 +174,27 @@ test('minigun: rattling burst of bullets that hurts and shoves the enemy', async
   expect(errors).toEqual([]);
 });
 
+test('holy garlic grenade: comes to rest, sings, then an enormous blast', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => window.__allium.app.game!.selectWeapon('holy'));
+  await aim(page, 0.5, 1);
+  const before = await state(page);
+  await chargeAndRelease(page, 0.1);
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 12 && !app.game!.projectiles.some((p) => p.armed); k++) app.fastForward(1 / 60);
+  });
+  await waitForSound(page, 'hallelujah');
+  await page.evaluate(() => window.__allium.stepFrames(6, 1 / 30));
+  await info.attach('holy', { body: await page.screenshot(), contentType: 'image/png' });
+  await page.evaluate(() => window.__allium.setManual(false));
+  await fastForward(page, 2);
+  await waitForSound(page, 'explosion', played(before, 'explosion') + 1);
+  expect((await state(page)).terrainRevision).toBeGreaterThan(before.terrainRevision);
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

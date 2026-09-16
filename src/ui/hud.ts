@@ -204,7 +204,7 @@ export class Hud {
 
     // Grenade and sheep fuse countdown.
     const live = new Set<number>();
-    const fused = g.projectiles.filter((p) => WEAPONS[p.weapon].fuse > 0).map((p) => ({ id: p.id, x: p.x, y: p.y, fuse: p.fuse }));
+    const fused = g.projectiles.filter((p) => WEAPONS[p.weapon].fuse > 0 || p.armed).map((p) => ({ id: p.id, x: p.x, y: p.y, fuse: p.fuse }));
     if (g.sheep) fused.push({ id: g.sheep.id, x: g.sheep.body.x, y: g.sheep.body.y, fuse: Math.min(WEAPONS.sheep.fuse - g.sheep.age, g.turnTimeLeft) });
     for (const p of fused) {
       live.add(p.id);

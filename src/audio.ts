@@ -18,6 +18,7 @@ export type Sfx =
   | 'hop'
   | 'plane'
   | 'alarm'
+  | 'hallelujah'
   | 'bullet'
   | 'spinup'
   | 'bat'
@@ -135,6 +136,9 @@ export class Audio {
         break;
       case 'spinup':
         this.tone('sawtooth', 80, 420, 0.3, 0.06);
+        break;
+      case 'hallelujah':
+        this.choir();
         break;
       case 'alarm':
         // Frantic rising siren right before the bang.
@@ -284,6 +288,46 @@ export class Audio {
     this.setCharge(null);
     this.setTorch(false);
     this.setFlights([]);
+  }
+
+  /** A swelling "Ha-le-lu-jah!" choir chord: detuned voices through a vowel filter with vibrato. */
+  private choir(): void {
+    const ctx = this.ctx!;
+    const t0 = ctx.currentTime;
+    const syllables = [0, 0.3, 0.55, 0.8];
+    const chords = [
+      [440, 554, 659],
+      [440, 554, 659],
+      [494, 587, 740],
+      [554, 659, 880],
+    ];
+    syllables.forEach((start, k) => {
+      const length = k === syllables.length - 1 ? 0.9 : 0.26;
+      for (const f of chords[k]) {
+        for (const detune of [-6, 6]) {
+          const osc = ctx.createOscillator();
+          osc.type = 'sawtooth';
+          osc.frequency.value = f;
+          osc.detune.value = detune;
+          const vib = ctx.createOscillator();
+          vib.frequency.value = 5.5;
+          const vibDepth = ctx.createGain();
+          vibDepth.gain.value = 5;
+          vib.connect(vibDepth);
+          vibDepth.connect(osc.frequency);
+          const vowel = ctx.createBiquadFilter();
+          vowel.type = 'bandpass';
+          vowel.frequency.value = k === 1 ? 1300 : 900;
+          vowel.Q.value = 3;
+          osc.connect(vowel);
+          vowel.connect(this.envelope(0.05, length, start));
+          osc.start(t0 + start);
+          vib.start(t0 + start);
+          osc.stop(t0 + start + length + 0.05);
+          vib.stop(t0 + start + length + 0.05);
+        }
+      }
+    });
   }
 
   /** Propeller plane passing overhead: a buzzing drone that swells, then drops in pitch as it leaves. */

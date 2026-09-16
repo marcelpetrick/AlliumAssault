@@ -3,7 +3,7 @@ import { planAttack } from '../src/core/ai';
 import { Game, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { mulberry32 } from '../src/core/rng';
-import { config, flatGame, runUntil, team } from './helpers';
+import { config, flatGame, onlyWeapon, runUntil, team } from './helpers';
 
 const toAiming = (g: Game) => runUntil(g, () => g.phase === 'aiming', 5);
 
@@ -67,6 +67,29 @@ describe('match flow', () => {
     expect(g.projectiles.length).toBe(1);
     g.simulate(0.7);
     expect(g.projectiles.length).toBe(0);
+  });
+
+  it('holy garlic grenade waits until it rests, sings, then blows a huge crater', () => {
+    const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('holy');
+    g.buddies[0].aim = 0.6;
+    g.pressFire();
+    g.simulate(0.3);
+    g.releaseFire();
+    const events: GameEvent[] = [];
+    runUntil(g, () => {
+      events.push(...g.drainEvents());
+      return events.some((e) => e.type === 'hallelujah');
+    }, 8);
+    const song = events.find((e) => e.type === 'hallelujah')!;
+    expect(g.projectiles).toHaveLength(1);
+    expect(g.projectiles[0].vx ** 2 + g.projectiles[0].vy ** 2).toBeLessThan(1);
+    g.simulate(1.4);
+    expect(g.projectiles).toHaveLength(1);
+    g.simulate(0.3);
+    expect(g.projectiles).toHaveLength(0);
+    if (song.type === 'hallelujah') expect(g.terrain.isSolid(song.x, song.y - 5.5)).toBe(false);
   });
 
   it('shotgun fires twice and consumes one ammo', () => {
@@ -449,8 +472,7 @@ describe('AI', () => {
 
   it('guides a sheep to the enemy and detonates it there', () => {
     const g = flatGame([40, 52], [team('A', 1, 'ai'), team('B', 1)]);
-    const ammo = g.teams[0].ammo;
-    ammo.bazooka = ammo.grenade = ammo.shotgun = ammo.punch = ammo.cluster = 0;
+    onlyWeapon(g, 0, 'sheep');
     const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(9));
     expect(plan.weapon).toBe('sheep');
     expect(plan.facing).toBe(1);
@@ -463,8 +485,7 @@ describe('AI', () => {
 
   it('calls an air strike onto an enemy', () => {
     const g = flatGame([30, 80], [team('A', 1, 'ai'), team('B', 1)]);
-    const ammo = g.teams[0].ammo;
-    ammo.bazooka = ammo.grenade = ammo.shotgun = ammo.punch = ammo.cluster = ammo.sheep = 0;
+    onlyWeapon(g, 0, 'airstrike');
     const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(4));
     expect(plan.weapon).toBe('airstrike');
     expect(Math.abs(plan.target! - 80)).toBeLessThan(2);

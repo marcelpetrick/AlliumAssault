@@ -1,5 +1,5 @@
 import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, TORCH_SPEED, WIND_ACCEL } from './constants';
-import { meleeLaunch, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
+import { meleeLaunch, REST_SPEED, REST_TIME, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
@@ -39,11 +39,14 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
       : undefined;
   const dt = 1 / 20;
   const ax = game.wind * WIND_ACCEL * def.windInfluence;
+  let rest = 0;
   for (let t = 0; t < 7; t += dt) {
     const hit = stepProjectile(game.terrain, p, dt, ax, -GRAVITY * def.gravityScale, def.restitution, hitTest, 0.3);
     if (hit === 'terrain' || hit === 'target') return { x: p.x, y: p.y };
     if (hit === 'water' || hit === 'out') return null;
     if (def.fuse > 0 && t + dt >= def.fuse) return { x: p.x, y: p.y };
+    rest = Math.hypot(p.vx, p.vy) < REST_SPEED ? rest + dt : 0;
+    if (def.restFuse !== undefined && rest >= REST_TIME) return { x: p.x, y: p.y };
   }
   return null;
 }
@@ -111,7 +114,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     score: -Infinity,
   };
 
-  for (const weapon of ['bazooka', 'grenade', 'cluster'] as const) {
+  for (const weapon of ['bazooka', 'grenade', 'cluster', 'holy'] as const) {
     if (!allowed(weapon)) continue;
     // Spending limited ammo needs a clearly better shot than an unlimited weapon.
     const cost = team.ammo[weapon] === Infinity ? 0 : 12;

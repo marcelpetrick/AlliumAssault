@@ -27,7 +27,7 @@ Status: ☐ open · ☑ done
 | T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
 | T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☑ | 1.9.0 |
 | T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☐ | |
-| T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☐ | |
+| T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☑ | 1.12.0 |
 | T20 | Banana Bomb: bursts into bouncing explosive bananas | ☐ | |
 | T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☐ | |
 | T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☐ | |
@@ -144,9 +144,9 @@ Names: mechanics follow the requested Worms 2 weapons; Worms-specific names are 
 garlic-flavoured ones (Holy Garlic Grenade, Flying Sheep, Concrete Mule) because the project's
 design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 
-### T19 — Holy Garlic Grenade ☐
+### T19 — Holy Garlic Grenade ☑
 - Thrown like a grenade but with little bounce and no timer: once it has come to rest it sings a
-  "Hallelujah" chord and explodes 1.5 s later — enormous blast (radius 7, 100 damage). 1 per team.
+  "Hallelujah" chord and explodes 1.6 s later — enormous blast (radius 7, 100 damage). 1 per team.
 - Core: `restFuse` on the weapon definition; golden grenade model with a cross; choir sound.
 
 ### T20 — Banana Bomb ☐

@@ -102,6 +102,10 @@ export interface Projectile {
   fuse: number;
   age: number;
   owner: number;
+  /** Seconds spent (almost) motionless, for weapons that detonate after coming to rest. */
+  rest?: number;
+  /** A rest-fuse weapon has come to rest and its fuse is counting down. */
+  armed?: boolean;
 }
 
 export type GameEvent =
@@ -119,6 +123,7 @@ export type GameEvent =
   | { type: 'land'; buddy: number; speed: number }
   | { type: 'bounce'; x: number; y: number; speed: number }
   | { type: 'sheepHop'; x: number; y: number }
+  | { type: 'hallelujah'; x: number; y: number }
   | { type: 'crateSpawn'; crate: number; x: number; y: number }
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number }
   | { type: 'airstrike'; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
@@ -136,6 +141,12 @@ export function selfDestructBlast(def: WeaponDef, hp: number): { radius: number;
   const k = Math.max(hp, 0) / 100;
   return { radius: Math.max(1.5, def.radius * k), damage: Math.round(def.damage * k), force: def.force * Math.max(k, 0.3) };
 }
+
+/** A rest-fuse projectile slower than this for REST_TIME seconds counts as resting. */
+export const REST_SPEED = 0.6;
+export const REST_TIME = 0.3;
+/** Rest-fuse projectiles arm after this long even if they never settle. */
+const REST_MAX_WAIT = 10;
 
 /** Seconds between two tunnel carves of the blowtorch. */
 const TORCH_CARVE_INTERVAL = 0.08;
@@ -431,8 +442,17 @@ export class Game {
           : undefined;
       const hit = stepProjectile(this.terrain, p, dt, this.wind * WIND_ACCEL * def.windInfluence, -GRAVITY * def.gravityScale, def.restitution, hitTest);
       if (p.bounces > bounces) this.emit({ type: 'bounce', x: p.x, y: p.y, speed: Math.hypot(p.vx, p.vy) });
-      if (def.fuse > 0) p.fuse -= dt;
-      if (hit === 'terrain' || hit === 'target' || (def.fuse > 0 && p.fuse <= 0)) {
+      if (def.restFuse !== undefined && !p.armed) {
+        p.rest = Math.hypot(p.vx, p.vy) < REST_SPEED ? (p.rest ?? 0) + dt : 0;
+        if (p.rest >= REST_TIME || p.age > REST_MAX_WAIT) {
+          p.armed = true;
+          p.fuse = def.restFuse;
+          this.emit({ type: 'hallelujah', x: p.x, y: p.y });
+        }
+      }
+      const ticking = def.fuse > 0 || !!p.armed;
+      if (ticking) p.fuse -= dt;
+      if (hit === 'terrain' || hit === 'target' || (ticking && p.fuse <= 0)) {
         this.removeProjectile(p);
         this.explode(p.x, p.y, def.radius, def.damage, def.force, def.flatDamage);
         if (def.cluster) this.scatter(p, def.cluster);

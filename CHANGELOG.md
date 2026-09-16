@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.12.0] — 2026-09-16
+
+### Added
+- Holy Garlic Grenade (1 per team): a golden grenade with a cross that barely bounces and has no
+  timer. Once it has come to rest it sings a Hallelujah chord and erupts 1.6 seconds later in an
+  enormous blast (100 damage, radius 7). Choir sound, glowing model, fuse countdown.
+- The AI throws it when the huge blast pays off.
+- Unit and E2E tests; AI tests restrict the arsenal with a helper so new weapons do not change
+  their outcome.
+
 ## [1.11.0] — 2026-09-16
 
 ### Added

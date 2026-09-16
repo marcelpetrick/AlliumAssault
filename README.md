@@ -80,6 +80,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🔥 Blowtorch | 2 | Walks forward for 3 s burning a level tunnel through rock; falls into gaps, never climbs (15 dmg) |
 | 💥 Self-Destruct | 1 | The buddy blows itself up: damage equals its health, blast radius health ÷ 10 |
 | 🔩 Minigun | 1 | Burst of 14 bullets (5 dmg each) whose kicks shove the victim far across the map |
+| ✨ Holy Garlic Grenade | 1 | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later (100 dmg, radius 7) |
 
 ## Architecture
 

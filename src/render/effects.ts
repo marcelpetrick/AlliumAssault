@@ -89,6 +89,7 @@ export class Effects {
       red: mat('fxRed', '#e0322f', 0.3),
       bomb: mat('fxBomb', '#2f4a2a'),
       cluster: mat('fxCluster', '#d42a24', 0.15),
+      gold: mat('fxGold', '#f2c230', 0.45),
       metal: mat('fxMetal', '#9aa3ad'),
       wool: mat('fxWool', '#f4f1ea', 0.25),
       crateWood: mat('fxCrateWood', '#b07a45', 0.08),
@@ -493,6 +494,8 @@ export class Effects {
         return this.createMissile(false);
       case 'cluster':
         return this.createGrenade(this.materials.cluster);
+      case 'holy':
+        return this.createHolyGrenade();
       case 'bomblet':
         return this.createBomblet();
       default:
@@ -556,6 +559,21 @@ export class Effects {
       }),
     );
     return { id, node, body, legs };
+  }
+
+  private createHolyGrenade(): ProjectileView {
+    const view = this.createGrenade(this.materials.gold);
+    view.node.scaling.setAll(1.35);
+    const bar = (w: number, h: number, y: number) => {
+      const m = MeshBuilder.CreateBox('holyCross', { width: w, height: h, depth: 0.05 }, this.scene);
+      m.material = this.materials.gold;
+      m.position.y = y;
+      m.parent = view.node;
+      this.glow(m);
+    };
+    bar(0.05, 0.26, 0.38);
+    bar(0.16, 0.05, 0.42);
+    return view;
   }
 
   private createBomblet(): ProjectileView {

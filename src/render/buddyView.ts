@@ -217,6 +217,10 @@ export class BuddyView {
         ),
         [MeshBuilder.CreateBox('minigunBody', { width: 0.34, height: 0.22, depth: 0.2 }, scene), kit.olive, [0.12, 0, 0], false],
       ]),
+      holy: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateSphere('holyBall', { diameter: 0.44, segments: 12 }, scene), kit.glove, [0.62, 0, 0], false],
+        [MeshBuilder.CreateBox('holyCross', { width: 0.05, height: 0.24, depth: 0.05 }, scene), kit.eyeWhite, [0.62, 0.32, 0], false],
+      ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
         [MeshBuilder.CreateCylinder('plunger', { height: 0.1, diameter: 0.12, tessellation: 10 }, scene), kit.glove, [0.5, 0.07, 0], false],
