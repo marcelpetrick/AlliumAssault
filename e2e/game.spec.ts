@@ -21,6 +21,22 @@ test('title screen runs a live 3D demo behind the menu', async ({ page }, info) 
 test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async ({ page }, info) => {
   const errors = await boot(page);
   await page.getByRole('button', { name: /Quick Match/ }).click();
+  await waitFor(page, (s) => !s.demo && s.screen === null, 30_000);
+  // Quick Match uses a random map; continue on a fixed one so a jump cannot land in the water.
+  await page.evaluate(() => {
+    window.__allium.startMatch({
+      seed: 'e2e-human-turn',
+      teams: [
+        { name: 'Garlic Gang', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Clovis', 'Aioli'] },
+        { name: 'Clove Crew', color: '#3d8bfd', controller: 'ai', aiLevel: 'normal', buddyNames: ['Chive', 'Sprout'] },
+      ],
+      turnTime: 45,
+      retreatTime: 5,
+      windMax: 0.7,
+      crates: 0,
+      theme: 'meadow',
+    });
+  });
   const start = await toHumanAiming(page);
   expect(start.screen).toBeNull();
   const me = () => state(page).then((s) => s.buddies.find((b) => b.name === start.activeBuddy)!);

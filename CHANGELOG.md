@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.11] — 2026-09-16
+
+### Fixed
+
+- E2E: the human-turn test continues on a fixed map after clicking Quick Match, so a random map
+  can no longer end the turn early (for example a jump into the water).
+
 ## [1.26.10] — 2026-09-16
 
 ### Changed
