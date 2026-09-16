@@ -516,6 +516,19 @@ describe('crates', () => {
     }
   });
 
+  it('lengthen the turn intro when one teleports in, so players notice it', () => {
+    const g = crateGame(1);
+    toAiming(g);
+    g.skipTurn();
+    runUntil(g, () => g.phase === 'turnStart', 20);
+    expect(g.crates).toHaveLength(1);
+    expect(g.introTime).toBeGreaterThan(2);
+    g.simulate(1.5);
+    expect(g.phase).toBe('turnStart');
+    runUntil(g, () => g.phase === 'aiming', 3);
+    expect(g.turnTimeLeft).toBeCloseTo(1, 1);
+  });
+
   it('are placed the same way for the same seed', () => {
     const a = crateGame(0.5);
     const b = crateGame(0.5);

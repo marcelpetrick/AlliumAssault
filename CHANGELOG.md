@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.18.5] — 2026-09-16
+
+### Added
+- When a crate teleports in, the camera pans to it and the turn intro lasts 1.3 s longer, so every
+  player notices the drop (with the louder teleport shimmer).
+
 ## [1.18.4] — 2026-09-16
 
 ### Changed

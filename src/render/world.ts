@@ -150,6 +150,7 @@ export class World {
   }
 
   handleEvents(events: GameEvent[]): void {
+    let crateArrived: { x: number; y: number } | null = null;
     for (const e of events) {
       switch (e.type) {
         case 'explosion':
@@ -187,6 +188,7 @@ export class World {
         }
         case 'crateSpawn':
           this.effects.teleport(e.x, e.y);
+          crateArrived = { x: e.x, y: e.y };
           break;
         case 'cratePickup': {
           const finder = this.game.buddies.find((b) => b.id === e.buddy);
@@ -198,6 +200,11 @@ export class World {
           this.hold = null;
           break;
       }
+    }
+    // Show a freshly teleported crate during the turn intro (after turnStart reset the camera).
+    if (crateArrived) {
+      this.hold = { x: crateArrived.x, y: crateArrived.y + 1, until: this.time + this.game.introTime };
+      this.manualUntil = -1;
     }
   }
 
@@ -248,6 +255,11 @@ export class World {
 
   zoom(delta: number): void {
     this.goalDistance = clamp(this.goalDistance * (1 + delta * 0.0012), MIN_DISTANCE, MAX_DISTANCE);
+  }
+
+  /** World point the camera is centred on (for tests). */
+  get focusPoint(): { x: number; y: number } {
+    return { x: this.focus.x, y: this.focus.y };
   }
 
   /** CSS pixels relative to the canvas → point on the gameplay plane (z = 0). */

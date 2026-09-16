@@ -9,6 +9,7 @@ import {
   DEATH_BLAST,
   DEATH_DELAY,
   FALL_DAMAGE_PER_SPEED,
+  CRATE_INTRO_TIME,
   INTRO_TIME,
   JUMP,
   MUZZLE_OFFSET,
@@ -194,6 +195,8 @@ export class Game {
   time = 0;
   turn = 0;
   turnTimeLeft = 0;
+  /** Length of the current turn intro; longer when a crate just teleported in. */
+  introTime = INTRO_TIME;
   retreatLeft = 0;
   wind = 0;
   activeTeam = -1;
@@ -510,16 +513,17 @@ export class Game {
     this.crates = this.crates.filter((c) => c !== crate);
   }
 
-  /** At a turn start, maybe teleport a new crate onto a free land spot. */
-  private maybeDropCrate(): void {
+  /** At a turn start, maybe teleport a new crate onto a free land spot; true if one arrived. */
+  private maybeDropCrate(): boolean {
     // Special weapons must be findable when the arsenal restricts them to crates.
     const chance = this.config.crates || (this.config.arsenal === 'crates' ? DEFAULT_CRATE_CHANCE : 0);
-    if (chance <= 0 || this.turn <= 1 || this.crates.length >= MAX_CRATES || this.crateRng() >= chance) return;
+    if (chance <= 0 || this.turn <= 1 || this.crates.length >= MAX_CRATES || this.crateRng() >= chance) return false;
     const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body)];
     const crate = rollCrate(this.terrain, this.crateRng, this.nextId++, occupied);
-    if (!crate) return;
+    if (!crate) return false;
     this.crates.push(crate);
     this.emit({ type: 'crateSpawn', crate: crate.id, x: crate.body.x, y: crate.body.y });
+    return true;
   }
 
   private stepTorch(dt: number): void {
@@ -644,7 +648,7 @@ export class Game {
   private stepPhase(dt: number): void {
     switch (this.phase) {
       case 'turnStart':
-        if (this.phaseTime >= INTRO_TIME) this.setPhase('aiming');
+        if (this.phaseTime >= this.introTime) this.setPhase('aiming');
         break;
       case 'aiming':
         this.turnTimeLeft -= dt;
@@ -709,7 +713,7 @@ export class Game {
       break;
     }
     this.turn++;
-    this.maybeDropCrate();
+    this.introTime = this.maybeDropCrate() ? INTRO_TIME + CRATE_INTRO_TIME : INTRO_TIME;
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;

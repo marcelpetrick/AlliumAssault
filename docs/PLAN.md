@@ -90,7 +90,7 @@ progress.
 | T36 | Banana bomb only throws a short distance | Reproduce in the core and in Chrome with real keys; compare with the grenade; fix the cause | 🔍 not reproduced (both fly 63 units at full charge); waiting for details |
 | T28 | Sounds louder | Master gain up behind a compressor so big blasts do not clip; raise quiet effects | ✅ 1.18.3 |
 | T29 | Arsenal option "Infinite supplies" | Third arsenal value: every weapon unlimited; setup option; tests | ☐ |
-| T35 | Crate drops noticeable | Teleport sound on spawn (exists, make it louder) plus a short camera pan to the crate at the turn start | ☐ |
+| T35 | Crate drops noticeable | Teleport sound on spawn (exists, make it louder) plus a short camera pan to the crate at the turn start | ✅ 1.18.5 |
 | T31 | Comic tombstones for dead buddies | Physics tombstone per death (not drowning), knocked by blasts, sinks; RIP model with name and team ribbon | ☐ |
 | T30 | More sceneries, e.g. a candy shop | Candy Shop (lollipop trees, gumdrops, frosting) and Frosty Peaks themes; theme-specific props | ☐ |
 | T41 | Drill: dig straight down, like the blowtorch but vertical; no fall damage while drilling | New `drilling` phase: carve below the feet for 3 s, the buddy sinks with gravity, fall damage suppressed; model, sound, AI, tests | ☐ |

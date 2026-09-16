@@ -20,6 +20,8 @@ export const CHARGE_TIME = 1.5;
 export const WIND_ACCEL = 12;
 
 export const INTRO_TIME = 1.2;
+/** Extra turn-intro time when a crate teleports in, so the camera can show it. */
+export const CRATE_INTRO_TIME = 1.3;
 export const DEATH_DELAY = 0.7;
 export const SETTLE_MIN = 0.6;
 export const SETTLE_MAX = 15;

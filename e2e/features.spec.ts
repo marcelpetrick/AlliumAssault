@@ -9,10 +9,20 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
   expect((await state(page)).crates).toHaveLength(0);
 
   await page.evaluate(() => window.__allium.app.game!.skipTurn());
-  await waitFor(page, (s) => s.phase === 'aiming' && s.turn === 2, 30_000);
+  await waitFor(page, (s) => s.turn === 2 && s.crates.length === 1, 30_000);
   const s = await state(page);
-  expect(s.crates).toHaveLength(1);
-  expect(played(s, 'teleport')).toBe(1);
+  expect(s.phase).toBe('turnStart');
+  await waitForSound(page, 'teleport');
+  // The camera pans over to the new crate while the (longer) turn intro runs.
+  await page.waitForFunction(
+    ([cx, cy]) => {
+      const c = window.__allium.state().camera!;
+      return Math.hypot(c.x - cx, c.y - cy) < 4;
+    },
+    [s.crates[0].x, s.crates[0].y] as const,
+    { timeout: 30_000, polling: 'raf' },
+  );
+  await waitFor(page, (st) => st.phase === 'aiming', 30_000);
   await page.evaluate(() => window.__allium.stepFrames(20, 1 / 30));
   await info.attach('crate', { body: await page.screenshot(), contentType: 'image/png' });
 
