@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.8.1] — 2026-09-16
+
+### Changed
+- `tasks.md`: plan and open tasks for the Holy Garlic Grenade, Banana Bomb, Flying Sheep,
+  Concrete Mule, Minigun and a compact weapon bar.
+
 ## [1.8.0] — 2026-09-16
 
 ### Added

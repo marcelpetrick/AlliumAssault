@@ -27,6 +27,12 @@ Status: ☐ open · ☑ done
 | T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
 | T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☐ | |
 | T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☐ | |
+| T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☐ | |
+| T20 | Banana Bomb: bursts into bouncing explosive bananas | ☐ | |
+| T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☐ | |
+| T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☐ | |
+| T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☐ | |
+| T24 | Compact weapon bar and hotkeys for 15 weapons | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
 | T12 | Self-review of all changes, fix findings | ☐ | |
@@ -126,6 +132,48 @@ Goal: know that the game and each feature work in a real browser, in addition to
   *Find in crates* (special weapons start empty and are only found in weapon crates).
 - Picking up a weapon crate adds one more of that weapon to the team's inventory.
 - Unit and E2E tests.
+
+### Plan for T14, T17–T24
+
+Order: T17 self-destruct → T14 blowtorch → T23 minigun → T19 holy grenade → T20 banana bomb →
+T21 flying sheep → T22 concrete mule → T24 weapon bar → T18 arsenal setting (last, so the crate
+list covers every special weapon). One minor version per weapon, each with core rules, model,
+effects, sound, AI use, unit tests and an E2E test.
+
+Names: mechanics follow the requested Worms 2 weapons; Worms-specific names are replaced by
+garlic-flavoured ones (Holy Garlic Grenade, Flying Sheep, Concrete Mule) because the project's
+design is original. Renaming is a one-line change in `src/core/weapons.ts`.
+
+### T19 — Holy Garlic Grenade ☐
+- Thrown like a grenade but with little bounce and no timer: once it has come to rest it sings a
+  "Hallelujah" chord and explodes 1.5 s later — enormous blast (radius 7, 100 damage). 1 per team.
+- Core: `restFuse` on the weapon definition; golden grenade model with a cross; choir sound.
+
+### T20 — Banana Bomb ☐
+- Thrown with a 3 s fuse; bursts into five bananas that bounce around and explode after
+  staggered short fuses (30 damage each), wrecking a large area. 1 per team.
+- Core: cluster fragments with bounce and their own fuses; yellow banana models.
+
+### T21 — Flying Sheep ☐
+- Space releases it; it flies at constant speed, ← → steer it, Space detonates (75 damage). Hits
+  on terrain or buddies detonate it; 10 s flight time. 1 per team.
+- Core: steerable flyer in the `guiding` phase; sheep model with a cape; AI steers towards the
+  nearest enemy.
+
+### T22 — Concrete Mule ☐
+- Click a target: a giant concrete mule drops from the sky and smashes down, exploding on each
+  of up to six impacts as it bounces and crushes its way through the ground. 1 per team.
+- Core: strike weapon without a plane; heavy projectile that survives impacts.
+
+### T23 — Minigun ☐
+- Instant long burst: 14 bullets over 1.4 s along the (slightly spreading) aim line, 5 damage and
+  a strong shove each, so a full hit pushes a buddy far. 1 per team.
+- Core: `burst` on hitscan weapons, a locked `firing` phase while it rattles; rapid-fire sound.
+
+### T24 — Compact weapon bar ☐
+- Icon slots with ammo badges and the selected weapon's name in the hint; fits 15 weapons at
+  1280 px and wraps on narrow screens. Hotkeys 1–9 and 0 for the first ten, Shift+1–5 for the
+  rest, Tab cycles, clicks work for all.
 
 ### T16 — Walking and jumping sounds ☑
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.
