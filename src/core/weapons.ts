@@ -1,4 +1,4 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep' | 'mule' | 'mulebody';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer';
 
 export interface WeaponDef {
@@ -35,8 +35,10 @@ export interface WeaponDef {
   restFuse?: number;
   /** Every buddy inside the blast takes the full damage instead of less towards the edge. */
   flatDamage?: boolean;
-  /** Air strikes: bombs dropped around the clicked target. */
-  strike?: { weapon: WeaponId; count: number; spacing: number };
+  /** Strikes: bombs dropped around the clicked target, by a plane or straight from the sky. */
+  strike?: { weapon: WeaponId; count: number; spacing: number; plane: boolean };
+  /** Projectiles that explode on every impact and keep smashing downwards this many times. */
+  impacts?: number;
   /** Fragments released when this projectile explodes. */
   cluster?: {
     weapon: WeaponId;
@@ -317,7 +319,49 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     damage: 25,
     force: 10,
     range: 0,
-    strike: { weapon: 'airbomb', count: 5, spacing: 1.7 },
+    strike: { weapon: 'airbomb', count: 5, spacing: 1.7, plane: true },
+  },
+  mule: {
+    id: 'mule',
+    name: 'Concrete Mule',
+    icon: '🫏',
+    blurb: 'Click on the map: a giant concrete mule drops from the sky and smashes down again and again.',
+    kind: 'strike',
+    ammo: 1,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 3.2,
+    damage: 35,
+    force: 14,
+    range: 0,
+    strike: { weapon: 'mulebody', count: 1, spacing: 0, plane: false },
+  },
+  mulebody: {
+    id: 'mulebody',
+    name: 'Concrete Mule',
+    icon: '🫏',
+    blurb: 'Falling concrete mule; explodes on every impact.',
+    kind: 'projectile',
+    ammo: 0,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 1.2,
+    restitution: null,
+    fuse: 0,
+    radius: 3.2,
+    damage: 35,
+    force: 14,
+    range: 0,
+    impacts: 6,
   },
   airbomb: {
     id: 'airbomb',
@@ -405,5 +449,5 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

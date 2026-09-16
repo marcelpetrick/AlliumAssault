@@ -30,7 +30,7 @@ Status: ☐ open · ☑ done
 | T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☑ | 1.12.0 |
 | T20 | Banana Bomb: bursts into bouncing explosive bananas | ☑ | 1.13.0 |
 | T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☑ | 1.14.0 |
-| T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☐ | |
+| T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☑ | 1.15.0 |
 | T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☐ | |
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☐ | |
@@ -162,7 +162,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - Core: steerable flyer in the `guiding` phase; sheep model with a cape; AI steers towards the
   nearest enemy.
 
-### T22 — Concrete Mule ☐
+### T22 — Concrete Mule ☑
 - Click a target: a giant concrete mule drops from the sky and smashes down, exploding on each
   of up to six impacts as it bounces and crushes its way through the ground. 1 per team.
 - Core: strike weapon without a plane; heavy projectile that survives impacts.

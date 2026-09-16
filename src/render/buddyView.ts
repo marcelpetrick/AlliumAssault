@@ -230,6 +230,10 @@ export class BuddyView {
         [MeshBuilder.CreateSphere('heldFlySheep', { diameterX: 0.44, diameterY: 0.32, diameterZ: 0.32, segments: 10 }, scene), kit.eyeWhite, [0.62, 0.05, 0], false],
         [MeshBuilder.CreateBox('heldCape', { width: 0.3, height: 0.03, depth: 0.3 }, scene), kit.glove, [0.52, 0.22, 0], false],
       ]),
+      mule: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateBox('muleRadio', { width: 0.22, height: 0.34, depth: 0.14 }, scene), kit.metal, [0.55, 0, 0], false],
+        [MeshBuilder.CreateCylinder('muleAntenna', { height: 0.4, diameter: 0.025, tessellation: 6 }, scene), kit.glove, [0.6, 0.35, 0], false],
+      ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
         [MeshBuilder.CreateCylinder('plunger', { height: 0.1, diameter: 0.12, tessellation: 10 }, scene), kit.glove, [0.5, 0.07, 0], false],

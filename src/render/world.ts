@@ -178,7 +178,7 @@ export class World {
           this.buddyViews.get(e.buddy)?.onHurt();
           break;
         case 'airstrike': {
-          this.effects.plane(e.startX, e.altitude, e.dir, e.speed);
+          if (e.plane) this.effects.plane(e.startX, e.altitude, e.dir, e.speed);
           this.hold = { x: e.target, y: e.ground + (e.altitude - e.ground) * 0.3, until: this.time + 4.5 };
           if (!this.strikeView) this.strikeView = { distance: this.goalDistance, until: this.time + 4.5 };
           this.goalDistance = Math.max(this.goalDistance, 44);

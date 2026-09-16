@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.15.0] — 2026-09-16
+
+### Added
+- Concrete Mule (1 per team): click on the map and a giant concrete mule drops from the sky onto
+  that spot. It explodes on every impact (35 damage) and keeps crashing down through its own
+  craters, up to six times. Block-built mule model, hee-haw bray, falling whistle.
+- The AI drops the mule onto enemies, counting its repeated impacts.
+- Unit and E2E tests.
+
+### Changed
+- Strike weapons can fall straight from the sky without a plane; the strike hint names the weapon.
+
 ## [1.14.0] — 2026-09-16
 
 ### Added

@@ -418,6 +418,24 @@ describe('match flow', () => {
     expect(g.buddies[0].hp).toBe(100);
   });
 
+  it('concrete mule drops onto the target and smashes down through the ground several times', () => {
+    const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('mule');
+    g.strike(70);
+    expect(g.teams[0].ammo.mule).toBe(0);
+    expect(g.phase).toBe('retreat');
+    const craters: { x: number; y: number }[] = [];
+    runUntil(g, () => {
+      for (const e of g.drainEvents()) if (e.type === 'explosion') craters.push({ x: e.x, y: e.y });
+      return g.projectiles.length === 0 && g.drops.length === 0 && craters.length > 0;
+    }, 15);
+    expect(craters.length).toBeGreaterThanOrEqual(4);
+    expect(Math.abs(craters[0].x - 70)).toBeLessThan(1);
+    expect(craters[craters.length - 1].y).toBeLessThan(craters[0].y - 4);
+    expect(g.buddies[1].hp).toBeLessThan(65);
+  });
+
   it('air strike allows for wind', () => {
     const g = flatGame([30, 90], [team('A', 1), team('B', 1)], { windMax: 1 });
     toAiming(g);

@@ -244,6 +244,28 @@ test('flying sheep: takes off, steers with the arrow keys, Space detonates', asy
   expect(errors).toEqual([]);
 });
 
+test('concrete mule: a click drops it, it brays and smashes down repeatedly', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => window.__allium.app.game!.selectWeapon('mule'));
+  const m = await me(page);
+  const canvas = (await page.locator('#stage').boundingBox())!;
+  const target = (await page.evaluate(([x, y]) => window.__allium.project(x, y), [m.x + 8, m.y] as const))!;
+  const before = await state(page);
+  await page.mouse.click(canvas.x + target.x, canvas.y + target.y);
+  await waitForSound(page, 'bray');
+  expect((await state(page)).ammo!.mule).toBe(0);
+  await fastForward(page, 1.6);
+  await page.evaluate(() => window.__allium.stepFrames(3, 1 / 30));
+  await info.attach('mule', { body: await page.screenshot(), contentType: 'image/png' });
+  await page.evaluate(() => window.__allium.setManual(false));
+  await fastForward(page, 8);
+  const after = await state(page);
+  expect(played(after, 'explosion') - played(before, 'explosion')).toBeGreaterThanOrEqual(3);
+  expect(after.terrainRevision).toBeGreaterThan(before.terrainRevision);
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

@@ -142,19 +142,22 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     }
   }
 
-  if (allowed('airstrike')) {
-    const def = WEAPONS.airstrike;
-    const { count, spacing, weapon } = def.strike!;
+  for (const strike of ['airstrike', 'mule'] as const) {
+    if (!allowed(strike)) continue;
+    const { count, spacing, weapon } = WEAPONS[strike].strike!;
+    const bomb = WEAPONS[weapon];
+    // A smashing projectile hits the same column repeatedly: count each impact.
+    const hitsPerBomb = bomb.impacts ? bomb.impacts * 0.5 : 1;
     for (const enemy of enemies) {
-      for (const shift of [-spacing, 0, spacing]) {
+      for (const shift of spacing > 0 ? [-spacing, 0, spacing] : [0]) {
         const target = clamp(enemy.body.x + shift, 0, game.terrain.width);
         let score = -20;
         for (let k = 0; k < count; k++) {
           const x = target + (k - (count - 1) / 2) * spacing;
-          score += scoreBlast(game, me, x, groundBelow(game.terrain, x), WEAPONS[weapon]);
+          score += scoreBlast(game, me, x, groundBelow(game.terrain, x), bomb) * hitsPerBomb;
         }
         const facing: 1 | -1 = target < me.body.x ? -1 : 1;
-        if (score > best.score) best = { weapon: 'airstrike', facing, aim: me.aim, power: 1, score, target };
+        if (score > best.score) best = { weapon: strike, facing, aim: me.aim, power: 1, score, target };
       }
     }
   }

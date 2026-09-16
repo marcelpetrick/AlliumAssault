@@ -10,6 +10,9 @@ export const PLANE_APPROACH = 1.8;
 /** Bombs keep this share of the plane's speed when released. */
 const BOMB_CARRY = 0.35;
 const CLEARANCE = 22;
+/** Plane-less strikes fall from this far above the ground, after a short delay. */
+const DROP_HEIGHT = 30;
+const DROP_DELAY = 0.5;
 
 export interface StrikeDrop {
   x: number;
@@ -42,9 +45,15 @@ export function groundBelow(t: Terrain, x: number): number {
  * the fall time, the bombs' forward speed and the wind.
  */
 export function planStrike(t: Terrain, def: WeaponDef, target: number, dir: 1 | -1, wind: number): StrikePlan {
-  const { count, spacing, weapon } = def.strike!;
+  const { count, spacing, weapon, plane } = def.strike!;
   const bomb = WEAPONS[weapon];
   const ground = groundBelow(t, target);
+  if (!plane) {
+    // Dropped straight down from high above the target.
+    const altitude = Math.min(WORLD_HEIGHT + 10, ground + DROP_HEIGHT);
+    const drops = Array.from({ length: count }, (_, k) => ({ x: target + (k - (count - 1) / 2) * spacing, delay: DROP_DELAY + k * 0.3 }));
+    return { target, dir, ground, altitude, startX: target, bombVx: 0, drops };
+  }
   const altitude = Math.min(WORLD_HEIGHT + 4, ground + CLEARANCE);
   const bombVx = dir * PLANE_SPEED * BOMB_CARRY;
   const ax = wind * WIND_ACCEL * bomb.windInfluence;

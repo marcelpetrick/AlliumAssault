@@ -91,6 +91,7 @@ export class Effects {
       bomb: mat('fxBomb', '#2f4a2a'),
       cluster: mat('fxCluster', '#d42a24', 0.15),
       gold: mat('fxGold', '#f2c230', 0.45),
+      concrete: mat('fxConcrete', '#9c9a94'),
       banana: mat('fxBanana', '#ffd83a', 0.25),
       bananaTip: mat('fxBananaTip', '#5a4020'),
       metal: mat('fxMetal', '#9aa3ad'),
@@ -260,7 +261,8 @@ export class Effects {
         this.projectiles.set(p.id, view);
       }
       view.node.position.set(p.x, p.y, 0);
-      if (p.weapon !== 'bazooka' && p.weapon !== 'airbomb') view.node.rotation.z -= p.vx * dt * 2;
+      if (p.weapon === 'mulebody') view.node.rotation.z = Math.sin(p.age * 3) * 0.08;
+      else if (p.weapon !== 'bazooka' && p.weapon !== 'airbomb') view.node.rotation.z -= p.vx * dt * 2;
       else view.node.rotation.z = Math.atan2(p.vy, p.vx);
     }
     for (const [id, view] of this.projectiles) {
@@ -520,6 +522,8 @@ export class Effects {
         return this.createMissile(true);
       case 'airbomb':
         return this.createMissile(false);
+      case 'mulebody':
+        return this.createMule();
       case 'cluster':
         return this.createGrenade(this.materials.cluster);
       case 'holy':
@@ -627,6 +631,28 @@ export class Effects {
     bar(0.05, 0.26, 0.38);
     bar(0.16, 0.05, 0.42);
     return view;
+  }
+
+  /** Giant grey concrete mule, a few units tall, built from blocks. */
+  private createMule(): ProjectileView {
+    const node = new TransformNode('mule', this.scene);
+    const block = (w: number, h: number, d: number, x: number, y: number, z = 0, rz = 0) => {
+      const m = MeshBuilder.CreateBox('muleBlock', { width: w, height: h, depth: d }, this.scene);
+      m.material = this.materials.concrete;
+      m.position.set(x, y, z);
+      m.rotation.z = rz;
+      m.parent = node;
+      m.isPickable = false;
+    };
+    block(2.4, 1.1, 1.0, 0, 0.4);
+    block(0.55, 1.1, 0.6, 1.25, 1.15, 0, -0.5);
+    block(0.9, 0.55, 0.55, 1.65, 1.65);
+    block(0.14, 0.5, 0.12, 1.45, 2.15, -0.14);
+    block(0.14, 0.5, 0.12, 1.45, 2.15, 0.14);
+    for (const x of [-0.85, 0.85]) for (const z of [-0.3, 0.3]) block(0.28, 1.0, 0.28, x, -0.55, z);
+    block(0.14, 0.7, 0.14, -1.3, 0.4, 0, 0.6);
+    node.scaling.setAll(1.2);
+    return { node, trail: null };
   }
 
   private createBomblet(): ProjectileView {

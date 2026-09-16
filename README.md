@@ -62,7 +62,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | Space | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
 | 1–9 / Tab | Choose weapon |
 | Mouse wheel / drag | Zoom / pan camera |
-| Click | Call the air strike onto that spot |
+| Click | Call the air strike or drop the concrete mule onto that spot |
 | M / Esc | Mute / pause menu |
 
 ## Weapons
@@ -83,6 +83,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | ✨ Holy Garlic Grenade | 1 | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later (100 dmg, radius 7) |
 | 🍌 Banana Bomb | 1 | 3 s fuse (40 dmg), then five bouncing bananas explode one after another (30 dmg each) |
 | 🦸 Flying Sheep | 1 | Takes off along the aim; steer with ← →, Space detonates (75 dmg); explodes on impact |
+| 🫏 Concrete Mule | 1 | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each) |
 
 ## Architecture
 

@@ -18,6 +18,7 @@ export type Sfx =
   | 'hop'
   | 'plane'
   | 'alarm'
+  | 'bray'
   | 'hallelujah'
   | 'bullet'
   | 'spinup'
@@ -139,6 +140,13 @@ export class Audio {
         break;
       case 'hallelujah':
         this.choir();
+        break;
+      case 'bray':
+        // Hee-haw: alternating high and low nasal tones.
+        [0, 0.34, 0.68].forEach((d, k) => {
+          this.tone('sawtooth', (k % 2 ? 260 : 560) * pitch, (k % 2 ? 220 : 480) * pitch, 0.3, 0.1, d);
+          this.tone('square', (k % 2 ? 130 : 280) * pitch, (k % 2 ? 110 : 240) * pitch, 0.3, 0.04, d);
+        });
         break;
       case 'alarm':
         // Frantic rising siren right before the bang.

@@ -172,7 +172,7 @@ export class App {
     }
     this.audio.setCharge(game.charge);
     this.audio.setTorch(game.phase === 'torching');
-    const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
+    const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' || p.weapon === 'mulebody' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
     const f = game.flyer;
     if (f) flights.push({ id: f.id, kind: 'lob', vx: Math.cos(f.angle) * FLYER_SPEED, vy: Math.sin(f.angle) * FLYER_SPEED });
     this.audio.setFlights(flights);
@@ -232,7 +232,7 @@ export class App {
           this.audio.play('hop');
           break;
         case 'airstrike':
-          this.audio.play('plane');
+          this.audio.play(e.plane ? 'plane' : 'bray');
           break;
         case 'crateSpawn':
           this.audio.play('teleport');

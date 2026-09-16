@@ -127,7 +127,7 @@ export type GameEvent =
   | { type: 'hallelujah'; x: number; y: number }
   | { type: 'crateSpawn'; crate: number; x: number; y: number }
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number }
-  | { type: 'airstrike'; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
+  | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'gameOver'; winner: number | null };
 
 export interface InputState {
@@ -148,6 +148,9 @@ export const REST_SPEED = 0.6;
 export const REST_TIME = 0.3;
 /** Rest-fuse projectiles arm after this long even if they never settle. */
 const REST_MAX_WAIT = 10;
+
+/** Upward speed a smashing projectile rebounds with after each impact. */
+const SMASH_REBOUND = 6;
 
 /** Seconds between two tunnel carves of the blowtorch. */
 const TORCH_CARVE_INTERVAL = 0.08;
@@ -361,7 +364,7 @@ export class Game {
     this.shotsLeft = 0;
     const plan = planStrike(this.terrain, def, target, b.facing, this.wind);
     for (const d of plan.drops) this.drops.push({ weapon: def.strike!.weapon, x: d.x, y: plan.altitude, vx: plan.bombVx, at: this.time + d.delay, owner: b.id });
-    this.emit({ type: 'airstrike', target, ground: plan.ground, dir: plan.dir, altitude: plan.altitude, startX: plan.startX, speed: PLANE_SPEED });
+    this.emit({ type: 'airstrike', weapon: def.id, plane: def.strike!.plane, target, ground: plan.ground, dir: plan.dir, altitude: plan.altitude, startX: plan.startX, speed: PLANE_SPEED });
     this.startRetreat();
   }
 
@@ -457,7 +460,13 @@ export class Game {
       }
       const ticking = def.fuse > 0 || !!p.armed;
       if (ticking) p.fuse -= dt;
-      if (hit === 'terrain' || hit === 'target' || (ticking && p.fuse <= 0)) {
+      if ((hit === 'terrain' || hit === 'target') && def.impacts && p.bounces < def.impacts - 1) {
+        // Smash, then keep crashing down through the crater.
+        p.bounces++;
+        this.explode(p.x, p.y, def.radius, def.damage, def.force);
+        p.vx *= 0.3;
+        p.vy = SMASH_REBOUND;
+      } else if (hit === 'terrain' || hit === 'target' || (ticking && p.fuse <= 0)) {
         this.removeProjectile(p);
         this.explode(p.x, p.y, def.radius, def.damage, def.force, def.flatDamage);
         if (def.cluster) this.scatter(p, def.cluster);
