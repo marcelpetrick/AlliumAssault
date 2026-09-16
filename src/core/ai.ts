@@ -195,6 +195,17 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const score = def.damage + (lethal ? enemy.hp + 40 : 0) + 5 - (team.ammo[weapon] === Infinity ? 0 : 8);
       if (score > best.score) best = { weapon, facing, aim, power: 1, score };
     }
+    if (allowed('minigun') && dist < WEAPONS.minigun.range && lineOfSight(game, me, enemy)) {
+      const def = WEAPONS.minigun;
+      const { count } = def.burst!;
+      const aim = directAim(enemy);
+      // Most bullets hit; their combined shove may knock the victim out.
+      const hits = count * 0.7;
+      const shove = { x: Math.cos(aim) * facing * def.force * hits, y: Math.sin(aim) * def.force * hits + (def.lift ?? 0) * hits };
+      const lethal = enemy.hp <= def.damage * hits || knockedOut(game, enemy, shove.x, shove.y);
+      const score = def.damage * hits + (lethal ? enemy.hp + 40 : 0) - 10;
+      if (score > best.score) best = { weapon: 'minigun', facing, aim, power: 1, score };
+    }
     if (allowed('shotgun') && dist < WEAPONS.shotgun.range && lineOfSight(game, me, enemy)) {
       const damage = WEAPONS.shotgun.damage * 2;
       const score = damage * 0.9 + (enemy.hp <= damage ? 40 : 0);

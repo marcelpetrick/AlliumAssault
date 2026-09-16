@@ -189,6 +189,30 @@ describe('match flow', () => {
     expect(g.buddies[1].hp).toBe(85);
   });
 
+  it('minigun fires a 14-bullet burst that damages and shoves the enemy far away', () => {
+    const g = flatGame([40, 48], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const [me, enemy] = g.buddies;
+    me.facing = 1;
+    me.aim = 0.03;
+    g.selectWeapon('minigun');
+    g.pressFire();
+    expect(g.phase).toBe('firing');
+    const x = me.body.x;
+    g.input.left = true;
+    const shots: number[] = [];
+    runUntil(g, () => {
+      for (const e of g.drainEvents()) if (e.type === 'shot') shots.push(e.x1);
+      return g.phase !== 'firing';
+    }, 3);
+    expect(shots).toHaveLength(14);
+    expect(me.body.x).toBeCloseTo(x, 3);
+    expect(g.phase).toBe('retreat');
+    expect(enemy.hp).toBeLessThanOrEqual(100 - 5 * 8);
+    runUntil(g, () => enemy.body.grounded && enemy.body.restTime > 0.2, 8);
+    expect(!enemy.alive || enemy.body.x > 60).toBe(true);
+  });
+
   it('kills buddies at 0 hp with a death explosion and declares a winner', () => {
     const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
     toAiming(g);
@@ -460,6 +484,7 @@ describe('AI', () => {
 
   it('bats an enemy standing near a cliff into the water', () => {
     const g = flatGame([40, 41.3], [team('A', 1, 'ai'), team('B', 1)]);
+    g.teams[0].ammo.minigun = 0;
     // The ground ends at about x = 55: beyond a punch's reach, but not a bat's.
     for (let x = 60; x <= 128; x += 3) g.terrain.carve(x, 10, 11);
     runUntil(g, () => g.phase === 'aiming', 5);

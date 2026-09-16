@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.11.0] — 2026-09-16
+
+### Added
+- Minigun (1 per team): Space fires a burst of 14 bullets over 1.4 seconds along a slightly
+  wobbling aim line. Each hit does 5 damage and kicks the victim up and away, so the shoves add up
+  and carry it across the map. Spin-up and rapid gunfire sounds, muzzle flashes, three-barrel model.
+- The AI uses the minigun on enemies in sight, especially when the shove knocks them into water.
+- Unit and E2E tests.
+
+### Changed
+- Hitscan weapons declare their upward kick; the shotgun keeps its previous behaviour.
+
 ## [1.10.0] — 2026-09-16
 
 ### Added

@@ -63,8 +63,9 @@ export interface GameOverrides {
 /**
  * `guiding`: a released sheep is hopping; the turn timer runs and Space detonates it.
  * `torching`: the active buddy walks forward burning a tunnel; no other input.
+ * `firing`: a burst weapon is rattling off its bullets; no other input.
  */
-export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'firing' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
 
 export interface Buddy {
   id: number;
@@ -108,7 +109,7 @@ export type GameEvent =
   | { type: 'weapon'; weapon: WeaponId }
   | { type: 'fire'; weapon: WeaponId; x: number; y: number; dx: number; dy: number; power: number }
   | { type: 'explosion'; x: number; y: number; radius: number }
-  | { type: 'shot'; x0: number; y0: number; x1: number; y1: number }
+  | { type: 'shot'; weapon: WeaponId; x0: number; y0: number; x1: number; y1: number }
   | { type: 'punch'; weapon: WeaponId; buddy: number; x: number; y: number; dx: number; dy: number }
   | { type: 'damage'; buddy: number; amount: number }
   | { type: 'death'; buddy: number }
@@ -160,6 +161,8 @@ export class Game {
   /** The released sheep, while it hops. */
   sheep: Sheep | null = null;
   crates: Crate[] = [];
+  /** Burst weapon firing: bullets left and seconds until the next one. */
+  burst: { weapon: WeaponId; left: number; next: number } | null = null;
   /** Blowtorch in use: seconds left and buddies already burnt this use. */
   torch: { left: number; carveIn: number; burnt: number[] } | null = null;
   /** Air strike bombs waiting for the plane to reach their release point. */
@@ -375,6 +378,7 @@ export class Game {
     this.stepProjectiles(dt);
     this.stepSheep(dt);
     this.stepTorch(dt);
+    this.stepBurst(dt);
     this.stepCrates(dt);
     this.stepPhase(dt);
   }
@@ -512,6 +516,33 @@ export class Game {
     }
   }
 
+  private stepBurst(dt: number): void {
+    const burst = this.burst;
+    const b = this.activeBuddy;
+    if (!burst) return;
+    if (!b?.alive || this.phase !== 'firing') {
+      this.burst = null;
+      return;
+    }
+    const def = WEAPONS[burst.weapon];
+    const { count, interval, spread } = def.burst!;
+    burst.next -= dt;
+    while (burst.next <= 0 && burst.left > 0 && this.burst) {
+      burst.next += interval;
+      // A fixed wobble pattern keeps bursts deterministic.
+      const k = count - burst.left;
+      const wobble = [0, 1, -1, 0.5, -0.5][k % 5] * spread;
+      const angle = b.aim + wobble;
+      const dir = { x: Math.cos(angle) * b.facing, y: Math.sin(angle) };
+      burst.left--;
+      this.shoot(b, def, { x: b.body.x + dir.x * MUZZLE_OFFSET, y: b.body.y + dir.y * MUZZLE_OFFSET }, dir);
+    }
+    if (this.burst && burst.left <= 0) {
+      this.burst = null;
+      this.startRetreat();
+    }
+  }
+
   private stepDrops(): void {
     if (!this.drops.length) return;
     this.drops = this.drops.filter((d) => {
@@ -624,6 +655,7 @@ export class Game {
     this.charge = null;
     this.sheep = null;
     this.torch = null;
+    this.burst = null;
     this.drops = [];
     const team = this.activeTeamData!;
     this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
@@ -654,6 +686,10 @@ export class Game {
       this.sheep = releaseSheep(this.nextId++, b.id, b.body.x, b.body.y, b.facing);
       this.setPhase('guiding');
       return;
+    } else if (def.burst) {
+      this.burst = { weapon: def.id, left: def.burst.count, next: 0 };
+      this.setPhase('firing');
+      return;
     } else if (def.kind === 'torch') {
       this.torch = { left: def.fuse, carveIn: 0, burnt: [] };
       this.setPhase('torching');
@@ -664,7 +700,7 @@ export class Game {
     } else if (def.kind === 'melee') {
       this.melee(b, def, dir);
     } else {
-      this.shoot(b, m, dir);
+      this.shoot(b, def, m, dir);
     }
 
     if (this.shotsLeft <= 0) this.startRetreat();
@@ -713,21 +749,20 @@ export class Game {
     if (def.radius > 0) this.terrain.carve(cx, cy, def.radius);
   }
 
-  private shoot(b: Buddy, from: Point, dir: Point): void {
-    const def = WEAPONS.shotgun;
+  private shoot(b: Buddy, def: WeaponDef, from: Point, dir: Point): void {
     for (let d = 0; d <= def.range; d += 0.1) {
       const x = from.x + dir.x * d;
       const y = from.y + dir.y * d;
       const victim = this.buddies.find((t) => t.alive && t !== b && Math.hypot(t.body.x - x, t.body.y - y) < t.body.radius);
       if (victim || this.terrain.isSolid(x, y) || d + 0.1 > def.range) {
-        this.emit({ type: 'shot', x0: from.x, y0: from.y, x1: x, y1: y });
+        this.emit({ type: 'shot', weapon: def.id, x0: from.x, y0: from.y, x1: x, y1: y });
         if (victim) {
           victim.body.vx += dir.x * def.force;
-          victim.body.vy += dir.y * def.force + 3;
+          victim.body.vy += dir.y * def.force + (def.lift ?? 0);
           victim.body.grounded = false;
           victim.body.restTime = 0;
           this.damage(victim, def.damage);
-          this.emit({ type: 'explosion', x, y, radius: 0.6 });
+          this.emit({ type: 'explosion', x, y, radius: Math.min(def.radius, 0.6) });
         } else if (this.terrain.isSolid(x, y)) {
           this.terrain.carve(x, y, def.radius);
           this.emit({ type: 'explosion', x, y, radius: def.radius });
@@ -775,7 +810,7 @@ export class Game {
     if (amount <= 0 || !b.alive) return;
     b.hp = Math.max(0, b.hp - amount);
     this.emit({ type: 'damage', buddy: b.id, amount });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'firing' || this.phase === 'retreat')) this.endTurnEarly();
   }
 
   private drown(b: Buddy): void {
@@ -783,12 +818,13 @@ export class Game {
     b.hp = 0;
     this.emit({ type: 'drown', buddy: b.id });
     this.emit({ type: 'splash', x: b.body.x, y: this.terrain.waterLevel });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'firing' || this.phase === 'retreat')) this.endTurnEarly();
   }
 
   private endTurnEarly(): void {
     this.charge = null;
     this.torch = null;
+    this.burst = null;
     this.detonateSheep();
     this.setPhase('settling');
   }

@@ -206,6 +206,17 @@ export class BuddyView {
         [MeshBuilder.CreateCylinder('torchTank', { height: 0.34, diameter: 0.2, tessellation: 12 }, scene), kit.glove, [0.32, -0.05, 0], false],
         [MeshBuilder.CreateCylinder('torchPipe', { height: 0.5, diameter: 0.06, tessellation: 8 }, scene), kit.metal, [0.62, 0.02, 0], true],
       ]),
+      minigun: this.buildWeapon(scene, attach, [
+        ...[-0.06, 0, 0.06].map(
+          (z): [Mesh, StandardMaterial, [number, number, number], boolean] => [
+            MeshBuilder.CreateCylinder('minigunBarrel', { height: 1.0, diameter: 0.05, tessellation: 8 }, scene),
+            kit.metal,
+            [0.55, z === 0 ? 0.06 : -0.02, z],
+            true,
+          ],
+        ),
+        [MeshBuilder.CreateBox('minigunBody', { width: 0.34, height: 0.22, depth: 0.2 }, scene), kit.olive, [0.12, 0, 0], false],
+      ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
         [MeshBuilder.CreateCylinder('plunger', { height: 0.1, diameter: 0.12, tessellation: 10 }, scene), kit.glove, [0.5, 0.07, 0], false],

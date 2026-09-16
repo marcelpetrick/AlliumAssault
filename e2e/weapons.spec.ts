@@ -157,6 +157,23 @@ test('blowtorch: roaring flame walks the buddy forward through the rock', async 
   expect(errors).toEqual([]);
 });
 
+test('minigun: rattling burst of bullets that hurts and shoves the enemy', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => window.__allium.app.game!.selectWeapon('minigun'));
+  const gunner = await me(page);
+  await faceEnemyUpClose(page);
+  await page.keyboard.press('Space');
+  await waitForSound(page, 'spinup');
+  await waitForSound(page, 'bullet', 10);
+  await fastForward(page, 1);
+  const s = await state(page);
+  expect(['retreat', 'settling', 'deaths', 'turnStart', 'aiming', 'gameOver']).toContain(s.phase);
+  const enemy = s.buddies.find((b) => b.name !== gunner.name)!;
+  expect(!enemy.alive || enemy.hp <= 70).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

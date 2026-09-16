@@ -209,10 +209,15 @@ export class App {
       if (this.demo) continue;
       switch (e.type) {
         case 'explosion':
-          this.audio.play(e.radius < 1.2 ? 'shot' : 'explosion', e.radius / 2.8);
+          if (e.radius >= 1.2) this.audio.play('explosion', e.radius / 2.8);
+          else if (e.radius > 0.5) this.audio.play('shot', e.radius / 2.8);
+          break;
+        case 'shot':
+          if (e.weapon === 'minigun') this.audio.play('bullet');
           break;
         case 'fire':
           if (e.weapon === 'shotgun') this.audio.play('shot');
+          else if (e.weapon === 'minigun') this.audio.play('spinup');
           else if (e.weapon === 'sheep') this.audio.play('baa');
           else if (e.weapon === 'selfdestruct') this.audio.play('alarm');
           else if (WEAPONS[e.weapon].kind !== 'melee') this.audio.play('fire');

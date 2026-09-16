@@ -79,6 +79,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🏏 Baseball Bat | 2 | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards) |
 | 🔥 Blowtorch | 2 | Walks forward for 3 s burning a level tunnel through rock; falls into gaps, never climbs (15 dmg) |
 | 💥 Self-Destruct | 1 | The buddy blows itself up: damage equals its health, blast radius health ÷ 10 |
+| 🔩 Minigun | 1 | Burst of 14 bullets (5 dmg each) whose kicks shove the victim far across the map |
 
 ## Architecture
 

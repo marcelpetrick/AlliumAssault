@@ -31,7 +31,7 @@ Status: ☐ open · ☑ done
 | T20 | Banana Bomb: bursts into bouncing explosive bananas | ☐ | |
 | T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☐ | |
 | T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☐ | |
-| T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☐ | |
+| T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
@@ -165,9 +165,10 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   of up to six impacts as it bounces and crushes its way through the ground. 1 per team.
 - Core: strike weapon without a plane; heavy projectile that survives impacts.
 
-### T23 — Minigun ☐
+### T23 — Minigun ☑
 - Instant long burst: 14 bullets over 1.4 s along the (slightly spreading) aim line, 5 damage and
-  a strong shove each, so a full hit pushes a buddy far. 1 per team.
+  a strong shove each, so a full hit pushes a buddy far (about 20 units on flat ground). 1 per
+  team.
 - Core: `burst` on hitscan weapons, a locked `firing` phase while it rattles; rapid-fire sound.
 
 ### T24 — Compact weapon bar ☐

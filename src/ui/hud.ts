@@ -171,6 +171,8 @@ export class Hud {
           ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
         : def.kind === 'strike' && g.phase === 'aiming'
           ? 'Click on the map to call the air strike · Enter jump · Esc menu'
+        : g.phase === 'firing'
+          ? 'Rat-a-tat-tat! 🔩'
         : g.phase === 'torching'
           ? 'Burning through the rock… 🔥'
         : g.phase === 'guiding'

@@ -1,4 +1,4 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch';
 
 export interface WeaponDef {
@@ -27,6 +27,10 @@ export interface WeaponDef {
   range: number;
   /** Melee: 'uppercut' launches victims skywards, 'swing' bats them away along the aim line. */
   knock?: 'uppercut' | 'swing';
+  /** Hitscan bursts: bullets fired one after another, `interval` seconds apart, fanning by `spread` radians. */
+  burst?: { count: number; interval: number; spread: number };
+  /** Upward kick a hitscan hit adds, on top of the push along the shot. */
+  lift?: number;
   /** Every buddy inside the blast takes the full damage instead of less towards the edge. */
   flatDamage?: boolean;
   /** Air strikes: bombs dropped around the clicked target. */
@@ -95,6 +99,30 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     damage: 22,
     force: 7,
     range: 32,
+    lift: 3,
+  },
+  minigun: {
+    id: 'minigun',
+    name: 'Minigun',
+    icon: '🔩',
+    blurb: 'A long rattling burst of 14 bullets that shoves victims right across the map.',
+    kind: 'hitscan',
+    ammo: 1,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 0.45,
+    damage: 5,
+    force: 3.6,
+    range: 40,
+    // Enough kick to keep the victim airborne, so ground friction cannot soak up the shove.
+    lift: 2.2,
+    burst: { count: 14, interval: 0.1, spread: 0.05 },
   },
   punch: {
     id: 'punch',
@@ -287,5 +315,5 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

@@ -159,6 +159,7 @@ export class World {
           break;
         case 'shot':
           this.effects.tracer(e.x0, e.y0, e.x1, e.y1);
+          if (e.weapon === 'minigun') this.effects.muzzle(e.x0, e.y0);
           break;
         case 'fire':
           if (WEAPONS[e.weapon].kind !== 'walker' && WEAPONS[e.weapon].kind !== 'self') this.effects.muzzle(e.x, e.y);
