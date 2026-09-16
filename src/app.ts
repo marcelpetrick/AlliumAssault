@@ -192,7 +192,7 @@ export class App {
     this.audio.setTool(game.phase === 'torching' ? 'torch' : game.phase === 'drilling' ? 'drill' : null);
     const flights: FlightSound[] = game.projectiles.map((p) => ({
       id: p.id,
-      kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' || p.weapon === 'mulebody' ? 'rocket' : 'lob',
+      kind: WEAPONS[p.weapon].look.flight ?? 'lob',
       vx: p.vx,
       vy: p.vy,
     }));
@@ -238,16 +238,16 @@ export class App {
           if (e.radius >= 1.2) this.audio.play('explosion', e.radius / 2.8);
           else if (e.radius > 0.5) this.audio.play('shot', e.radius / 2.8);
           break;
-        case 'shot':
-          if (e.weapon === 'minigun') this.audio.play('bullet');
+        case 'shot': {
+          const { shotSound } = WEAPONS[e.weapon].look;
+          if (shotSound) this.audio.play(shotSound);
           break;
-        case 'fire':
-          if (e.weapon === 'shotgun') this.audio.play('shot');
-          else if (e.weapon === 'minigun') this.audio.play('spinup');
-          else if (e.weapon === 'sheep' || e.weapon === 'flysheep') this.audio.play('baa');
-          else if (e.weapon === 'selfdestruct') this.audio.play('alarm');
-          else if (WEAPONS[e.weapon].kind !== 'melee') this.audio.play('fire');
+        }
+        case 'fire': {
+          const { fireSound } = WEAPONS[e.weapon].look;
+          if (fireSound) this.audio.play(fireSound);
           break;
+        }
         case 'ignite':
           this.audio.play('ignite');
           break;
@@ -273,7 +273,7 @@ export class App {
           this.audio.play(e.kind === 'health' ? 'heal' : 'pickup');
           break;
         case 'punch':
-          this.audio.play(e.weapon === 'bat' ? 'bat' : 'punch');
+          this.audio.play(WEAPONS[e.weapon].look.hitSound ?? 'punch');
           break;
         case 'jump':
           this.audio.play('jump');

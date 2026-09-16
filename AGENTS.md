@@ -55,7 +55,8 @@ npm run capture-media -- http://localhost:4173   # regenerate README media from 
 - **Controls:** Enter = jump, Backspace = back-flip, Space hold/release = charge and fire (Space
   again detonates sheep), arrows walk, aim and steer the flying sheep, 1–9, 0 and Shift+1–7 /
   Tab select weapons, a click on the map calls strikes.
-- **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`), appended to
+- **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`, and `look`:
+  projectile model, flight/fire/hit sounds, muzzle flash — presentation never switches on ids), appended to
   `WEAPON_ORDER` so existing hotkeys stay; behaviour in `Game` for new kinds (a new phase goes into
   `COUNTDOWN_PHASES`/`ACTION_PHASES`); held model in `buddyView.ts`, projectile model in
   `effects.ts`, sounds in `app.ts`/`audio.ts`; README and VISION tables; unit test and E2E test.

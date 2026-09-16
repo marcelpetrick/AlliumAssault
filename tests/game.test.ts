@@ -6,7 +6,7 @@ import { planAttack } from '../src/core/ai';
 import { Game, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { CRATE_WEAPONS } from '../src/core/crates';
-import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_ORDER, weaponForKey } from '../src/core/weapons';
+import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { config, flatGame, onlyWeapon, runUntil, team } from './helpers';
 
@@ -663,6 +663,22 @@ describe('match flow', () => {
     g.pressFire();
     g.simulate(0.5);
     expect(g.buddies[0].body.x).toBeCloseTo(x, 3);
+  });
+});
+
+describe('weapon table', () => {
+  it('declares a model and flight sound for every projectile, so none falls back silently', () => {
+    for (const id of WEAPON_IDS) {
+      const def = WEAPONS[id];
+      if (def.kind !== 'projectile') continue;
+      expect(def.look.projectile, `${id} projectile model`).toBeDefined();
+      expect(def.look.flight, `${id} flight sound`).toBeDefined();
+    }
+    for (const id of WEAPON_ORDER) {
+      const { look, kind } = WEAPONS[id];
+      if (kind === 'melee') expect(look.hitSound, `${id} hit sound`).toBeDefined();
+      if (kind === 'projectile' || kind === 'hitscan') expect(look.fireSound, `${id} fire sound`).toBeDefined();
+    }
   });
 });
 

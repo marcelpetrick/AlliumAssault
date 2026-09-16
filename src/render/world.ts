@@ -166,14 +166,14 @@ export class World {
           break;
         case 'shot':
           this.effects.tracer(e.x0, e.y0, e.x1, e.y1);
-          if (e.weapon === 'minigun') this.effects.muzzle(e.x0, e.y0);
+          if (WEAPONS[e.weapon].look.muzzleEveryShot) this.effects.muzzle(e.x0, e.y0);
           break;
         case 'fire':
-          if (!['walker', 'flyer', 'self'].includes(WEAPONS[e.weapon].kind)) this.effects.muzzle(e.x, e.y);
+          if (WEAPONS[e.weapon].look.muzzle) this.effects.muzzle(e.x, e.y);
           break;
         case 'punch':
           this.effects.punch(e.x, e.y);
-          if (e.weapon === 'bat') this.hold = { x: e.x + e.dx * 8, y: e.y + 3, until: this.time + 0.6 };
+          if (WEAPONS[e.weapon].look.followHit) this.hold = { x: e.x + e.dx * 8, y: e.y + 3, until: this.time + 0.6 };
           break;
         case 'splash':
           this.effects.splash(e.x, e.y);

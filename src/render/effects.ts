@@ -18,7 +18,7 @@ import {
 import { MUZZLE_OFFSET } from '../core/constants';
 import { defined } from '../core/assert';
 import type { Game } from '../core/game';
-import type { WeaponId } from '../core/weapons';
+import { WEAPONS, type WeaponLook } from '../core/weapons';
 import { createSoftDotTexture } from './textures';
 
 interface Transient {
@@ -285,13 +285,14 @@ export class Effects {
       live.add(p.id);
       let view = this.projectiles.get(p.id);
       if (!view) {
-        view = this.createProjectile(p.weapon);
+        view = this.createProjectile(WEAPONS[p.weapon].look.projectile);
         this.projectiles.set(p.id, view);
       }
       view.node.position.set(p.x, p.y, 0);
-      if (p.weapon === 'mulebody') view.node.rotation.z = Math.sin(p.age * 3) * 0.08;
-      else if (p.weapon !== 'bazooka' && p.weapon !== 'airbomb') view.node.rotation.z -= p.vx * dt * 2;
-      else view.node.rotation.z = Math.atan2(p.vy, p.vx);
+      const model = WEAPONS[p.weapon].look.projectile;
+      if (model === 'mule') view.node.rotation.z = Math.sin(p.age * 3) * 0.08;
+      else if (model === 'rocket' || model === 'bomb') view.node.rotation.z = Math.atan2(p.vy, p.vx);
+      else view.node.rotation.z -= p.vx * dt * 2;
     }
     for (const [id, view] of this.projectiles) {
       if (live.has(id)) continue;
@@ -649,27 +650,26 @@ export class Effects {
     return { node, trail };
   }
 
-  private createProjectile(weapon: WeaponId): ProjectileView {
-    switch (weapon) {
-      case 'bazooka':
+  private createProjectile(model: WeaponLook['projectile']): ProjectileView {
+    switch (model) {
+      case 'rocket':
         return this.createMissile(true);
-      case 'airbomb':
+      case 'bomb':
         return this.createMissile(false);
-      case 'mulebody':
+      case 'mule':
         return this.createMule();
-      case 'napalmbomb':
+      case 'redGrenade':
         return this.createGrenade(this.materials.cluster);
-      case 'cluster':
-        return this.createGrenade(this.materials.cluster);
-      case 'holy':
+      case 'holyGrenade':
         return this.createHolyGrenade();
       case 'banana':
         return this.createBanana(1.4);
-      case 'bananalet':
+      case 'smallBanana':
         return this.createBanana(0.9);
       case 'bomblet':
         return this.createBomblet();
-      default:
+      case 'grenade':
+      case undefined:
         return this.createGrenade(this.materials.bomb);
     }
   }

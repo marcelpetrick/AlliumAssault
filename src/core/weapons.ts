@@ -26,7 +26,30 @@ export type WeaponId =
   | 'napalmbomb';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill';
 
+/**
+ * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and
+ * sounds, so presentation never switches on weapon ids.
+ */
+export interface WeaponLook {
+  /** Model of the projectile in flight: rockets and bombs point along their flight, the rest tumble. */
+  projectile?: 'rocket' | 'bomb' | 'grenade' | 'redGrenade' | 'holyGrenade' | 'banana' | 'smallBanana' | 'bomblet' | 'mule';
+  /** Sound while in flight: rockets whistle, lobbed things whoosh. */
+  flight?: 'rocket' | 'lob';
+  /** Sound when the weapon is used. */
+  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm';
+  /** Sound of each hitscan bullet. */
+  shotSound?: 'bullet';
+  /** Sound when a melee weapon connects. */
+  hitSound?: 'punch' | 'bat';
+  /** Muzzle flash when used, and on every bullet of a burst. */
+  muzzle?: boolean;
+  muzzleEveryShot?: boolean;
+  /** The camera follows the victim's flight after a melee hit. */
+  followHit?: boolean;
+}
+
 export interface WeaponDef {
+  look: WeaponLook;
   id: WeaponId;
   name: string;
   icon: string;
@@ -84,6 +107,7 @@ export interface WeaponDef {
 export const WEAPONS: Record<WeaponId, WeaponDef> = {
   bazooka: {
     id: 'bazooka',
+    look: { projectile: 'rocket', flight: 'rocket', fireSound: 'fire', muzzle: true },
     name: 'Bazooka',
     icon: '🚀',
     blurb: 'Hold Space to charge. Wind pushes it hard. Boom on contact.',
@@ -104,6 +128,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   grenade: {
     id: 'grenade',
+    look: { projectile: 'grenade', flight: 'lob', fireSound: 'fire', muzzle: true },
     name: 'Grenade',
     icon: '💣',
     blurb: 'Bouncy throw with a 3 second fuse. Barely cares about wind.',
@@ -124,6 +149,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   shotgun: {
     id: 'shotgun',
+    look: { fireSound: 'shot', muzzle: true },
     name: 'Shotgun',
     icon: '🔫',
     blurb: 'Two instant shots along the aim line.',
@@ -145,6 +171,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   minigun: {
     id: 'minigun',
+    look: { fireSound: 'spinup', shotSound: 'bullet', muzzle: true, muzzleEveryShot: true },
     special: true,
     name: 'Minigun',
     icon: '🔩',
@@ -169,6 +196,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   punch: {
     id: 'punch',
+    look: { hitSound: 'punch' },
     name: 'Garlic Punch',
     icon: '👊',
     blurb: 'Close-range uppercut that launches the victim skywards.',
@@ -190,6 +218,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   bat: {
     id: 'bat',
+    look: { hitSound: 'bat', followHit: true },
     name: 'Baseball Bat',
     icon: '🏏',
     blurb: 'Home run! Less damage than a punch, but swats the victim far along the aim line.',
@@ -211,6 +240,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   cluster: {
     id: 'cluster',
+    look: { projectile: 'redGrenade', flight: 'lob', fireSound: 'fire', muzzle: true },
     special: true,
     name: 'Cluster Bomb',
     icon: '🧨',
@@ -233,6 +263,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   holy: {
     id: 'holy',
+    look: { projectile: 'holyGrenade', flight: 'lob', fireSound: 'fire', muzzle: true },
     special: true,
     name: 'Holy Garlic Grenade',
     icon: '✨',
@@ -255,6 +286,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   banana: {
     id: 'banana',
+    look: { projectile: 'banana', flight: 'lob', fireSound: 'fire', muzzle: true },
     special: true,
     name: 'Banana Bomb',
     icon: '🍌',
@@ -277,6 +309,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   bananalet: {
     id: 'bananalet',
+    look: { projectile: 'smallBanana', flight: 'lob' },
     name: 'Banana',
     icon: '🍌',
     blurb: 'Banana bomb fragment; bounces, then explodes.',
@@ -297,6 +330,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   bomblet: {
     id: 'bomblet',
+    look: { projectile: 'bomblet', flight: 'lob' },
     name: 'Bomblet',
     icon: '•',
     blurb: 'Cluster fragment; explodes on contact.',
@@ -318,6 +352,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   sheep: {
     id: 'sheep',
+    look: { fireSound: 'baa' },
     special: true,
     name: 'Sheep',
     icon: '🐑',
@@ -339,6 +374,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   airstrike: {
     id: 'airstrike',
+    look: {},
     special: true,
     name: 'Air Strike',
     icon: '✈️',
@@ -361,6 +397,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   mule: {
     id: 'mule',
+    look: {},
     special: true,
     name: 'Concrete Mule',
     icon: '🫏',
@@ -383,6 +420,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   mulebody: {
     id: 'mulebody',
+    look: { projectile: 'mule', flight: 'rocket' },
     name: 'Concrete Mule',
     icon: '🫏',
     blurb: 'Falling concrete mule; explodes on every impact.',
@@ -404,6 +442,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   napalm: {
     id: 'napalm',
+    look: {},
     special: true,
     name: 'Napalm Strike',
     icon: '🌋',
@@ -426,6 +465,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   napalmbomb: {
     id: 'napalmbomb',
+    look: { projectile: 'redGrenade', flight: 'lob' },
     name: 'Napalm',
     icon: '🔥',
     blurb: 'Napalm canister; bursts into flames on contact.',
@@ -448,6 +488,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   airbomb: {
     id: 'airbomb',
+    look: { projectile: 'bomb', flight: 'rocket' },
     name: 'Air Bomb',
     icon: '•',
     blurb: 'Air strike bomb; explodes on contact.',
@@ -468,6 +509,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   flysheep: {
     id: 'flysheep',
+    look: { fireSound: 'baa' },
     special: true,
     name: 'Flying Sheep',
     icon: '🦸',
@@ -489,6 +531,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   torch: {
     id: 'torch',
+    look: { fireSound: 'fire', muzzle: true },
     name: 'Blowtorch',
     icon: '🔥',
     blurb: 'Walks forward for 3 seconds, burning a tunnel through the rock ahead. No climbing.',
@@ -511,6 +554,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   drill: {
     id: 'drill',
+    look: {},
     name: 'Drill',
     icon: '⛏️',
     blurb: 'Drills straight down for 3 seconds. No fall damage while drilling.',
@@ -533,6 +577,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   selfdestruct: {
     id: 'selfdestruct',
+    look: { fireSound: 'alarm' },
     special: true,
     name: 'Self-Destruct',
     icon: '💥',

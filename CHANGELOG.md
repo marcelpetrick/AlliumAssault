@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.12] — 2026-09-16
+
+### Changed
+
+- Weapon presentation is declared in the weapon table (`look`: projectile model, flight, fire, shot
+  and hit sounds, muzzle flash, camera follow) instead of being switched on weapon ids in the app,
+  world and effects; a unit test makes sure every projectile declares its model and sounds
+  (review #3). The drill no longer plays a firing whoosh and muzzle flash when it starts.
+
 ## [1.26.11] — 2026-09-16
 
 ### Fixed
