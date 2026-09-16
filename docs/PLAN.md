@@ -77,6 +77,35 @@ The AI moved into 0.3.0 because the headless AI-vs-AI match is the strongest cor
 
 ## 6. Current work
 
-The live task list and plan — every request, its status, design notes and the version that
-delivered it — is kept in [`tasks.md`](../tasks.md) and updated with every commit.
+Every request, its status, design notes and the version that delivered it are tracked in
+[`tasks.md`](../tasks.md), updated with every commit. This section is the plan for the batch in
+progress.
 
+### 6.1 Open requests (batch after v1.17.5)
+
+| # | Request | Plan | Status |
+|---|---|---|---|
+| T27 | Flying sheep steerable with the arrow keys until it explodes | Screen-relative steering with all four arrows, slower flight, longer fuse, AI uses the keys | ✅ 1.18.0 |
+| T37 | Play link at the top of the README | GitHub Pages link above the fold | ✅ 1.18.1 |
+| T36 | Banana bomb only throws a short distance | Reproduce in the core and in Chrome with real keys; compare with the grenade; fix the cause | 🔍 not reproduced (both fly 63 units at full charge); waiting for details |
+| T28 | Sounds louder | Master gain up behind a compressor so big blasts do not clip; raise quiet effects | ☐ |
+| T29 | Arsenal option "Infinite supplies" | Third arsenal value: every weapon unlimited; setup option; tests | ☐ |
+| T35 | Crate drops noticeable | Teleport sound on spawn (exists, make it louder) plus a short camera pan to the crate at the turn start | ☐ |
+| T31 | Comic tombstones for dead buddies | Physics tombstone per death (not drowning), knocked by blasts, sinks; RIP model with name and team ribbon | ☐ |
+| T30 | More sceneries, e.g. a candy shop | Candy Shop (lollipop trees, gumdrops, frosting) and Frosty Peaks themes; theme-specific props | ☐ |
+| T34 | More README badges like Cullendula | Badges for Pages, Babylon.js, TypeScript, Vite, Vitest, Playwright versions | ☐ |
+| T33 | New screenshots and screen recordings in the README | Capture with Playwright in Chrome: weapons, crates, sceneries; GIF recording of a battle | ☐ |
+| T32 | Review and update all documents | README, AGENTS, VISION, ARCHITECTURE, PLAN, CHANGELOG consistency with the code | ☐ |
+| T12b | Review the batch and test | `/reviewBranch`-style review of the batch into `review.md`, fix findings, full `npm run verify` | ☐ |
+| T13b | Publish | Push, release tag, Pages deployment, confirm live | ☐ |
+
+### 6.2 Execution order
+
+1. Gameplay fixes first: T28 volume, T35 crate camera, T29 infinite supplies.
+2. New content: T31 tombstones, T30 sceneries.
+3. Presentation: T34 badges, T33 screenshots and recordings (after the content they show).
+4. T32 documentation pass over every Markdown file.
+5. T12b review of the whole batch, fix findings, full verification.
+6. T13b push, tag and release; confirm the Pages build is live.
+
+Each task is one atomic commit with its own version bump, tests and a `tasks.md` update.

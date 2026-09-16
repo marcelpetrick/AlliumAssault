@@ -41,6 +41,11 @@ Status: ☐ open · ☑ done
 | T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
 | T31 | Comic tombstones where buddies die | ☐ | |
 | T37 | Play-in-browser link to GitHub Pages at the top of the README | ☑ | 1.18.1 |
+| T32 | Review and update all documents and Markdown files, including the architecture | ☐ | |
+| T33 | New screenshots and screen recordings for the README | ☐ | |
+| T34 | More README badges, like Cullendula | ☐ | |
+| T35 | Crate drops: teleport sound and a short camera pan to the new crate | ☐ | |
+| T36 | Banana bomb throw range reported as tiny | ☐ | |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
 | T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
@@ -231,6 +236,15 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T36 — Banana bomb range ☐
+- Reported: even at full charge the banana bomb only flies a short distance.
+- Checked: at full charge and 43° aim it flies 63.5 units in Chrome with real keys, the same as
+  the grenade (63.6); the core simulation agrees (first bounce 38 units out for both). Not
+  reproduced yet — need the situation (aim angle, map, how it was charged).
+
+### Batch plan
+See `docs/PLAN.md` section 6 for the plan and execution order of T28–T36.
 
 ### T16 — Walking and jumping sounds ☑
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.

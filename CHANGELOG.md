@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.18.2] — 2026-09-16
+
+### Changed
+- `docs/PLAN.md`: plan and execution order for the current batch of requests; `tasks.md` lists
+  the new requests (docs review, screenshots, badges, crate camera, banana bomb range).
+
 ## [1.18.1] — 2026-09-16
 
 ### Changed
