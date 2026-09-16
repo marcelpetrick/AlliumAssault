@@ -133,7 +133,7 @@ export class Hud {
       (this.el.querySelector('.turn-card') as HTMLElement).style.setProperty('--team', team.config.color);
     }
     const retreat = g.phase === 'retreat';
-    const seconds = retreat ? g.retreatLeft : g.phase === 'aiming' || g.phase === 'guiding' || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
+    const seconds = retreat ? g.retreatLeft : g.phase === 'aiming' || g.phase === 'guiding' || g.phase === 'torching' || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
     const total = retreat ? g.config.retreatTime : g.config.turnTime;
     this.text('.timer-value', g.phase === 'settling' || g.phase === 'deaths' ? '…' : String(Math.max(0, Math.ceil(seconds))));
     this.text('.timer-caption', retreat ? 'retreat' : 'turn');
@@ -171,11 +171,13 @@ export class Hud {
           ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
         : def.kind === 'strike' && g.phase === 'aiming'
           ? 'Click on the map to call the air strike · Enter jump · Esc menu'
+        : g.phase === 'torching'
+          ? 'Burning through the rock… 🔥'
         : g.phase === 'guiding'
           ? 'Space to blow up the sheep! 🐑'
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'
-          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–${WEAPON_ORDER.length} weapons · Esc menu`,
+          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–${WEAPON_ORDER.length} weapons · Esc menu`,
     );
 
     // Name tags follow buddies; HP counts down Worms-style.

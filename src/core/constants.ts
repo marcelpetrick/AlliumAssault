@@ -7,6 +7,8 @@ export const MUZZLE_OFFSET = BUDDY_RADIUS + 0.45;
 export const START_HP = 100;
 
 export const WALK_SPEED = 3.2;
+/** Walking speed while burning through rock with the blowtorch. */
+export const TORCH_SPEED = 1.9;
 export const JUMP = { vx: 5.5, vy: 9 };
 export const BACKFLIP = { vx: -2.2, vy: 13 };
 export const AIM_SPEED = 1.6;

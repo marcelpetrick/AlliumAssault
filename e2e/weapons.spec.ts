@@ -134,10 +134,33 @@ test('baseball bat: crack, 25 damage and a long flight for the enemy', async ({ 
   expect(errors).toEqual([]);
 });
 
+test('blowtorch: roaring flame walks the buddy forward through the rock', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 9, 'torch');
+  const start = await me(page);
+  await aim(page, 0, 1);
+  const before = await state(page);
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.phase === 'torching' && s.sound.torch, 10_000);
+  await page.evaluate(() => window.__allium.stepFrames(20, 1 / 30));
+  await info.attach('torch', { body: await page.screenshot(), contentType: 'image/png' });
+  // stepFrames switched to manual frames; sounds follow the game only while frames run.
+  await page.evaluate(() => window.__allium.setManual(false));
+  await fastForward(page, 3);
+  const after = await state(page);
+  expect(after.phase).not.toBe('torching');
+  await waitFor(page, (s) => !s.sound.torch, 10_000);
+  const moved = after.buddies.find((b) => b.name === start.name)!;
+  expect(Math.abs(moved.x - start.x) > 2 || moved.y < start.y - 1).toBe(true);
+  expect(after.terrainRevision).toBeGreaterThan(before.terrainRevision);
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 9, 'selfdestruct');
+  await page.evaluate(() => window.__allium.app.game!.selectWeapon('selfdestruct'));
   const bomber = await me(page);
   await faceEnemyUpClose(page);
   const before = await state(page);

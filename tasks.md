@@ -22,7 +22,7 @@ Status: ☐ open · ☑ done
 | T6 | Air strike | ☑ | 1.5.0 |
 | T7 | Random crates | ☑ | 1.6.0 |
 | T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☑ | 1.6.1 |
-| T14 | Blowtorch: dig forward through rock for three seconds | ☐ | |
+| T14 | Blowtorch: dig forward through rock for three seconds | ☑ | 1.10.0 |
 | T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☑ | 1.8.0 |
 | T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
 | T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☑ | 1.9.0 |
@@ -110,7 +110,7 @@ Goal: know that the game and each feature work in a real browser, in addition to
 - Done: `e2e/weapons.spec.ts` (one test per weapon), `e2e/features.spec.ts` (crates, audio cues,
   weapon bar), shared helpers in `e2e/support.ts`; the audio engine counts played effects.
 
-### T14 — Blowtorch ☐
+### T14 — Blowtorch ☑
 - New weapon: on Space the buddy walks forward for three seconds and burns a tunnel through the
   rock in front of it.
 - Works with gravity: without supporting ground the buddy falls; it never tunnels upwards.

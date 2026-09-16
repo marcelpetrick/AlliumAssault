@@ -170,6 +170,7 @@ export class App {
       return;
     }
     this.audio.setCharge(game.charge);
+    this.audio.setTorch(game.phase === 'torching');
     const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
     this.audio.setFlights(flights);
     const walker = game.activeBuddy;

@@ -202,6 +202,10 @@ export class BuddyView {
         [MeshBuilder.CreateCylinder('bat', { height: 1.05, diameterTop: 0.07, diameterBottom: 0.2, tessellation: 12 }, scene), kit.wood, [0.6, 0.05, 0], true],
         [MeshBuilder.CreateSphere('batKnob', { diameter: 0.1, segments: 8 }, scene), kit.wood, [0.07, 0.05, 0], false],
       ]),
+      torch: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCylinder('torchTank', { height: 0.34, diameter: 0.2, tessellation: 12 }, scene), kit.glove, [0.32, -0.05, 0], false],
+        [MeshBuilder.CreateCylinder('torchPipe', { height: 0.5, diameter: 0.06, tessellation: 8 }, scene), kit.metal, [0.62, 0.02, 0], true],
+      ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
         [MeshBuilder.CreateCylinder('plunger', { height: 0.1, diameter: 0.12, tessellation: 10 }, scene), kit.glove, [0.5, 0.07, 0], false],
@@ -286,7 +290,7 @@ export class BuddyView {
     for (const pupil of this.pupils) pupil.position.x = b.facing * 0.03;
     this.root.rotation.z = this.hurtTime > 0 ? Math.sin(time * 60) * 0.12 : 0;
 
-    const showWeapon = !!game && isActive && (game.phase === 'aiming' || game.phase === 'turnStart');
+    const showWeapon = !!game && isActive && (game.phase === 'aiming' || game.phase === 'turnStart' || game.phase === 'torching');
     for (const [id, node] of Object.entries(this.weapons)) node.setEnabled(showWeapon && game?.weapon === id);
     this.weaponPivot.rotation.z = b.facing > 0 ? b.aim : Math.PI - b.aim;
     this.weaponPivot.rotation.x = b.facing > 0 ? 0 : Math.PI;

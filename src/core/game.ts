@@ -16,6 +16,7 @@ import {
   SETTLE_MAX,
   SETTLE_MIN,
   START_HP,
+  TORCH_SPEED,
   WALK_SPEED,
   WATER_LEVEL,
   WIND_ACCEL,
@@ -59,8 +60,11 @@ export interface GameOverrides {
   spawns?: Point[];
 }
 
-/** `guiding`: a released sheep is hopping; the turn timer runs and Space detonates it. */
-export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+/**
+ * `guiding`: a released sheep is hopping; the turn timer runs and Space detonates it.
+ * `torching`: the active buddy walks forward burning a tunnel; no other input.
+ */
+export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
 
 export interface Buddy {
   id: number;
@@ -132,6 +136,9 @@ export function selfDestructBlast(def: WeaponDef, hp: number): { radius: number;
   return { radius: Math.max(1.5, def.radius * k), damage: Math.round(def.damage * k), force: def.force * Math.max(k, 0.3) };
 }
 
+/** Seconds between two tunnel carves of the blowtorch. */
+const TORCH_CARVE_INTERVAL = 0.08;
+
 /** Lowest launch angle of a swing, radians above horizontal. */
 const MIN_SWING_ANGLE = 0.35;
 
@@ -153,6 +160,8 @@ export class Game {
   /** The released sheep, while it hops. */
   sheep: Sheep | null = null;
   crates: Crate[] = [];
+  /** Blowtorch in use: seconds left and buddies already burnt this use. */
+  torch: { left: number; carveIn: number; burnt: number[] } | null = null;
   /** Air strike bombs waiting for the plane to reach their release point. */
   drops: { weapon: WeaponId; x: number; y: number; vx: number; at: number; owner: number }[] = [];
   readonly input: InputState = { left: false, right: false, up: false, down: false };
@@ -247,7 +256,7 @@ export class Game {
 
   /** The active team still acts this turn: controlling its buddy or guiding its sheep. */
   get acting(): boolean {
-    return this.controllable || this.phase === 'guiding';
+    return this.controllable || this.phase === 'guiding' || this.phase === 'torching';
   }
 
   drainEvents(): GameEvent[] {
@@ -365,6 +374,7 @@ export class Game {
     this.stepDrops();
     this.stepProjectiles(dt);
     this.stepSheep(dt);
+    this.stepTorch(dt);
     this.stepCrates(dt);
     this.stepPhase(dt);
   }
@@ -393,6 +403,9 @@ export class Game {
       if (b === active && this.controllable && b.body.grounded && this.charge === null && this.input.left !== this.input.right) {
         b.facing = this.input.left ? -1 : 1;
         walk = b.facing * WALK_SPEED;
+      } else if (b === active && this.torch && b.body.grounded) {
+        // Only walks with ground underneath: the torch never lifts the buddy.
+        walk = b.facing * TORCH_SPEED;
       }
       b.walking = walk !== null;
       stepBody(this.terrain, b.body, dt, walk);
@@ -467,6 +480,38 @@ export class Game {
     this.emit({ type: 'crateSpawn', crate: crate.id, x: crate.body.x, y: crate.body.y });
   }
 
+  private stepTorch(dt: number): void {
+    const torch = this.torch;
+    const b = this.activeBuddy;
+    if (!torch) return;
+    if (!b?.alive || this.phase !== 'torching') {
+      this.torch = null;
+      return;
+    }
+    const def = WEAPONS.torch;
+    torch.left -= dt;
+    torch.carveIn -= dt;
+    if (torch.carveIn <= 0) {
+      torch.carveIn = TORCH_CARVE_INTERVAL;
+      // Burn a disc ahead whose bottom is level with the feet, so the tunnel stays horizontal.
+      this.terrain.carve(b.body.x + b.facing * (def.range - 0.35), b.body.y + (def.radius - b.body.radius), def.radius);
+    }
+    const fx = b.body.x + b.facing * def.range;
+    for (const t of this.buddies) {
+      if (!t.alive || t === b || torch.burnt.includes(t.id) || Math.hypot(t.body.x - fx, t.body.y - b.body.y) > def.radius + t.body.radius) continue;
+      torch.burnt.push(t.id);
+      t.body.vx = b.facing * def.force;
+      t.body.vy = def.force * 0.5;
+      t.body.grounded = false;
+      t.body.restTime = 0;
+      this.damage(t, def.damage);
+    }
+    if (torch.left <= 0) {
+      this.torch = null;
+      this.startRetreat();
+    }
+  }
+
   private stepDrops(): void {
     if (!this.drops.length) return;
     this.drops = this.drops.filter((d) => {
@@ -517,6 +562,10 @@ export class Game {
       case 'guiding':
         this.turnTimeLeft -= dt;
         if (this.turnTimeLeft <= 0) this.detonateSheep();
+        break;
+      case 'torching':
+        this.turnTimeLeft -= dt;
+        if (this.turnTimeLeft <= 0) this.endTurnEarly();
         break;
       case 'retreat':
         this.retreatLeft -= dt;
@@ -574,6 +623,7 @@ export class Game {
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
     this.sheep = null;
+    this.torch = null;
     this.drops = [];
     const team = this.activeTeamData!;
     this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
@@ -603,6 +653,10 @@ export class Game {
     } else if (def.kind === 'walker') {
       this.sheep = releaseSheep(this.nextId++, b.id, b.body.x, b.body.y, b.facing);
       this.setPhase('guiding');
+      return;
+    } else if (def.kind === 'torch') {
+      this.torch = { left: def.fuse, carveIn: 0, burnt: [] };
+      this.setPhase('torching');
       return;
     } else if (def.kind === 'self') {
       this.selfDestruct(b, def);
@@ -721,7 +775,7 @@ export class Game {
     if (amount <= 0 || !b.alive) return;
     b.hp = Math.max(0, b.hp - amount);
     this.emit({ type: 'damage', buddy: b.id, amount });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'retreat')) this.endTurnEarly();
   }
 
   private drown(b: Buddy): void {
@@ -729,11 +783,12 @@ export class Game {
     b.hp = 0;
     this.emit({ type: 'drown', buddy: b.id });
     this.emit({ type: 'splash', x: b.body.x, y: this.terrain.waterLevel });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'retreat')) this.endTurnEarly();
   }
 
   private endTurnEarly(): void {
     this.charge = null;
+    this.torch = null;
     this.detonateSheep();
     this.setPhase('settling');
   }

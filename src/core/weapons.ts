@@ -1,5 +1,5 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch';
 
 export interface WeaponDef {
   id: WeaponId;
@@ -241,6 +241,28 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 10,
     range: 0,
   },
+  torch: {
+    id: 'torch',
+    name: 'Blowtorch',
+    icon: '🔥',
+    blurb: 'Walks forward for 3 seconds, burning a tunnel through the rock ahead. No climbing.',
+    kind: 'torch',
+    ammo: 2,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    // Burn duration in seconds.
+    fuse: 3,
+    // Tunnel radius.
+    radius: 0.8,
+    damage: 15,
+    force: 7,
+    range: 0.9,
+  },
   selfdestruct: {
     id: 'selfdestruct',
     name: 'Self-Destruct',
@@ -265,5 +287,5 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'selfdestruct'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

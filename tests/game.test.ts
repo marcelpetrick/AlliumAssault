@@ -145,6 +145,50 @@ describe('match flow', () => {
     expect(blast(50, 48)).toBe(0);
   });
 
+  it('blowtorch walks forward for three seconds and burns a level tunnel through a wall', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    for (let y = 20; y <= 30; y += 1) g.terrain.addDisc(44, y, 1.5);
+    toAiming(g);
+    const me = g.buddies[0];
+    me.facing = 1;
+    const startY = me.body.y;
+    g.selectWeapon('torch');
+    g.pressFire();
+    expect(g.phase).toBe('torching');
+    let highest = startY;
+    runUntil(g, () => {
+      highest = Math.max(highest, me.body.y);
+      return g.phase !== 'torching';
+    }, 4);
+    expect(g.phase).toBe('retreat');
+    expect(me.body.x).toBeGreaterThan(45.5);
+    expect(highest - startY).toBeLessThan(0.3);
+    expect(g.terrain.isSolid(44, 20.8)).toBe(false);
+    expect(g.terrain.isSolid(44, 23)).toBe(true);
+  });
+
+  it('blowtorch does not carry the buddy over a gap: it falls', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    g.terrain.carve(47, 17, 4.5);
+    toAiming(g);
+    const me = g.buddies[0];
+    me.facing = 1;
+    g.selectWeapon('torch');
+    g.pressFire();
+    runUntil(g, () => g.phase !== 'torching', 4);
+    expect(me.body.y).toBeLessThan(19);
+  });
+
+  it('blowtorch burns an enemy in its way once', () => {
+    const g = flatGame([40, 42.5], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.buddies[0].facing = 1;
+    g.selectWeapon('torch');
+    g.pressFire();
+    runUntil(g, () => g.phase !== 'torching', 4);
+    expect(g.buddies[1].hp).toBe(85);
+  });
+
   it('kills buddies at 0 hp with a death explosion and declares a winner', () => {
     const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
     toAiming(g);

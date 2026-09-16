@@ -61,6 +61,7 @@ export class Effects {
   private readonly planes: PlaneView[] = [];
   private readonly crates = new Map<number, CrateView>();
   private readonly strikeCursor: Mesh;
+  private flame: ParticleSystem | null = null;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
@@ -291,6 +292,42 @@ export class Effects {
       view.node.dispose();
       this.crates.delete(id);
     }
+  }
+
+  /** Blowtorch flame at the nozzle while the torch burns. */
+  updateTorch(game: Game): void {
+    const b = game.activeBuddy;
+    if (!game.torch || !b) {
+      this.flame?.stop();
+      return;
+    }
+    if (!this.flame) {
+      const ps = new ParticleSystem('torchFlame', 400, this.scene);
+      ps.particleTexture = this.dot;
+      ps.emitter = new Vector3();
+      ps.createPointEmitter(new Vector3(0.8, -0.3, -0.3), new Vector3(1.6, 0.3, 0.3));
+      ps.emitRate = 160;
+      ps.minLifeTime = 0.08;
+      ps.maxLifeTime = 0.22;
+      ps.minSize = 0.2;
+      ps.maxSize = 0.55;
+      ps.minEmitPower = 2;
+      ps.maxEmitPower = 4;
+      ps.addColorGradient(0, new Color4(0.7, 0.85, 1, 1));
+      ps.addColorGradient(0.3, new Color4(1, 0.75, 0.25, 1));
+      ps.addColorGradient(1, new Color4(1, 0.25, 0.05, 0));
+      ps.blendMode = ParticleSystem.BLENDMODE_ADD;
+      this.flame = ps;
+    }
+    const ps = this.flame;
+    const nozzle = ps.emitter as Vector3;
+    nozzle.set(b.body.x + b.facing * 0.75, b.body.y + 0.05, -0.5);
+    ps.direction1.set(b.facing * 0.8, -0.3, -0.3);
+    ps.direction2.set(b.facing * 1.6, 0.3, 0.3);
+    if (!ps.isStarted()) ps.start();
+    this.flashLevel = Math.max(this.flashLevel, 1.2);
+    this.flash.position.set(nozzle.x, nozzle.y, -1.5);
+    this.flash.range = 6;
   }
 
   /** Column of sparkles where a crate materialises. */

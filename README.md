@@ -77,6 +77,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🐑 Sheep | 1 | Space releases it, it hops forward in small 45° leaps; Space again detonates it (75 dmg), at the latest after 10 s |
 | ✈️ Air Strike | 1 | Click on the map: a plane drops five bombs around that spot (25 dmg each) |
 | 🏏 Baseball Bat | 2 | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards) |
+| 🔥 Blowtorch | 2 | Walks forward for 3 s burning a level tunnel through rock; falls into gaps, never climbs (15 dmg) |
 | 💥 Self-Destruct | 1 | The buddy blows itself up: damage equals its health, blast radius health ÷ 10 |
 
 ## Architecture

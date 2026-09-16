@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.10.0] — 2026-09-16
+
+### Added
+- Blowtorch (key 9, 2 per team): Space lights it and the buddy walks forward for three seconds,
+  burning a level tunnel through the rock ahead. It only walks with ground underneath, so it
+  falls into gaps and never tunnels upwards. Enemies in the flame take 15 damage and a shove.
+- Flame particles and light, roaring torch sound, torch model, HUD hint.
+- The AI burns through walls towards enemies on the same level.
+- Unit and E2E tests.
+
+### Changed
+- Self-Destruct moved to the tenth weapon slot.
+
 ## [1.9.0] — 2026-09-16
 
 ### Added

@@ -1,4 +1,4 @@
-import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, WIND_ACCEL } from './constants';
+import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, TORCH_SPEED, WIND_ACCEL } from './constants';
 import { meleeLaunch, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
@@ -153,6 +153,17 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
         const facing: 1 | -1 = target < me.body.x ? -1 : 1;
         if (score > best.score) best = { weapon: 'airstrike', facing, aim: me.aim, power: 1, score, target };
       }
+    }
+  }
+
+  if (allowed('torch')) {
+    // Burn towards an enemy on about the same level behind a wall, if the tunnel can reach it.
+    const def = WEAPONS.torch;
+    for (const enemy of enemies) {
+      const dx = enemy.body.x - me.body.x;
+      if (Math.abs(enemy.body.y - me.body.y) > 1 || Math.abs(dx) > TORCH_SPEED * def.fuse + def.range || lineOfSight(game, me, enemy)) continue;
+      const score = def.damage + (enemy.hp <= def.damage ? 40 : 0) - 6;
+      if (score > best.score) best = { weapon: 'torch', facing: dx < 0 ? -1 : 1, aim: me.aim, power: 1, score };
     }
   }
 
