@@ -46,9 +46,14 @@ export interface FlightSound {
 /** A sound that keeps playing until stopped; its parameters are updated every frame. */
 interface Voice {
   gain: GainNode;
-  filter: BiquadFilterNode | null;
+  filter: BiquadFilterNode;
   osc: OscillatorNode | null;
   sources: AudioScheduledSourceNode[];
+}
+
+/** A voice with an oscillator mixed into its noise. */
+interface ToneVoice extends Voice {
+  osc: OscillatorNode;
 }
 
 const MAX_FLIGHT_VOICES = 6;
@@ -62,9 +67,9 @@ export class Audio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
-  private chargeVoice: Voice | null = null;
+  private chargeVoice: ToneVoice | null = null;
   private fireVoice: Voice | null = null;
-  private toolVoice: { tool: 'torch' | 'drill'; voice: Voice } | null = null;
+  private toolVoice: { tool: 'torch' | 'drill'; voice: ToneVoice } | null = null;
   private readonly flightVoices = new Map<number, Voice>();
   /** How often each sound effect was played (for tests). */
   readonly played: Partial<Record<Sfx, number>> = {};
@@ -179,11 +184,15 @@ export class Audio {
         // Stone slab plonking down, with a sad little trombone slide.
         this.noise(0.12, 'lowpass', 600, 120, 0.4);
         this.tone('sine', 110, 60, 0.2, 0.35);
-        [0, 0.28, 0.56].forEach((d, k) => this.tone('sawtooth', 311 - k * 18, 294 - k * 18, 0.26, 0.05, 0.25 + d));
+        [0, 0.28, 0.56].forEach((d, k) => {
+          this.tone('sawtooth', 311 - k * 18, 294 - k * 18, 0.26, 0.05, 0.25 + d);
+        });
         break;
       case 'alarm':
         // Frantic rising siren right before the bang.
-        [0, 0.09, 0.18].forEach((d) => this.tone('square', 700 * pitch, 1400 * pitch, 0.08, 0.1, d));
+        [0, 0.09, 0.18].forEach((d) => {
+          this.tone('square', 700 * pitch, 1400 * pitch, 0.08, 0.1, d);
+        });
         this.tone('sawtooth', 90, 40, 0.9, 0.25);
         break;
       case 'bat':
@@ -218,7 +227,9 @@ export class Audio {
         this.tone('sawtooth', 420, 90, 0.55, 0.12);
         break;
       case 'victory':
-        [523, 659, 784, 1047].forEach((f, k) => this.tone('triangle', f, f, 0.22, 0.2, k * 0.14));
+        [523, 659, 784, 1047].forEach((f, k) => {
+          this.tone('triangle', f, f, 0.22, 0.2, k * 0.14);
+        });
         break;
       case 'click':
         this.tone('triangle', 900, 1150, 0.05, 0.08);
@@ -238,15 +249,21 @@ export class Audio {
         break;
       case 'teleport':
         // Bright shimmering sweep, loud enough to notice a crate arriving anywhere on the map.
-        [880, 1320, 1760, 2640, 3520].forEach((f, k) => this.tone('sine', f, f * 1.5, 0.16, 0.16, k * 0.05));
+        [880, 1320, 1760, 2640, 3520].forEach((f, k) => {
+          this.tone('sine', f, f * 1.5, 0.16, 0.16, k * 0.05);
+        });
         this.tone('triangle', 220, 880, 0.35, 0.18);
         this.noise(0.45, 'highpass', 2500, 7000, 0.14);
         break;
       case 'pickup':
-        [523, 784, 1047].forEach((f, k) => this.tone('square', f, f, 0.09, 0.06, k * 0.07));
+        [523, 784, 1047].forEach((f, k) => {
+          this.tone('square', f, f, 0.09, 0.06, k * 0.07);
+        });
         break;
       case 'heal':
-        [392, 523, 659, 784].forEach((f, k) => this.tone('triangle', f, f * 1.02, 0.3, 0.12, k * 0.08));
+        [392, 523, 659, 784].forEach((f, k) => {
+          this.tone('triangle', f, f * 1.02, 0.3, 0.12, k * 0.08);
+        });
         break;
       case 'hop':
         this.tone('sine', 260 * pitch, 520 * pitch, 0.07, 0.1);
@@ -267,9 +284,9 @@ export class Audio {
     this.chargeVoice ??= this.startVoice('bandpass', 'sawtooth');
     const v = this.chargeVoice;
     const t = this.ctx.currentTime;
-    v.filter!.frequency.setTargetAtTime(350 + level * level * 2600, t, 0.03);
-    v.filter!.Q.setTargetAtTime(1.2 + level * 3, t, 0.05);
-    v.osc!.frequency.setTargetAtTime(70 + level * 170, t, 0.03);
+    v.filter.frequency.setTargetAtTime(350 + level * level * 2600, t, 0.03);
+    v.filter.Q.setTargetAtTime(1.2 + level * 3, t, 0.05);
+    v.osc.frequency.setTargetAtTime(70 + level * 170, t, 0.03);
     v.gain.gain.setTargetAtTime(0.06 + level * 0.3, t, 0.03);
   }
 
@@ -283,7 +300,7 @@ export class Audio {
     this.fireVoice ??= this.startVoice('bandpass', null);
     const t = this.ctx.currentTime;
     // Random flutter on the filter makes the noise crackle.
-    this.fireVoice.filter!.frequency.setTargetAtTime(700 + Math.random() * 1600, t, 0.02);
+    this.fireVoice.filter.frequency.setTargetAtTime(700 + Math.random() * 1600, t, 0.02);
     this.fireVoice.gain.gain.setTargetAtTime(Math.min(0.12 + flames * 0.025, 0.55) * (0.7 + Math.random() * 0.3), t, 0.03);
   }
 
@@ -297,9 +314,9 @@ export class Audio {
     const drill = tool === 'drill';
     const v = this.startVoice(drill ? 'lowpass' : 'bandpass', drill ? 'square' : 'sawtooth');
     const t = this.ctx.currentTime;
-    v.filter!.frequency.setValueAtTime(drill ? 900 : 1600, t);
-    v.filter!.Q.setValueAtTime(drill ? 4 : 0.6, t);
-    v.osc!.frequency.setValueAtTime(drill ? 38 : 55, t);
+    v.filter.frequency.setValueAtTime(drill ? 900 : 1600, t);
+    v.filter.Q.setValueAtTime(drill ? 4 : 0.6, t);
+    v.osc.frequency.setValueAtTime(drill ? 38 : 55, t);
     v.gain.gain.setTargetAtTime(drill ? 0.35 : 0.3, t, 0.08);
     this.toolVoice = { tool, voice: v };
   }
@@ -319,11 +336,11 @@ export class Audio {
         const t = this.ctx.currentTime;
         if (f.kind === 'rocket') {
           // Whistle drops in pitch while falling, like a cartoon bomb.
-          v.osc!.frequency.setTargetAtTime(Math.max(380, 1100 + f.vy * 22), t, 0.05);
-          v.filter!.frequency.setTargetAtTime(900 + speed * 45, t, 0.05);
+          v.osc?.frequency.setTargetAtTime(Math.max(380, 1100 + f.vy * 22), t, 0.05);
+          v.filter.frequency.setTargetAtTime(900 + speed * 45, t, 0.05);
           v.gain.gain.setTargetAtTime(0.08 + Math.min(speed, 40) * 0.006, t, 0.05);
         } else {
-          v.filter!.frequency.setTargetAtTime(250 + speed * 40, t, 0.05);
+          v.filter.frequency.setTargetAtTime(250 + speed * 40, t, 0.05);
           v.gain.gain.setTargetAtTime(Math.min(speed, 30) * 0.009, t, 0.05);
         }
       }
@@ -357,7 +374,7 @@ export class Audio {
 
   /** A swelling "Ha-le-lu-jah!" choir chord: detuned voices through a vowel filter with vibrato. */
   private choir(): void {
-    const ctx = this.ctx!;
+    const { ctx } = this.engine;
     const t0 = ctx.currentTime;
     const syllables = [0, 0.3, 0.55, 0.8];
     const chords = [
@@ -397,14 +414,14 @@ export class Audio {
 
   /** Propeller plane passing overhead: a buzzing drone that swells, then drops in pitch as it leaves. */
   private planeFlyby(): void {
-    const ctx = this.ctx!;
+    const { ctx } = this.engine;
     const t0 = ctx.currentTime;
     const duration = 4.2;
     const out = ctx.createGain();
     out.gain.setValueAtTime(0.0001, t0);
     out.gain.exponentialRampToValueAtTime(0.35, t0 + 1.8);
     out.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    out.connect(this.master!);
+    out.connect(this.engine.master);
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(500, t0);
@@ -442,7 +459,7 @@ export class Audio {
 
   /** Nasal, wobbling "baa": a sawtooth through a vowel-like bandpass with fast vibrato. */
   private bleat(pitch: number): void {
-    const ctx = this.ctx!;
+    const { ctx } = this.engine;
     const t0 = ctx.currentTime;
     const osc = ctx.createOscillator();
     osc.type = 'sawtooth';
@@ -466,12 +483,20 @@ export class Audio {
     lfo.stop(t0 + 0.7);
   }
 
+  /** Audio graph handles; only valid after unlock(), which every caller checks first. */
+  private get engine(): { ctx: AudioContext; master: GainNode; noise: AudioBuffer } {
+    if (!this.ctx || !this.master || !this.noiseBuffer) throw new Error('Audio used before unlock()');
+    return { ctx: this.ctx, master: this.master, noise: this.noiseBuffer };
+  }
+
   /** Filtered looping noise, optionally mixed with an oscillator, starting silent. */
+  private startVoice(filterType: BiquadFilterType, oscType: OscillatorType): ToneVoice;
+  private startVoice(filterType: BiquadFilterType, oscType: null): Voice;
   private startVoice(filterType: BiquadFilterType, oscType: OscillatorType | null): Voice {
-    const ctx = this.ctx!;
+    const { ctx } = this.engine;
     const gain = ctx.createGain();
     gain.gain.value = 0.0001;
-    gain.connect(this.master!);
+    gain.connect(this.engine.master);
     const filter = ctx.createBiquadFilter();
     filter.type = filterType;
     filter.connect(gain);
@@ -501,22 +526,24 @@ export class Audio {
     v.gain.gain.cancelScheduledValues(t);
     v.gain.gain.setTargetAtTime(0.0001, t, 0.04);
     for (const s of v.sources) s.stop(t + 0.3);
-    setTimeout(() => v.gain.disconnect(), 400);
+    setTimeout(() => {
+      v.gain.disconnect();
+    }, 400);
   }
 
   private envelope(gain: number, duration: number, delay: number): GainNode {
-    const ctx = this.ctx!;
+    const { ctx } = this.engine;
     const g = ctx.createGain();
     const t0 = ctx.currentTime + delay;
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    g.connect(this.master!);
+    g.connect(this.engine.master);
     return g;
   }
 
   private tone(type: OscillatorType, from: number, to: number, duration: number, gain: number, delay = 0): void {
-    const ctx = this.ctx!;
+    const { ctx } = this.engine;
     const osc = ctx.createOscillator();
     const t0 = ctx.currentTime + delay;
     osc.type = type;
@@ -528,7 +555,7 @@ export class Audio {
   }
 
   private noise(duration: number, type: BiquadFilterType, from: number, to: number, gain: number): void {
-    const ctx = this.ctx!;
+    const { ctx } = this.engine;
     const src = ctx.createBufferSource();
     src.buffer = this.noiseBuffer;
     const filter = ctx.createBiquadFilter();

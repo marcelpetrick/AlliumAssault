@@ -1,6 +1,6 @@
 {
   "name": "allium-assault",
-  "version": "1.25.1",
+  "version": "1.26.0",
   "description": "Turn-based 3D artillery game with garlic buddies, in the spirit of Worms Armageddon. Runs in the browser.",
   "private": true,
   "type": "module",
@@ -10,14 +10,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173 --strictPort",
-    "lint": "eslint . && npm run lint:spdx",
+    "lint": "eslint . && prettier --check . && stylelint \"src/**/*.css\" && markdownlint-cli2 \"**/*.md\" && npm run lint:spdx",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "playwright test",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build && npm run e2e",
     "lint:spdx": "node scripts/spdx.mjs",
     "spdx:fix": "node scripts/spdx.mjs --fix",
-    "lint:reuse": "uvx reuse lint"
+    "lint:reuse": "uvx reuse lint",
+    "format": "prettier --write . && stylelint \"src/**/*.css\" --fix && markdownlint-cli2 --fix \"**/*.md\""
   },
   "dependencies": {
     "@babylonjs/core": "9.26.2",
@@ -26,11 +27,19 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
+    "@types/node": "24.13.5",
     "eslint": "10.10.0",
     "globals": "17.12.0",
+    "markdownlint-cli2": "0.23.2",
+    "prettier": "3.9.7",
+    "stylelint": "17.15.0",
+    "stylelint-config-standard": "40.0.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.70.0",
     "vite": "8.3.0",
     "vitest": "5.0.1"
+  },
+  "overrides": {
+    "smol-toml": "1.8.0"
   }
 }

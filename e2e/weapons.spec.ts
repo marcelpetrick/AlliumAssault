@@ -41,7 +41,7 @@ test('bazooka: charge whoosh while holding Space, whistling rocket, explosion an
   await page.keyboard.down('Space');
   await waitFor(page, (s) => (s.charge ?? 0) > 0.15 && s.sound.charge, 60_000);
   await page.keyboard.up('Space');
-  await waitFor(page, (s) => ((s.sound.played as Record<string, number>).fire ?? 0) > 0 && !s.sound.charge, 10_000);
+  await waitFor(page, (s) => ((s.sound.played as Partial<Record<string, number>>).fire ?? 0) > 0 && !s.sound.charge, 10_000);
 
   // Flying rockets have a flight voice; once it hits, it explodes and carves a crater.
   const flying = await state(page);
@@ -146,7 +146,9 @@ test('blowtorch: roaring flame walks the buddy forward through the rock', async 
   const before = await state(page);
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.phase === 'torching' && s.sound.torch, 10_000);
-  await page.evaluate(() => window.__allium.stepFrames(20, 1 / 30));
+  await page.evaluate(() => {
+    window.__allium.stepFrames(20, 1 / 30);
+  });
   await info.attach('torch', { body: await page.screenshot(), contentType: 'image/png' });
   // stepFrames switched to manual frames; sounds follow the game only while frames run.
   await page.evaluate(() => window.__allium.setManual(false));
@@ -189,7 +191,9 @@ test('holy garlic grenade: comes to rest, sings, then an enormous blast', async 
     for (let k = 0; k < 60 * 12 && !app.game!.projectiles.some((p) => p.armed); k++) app.fastForward(1 / 60);
   });
   await waitForSound(page, 'hallelujah');
-  await page.evaluate(() => window.__allium.stepFrames(6, 1 / 30));
+  await page.evaluate(() => {
+    window.__allium.stepFrames(6, 1 / 30);
+  });
   await info.attach('holy', { body: await page.screenshot(), contentType: 'image/png' });
   await page.evaluate(() => window.__allium.setManual(false));
   await fastForward(page, 2);
@@ -216,7 +220,9 @@ test('banana bomb: five bananas scatter and explode one after another', async ({
     return 0;
   });
   expect(bananas).toBe(5);
-  await page.evaluate(() => window.__allium.stepFrames(4, 1 / 30));
+  await page.evaluate(() => {
+    window.__allium.stepFrames(4, 1 / 30);
+  });
   await info.attach('bananas', { body: await page.screenshot(), contentType: 'image/png' });
   await page.evaluate(() => window.__allium.setManual(false));
   await fastForward(page, 4);
@@ -234,7 +240,7 @@ test('flying sheep: the arrow keys steer it for the whole flight, Space detonate
   await aim(page, 1.45, 1);
   const before = await state(page);
   await page.keyboard.press('Space');
-  await waitFor(page, (s) => s.phase === 'guiding' && ((s.sound.played as Record<string, number>).baa ?? 0) >= 1 && s.sound.flights > 0, 10_000);
+  await waitFor(page, (s) => s.phase === 'guiding' && ((s.sound.played as Partial<Record<string, number>>).baa ?? 0) >= 1 && s.sound.flights > 0, 10_000);
   // Hold each arrow until the sheep flies that way: left, then up, then right, then left again.
   const steer = async (key: string, x: number, y: number) => {
     await page.keyboard.down(key);
@@ -273,7 +279,9 @@ test('concrete mule: a click drops it, it brays and smashes down repeatedly', as
   await waitForSound(page, 'bray');
   expect((await state(page)).ammo!.mule).toBe(0);
   await fastForward(page, 1.6);
-  await page.evaluate(() => window.__allium.stepFrames(3, 1 / 30));
+  await page.evaluate(() => {
+    window.__allium.stepFrames(3, 1 / 30);
+  });
   await info.attach('mule', { body: await page.screenshot(), contentType: 'image/png' });
   await page.evaluate(() => window.__allium.setManual(false));
   await fastForward(page, 8);
@@ -291,7 +299,9 @@ test('drill: Shift+6, grinding sound, the buddy drills straight down', async ({ 
   const before = await state(page);
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.phase === 'drilling' && s.sound.drill, 10_000);
-  await page.evaluate(() => window.__allium.stepFrames(15, 1 / 30));
+  await page.evaluate(() => {
+    window.__allium.stepFrames(15, 1 / 30);
+  });
   await info.attach('drill', { body: await page.screenshot(), contentType: 'image/png' });
   await page.evaluate(() => window.__allium.setManual(false));
   await fastForward(page, 3);
@@ -381,7 +391,7 @@ test('sheep: baa on release, hops away, Space blows it up', async ({ page }, inf
   await select(page, '6', 'sheep');
   await aim(page, 0, 1);
   await page.keyboard.press('Space');
-  await waitFor(page, (s) => s.phase === 'guiding' && s.sheep !== null && (s.sound.played as Record<string, number>).baa === 1, 10_000);
+  await waitFor(page, (s) => s.phase === 'guiding' && s.sheep !== null && (s.sound.played as Partial<Record<string, number>>).baa === 1, 10_000);
 
   await fastForward(page, 1.5);
   const guiding = await state(page);
@@ -423,9 +433,13 @@ test('air strike: a drag pans the camera, a click calls the plane and five bombs
   s = await state(page);
   expect(s.phase).toBe('retreat');
   expect(s.ammo!.airstrike).toBe(0);
-  await page.evaluate(() => window.__allium.stepFrames(45, 1 / 30));
+  await page.evaluate(() => {
+    window.__allium.stepFrames(45, 1 / 30);
+  });
   await info.attach('plane', { body: await page.screenshot(), contentType: 'image/png' });
-  const bombs = await page.evaluate(() => window.__allium.app.game!.projectiles.filter((p) => p.weapon === 'airbomb').length + window.__allium.app.game!.drops.length);
+  const bombs = await page.evaluate(
+    () => window.__allium.app.game!.projectiles.filter((p) => p.weapon === 'airbomb').length + window.__allium.app.game!.drops.length,
+  );
   expect(bombs).toBe(5);
 
   await fastForward(page, 6);

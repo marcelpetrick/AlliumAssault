@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+# SPDX-License-Identifier: GPL-3.0-or-later
+dist
+node_modules
+test-results
+playwright-report
+package-lock.json
+CHANGELOG.md
+docs/archive
+LICENSES
+LICENSE

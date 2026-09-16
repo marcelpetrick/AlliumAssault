@@ -11,7 +11,9 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
   await startDuel(page, { crates: 1 });
   expect((await state(page)).crates).toHaveLength(0);
 
-  await page.evaluate(() => window.__allium.app.game!.skipTurn());
+  await page.evaluate(() => {
+    window.__allium.app.game!.skipTurn();
+  });
   await waitFor(page, (s) => s.turn === 2 && s.crates.length === 1, 30_000);
   const s = await state(page);
   expect(s.phase).toBe('turnStart');
@@ -26,7 +28,9 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
     { timeout: 30_000, polling: 'raf' },
   );
   await waitFor(page, (st) => st.phase === 'aiming', 30_000);
-  await page.evaluate(() => window.__allium.stepFrames(20, 1 / 30));
+  await page.evaluate(() => {
+    window.__allium.stepFrames(20, 1 / 30);
+  });
   await info.attach('crate', { body: await page.screenshot(), contentType: 'image/png' });
 
   const crate = s.crates[0];
@@ -45,7 +49,7 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
     expect(after.buddies.find((b) => b.name === grabber.name)!.hp).toBe(grabber.hp + 25);
     expect(played(after, 'heal')).toBe(1);
   } else {
-    const weapon = crate.weapon as keyof typeof ammoBefore;
+    const weapon = crate.weapon!;
     expect(after.ammo![weapon]).toBe(ammoBefore[weapon] + 1);
     expect(played(after, 'pickup')).toBe(1);
   }
@@ -54,10 +58,12 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
 
 test('tombstones: a buddy that dies leaves a comic tombstone with its name', async ({ page }, info) => {
   const errors = await boot(page);
-  const start = await startDuel(page, { teams: [
-    { name: 'Red Roasters', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Ruby', 'Rex'] },
-    { name: 'Blue Bulbs', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Blu', 'Bo'] },
-  ] });
+  const start = await startDuel(page, {
+    teams: [
+      { name: 'Red Roasters', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Ruby', 'Rex'] },
+      { name: 'Blue Bulbs', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Blu', 'Bo'] },
+    ],
+  });
   await page.evaluate(() => {
     const g = window.__allium.app.game!;
     const b = g.activeBuddy!;
@@ -96,11 +102,11 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
   await startDuel(page);
 
   await select(page, '2', 'grenade');
-  await waitFor(page, (s) => (s.sound.played as Record<string, number>).select >= 1, 10_000);
+  await waitFor(page, (s) => ((s.sound.played as Partial<Record<string, number>>).select ?? 0) >= 1, 10_000);
 
   // Wind the turn clock down to the last seconds and let real frames run.
   await page.evaluate(() => (window.__allium.app.game!.turnTimeLeft = 4.2));
-  await waitFor(page, (s) => (s.sound.played as Record<string, number>).tick >= 1, 30_000);
+  await waitFor(page, (s) => ((s.sound.played as Partial<Record<string, number>>).tick ?? 0) >= 1, 30_000);
 
   // The clock keeps ticking while a sheep is being guided.
   const ticks = played(await state(page), 'tick');
@@ -114,7 +120,7 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
 
   // After the blast and retreat the next turn starts with its chime.
   await fastForward(page, 12);
-  await waitFor(page, (s) => s.turn >= 2 && ((s.sound.played as Record<string, number>).turn ?? 0) >= 1, 30_000);
+  await waitFor(page, (s) => s.turn >= 2 && ((s.sound.played as Partial<Record<string, number>>).turn ?? 0) >= 1, 30_000);
 
   await page.keyboard.press('KeyM');
   const muted = await state(page);

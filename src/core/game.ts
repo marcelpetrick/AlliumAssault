@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { AiDriver } from './ai';
+import { defined } from './assert';
 import {
   AIM_MAX,
   AIM_MIN,
@@ -283,25 +284,25 @@ export class Game {
       spawns = pickSpawns(findSpawnCandidates(terrain, BUDDY_RADIUS), total, rngFor(seed, 'spawns'));
       if (attempt >= 8 || overrides.terrain) break;
     }
-    this.terrain = terrain!;
+    this.terrain = defined(terrain, 'generated terrain');
     this.windRng = rngFor(config.seed, 'wind');
     this.crateRng = rngFor(config.seed, 'crates');
 
     // Interleave teams from left to right: A B C D A B C D ...
-    const ordered = [...spawns!].sort((a, b) => a.x - b.x);
+    const ordered = [...spawns].sort((a, b) => a.x - b.x);
     this.teams = config.teams.map((cfg, index) => ({
       index,
       config: cfg,
       buddies: [],
       cursor: 0,
       ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, startingAmmo(config.arsenal, id)])) as Record<WeaponId, number>,
-      weapon: 'bazooka' as WeaponId,
+      weapon: 'bazooka',
     }));
     let slot = 0;
     const maxPerTeam = Math.max(...config.teams.map((t) => t.buddyNames.length));
     for (let round = 0; round < maxPerTeam; round++) {
       for (const team of this.teams) {
-        const name = team.config.buddyNames[round];
+        const name = team.config.buddyNames.at(round);
         if (name === undefined) continue;
         const spot = ordered[slot++ % Math.max(ordered.length, 1)] ?? { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2 };
         const buddy: Buddy = {
@@ -399,13 +400,19 @@ export class Game {
     const start = WEAPON_ORDER.indexOf(this.weapon);
     for (let k = 1; k <= WEAPON_ORDER.length; k++) {
       const id = WEAPON_ORDER[(start + k) % WEAPON_ORDER.length];
-      if (team.ammo[id] > 0) return this.selectWeapon(id);
+      if (team.ammo[id] > 0) {
+        this.selectWeapon(id);
+        return;
+      }
     }
   }
 
   /** Space pressed: start charging, fire instantly for non-charge weapons, or detonate the sheep. */
   pressFire(): void {
-    if (this.phase === 'guiding') return this.detonateGuided();
+    if (this.phase === 'guiding') {
+      this.detonateGuided();
+      return;
+    }
     const team = this.activeTeamData;
     const def = WEAPONS[this.weapon];
     if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || this.charge !== null) return;
@@ -435,9 +442,20 @@ export class Game {
     const target = clamp(x, 0, this.terrain.width);
     team.ammo[def.id] -= 1;
     this.shotsLeft = 0;
+    const payload = defined(def.strike, `${def.id} strike payload`);
     const plan = planStrike(this.terrain, def, target, b.facing, this.wind);
-    for (const d of plan.drops) this.drops.push({ weapon: def.strike!.weapon, x: d.x, y: plan.altitude, vx: plan.bombVx, at: this.time + d.delay, owner: b.id });
-    this.emit({ type: 'airstrike', weapon: def.id, plane: def.strike!.plane, target, ground: plan.ground, dir: plan.dir, altitude: plan.altitude, startX: plan.startX, speed: PLANE_SPEED });
+    for (const d of plan.drops) this.drops.push({ weapon: payload.weapon, x: d.x, y: plan.altitude, vx: plan.bombVx, at: this.time + d.delay, owner: b.id });
+    this.emit({
+      type: 'airstrike',
+      weapon: def.id,
+      plane: payload.plane,
+      target,
+      ground: plan.ground,
+      dir: plan.dir,
+      altitude: plan.altitude,
+      startX: plan.startX,
+      speed: PLANE_SPEED,
+    });
     this.startRetreat();
   }
 
@@ -621,7 +639,8 @@ export class Game {
   /** At a turn start, maybe teleport a new crate onto a free land spot; true if one arrived. */
   private maybeDropCrate(): boolean {
     // Special weapons must be findable when the arsenal restricts them to crates.
-    const chance = this.config.crates || (this.config.arsenal === 'crates' ? DEFAULT_CRATE_CHANCE : 0);
+    const configured = this.config.crates ?? 0;
+    const chance = configured > 0 ? configured : this.config.arsenal === 'crates' ? DEFAULT_CRATE_CHANCE : 0;
     if (chance <= 0 || this.turn <= 1 || this.crates.length >= MAX_CRATES || this.crateRng() >= chance) return false;
     const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body)];
     const crate = rollCrate(this.terrain, this.crateRng, this.nextId++, occupied);
@@ -704,7 +723,7 @@ export class Game {
       return;
     }
     const def = WEAPONS[burst.weapon];
-    const { count, interval, spread } = def.burst!;
+    const { count, interval, spread } = defined(def.burst, `${def.id} burst`);
     burst.next -= dt;
     while (burst.next <= 0 && burst.left > 0 && this.burst) {
       burst.next += interval;
@@ -766,14 +785,13 @@ export class Game {
   /** Blow up whatever is being guided: the hopping or the flying sheep. */
   private detonateGuided(): void {
     const s = this.sheep;
-    const f = this.flyer;
-    if (!s && !f) return;
+    const at = s?.body ?? this.flyer;
+    if (!at) return;
     this.sheep = null;
     this.flyer = null;
     // Enter retreat first: if the blast hurts the active buddy, damage() ends the turn from there.
     if (this.phase === 'guiding') this.startRetreat();
     const def = s ? WEAPONS.sheep : WEAPONS.flysheep;
-    const at = s ? s.body : f!;
     this.explode(at.x, at.y, def.radius, def.damage, def.force);
   }
 
@@ -863,13 +881,13 @@ export class Game {
     this.burst = null;
     this.drops = [];
     this.flames = [];
-    const team = this.activeTeamData!;
+    const team = defined(this.activeTeamData, 'active team');
     this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
     this.shotsLeft = WEAPONS[this.weapon].shots;
     Object.assign(this.input, { left: false, right: false, up: false, down: false });
     this.ai.get(this.activeTeam)?.reset();
     this.setPhase('turnStart');
-    this.emit({ type: 'turnStart', team: this.activeTeam, buddy: this.activeBuddy!.id });
+    this.emit({ type: 'turnStart', team: this.activeTeam, buddy: defined(this.activeBuddy, 'active buddy').id });
   }
 
   private fire(power: number): void {
@@ -926,7 +944,7 @@ export class Game {
     for (let k = 0; k < count; k++) {
       const spread = count > 1 ? k / (count - 1) - 0.5 : 0;
       const angle = Math.PI / 2 + spread * 1.9;
-      const v = speed * (0.85 + 0.3 * ((k * 7) % count) / count);
+      const v = speed * (0.85 + (0.3 * ((k * 7) % count)) / count);
       const p = this.spawnProjectile(cluster.weapon, from.x, from.y + 0.3, Math.cos(angle) * v, Math.sin(angle) * v, from.owner);
       if (p.fuse > 0) p.fuse += k * (cluster.stagger ?? 0);
     }

@@ -22,6 +22,7 @@ import {
 } from '@babylonjs/core';
 import type { Game, GameEvent } from '../core/game';
 import { WEAPONS } from '../core/weapons';
+import { defined } from '../core/assert';
 import { clamp } from '../core/math';
 import { hashString } from '../core/rng';
 import { BuddyKit, BuddyView } from './buddyView';
@@ -132,7 +133,9 @@ export class World {
     this.effects = new Effects(
       scene,
       (amount) => (this.shakeAmount = Math.max(this.shakeAmount, amount)),
-      (mesh) => glow.addIncludedOnlyMesh(mesh),
+      (mesh) => {
+        glow.addIncludedOnlyMesh(mesh);
+      },
     );
     const pipeline = new DefaultRenderingPipeline('post', quality === 'high', scene, [this.camera]);
     pipeline.fxaaEnabled = true;
@@ -224,11 +227,11 @@ export class World {
     for (const view of this.buddyViews.values()) view.update(g, dt, this.time);
 
     const active = g.activeBuddy;
-    const showMarker = !!active?.alive && (g.phase === 'turnStart' || g.phase === 'aiming');
-    this.marker.setEnabled(showMarker);
-    if (showMarker && active) {
-      this.markerMaterial.emissiveColor = Color3.FromHexString(g.teams[active.team].config.color).scale(0.8);
-      this.marker.position.set(active.body.x, active.body.y + 2.35 + Math.sin(this.time * 5) * 0.18, 0);
+    const marked = active?.alive && (g.phase === 'turnStart' || g.phase === 'aiming') ? active : null;
+    this.marker.setEnabled(marked !== null);
+    if (marked) {
+      this.markerMaterial.emissiveColor = Color3.FromHexString(g.teams[marked.team].config.color).scale(0.8);
+      this.marker.position.set(marked.body.x, marked.body.y + 2.35 + Math.sin(this.time * 5) * 0.18, 0);
       this.marker.rotation.y = this.time * 2.5;
     }
 
@@ -277,7 +280,7 @@ export class World {
   /** CSS pixels relative to the canvas → point on the gameplay plane (z = 0). */
   pick(cssX: number, cssY: number): { x: number; y: number } | null {
     const engine = this.scene.getEngine();
-    const canvas = engine.getRenderingCanvas()!;
+    const canvas = defined(engine.getRenderingCanvas(), 'rendering canvas');
     const px = (cssX * engine.getRenderWidth()) / canvas.clientWidth;
     const py = (cssY * engine.getRenderHeight()) / canvas.clientHeight;
     const ray = this.scene.createPickingRay(px, py, Matrix.Identity(), this.camera);
@@ -299,7 +302,7 @@ export class World {
     const h = engine.getRenderHeight();
     const p = Vector3.Project(new Vector3(x, y, z), Matrix.IdentityReadOnly, this.camera.getTransformationMatrix(), this.camera.viewport.toGlobal(w, h));
     if (p.z < 0 || p.z > 1) return null;
-    const canvas = engine.getRenderingCanvas()!;
+    const canvas = defined(engine.getRenderingCanvas(), 'rendering canvas');
     return { x: (p.x * canvas.clientWidth) / w, y: (p.y * canvas.clientHeight) / h };
   }
 
@@ -312,7 +315,7 @@ export class World {
 
   private cameraTarget(): { x: number; y: number; fast: boolean } | null {
     const g = this.game;
-    const p = g.projectiles[0] ?? g.sheep?.body ?? g.flyer;
+    const p = g.projectiles.at(0) ?? g.sheep?.body ?? g.flyer;
     if (p) return { x: p.x, y: p.y, fast: true };
     if (this.hold && this.time < this.hold.until) return { x: this.hold.x, y: this.hold.y, fast: true };
     if (g.phase === 'settling' || g.phase === 'deaths' || g.phase === 'gameOver') {

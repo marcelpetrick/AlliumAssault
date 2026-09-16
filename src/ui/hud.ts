@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { Game, GameEvent, Phase } from '../core/game';
+import { query, queryAs } from './dom';
 import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import type { World } from '../render/world';
 
@@ -59,9 +60,9 @@ export class Hud {
         <div class="hint glass-card"></div>
       </div>`;
     uiRoot.appendChild(this.el);
-    this.labelsEl = this.el.querySelector('.labels')!;
-    this.bannerEl = this.el.querySelector('.banner')!;
-    this.el.querySelector('.weapons')!.addEventListener('click', (e) => {
+    this.labelsEl = query(this.el, '.labels');
+    this.bannerEl = query(this.el, '.banner');
+    query(this.el, '.weapons').addEventListener('click', (e) => {
       const slot = (e.target as HTMLElement).closest<HTMLElement>('.slot');
       if (slot?.dataset.weapon) this.onWeapon(slot.dataset.weapon as WeaponId);
     });
@@ -82,10 +83,13 @@ export class Hud {
       el.style.setProperty('--team', color);
       el.innerHTML = `<span class="tag-name">${esc(b.name)}</span><span class="tag-hp">${b.hp}</span>`;
       this.labelsEl.appendChild(el);
-      this.labels.set(b.id, { el, hpEl: el.querySelector('.tag-hp')!, shown: b.hp });
+      this.labels.set(b.id, { el, hpEl: query(el, '.tag-hp'), shown: b.hp });
     }
-    this.el.querySelector('.team-bars')!.innerHTML = game.teams
-      .map((t) => `<div class="team-bar" style="--team:${t.config.color}"><span class="team-bar-name">${esc(t.config.name)}</span><div class="team-bar-track"><div class="team-bar-fill"></div></div></div>`)
+    query(this.el, '.team-bars').innerHTML = game.teams
+      .map(
+        (t) =>
+          `<div class="team-bar" style="--team:${t.config.color}"><span class="team-bar-name">${esc(t.config.name)}</span><div class="team-bar-track"><div class="team-bar-fill"></div></div></div>`,
+      )
       .join('');
   }
 
@@ -101,7 +105,7 @@ export class Hud {
       switch (e.type) {
         case 'turnStart': {
           const team = g.teams[e.team].config;
-          this.banner(`${team.name}`, `${buddy?.name ?? ''} is up${team.controller === 'ai' ? ' · 🤖' : ''}`, team.color);
+          this.banner(team.name, `${buddy?.name ?? ''} is up${team.controller === 'ai' ? ' · 🤖' : ''}`, team.color);
           break;
         }
         case 'damage':
@@ -109,7 +113,7 @@ export class Hud {
           break;
         case 'cratePickup':
           if (buddy) {
-            const text = e.kind === 'health' ? `+${e.amount} HP` : `+${e.amount} ${WEAPONS[e.weapon!].icon} ${WEAPONS[e.weapon!].name}`;
+            const text = e.kind === 'health' || !e.weapon ? `+${e.amount} HP` : `+${e.amount} ${WEAPONS[e.weapon].icon} ${WEAPONS[e.weapon].name}`;
             this.float(text, buddy.body.x, buddy.body.y + 1.6, e.kind === 'health' ? '#5ee27a' : '#ffd166');
           }
           break;
@@ -139,18 +143,18 @@ export class Hud {
     if (team && active) {
       this.text('.turn-team', team.config.name);
       this.text('.turn-buddy', `${active.name} · ${Math.ceil(active.hp)} HP`);
-      (this.el.querySelector('.turn-card') as HTMLElement).style.setProperty('--team', team.config.color);
+      query(this.el, '.turn-card').style.setProperty('--team', team.config.color);
     }
     const retreat = g.phase === 'retreat';
     const seconds = retreat ? g.retreatLeft : g.countingDown || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
     const total = retreat ? g.config.retreatTime : g.config.turnTime;
     this.text('.timer-value', g.phase === 'settling' || g.phase === 'deaths' ? '…' : String(Math.max(0, Math.ceil(seconds))));
     this.text('.timer-caption', retreat ? 'retreat' : 'turn');
-    const progress = this.el.querySelector('.progress') as SVGCircleElement;
+    const progress = queryAs(this.el, '.progress', SVGCircleElement);
     progress.style.strokeDashoffset = String(RING * (1 - Math.max(0, seconds) / total));
-    this.el.querySelector('.timer')!.classList.toggle('urgent', g.countingDown && seconds <= 5);
-    this.el.querySelector('.timer')!.classList.toggle('retreat', retreat);
-    const fill = this.el.querySelector('.wind-fill') as HTMLElement;
+    query(this.el, '.timer').classList.toggle('urgent', g.countingDown && seconds <= 5);
+    query(this.el, '.timer').classList.toggle('retreat', retreat);
+    const fill = query(this.el, '.wind-fill');
     fill.style.width = `${Math.abs(g.wind) * 50}%`;
     fill.style.left = g.wind < 0 ? `${50 - Math.abs(g.wind) * 50}%` : '50%';
     fill.classList.toggle('left', g.wind < 0);
@@ -162,12 +166,12 @@ export class Hud {
       const ammo = team?.ammo[id] ?? 0;
       slot.classList.toggle('on', g.weapon === id);
       slot.classList.toggle('empty', ammo <= 0);
-      slot.querySelector('.slot-ammo')!.textContent = ammo === Infinity ? '∞' : `×${ammo}`;
+      query(slot, '.slot-ammo').textContent = ammo === Infinity ? '∞' : `×${ammo}`;
     });
     this.el.querySelectorAll<HTMLElement>('.team-bar').forEach((bar, k) => {
       const t = g.teams[k];
       const hp = t.buddies.reduce((sum, b) => sum + (b.alive ? b.hp : 0), 0);
-      (bar.querySelector('.team-bar-fill') as HTMLElement).style.width = `${Math.min(100, (hp / (t.buddies.length * 100)) * 100)}%`;
+      query(bar, '.team-bar-fill').style.width = `${Math.min(100, (hp / (t.buddies.length * 100)) * 100)}%`;
       bar.classList.toggle('active', k === g.activeTeam);
       bar.classList.toggle('out', hp <= 0);
     });
@@ -181,26 +185,27 @@ export class Hud {
         ? 'Match over'
         : !human
           ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
-        : def.kind === 'strike' && g.phase === 'aiming'
-          ? `Click on the map to drop the ${def.name.toLowerCase()} · Enter jump · Esc menu`
-        : g.phase === 'firing'
-          ? 'Rat-a-tat-tat! 🔩'
-        : g.phase === 'drilling'
-          ? 'Drilling down… ⛏️'
-        : g.phase === 'torching'
-          ? 'Burning through the rock… 🔥'
-        : g.phase === 'guiding'
-          ? g.flyer
-            ? 'Arrow keys steer the flying sheep · Space to blow it up! 🦸'
-            : 'Space to blow up the sheep! 🐑'
-        : retreat
-          ? 'Run! ← → walk · Enter jump · Backspace back-flip'
-          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : def.kind === 'drill' ? 'Space to start drilling' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`,
+          : def.kind === 'strike' && g.phase === 'aiming'
+            ? `Click on the map to drop the ${def.name.toLowerCase()} · Enter jump · Esc menu`
+            : g.phase === 'firing'
+              ? 'Rat-a-tat-tat! 🔩'
+              : g.phase === 'drilling'
+                ? 'Drilling down… ⛏️'
+                : g.phase === 'torching'
+                  ? 'Burning through the rock… 🔥'
+                  : g.phase === 'guiding'
+                    ? g.flyer
+                      ? 'Arrow keys steer the flying sheep · Space to blow it up! 🦸'
+                      : 'Space to blow up the sheep! 🐑'
+                    : retreat
+                      ? 'Run! ← → walk · Enter jump · Backspace back-flip'
+                      : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : def.kind === 'drill' ? 'Space to start drilling' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`,
     );
 
     // Name tags follow buddies; HP counts down Worms-style.
     for (const b of g.buddies) {
-      const label = this.labels.get(b.id)!;
+      const label = this.labels.get(b.id);
+      if (!label) continue;
       if (!b.alive) {
         label.el.style.display = 'none';
         continue;
@@ -258,8 +263,8 @@ export class Hud {
 
   private banner(title: string, sub: string, color: string): void {
     this.bannerEl.style.setProperty('--team', color);
-    this.bannerEl.querySelector('.banner-title')!.textContent = title;
-    this.bannerEl.querySelector('.banner-sub')!.textContent = sub;
+    query(this.bannerEl, '.banner-title').textContent = title;
+    query(this.bannerEl, '.banner-sub').textContent = sub;
     this.bannerTime = 1.8;
   }
 

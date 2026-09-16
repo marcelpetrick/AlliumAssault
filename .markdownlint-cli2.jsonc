@@ -1,0 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+{
+  "config": {
+    // Docs wrap at about 100 characters but tables, links and diagrams run longer.
+    "MD013": false,
+    // Emoji and badges in headings and the centred screenshot need inline HTML.
+    "MD033": false,
+    // The CHANGELOG repeats "Added"/"Changed"/"Fixed" headings under every version.
+    "MD024": { "siblings_only": true },
+  },
+  "ignores": ["node_modules", "dist", "test-results", "playwright-report", "docs/archive"],
+}

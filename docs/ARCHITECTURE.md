@@ -6,12 +6,12 @@ system context, containers, components, and the dynamic flows that matter most. 
 
 ## 1. Goals and constraints
 
-| Goal | Consequence in the design |
-|---|---|
+| Goal                                 | Consequence in the design                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
 | Looks good in 3D, no pixel/voxel art | Babylon.js scene with PBR-style lighting, shadows, post-processing; smooth meshes from a density field |
-| Plays like Worms | Explicit match state machine, fixed 60 Hz simulation, arbitrarily destructible terrain |
-| Browser only, no backend | Static Vite build; all state lives in the tab (mute flag in `localStorage`) |
-| Testable | Rules in a headless core with no Babylon/DOM imports; `window.__allium` hook for Playwright |
+| Plays like Worms                     | Explicit match state machine, fixed 60 Hz simulation, arbitrarily destructible terrain                 |
+| Browser only, no backend             | Static Vite build; all state lives in the tab (mute flag in `localStorage`)                            |
+| Testable                             | Rules in a headless core with no Babylon/DOM imports; `window.__allium` hook for Playwright            |
 
 ## 2. Level 1 — System context
 
@@ -69,13 +69,13 @@ C4Container
   Rel(audio, webaudio, "Oscillators and filtered noise")
 ```
 
-| Container | Path | May import |
-|---|---|---|
-| Game core | `src/core/` | only other core modules and `simplex-noise` — **no Babylon, no DOM** |
-| 3D renderer | `src/render/` | core (read-only), Babylon.js |
-| UI overlay | `src/ui/` | core types, render themes, DOM |
-| App shell | `src/app.ts`, `src/main.ts` | everything |
-| Sound | `src/audio.ts` | Web Audio only |
+| Container   | Path                        | May import                                                           |
+| ----------- | --------------------------- | -------------------------------------------------------------------- |
+| Game core   | `src/core/`                 | only other core modules and `simplex-noise` — **no Babylon, no DOM** |
+| 3D renderer | `src/render/`               | core (read-only), Babylon.js                                         |
+| UI overlay  | `src/ui/`                   | core types, render themes, DOM                                       |
+| App shell   | `src/app.ts`, `src/main.ts` | everything                                                           |
+| Sound       | `src/audio.ts`              | Web Audio only                                                       |
 
 ## 4. Level 3 — Components
 
@@ -271,20 +271,20 @@ entry; only releases get a `vX.Y.Z` tag. See the Versioning section of the READM
 
 ## 10. Key decisions
 
-| Decision | Alternatives considered | Why |
-|---|---|---|
-| Custom density-field terrain and physics | Physics engines (Havok, Box2D, Planck) | General engines handle arbitrarily destructible terrain poorly; one field keeps physics and rendering consistent |
-| Babylon.js | Three.js, Phaser, Unity WebGL | Complete engine (shadows, post-processing, particles, glow) with a small integration surface; 3D was a hard requirement |
-| Gameplay on a 2D plane, rendered in 3D | Full 3D gameplay | Keeps Worms-style aiming and tactics while the presentation is fully 3D |
-| HTML/CSS overlay for UI | Babylon GUI | Crisp text, standard layout and styling, easy Playwright selectors |
-| Events out of the core | Renderer polling diffs | Effects, sound and HUD react to exactly what happened, in order |
-| Synthesized audio | Sample files | No asset pipeline or licensing; tiny build |
+| Decision                                 | Alternatives considered                | Why                                                                                                                     |
+| ---------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Custom density-field terrain and physics | Physics engines (Havok, Box2D, Planck) | General engines handle arbitrarily destructible terrain poorly; one field keeps physics and rendering consistent        |
+| Babylon.js                               | Three.js, Phaser, Unity WebGL          | Complete engine (shadows, post-processing, particles, glow) with a small integration surface; 3D was a hard requirement |
+| Gameplay on a 2D plane, rendered in 3D   | Full 3D gameplay                       | Keeps Worms-style aiming and tactics while the presentation is fully 3D                                                 |
+| HTML/CSS overlay for UI                  | Babylon GUI                            | Crisp text, standard layout and styling, easy Playwright selectors                                                      |
+| Events out of the core                   | Renderer polling diffs                 | Effects, sound and HUD react to exactly what happened, in order                                                         |
+| Synthesized audio                        | Sample files                           | No asset pipeline or licensing; tiny build                                                                              |
 
 ## 11. Quality and testing map
 
-| Level | Tooling | Covers |
-|---|---|---|
-| Unit | Vitest (`tests/`) | RNG, terrain generation, craters, contouring, body and projectile physics, turns, weapons, deaths, AI plans, a full AI-vs-AI match |
+| Level      | Tooling                             | Covers                                                                                                                                                                                                                                                                                   |
+| ---------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit       | Vitest (`tests/`)                   | RNG, terrain generation, craters, contouring, body and projectile physics, turns, weapons, deaths, AI plans, a full AI-vs-AI match                                                                                                                                                       |
 | End-to-end | Playwright + Google Chrome (`e2e/`) | Title demo, a human turn with real keys, AI match to victory, custom setup, pause menu; every weapon with real keys and clicks (`weapons.spec.ts`); crates, audio cues, movement sounds and weapon bar (`features.spec.ts`) — sounds are checked through the synthesizer's play counters |
-| Static | ESLint, TypeScript strict | Whole codebase |
-| Pipeline | `npm run verify`, GitHub Actions | All of the above on every push; releases and GitHub Pages deployment on tags |
+| Static     | ESLint, TypeScript strict           | Whole codebase                                                                                                                                                                                                                                                                           |
+| Pipeline   | `npm run verify`, GitHub Actions    | All of the above on every push; releases and GitHub Pages deployment on tags                                                                                                                                                                                                             |

@@ -83,10 +83,14 @@ describe('match flow', () => {
     g.simulate(0.3);
     g.releaseFire();
     const events: GameEvent[] = [];
-    runUntil(g, () => {
-      events.push(...g.drainEvents());
-      return events.some((e) => e.type === 'hallelujah');
-    }, 8);
+    runUntil(
+      g,
+      () => {
+        events.push(...g.drainEvents());
+        return events.some((e) => e.type === 'hallelujah');
+      },
+      8,
+    );
     const song = events.find((e) => e.type === 'hallelujah')!;
     expect(g.projectiles).toHaveLength(1);
     expect(g.projectiles[0].vx ** 2 + g.projectiles[0].vy ** 2).toBeLessThan(1);
@@ -94,7 +98,7 @@ describe('match flow', () => {
     expect(g.projectiles).toHaveLength(1);
     g.simulate(0.3);
     expect(g.projectiles).toHaveLength(0);
-    if (song.type === 'hallelujah') expect(g.terrain.isSolid(song.x, song.y - 5.5)).toBe(false);
+    expect(g.terrain.isSolid(song.x, song.y - 5.5)).toBe(false);
   });
 
   it('shotgun fires twice and consumes one ammo', () => {
@@ -184,10 +188,14 @@ describe('match flow', () => {
     g.pressFire();
     expect(g.phase).toBe('torching');
     let highest = startY;
-    runUntil(g, () => {
-      highest = Math.max(highest, me.body.y);
-      return g.phase !== 'torching';
-    }, 4);
+    runUntil(
+      g,
+      () => {
+        highest = Math.max(highest, me.body.y);
+        return g.phase !== 'torching';
+      },
+      4,
+    );
     expect(g.phase).toBe('retreat');
     expect(me.body.x).toBeGreaterThan(45.5);
     expect(highest - startY).toBeLessThan(0.3);
@@ -208,10 +216,14 @@ describe('match flow', () => {
     g.pressFire();
     expect(g.phase).toBe('drilling');
     let lowest = start.y;
-    runUntil(g, () => {
-      lowest = Math.min(lowest, me.body.y);
-      return g.phase !== 'drilling';
-    }, 4);
+    runUntil(
+      g,
+      () => {
+        lowest = Math.min(lowest, me.body.y);
+        return g.phase !== 'drilling';
+      },
+      4,
+    );
     expect(g.phase === 'retreat' || g.phase === 'settling').toBe(true);
     expect(start.y - lowest).toBeGreaterThan(4);
     expect(Math.abs(me.body.x - start.x)).toBeLessThan(0.6);
@@ -230,10 +242,14 @@ describe('match flow', () => {
     g.selectWeapon('drill');
     g.pressFire();
     let impact = 0;
-    runUntil(g, () => {
-      impact = Math.max(impact, me.body.impact);
-      return me.body.y < 12 && me.body.grounded;
-    }, 3);
+    runUntil(
+      g,
+      () => {
+        impact = Math.max(impact, me.body.impact);
+        return me.body.y < 12 && me.body.grounded;
+      },
+      3,
+    );
     expect(me.body.y).toBeLessThan(12);
     expect(impact).toBeGreaterThan(17);
     expect(me.hp).toBe(100);
@@ -273,10 +289,14 @@ describe('match flow', () => {
     const x = me.body.x;
     g.input.left = true;
     const shots: number[] = [];
-    runUntil(g, () => {
-      for (const e of g.drainEvents()) if (e.type === 'shot') shots.push(e.x1);
-      return g.phase !== 'firing';
-    }, 3);
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'shot') shots.push(e.x1);
+        return g.phase !== 'firing';
+      },
+      3,
+    );
     expect(shots).toHaveLength(14);
     expect(me.body.x).toBeCloseTo(x, 3);
     expect(g.phase).toBe('retreat');
@@ -374,12 +394,16 @@ describe('match flow', () => {
     const booms: number[] = [];
     let fragments = 0;
     let bounced = false;
-    runUntil(g, () => {
-      fragments = Math.max(fragments, g.projectiles.filter((p) => p.weapon === 'bananalet').length);
-      bounced ||= g.projectiles.some((p) => p.weapon === 'bananalet' && p.bounces > 0);
-      for (const e of g.drainEvents()) if (e.type === 'explosion') booms.push(g.time);
-      return booms.length >= 6;
-    }, 10);
+    runUntil(
+      g,
+      () => {
+        fragments = Math.max(fragments, g.projectiles.filter((p) => p.weapon === 'bananalet').length);
+        bounced ||= g.projectiles.some((p) => p.weapon === 'bananalet' && p.bounces > 0);
+        for (const e of g.drainEvents()) if (e.type === 'explosion') booms.push(g.time);
+        return booms.length >= 6;
+      },
+      10,
+    );
     expect(fragments).toBe(5);
     expect(bounced).toBe(true);
     expect(booms).toHaveLength(6);
@@ -390,7 +414,19 @@ describe('match flow', () => {
     const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
     toAiming(g);
     const enemy = g.buddies[1];
-    g.projectiles.push({ id: 999, weapon: 'bomblet', x: enemy.body.x, y: enemy.body.y + 3, vx: 0, vy: -5, radius: 0.15, bounces: 0, fuse: 0, age: 1, owner: g.buddies[0].id });
+    g.projectiles.push({
+      id: 999,
+      weapon: 'bomblet',
+      x: enemy.body.x,
+      y: enemy.body.y + 3,
+      vx: 0,
+      vy: -5,
+      radius: 0.15,
+      bounces: 0,
+      fuse: 0,
+      age: 1,
+      owner: g.buddies[0].id,
+    });
     runUntil(g, () => g.projectiles.length === 0, 2);
     expect(enemy.hp).toBe(90);
   });
@@ -494,13 +530,17 @@ describe('match flow', () => {
     expect(g.teams[0].ammo.airstrike).toBe(0);
     expect(g.phase).toBe('retreat');
     expect(g.drops).toHaveLength(5);
-    runUntil(g, () => {
-      for (const e of g.drainEvents()) {
-        events.push(e);
-        if (e.type === 'explosion') craters.push(e.x);
-      }
-      return craters.length >= 5;
-    }, 8);
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) {
+          events.push(e);
+          if (e.type === 'explosion') craters.push(e.x);
+        }
+        return craters.length >= 5;
+      },
+      8,
+    );
     expect(events.some((e) => e.type === 'airstrike')).toBe(true);
     expect(craters).toHaveLength(5);
     const center = craters.reduce((a, b) => a + b, 0) / craters.length;
@@ -518,10 +558,14 @@ describe('match flow', () => {
     expect(g.teams[0].ammo.mule).toBe(0);
     expect(g.phase).toBe('retreat');
     const craters: { x: number; y: number }[] = [];
-    runUntil(g, () => {
-      for (const e of g.drainEvents()) if (e.type === 'explosion') craters.push({ x: e.x, y: e.y });
-      return g.projectiles.length === 0 && g.drops.length === 0 && craters.length > 0;
-    }, 15);
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'explosion') craters.push({ x: e.x, y: e.y });
+        return g.projectiles.length === 0 && g.drops.length === 0 && craters.length > 0;
+      },
+      15,
+    );
     expect(craters.length).toBeGreaterThanOrEqual(4);
     expect(Math.abs(craters[0].x - 70)).toBeLessThan(1);
     expect(craters[craters.length - 1].y).toBeLessThan(craters[0].y - 4);
@@ -558,11 +602,15 @@ describe('match flow', () => {
       g.selectWeapon('napalm');
       g.strike(64);
       let x = 0;
-      runUntil(g, () => {
-        const e = g.drainEvents().find((ev) => ev.type === 'ignite');
-        if (e?.type === 'ignite') x = e.x;
-        return x !== 0;
-      }, 10);
+      runUntil(
+        g,
+        () => {
+          const e = g.drainEvents().find((ev) => ev.type === 'ignite');
+          if (e?.type === 'ignite') x = e.x;
+          return x !== 0;
+        },
+        10,
+      );
       return x;
     };
     expect(land(1) - land(0)).toBeGreaterThan(8);
@@ -595,10 +643,14 @@ describe('match flow', () => {
     g.buddies[0].facing = 1;
     g.strike(60);
     const craters: number[] = [];
-    runUntil(g, () => {
-      for (const e of g.drainEvents()) if (e.type === 'explosion') craters.push(e.x);
-      return craters.length >= 5;
-    }, 8);
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'explosion') craters.push(e.x);
+        return craters.length >= 5;
+      },
+      8,
+    );
     const center = craters.reduce((a, b) => a + b, 0) / craters.length;
     expect(Math.abs(center - 60)).toBeLessThan(1.5);
   });
@@ -808,7 +860,7 @@ describe('AI', () => {
     for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(75, y, 3);
     onlyWeapon(g, 0, 'bazooka');
     g.crates.push({ id: 950, kind: 'health', weapon: null, body: createBody(47, 20.45, 0.45) });
-    runUntil(g, () => g.crates.length === 0 || g.phase !== 'aiming' && g.phase !== 'turnStart', 20);
+    runUntil(g, () => g.crates.length === 0 || (g.phase !== 'aiming' && g.phase !== 'turnStart'), 20);
     expect(g.crates).toHaveLength(0);
     expect(g.buddies[0].hp).toBe(125);
   });

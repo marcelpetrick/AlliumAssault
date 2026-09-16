@@ -172,8 +172,7 @@ export class Terrain {
       component.length = 0;
       stack.push(start);
       seen[start] = 1;
-      while (stack.length) {
-        const k = stack.pop()!;
+      for (let k = stack.pop(); k !== undefined; k = stack.pop()) {
         component.push(k);
         const i = k % nx;
         const neighbours = [i > 0 ? k - 1 : -1, i < nx - 1 ? k + 1 : -1, k >= nx ? k - nx : -1, k < nx * (ny - 1) ? k + nx : -1];
@@ -206,8 +205,7 @@ export function generateTerrain({ seed, width, height, waterLevel }: TerrainSpec
   const detail = createNoise2D(shapeRng);
 
   const base = waterLevel + height * 0.3;
-  const profile = (x: number) =>
-    base + hills(x * 0.016, 0.37) * height * 0.12 + hills(x * 0.055, 4.1) * height * 0.045 + hills(x * 0.14, 9.7) * 0.8;
+  const profile = (x: number) => base + hills(x * 0.016, 0.37) * height * 0.12 + hills(x * 0.055, 4.1) * height * 0.045 + hills(x * 0.14, 9.7) * 0.8;
   const shore = (x: number) => 2 - smoothstep(3, 16, x) - smoothstep(3, 16, width - x);
 
   terrain.fill((x, y) => {
@@ -269,8 +267,7 @@ export function findSpawnCandidates(t: Terrain, radius: number): Point[] {
       const sy = y - CELL + CELL * (below / (below - above));
       const n = t.normal(x, sy);
       const py = sy + radius + 0.05;
-      const open =
-        t.distance(x, py) > radius * 0.8 && t.sample(x, sy + 3) < 0 && t.sample(x - 1, py + 0.4) < 0 && t.sample(x + 1, py + 0.4) < 0;
+      const open = t.distance(x, py) > radius * 0.8 && t.sample(x, sy + 3) < 0 && t.sample(x - 1, py + 0.4) < 0 && t.sample(x + 1, py + 0.4) < 0;
       if (n.y > 0.8 && open) out.push({ x, y: py });
     }
   }

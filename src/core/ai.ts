@@ -6,8 +6,9 @@ import { meleeLaunch, REST_SPEED, REST_TIME, selfDestructBlast, type AiLevel, ty
 import { clamp, lerp } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
+import { defined } from './assert';
 import type { Crate } from './crates';
-import { FLYER_SPEED, stepFlyer } from './flyer';
+import { FLYER_SPEED, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep } from './sheep';
 import { groundBelow } from './strike';
 import { WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
@@ -151,7 +152,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
 
   for (const strike of WEAPON_ORDER.filter((id) => WEAPONS[id].kind === 'strike')) {
     if (!allowed(strike)) continue;
-    const { count, spacing, weapon } = WEAPONS[strike].strike!;
+    const { count, spacing, weapon } = defined(WEAPONS[strike].strike, `${strike} strike payload`);
     const bomb = WEAPONS[weapon];
     // A smashing projectile hits the same column repeatedly: count each impact.
     const hitsPerBomb = bomb.impacts ? bomb.impacts * 0.5 : 1;
@@ -231,7 +232,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     }
     if (allowed('minigun') && dist < WEAPONS.minigun.range && lineOfSight(game, me, enemy)) {
       const def = WEAPONS.minigun;
-      const { count } = def.burst!;
+      const { count } = defined(def.burst, 'minigun burst');
       const aim = directAim(enemy);
       // Most bullets hit; their combined shove may knock the victim out.
       const hits = count * 0.7;
@@ -336,16 +337,23 @@ export class AiDriver {
   }
 
   /** Home the flying sheep in on the nearest enemy: climb over obstacles first, then dive. */
-  private steerFlyer(game: Game): void {
-    const f = game.flyer!;
-    const me = game.activeBuddy!;
+  private steerFlyer(game: Game, f: Flyer, me: Buddy): void {
     const target = game.buddies
       .filter((b) => b.alive && b.team !== me.team)
-      .reduce<Buddy | null>((best, b) => (!best || Math.hypot(b.body.x - f.x, b.body.y - f.y) < Math.hypot(best.body.x - f.x, best.body.y - f.y) ? b : best), null);
-    if (!target) return game.pressFire();
+      .reduce<Buddy | null>(
+        (best, b) => (!best || Math.hypot(b.body.x - f.x, b.body.y - f.y) < Math.hypot(best.body.x - f.x, best.body.y - f.y) ? b : best),
+        null,
+      );
+    if (!target) {
+      game.pressFire();
+      return;
+    }
     const dx = target.body.x - f.x;
     const dy = target.body.y - f.y;
-    if (Math.hypot(dx, dy) < 1.5) return game.pressFire();
+    if (Math.hypot(dx, dy) < 1.5) {
+      game.pressFire();
+      return;
+    }
     const input = game.input;
     if (Math.abs(dx) > FLYER_APPROACH) {
       // Cruise: head for the target while keeping clear of the highest ground on the way.
@@ -383,7 +391,7 @@ export class AiDriver {
       return;
     }
     if (game.phase === 'guiding') {
-      if (game.flyer) this.steerFlyer(game);
+      if (game.flyer) this.steerFlyer(game, game.flyer, me);
       else if (this.timer >= (this.plan?.delay ?? 0)) game.pressFire();
       return;
     }
@@ -410,14 +418,14 @@ export class AiDriver {
         return;
       }
       case 'fetch': {
-        const target = game.crates.find((c) => c.id === this.fetch?.crate);
-        if (!target || this.timer > 6) {
+        const f = this.fetch;
+        const target = f && game.crates.find((c) => c.id === f.crate);
+        if (!f || !target || this.timer > 6) {
           // Picked up, destroyed or out of reach: think again from the new position.
           this.stage = 'think';
           this.timer = LEVELS[this.level].think * 0.5;
           return;
         }
-        const f = this.fetch!;
         if (target.body.x < me.body.x) input.left = true;
         else input.right = true;
         f.stuck = Math.abs(me.body.x - f.lastX) < 0.01 ? f.stuck + dt : 0;
@@ -426,7 +434,11 @@ export class AiDriver {
         return;
       }
       case 'aim': {
-        const plan = this.plan!;
+        const plan = this.plan;
+        if (!plan) {
+          this.stage = 'think';
+          return;
+        }
         const diff = plan.aim - me.aim;
         if (Math.abs(diff) > 0.03) {
           if (diff > 0) input.up = true;
@@ -442,7 +454,7 @@ export class AiDriver {
         return;
       }
       case 'fire':
-        if ((game.charge ?? 1) >= this.plan!.power) game.releaseFire();
+        if ((game.charge ?? 1) >= (this.plan?.power ?? 0)) game.releaseFire();
         if (game.charge === null) {
           this.stage = 'wait';
           this.timer = 0;

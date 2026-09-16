@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, VertexBuffer, VertexData, type Scene } from '@babylonjs/core';
+import { defined } from '../core/assert';
 import type { Buddy, Game } from '../core/game';
 import { clamp } from '../core/math';
 import type { WeaponId } from '../core/weapons';
@@ -66,7 +67,7 @@ function createBulb(scene: Scene, material: StandardMaterial): Mesh {
     [0.035, 1.12],
   ].map(([r, y]) => new Vector3(r, y, 0));
   const mesh = MeshBuilder.CreateLathe('bulb', { shape: profile, tessellation: 36, closed: true }, scene);
-  const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+  const positions = defined(mesh.getVerticesData(VertexBuffer.PositionKind), 'bulb vertex positions');
   const colors = new Float32Array((positions.length / 3) * 4);
   const ivory = new Color3(0.98, 0.95, 0.88);
   const lavender = new Color3(0.82, 0.68, 0.9);
@@ -83,7 +84,7 @@ function createBulb(scene: Scene, material: StandardMaterial): Mesh {
     const c = Color3.Lerp(ivory, lavender, clamp(blush, 0, 0.85));
     colors.set([c.r, c.g, c.b, 1], v * 4);
   }
-  const indices = mesh.getIndices()!;
+  const indices = defined(mesh.getIndices(), 'bulb indices');
   const normals = new Float32Array(positions.length);
   VertexData.ComputeNormals(positions, indices, normals);
   mesh.updateVerticesData(VertexBuffer.PositionKind, positions);
@@ -135,7 +136,9 @@ export class BuddyView {
 
     attach(place(createBulb(scene, kit.skin), 0, 0, 0));
 
-    const sprout = attach(place(MeshBuilder.CreateCylinder('sprout', { height: 0.55, diameterTop: 0.02, diameterBottom: 0.1, tessellation: 8 }, scene), 0.04, 1.35, 0));
+    const sprout = attach(
+      place(MeshBuilder.CreateCylinder('sprout', { height: 0.55, diameterTop: 0.02, diameterBottom: 0.1, tessellation: 8 }, scene), 0.04, 1.35, 0),
+    );
     sprout.rotation.z = -0.3;
     sprout.material = kit.sprout;
     const leaf = attach(place(MeshBuilder.CreateSphere('leaf', { diameter: 1, segments: 8 }, scene), -0.12, 1.3, 0));
@@ -196,7 +199,12 @@ export class BuddyView {
         [MeshBuilder.CreateTorus('pin', { diameter: 0.12, thickness: 0.025, tessellation: 10 }, scene), kit.metal, [0.6, 0.21, 0], false],
       ]),
       sheep: this.buildWeapon(scene, attach, [
-        [MeshBuilder.CreateSphere('heldSheep', { diameterX: 0.44, diameterY: 0.32, diameterZ: 0.32, segments: 10 }, scene), kit.eyeWhite, [0.62, 0.05, 0], false],
+        [
+          MeshBuilder.CreateSphere('heldSheep', { diameterX: 0.44, diameterY: 0.32, diameterZ: 0.32, segments: 10 }, scene),
+          kit.eyeWhite,
+          [0.62, 0.05, 0],
+          false,
+        ],
         [MeshBuilder.CreateSphere('heldSheepHead', { diameter: 0.16, segments: 8 }, scene), kit.pupil, [0.88, 0.12, 0], false],
       ]),
       airstrike: this.buildWeapon(scene, attach, [
@@ -212,14 +220,12 @@ export class BuddyView {
         [MeshBuilder.CreateCylinder('torchPipe', { height: 0.5, diameter: 0.06, tessellation: 8 }, scene), kit.metal, [0.62, 0.02, 0], true],
       ]),
       minigun: this.buildWeapon(scene, attach, [
-        ...[-0.06, 0, 0.06].map(
-          (z): [Mesh, StandardMaterial, [number, number, number], boolean] => [
-            MeshBuilder.CreateCylinder('minigunBarrel', { height: 1.0, diameter: 0.05, tessellation: 8 }, scene),
-            kit.metal,
-            [0.55, z === 0 ? 0.06 : -0.02, z],
-            true,
-          ],
-        ),
+        ...[-0.06, 0, 0.06].map((z): [Mesh, StandardMaterial, [number, number, number], boolean] => [
+          MeshBuilder.CreateCylinder('minigunBarrel', { height: 1.0, diameter: 0.05, tessellation: 8 }, scene),
+          kit.metal,
+          [0.55, z === 0 ? 0.06 : -0.02, z],
+          true,
+        ]),
         [MeshBuilder.CreateBox('minigunBody', { width: 0.34, height: 0.22, depth: 0.2 }, scene), kit.olive, [0.12, 0, 0], false],
       ]),
       holy: this.buildWeapon(scene, attach, [
@@ -230,7 +236,12 @@ export class BuddyView {
         [MeshBuilder.CreateCapsule('heldBanana', { height: 0.6, radius: 0.1, tessellation: 10 }, scene), kit.bananaSkin, [0.6, 0.05, 0], true],
       ]),
       flysheep: this.buildWeapon(scene, attach, [
-        [MeshBuilder.CreateSphere('heldFlySheep', { diameterX: 0.44, diameterY: 0.32, diameterZ: 0.32, segments: 10 }, scene), kit.eyeWhite, [0.62, 0.05, 0], false],
+        [
+          MeshBuilder.CreateSphere('heldFlySheep', { diameterX: 0.44, diameterY: 0.32, diameterZ: 0.32, segments: 10 }, scene),
+          kit.eyeWhite,
+          [0.62, 0.05, 0],
+          false,
+        ],
         [MeshBuilder.CreateBox('heldCape', { width: 0.3, height: 0.03, depth: 0.3 }, scene), kit.glove, [0.52, 0.22, 0], false],
       ]),
       mule: this.buildWeapon(scene, attach, [
@@ -243,7 +254,12 @@ export class BuddyView {
       ]),
       drill: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('drillBody', { height: 0.34, diameter: 0.2, tessellation: 10 }, scene), kit.glove, [0.32, 0, 0], true],
-        [MeshBuilder.CreateCylinder('drillBit', { height: 0.42, diameterTop: 0, diameterBottom: 0.14, tessellation: 10 }, scene), kit.metal, [0.68, 0, 0], true],
+        [
+          MeshBuilder.CreateCylinder('drillBit', { height: 0.42, diameterTop: 0, diameterBottom: 0.14, tessellation: 10 }, scene),
+          kit.metal,
+          [0.68, 0, 0],
+          true,
+        ],
       ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
@@ -329,8 +345,8 @@ export class BuddyView {
     for (const pupil of this.pupils) pupil.position.x = b.facing * 0.03;
     this.root.rotation.z = this.hurtTime > 0 ? Math.sin(time * 60) * 0.12 : 0;
 
-    const showWeapon = !!game && isActive && (game.phase === 'aiming' || game.phase === 'turnStart' || game.phase === 'torching' || game.phase === 'drilling');
-    for (const [id, node] of Object.entries(this.weapons)) node.setEnabled(showWeapon && game?.weapon === id);
+    const holding = game && isActive && ['aiming', 'turnStart', 'torching', 'drilling'].includes(game.phase) ? game.weapon : null;
+    for (const [id, node] of Object.entries(this.weapons)) node.setEnabled(holding === id);
     this.weaponPivot.rotation.z = b.facing > 0 ? b.aim : Math.PI - b.aim;
     this.weaponPivot.rotation.x = b.facing > 0 ? 0 : Math.PI;
   }

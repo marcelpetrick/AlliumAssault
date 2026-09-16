@@ -1,7 +1,29 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep' | 'mule' | 'mulebody' | 'drill' | 'napalm' | 'napalmbomb';
+export type WeaponId =
+  | 'bazooka'
+  | 'grenade'
+  | 'shotgun'
+  | 'punch'
+  | 'cluster'
+  | 'bomblet'
+  | 'sheep'
+  | 'airstrike'
+  | 'airbomb'
+  | 'bat'
+  | 'selfdestruct'
+  | 'torch'
+  | 'minigun'
+  | 'holy'
+  | 'banana'
+  | 'bananalet'
+  | 'flysheep'
+  | 'mule'
+  | 'mulebody'
+  | 'drill'
+  | 'napalm'
+  | 'napalmbomb';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill';
 
 export interface WeaponDef {
@@ -534,7 +556,25 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule', 'drill', 'napalm'];
+export const WEAPON_ORDER: readonly WeaponId[] = [
+  'bazooka',
+  'grenade',
+  'shotgun',
+  'punch',
+  'cluster',
+  'sheep',
+  'airstrike',
+  'bat',
+  'torch',
+  'selfdestruct',
+  'minigun',
+  'holy',
+  'banana',
+  'flysheep',
+  'mule',
+  'drill',
+  'napalm',
+];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);

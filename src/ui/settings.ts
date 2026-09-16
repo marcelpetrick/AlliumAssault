@@ -62,9 +62,11 @@ export function parseSettings(raw: string): Settings | null {
       Array.isArray(m?.teams) &&
       m.teams.length >= 2 &&
       m.teams.length <= 4 &&
-      m.teams.every((t) => typeof t.name === 'string' && typeof t.color === 'string' && Array.isArray(t.buddyNames) && t.buddyNames.length >= 1 && t.buddyNames.length <= 4);
+      m.teams.every(
+        (t) => typeof t.name === 'string' && typeof t.color === 'string' && Array.isArray(t.buddyNames) && t.buddyNames.length >= 1 && t.buddyNames.length <= 4,
+      );
     if (!m || !validTeams || typeof m.turnTime !== 'number' || typeof m.windMax !== 'number' || !THEME_IDS.includes(m.theme)) return null;
-    const textSize = TEXT_SIZES.some((s) => s.value === data.textSize) ? data.textSize! : 'normal';
+    const textSize = TEXT_SIZES.find((s) => s.value === data.textSize)?.value ?? 'normal';
     return { match: { ...m, retreatTime: typeof m.retreatTime === 'number' ? m.retreatTime : 5 }, textSize };
   } catch {
     return null;

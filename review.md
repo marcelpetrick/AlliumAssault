@@ -1,6 +1,6 @@
 # Branch review
 
-```
+```text
 Base: master @ dfafe26 (v1.1.11, origin/master before this work)   Head: 87783b5
 Files changed: 34   +3947 / -206 lines
 ```
@@ -11,7 +11,7 @@ published state before this work, v1.1.11 (`dfafe26`). `origin/master` has since
 
 ## Findings
 
-```
+```text
 #1  MEDIUM  Code  src/core/ai.ts:102
     planAttack now tries every projectile, strike, melee, sheep, flyer, torch and self-destruct option synchronously inside Game.step, taking 57–90 ms per decision (measured in Node, hard AI, full arsenal; 14–34 ms with the original four weapons), so every AI turn freezes the frame for several frames. Budget the search (fewer samples for limited-ammo weapons, early exit on lethal plans) or spread it over several steps.
 
@@ -39,16 +39,16 @@ published state before this work, v1.1.11 (`dfafe26`). `origin/master` has since
 
 ## Resolution (1.17.4)
 
-| # | Status |
-|---|---|
-| 1 | **Fixed (mostly):** limited-ammo projectile weapons search a coarser grid; a full-arsenal decision dropped from 69 ms to 48 ms (bazooka + grenade alone: 34 ms). Spreading the search over several frames stays open if needed. |
-| 2 | **Partly fixed:** AI candidates now come from `WeaponDef.kind` (projectile, strike, melee), so new weapons of those kinds are used automatically. Sounds and models are still keyed by id. |
-| 3 | **Open:** design debt; worth doing before the next timed weapon. |
-| 4 | **Fixed:** the AI only launches the flying sheep along a path that clears the blast radius; test added. |
-| 5 | **Fixed at release:** Pages is enabled with the GitHub Actions source before the release tag is pushed. |
-| 6 | **Fixed:** the clock ticks, and the HUD timer turns urgent, while guiding and torching too; E2E test added. |
-| 7 | **Fixed:** the forced strike zoom is only undone if the player did not zoom meanwhile. |
-| 8 | **Fixed:** the game drops crates at the default chance when the arsenal is crates-only and no crate chance is set; test added. |
+| #   | Status                                                                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Fixed (mostly):** limited-ammo projectile weapons search a coarser grid; a full-arsenal decision dropped from 69 ms to 48 ms (bazooka + grenade alone: 34 ms). Spreading the search over several frames stays open if needed. |
+| 2   | **Partly fixed:** AI candidates now come from `WeaponDef.kind` (projectile, strike, melee), so new weapons of those kinds are used automatically. Sounds and models are still keyed by id.                                      |
+| 3   | **Open:** design debt; worth doing before the next timed weapon.                                                                                                                                                                |
+| 4   | **Fixed:** the AI only launches the flying sheep along a path that clears the blast radius; test added.                                                                                                                         |
+| 5   | **Fixed at release:** Pages is enabled with the GitHub Actions source before the release tag is pushed.                                                                                                                         |
+| 6   | **Fixed:** the clock ticks, and the HUD timer turns urgent, while guiding and torching too; E2E test added.                                                                                                                     |
+| 7   | **Fixed:** the forced strike zoom is only undone if the player did not zoom meanwhile.                                                                                                                                          |
+| 8   | **Fixed:** the game drops crates at the default chance when the arsenal is crates-only and no crate chance is set; test added.                                                                                                  |
 
 ## Verdict
 

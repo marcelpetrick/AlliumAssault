@@ -27,11 +27,10 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
   const origin = await me();
 
   await page.keyboard.press('Enter');
-  await page.waitForFunction(
-    ([name, y]) => window.__allium.state().buddies.find((b) => b.name === name)!.y > y + 0.4,
-    [start.activeBuddy, origin.y] as const,
-    { timeout: 30_000, polling: 'raf' },
-  );
+  await page.waitForFunction(([name, y]) => window.__allium.state().buddies.find((b) => b.name === name)!.y > y + 0.4, [start.activeBuddy, origin.y] as const, {
+    timeout: 30_000,
+    polling: 'raf',
+  });
 
   await page.keyboard.press('Digit3');
   await waitFor(page, (s) => s.weapon === 'shotgun', 10_000);
@@ -79,7 +78,7 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
 
 test('AI vs AI match reaches the victory screen and offers a rematch', async ({ page }, info) => {
   const errors = await boot(page);
-  await page.evaluate(() =>
+  await page.evaluate(() => {
     window.__allium.startMatch({
       seed: 'e2e-duel',
       teams: [
@@ -90,10 +89,12 @@ test('AI vs AI match reaches the victory screen and offers a rematch', async ({ 
       retreatTime: 2,
       windMax: 0,
       theme: 'night',
-    }),
-  );
+    });
+  });
   for (let round = 0; round < 60 && (await state(page)).phase !== 'gameOver'; round++) {
-    await page.evaluate(() => window.__allium.fastForward(15));
+    await page.evaluate(() => {
+      window.__allium.fastForward(15);
+    });
   }
   expect((await state(page)).phase).toBe('gameOver');
   await expect(page.getByText(/wins!|Draw!/)).toBeVisible({ timeout: 90_000 });
@@ -148,7 +149,9 @@ test('arsenal "Infinite supplies": every weapon slot shows unlimited ammo', asyn
 
 test('settings persist across reloads, text size scales the UI, Reset all restores defaults', async ({ page }) => {
   const errors = await boot(page);
-  await page.evaluate(() => localStorage.removeItem('allium.settings'));
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
   await page.getByRole('button', { name: /Custom Match/ }).click();
   await page.getByRole('button', { name: 'Large' }).click();
   await page.getByRole('button', { name: '60s' }).click();
@@ -180,7 +183,10 @@ test('about screen: author, free to play on GitHub Pages, tech stack and license
   const about = page.locator('.panel.about');
   await expect(about).toContainText('mail@marcelpetrick.it');
   await expect(about).toContainText('free to play');
-  await expect(about.getByRole('link', { name: /marcelpetrick.github.io\/AlliumAssault/ })).toHaveAttribute('href', 'https://marcelpetrick.github.io/AlliumAssault/');
+  await expect(about.getByRole('link', { name: /marcelpetrick.github.io\/AlliumAssault/ })).toHaveAttribute(
+    'href',
+    'https://marcelpetrick.github.io/AlliumAssault/',
+  );
   await expect(about).toContainText('Babylon.js');
   await expect(about).toContainText('Apache-2.0');
   await expect(about).toContainText('GPL-3.0-or-later');

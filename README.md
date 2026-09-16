@@ -4,9 +4,9 @@
 [![Release](https://img.shields.io/github/v/release/marcelpetrick/AlliumAssault)](https://github.com/marcelpetrick/AlliumAssault/releases/latest)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 
-### ▶ [Play Allium Assault in your browser](https://marcelpetrick.github.io/AlliumAssault/)
+## ▶ [Play Allium Assault in your browser](https://marcelpetrick.github.io/AlliumAssault/)
 
-No install, no account: open **https://marcelpetrick.github.io/AlliumAssault/** in a desktop
+No install, no account: open **<https://marcelpetrick.github.io/AlliumAssault/>** in a desktop
 browser and start a Quick Match.
 
 <p align="center">
@@ -32,7 +32,7 @@ unzip it and serve the folder with any static web server (e.g. `npx serve`).
 
 ## Play
 
-Online: **https://marcelpetrick.github.io/AlliumAssault/** (updated with every release).
+Online: **<https://marcelpetrick.github.io/AlliumAssault/>** (updated with every release).
 
 Locally:
 
@@ -71,43 +71,43 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 
 ## Controls
 
-| Key | Action |
-|---|---|
-| ← → | Walk |
-| Enter | Jump forward |
-| Backspace | Back-flip (high jump) |
-| ↑ ↓ | Aim |
-| Space | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–7 / Tab | Choose weapon (or click it in the weapon bar) |
-| Mouse wheel / drag | Zoom / pan camera |
-| Click | Call the air strike or napalm strike, or drop the concrete mule, onto that spot |
-| M / Esc | Mute / pause menu |
+| Key                     | Action                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| ← →                     | Walk                                                                                              |
+| Enter                   | Jump forward                                                                                      |
+| Backspace               | Back-flip (high jump)                                                                             |
+| ↑ ↓                     | Aim                                                                                               |
+| Space                   | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
+| 1–9, 0, Shift+1–7 / Tab | Choose weapon (or click it in the weapon bar)                                                     |
+| Mouse wheel / drag      | Zoom / pan camera                                                                                 |
+| Click                   | Call the air strike or napalm strike, or drop the concrete mule, onto that spot                   |
+| M / Esc                 | Mute / pause menu                                                                                 |
 
 ## Weapons
 
-| Weapon | Ammo | Behaviour |
-|---|---|---|
-| 🚀 Bazooka | ∞ | Charged shot, strong wind drift, explodes on contact (50 dmg) |
-| 💣 Grenade | ∞ | Charged throw, bounces, 3 s fuse, little wind drift (50 dmg) |
-| 🔫 Shotgun | 2 | Two instant shots along the aim line (22 dmg each) |
-| 👊 Garlic Punch | ∞ | Close-range uppercut that launches the victim (45 dmg) |
-| 🧨 Cluster Bomb | 3 | Red grenade, 3 s fuse (25 dmg), bursts into five bomblets of 10 dmg each |
-| 🐑 Sheep | 1 | Space releases it, it hops forward in small 45° leaps; Space again detonates it (75 dmg), at the latest after 10 s |
-| ✈️ Air Strike | 1 | Click on the map: a plane drops five bombs around that spot (25 dmg each) |
-| 🏏 Baseball Bat | 2 | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards) |
-| 🔥 Blowtorch | 2 | Walks forward for 3 s burning a level tunnel through rock; falls into gaps, never climbs (15 dmg) |
-| 💥 Self-Destruct | 1 | The buddy blows itself up: damage equals its health, blast radius health ÷ 10 |
-| 🔩 Minigun | 1 | Burst of 14 bullets (5 dmg each) whose kicks shove the victim far across the map |
-| ✨ Holy Garlic Grenade | 1 | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later (100 dmg, radius 7) |
-| 🍌 Banana Bomb | 1 | 3 s fuse (40 dmg), then five bouncing bananas explode one after another (30 dmg each) |
-| 🦸 Flying Sheep | 1 | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates (75 dmg); explodes on impact or after 15 s |
-| 🫏 Concrete Mule | 1 | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each) |
-| ⛏️ Drill | 2 | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way) |
-| 🌋 Napalm Strike | 1 | Click on the map: a plane drops napalm that the wind carries far; burning ground (1–2 s) makes buddies hop for 3 dmg, water puts it out |
+| Weapon                 | Ammo | Behaviour                                                                                                                               |
+| ---------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 🚀 Bazooka             | ∞    | Charged shot, strong wind drift, explodes on contact (50 dmg)                                                                           |
+| 💣 Grenade             | ∞    | Charged throw, bounces, 3 s fuse, little wind drift (50 dmg)                                                                            |
+| 🔫 Shotgun             | 2    | Two instant shots along the aim line (22 dmg each)                                                                                      |
+| 👊 Garlic Punch        | ∞    | Close-range uppercut that launches the victim (45 dmg)                                                                                  |
+| 🧨 Cluster Bomb        | 3    | Red grenade, 3 s fuse (25 dmg), bursts into five bomblets of 10 dmg each                                                                |
+| 🐑 Sheep               | 1    | Space releases it, it hops forward in small 45° leaps; Space again detonates it (75 dmg), at the latest after 10 s                      |
+| ✈️ Air Strike          | 1    | Click on the map: a plane drops five bombs around that spot (25 dmg each)                                                               |
+| 🏏 Baseball Bat        | 2    | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards)                                                       |
+| 🔥 Blowtorch           | 2    | Walks forward for 3 s burning a level tunnel through rock; falls into gaps, never climbs (15 dmg)                                       |
+| 💥 Self-Destruct       | 1    | The buddy blows itself up: damage equals its health, blast radius health ÷ 10                                                           |
+| 🔩 Minigun             | 1    | Burst of 14 bullets (5 dmg each) whose kicks shove the victim far across the map                                                        |
+| ✨ Holy Garlic Grenade | 1    | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later (100 dmg, radius 7)                                                          |
+| 🍌 Banana Bomb         | 1    | 3 s fuse (40 dmg), then five bouncing bananas explode one after another (30 dmg each)                                                   |
+| 🦸 Flying Sheep        | 1    | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates (75 dmg); explodes on impact or after 15 s           |
+| 🫏 Concrete Mule       | 1    | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each)                         |
+| ⛏️ Drill               | 2    | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way)                                              |
+| 🌋 Napalm Strike       | 1    | Click on the map: a plane drops napalm that the wind carries far; burning ground (1–2 s) makes buddies hop for 3 dmg, water puts it out |
 
 ## Architecture
 
-```
+```text
 src/
 ├── core/     Pure TypeScript game rules — no Babylon, no DOM, fully unit-tested
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
@@ -153,7 +153,8 @@ npm run lint:spdx    # every file has SPDX headers or a REUSE.toml annotation
 npm run spdx:fix     # add the SPDX header to new files
 npm run lint:reuse   # official REUSE tool (needs uv)
 ```
- Pushing a `v*` tag builds and publishes a GitHub release with the zipped static site and
+
+Pushing a `v*` tag builds and publishes a GitHub release with the zipped static site and
 deploys the game to GitHub Pages: <https://marcelpetrick.github.io/AlliumAssault/>.
 
 ## Versioning
@@ -167,8 +168,8 @@ publishes a GitHub release with the web build. Contributor and agent rules are i
 
 ## More screenshots
 
-| Title screen | Floating islands |
-|---|---|
+| Title screen                         | Floating islands                         |
+| ------------------------------------ | ---------------------------------------- |
 | ![Title](docs/screenshots/title.jpg) | ![Islands](docs/screenshots/islands.jpg) |
 
 ## History

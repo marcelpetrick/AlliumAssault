@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { defined } from './assert';
 import { WIND_ACCEL, WORLD_HEIGHT } from './constants';
 import { GRAVITY } from './physics';
 import type { Terrain } from './terrain';
@@ -48,7 +49,7 @@ export function groundBelow(t: Terrain, x: number): number {
  * the fall time, the bombs' forward speed and the wind.
  */
 export function planStrike(t: Terrain, def: WeaponDef, target: number, dir: 1 | -1, wind: number): StrikePlan {
-  const { count, spacing, weapon, plane, windAimed = true } = def.strike!;
+  const { count, spacing, weapon, plane, windAimed = true } = defined(def.strike, `${def.id} strike payload`);
   const bomb = WEAPONS[weapon];
   const ground = groundBelow(t, target);
   if (!plane) {

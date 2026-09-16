@@ -14,18 +14,18 @@ entirely in the browser as a static site: local hot-seat and human-vs-AI.
 
 ## Layout
 
-| Path | Contents | Rule |
-|---|---|---|
-| `src/core/` | Game rules: terrain field, marching squares, physics, weapon table, sheep/flyer/strike actors, crates, match state machine, AI | Pure TypeScript — no Babylon, no DOM. Unit tested. |
-| `src/render/` | Babylon.js scene, terrain mesh, buddies, effects, camera | Reads core state and events, never changes rules |
-| `src/ui/` | HTML/CSS overlay: menus, setup, HUD | |
-| `src/audio.ts` | Web Audio synthesizer; every sound is generated, no asset files | |
-| `src/app.ts` | Frame loop, input, event dispatch, `window.__allium` test hook | |
-| `tests/` | Vitest core tests | |
-| `e2e/` | Playwright tests in Google Chrome: `game.spec.ts` (flows), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, sounds, HUD), helpers in `support.ts` | Every new weapon or feature gets an E2E test |
-| `docs/` | `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `archive/` | |
-| `tasks.md` | Every request with status and version | Update in every commit: add new requests, tick off finished ones |
-| `review.md` | Latest code and architecture review with resolutions | |
+| Path           | Contents                                                                                                                                                              | Rule                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `src/core/`    | Game rules: terrain field, marching squares, physics, weapon table, sheep/flyer/strike actors, crates, match state machine, AI                                        | Pure TypeScript — no Babylon, no DOM. Unit tested.               |
+| `src/render/`  | Babylon.js scene, terrain mesh, buddies, effects, camera                                                                                                              | Reads core state and events, never changes rules                 |
+| `src/ui/`      | HTML/CSS overlay: menus, setup, HUD                                                                                                                                   |                                                                  |
+| `src/audio.ts` | Web Audio synthesizer; every sound is generated, no asset files                                                                                                       |                                                                  |
+| `src/app.ts`   | Frame loop, input, event dispatch, `window.__allium` test hook                                                                                                        |                                                                  |
+| `tests/`       | Vitest core tests                                                                                                                                                     |                                                                  |
+| `e2e/`         | Playwright tests in Google Chrome: `game.spec.ts` (flows), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, sounds, HUD), helpers in `support.ts` | Every new weapon or feature gets an E2E test                     |
+| `docs/`        | `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `archive/`                                                                                                  |                                                                  |
+| `tasks.md`     | Every request with status and version                                                                                                                                 | Update in every commit: add new requests, tick off finished ones |
+| `review.md`    | Latest code and architecture review with resolutions                                                                                                                  |                                                                  |
 
 Core emits `GameEvent`s; renderer, HUD and audio consume them. Continuous state (charge level,
 projectiles in flight) is read from the game every frame instead.
@@ -35,7 +35,8 @@ projectiles in flight) is read from the game every frame instead.
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm run lint
+npm run lint       # ESLint (type-checked), Prettier, Stylelint, markdownlint, SPDX check
+npm run format     # apply Prettier, Stylelint and markdownlint fixes
 npm run typecheck
 npm test           # Vitest
 npm run e2e        # Playwright, Google Chrome, builds and serves on :4173
@@ -57,7 +58,7 @@ npm run verify     # all of the above plus production build
   `window.__allium` (`state()`, `startMatch()`, `fastForward()`, `stepFrames()`) instead of
   waiting on real time.
 - **Licensing (SPDX / REUSE):** every file carries `SPDX-FileCopyrightText` and
-  `SPDX-License-Identifier: GPL-3.0-or-later` headers, or is annotated in `REUSE.toml` (Markdown,
+  `SPDX-License-Identifier` headers (GPL-3.0-or-later), or is annotated in `REUSE.toml` (Markdown,
   JSON, images). `npm run spdx:fix` adds headers to new files, `npm run lint:spdx` checks (part of
   `npm run lint`), `npm run lint:reuse` runs the official REUSE tool (needs uv); CI runs it too.
 - **Commits:** small and atomic, Conventional Commit messages (`feat(core): …`, `fix(render): …`,

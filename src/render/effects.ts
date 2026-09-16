@@ -1,8 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Color3, Color4, DynamicTexture, Mesh, MeshBuilder, ParticleSystem, PointLight, StandardMaterial, TransformNode, Vector3, type Scene, type Texture } from '@babylonjs/core';
+import {
+  Color3,
+  Color4,
+  DynamicTexture,
+  Mesh,
+  MeshBuilder,
+  ParticleSystem,
+  PointLight,
+  StandardMaterial,
+  TransformNode,
+  Vector3,
+  type Scene,
+  type Texture,
+} from '@babylonjs/core';
 import { MUZZLE_OFFSET } from '../core/constants';
+import { defined } from '../core/assert';
 import type { Game } from '../core/game';
 import type { WeaponId } from '../core/weapons';
 import { createSoftDotTexture } from './textures';
@@ -389,9 +403,10 @@ export class Effects {
     if (!this.fire.isStarted()) this.fire.start();
     const cx = flames.reduce((sum, f) => sum + f.x, 0) / flames.length;
     const cy = flames.reduce((sum, f) => sum + f.y, 0) / flames.length;
-    this.fireLight!.position.set(cx, cy + 0.8, -2);
-    this.fireLight!.range = 10;
-    this.fireLight!.intensity = 1.6 + Math.sin(time * 23) * 0.25 + Math.sin(time * 37) * 0.15;
+    const light = defined(this.fireLight, 'napalm light');
+    light.position.set(cx, cy + 0.8, -2);
+    light.range = 10;
+    light.intensity = 1.6 + Math.sin(time * 23) * 0.25 + Math.sin(time * 37) * 0.15;
   }
 
   /** Dirt spraying up out of the shaft while the drill runs. */
@@ -496,7 +511,12 @@ export class Effects {
       mesh.isPickable = false;
       return mesh;
     };
-    const fuselage = part(MeshBuilder.CreateCylinder('fuselage', { height: 3.2, diameterTop: 0.35, diameterBottom: 0.6, tessellation: 14 }, this.scene), this.materials.olive, 0, 0);
+    const fuselage = part(
+      MeshBuilder.CreateCylinder('fuselage', { height: 3.2, diameterTop: 0.35, diameterBottom: 0.6, tessellation: 14 }, this.scene),
+      this.materials.olive,
+      0,
+      0,
+    );
     fuselage.rotation.z = Math.PI / 2;
     part(MeshBuilder.CreateBox('wing', { width: 0.9, height: 0.08, depth: 4.2 }, this.scene), this.materials.olive, 0.2, 0);
     part(MeshBuilder.CreateBox('tailWing', { width: 0.45, height: 0.06, depth: 1.5 }, this.scene), this.materials.olive, -1.45, 0.05);
@@ -554,9 +574,9 @@ export class Effects {
 
   updateAim(game: Game, time: number): void {
     const b = game.activeBuddy;
-    const show = !!b && b.alive && game.phase === 'aiming';
+    const show = !!b?.alive && game.phase === 'aiming';
     this.reticle.setEnabled(show);
-    if (!show || !b) {
+    if (!b || !show) {
       for (const d of this.chargeDots) d.setEnabled(false);
       return;
     }
@@ -690,7 +710,12 @@ export class Effects {
     ribbonMat.diffuseColor = team;
     ribbonMat.emissiveColor = team.scale(0.25);
     part(MeshBuilder.CreateBox('graveRibbon', { width: 0.92, height: 0.1, depth: 0.3 }, this.scene), ribbonMat, 0, 0.18);
-    const sprout = part(MeshBuilder.CreateCylinder('graveSprout', { height: 0.3, diameterTop: 0, diameterBottom: 0.08, tessellation: 6 }, this.scene), this.materials.olive, 0.25, 1.05);
+    const sprout = part(
+      MeshBuilder.CreateCylinder('graveSprout', { height: 0.3, diameterTop: 0, diameterBottom: 0.08, tessellation: 6 }, this.scene),
+      this.materials.olive,
+      0.25,
+      1.05,
+    );
     sprout.rotation.z = -0.4;
     node.scaling.setAll(0.01);
     return {
@@ -742,18 +767,42 @@ export class Effects {
     };
     // Wool: a cluster of puffs around an oval core.
     part(MeshBuilder.CreateSphere('wool', { diameterX: 0.72, diameterY: 0.5, diameterZ: 0.5, segments: 10 }, this.scene), this.materials.wool, 0, 0.05);
-    for (const [x, y, z] of [[-0.25, 0.2, 0], [0, 0.26, -0.1], [0.22, 0.2, 0.05], [-0.1, 0.12, -0.22], [0.12, 0.08, 0.22], [-0.32, 0.02, 0.1]]) {
+    for (const [x, y, z] of [
+      [-0.25, 0.2, 0],
+      [0, 0.26, -0.1],
+      [0.22, 0.2, 0.05],
+      [-0.1, 0.12, -0.22],
+      [0.12, 0.08, 0.22],
+      [-0.32, 0.02, 0.1],
+    ]) {
       part(MeshBuilder.CreateSphere('puff', { diameter: 0.26, segments: 8 }, this.scene), this.materials.wool, x, y, z);
     }
-    part(MeshBuilder.CreateSphere('head', { diameterX: 0.26, diameterY: 0.24, diameterZ: 0.22, segments: 10 }, this.scene), this.materials.sheepFace, 0.4, 0.14);
+    part(
+      MeshBuilder.CreateSphere('head', { diameterX: 0.26, diameterY: 0.24, diameterZ: 0.22, segments: 10 }, this.scene),
+      this.materials.sheepFace,
+      0.4,
+      0.14,
+    );
     for (const z of [-0.09, 0.09]) {
-      const ear = part(MeshBuilder.CreateSphere('ear', { diameterX: 0.14, diameterY: 0.05, diameterZ: 0.08, segments: 6 }, this.scene), this.materials.sheepFace, 0.36, 0.22, z);
+      const ear = part(
+        MeshBuilder.CreateSphere('ear', { diameterX: 0.14, diameterY: 0.05, diameterZ: 0.08, segments: 6 }, this.scene),
+        this.materials.sheepFace,
+        0.36,
+        0.22,
+        z,
+      );
       ear.rotation.x = z * 4;
       part(MeshBuilder.CreateSphere('sheepEye', { diameter: 0.05, segments: 6 }, this.scene), this.materials.wool, 0.5, 0.18, z * 0.6 - 0.05);
     }
     const legs = [-0.18, 0.18].flatMap((x) =>
       [-0.12, 0.12].map((z) => {
-        const leg = part(MeshBuilder.CreateCylinder('leg', { height: 0.22, diameter: 0.06, tessellation: 6 }, this.scene), this.materials.sheepFace, x, -0.24, z);
+        const leg = part(
+          MeshBuilder.CreateCylinder('leg', { height: 0.22, diameter: 0.06, tessellation: 6 }, this.scene),
+          this.materials.sheepFace,
+          x,
+          -0.24,
+          z,
+        );
         leg.setPivotPoint(new Vector3(0, 0.11, 0));
         return leg;
       }),
@@ -769,7 +818,11 @@ export class Effects {
       const a = -0.9 + (k / 12) * 1.8;
       path.push(new Vector3(Math.sin(a) * 0.32, -Math.cos(a) * 0.32 + 0.22, 0));
     }
-    const body = MeshBuilder.CreateTube('bananaBody', { path, radiusFunction: (i) => 0.035 + Math.sin((i / 12) * Math.PI) * 0.07, tessellation: 10, cap: Mesh.CAP_ALL }, this.scene);
+    const body = MeshBuilder.CreateTube(
+      'bananaBody',
+      { path, radiusFunction: (i) => 0.035 + Math.sin((i / 12) * Math.PI) * 0.07, tessellation: 10, cap: Mesh.CAP_ALL },
+      this.scene,
+    );
     body.material = this.materials.banana;
     body.parent = node;
     for (const end of [path[0], path[12]]) {

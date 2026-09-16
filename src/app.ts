@@ -60,11 +60,21 @@ export class App {
       this.canvas.focus();
     });
     this.menu = new Menu(uiRoot, pkg.version, {
-      start: (config) => this.startMatch(config),
-      resume: () => this.resume(),
-      restart: () => this.config && this.startMatch(this.config),
-      rematch: () => this.config && this.startMatch({ ...this.config, seed: randomSeed() }),
-      quit: () => this.showTitle(),
+      start: (config) => {
+        this.startMatch(config);
+      },
+      resume: () => {
+        this.resume();
+      },
+      restart: () => {
+        if (this.config) this.startMatch(this.config);
+      },
+      rematch: () => {
+        if (this.config) this.startMatch({ ...this.config, seed: randomSeed() });
+      },
+      quit: () => {
+        this.showTitle();
+      },
       toggleMute: () => this.audio.toggleMute(),
       isMuted: () => this.audio.muted,
       click: () => {
@@ -74,9 +84,13 @@ export class App {
     });
 
     this.bindInput();
-    window.addEventListener('resize', () => this.engine.resize());
+    window.addEventListener('resize', () => {
+      this.engine.resize();
+    });
     this.showTitle();
-    this.engine.runRenderLoop(() => this.frame());
+    this.engine.runRenderLoop(() => {
+      this.frame();
+    });
   }
 
   showTitle(): void {
@@ -176,7 +190,12 @@ export class App {
     this.audio.setCharge(game.charge);
     this.audio.setFire(game.flames.length);
     this.audio.setTool(game.phase === 'torching' ? 'torch' : game.phase === 'drilling' ? 'drill' : null);
-    const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' || p.weapon === 'mulebody' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
+    const flights: FlightSound[] = game.projectiles.map((p) => ({
+      id: p.id,
+      kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' || p.weapon === 'mulebody' ? 'rocket' : 'lob',
+      vx: p.vx,
+      vy: p.vy,
+    }));
     const f = game.flyer;
     if (f) flights.push({ id: f.id, kind: 'lob', vx: Math.cos(f.angle) * FLYER_SPEED, vy: Math.sin(f.angle) * FLYER_SPEED });
     this.audio.setFlights(flights);
@@ -359,7 +378,9 @@ export class App {
       this.drag = null;
     });
     this.canvas.addEventListener('pointerleave', () => this.world?.setPointer(null));
-    this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    this.canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
     this.canvas.addEventListener(
       'wheel',
       (e) => {
@@ -403,7 +424,17 @@ export class App {
       ammo: g?.activeTeamData ? { ...g.activeTeamData.ammo } : null,
       sound: this.audio.voices,
       camera: this.world?.focusPoint ?? null,
-      buddies: (g?.buddies ?? []).map((b) => ({ id: b.id, name: b.name, team: b.team, hp: b.hp, alive: b.alive, x: b.body.x, y: b.body.y, aim: b.aim, facing: b.facing })),
+      buddies: (g?.buddies ?? []).map((b) => ({
+        id: b.id,
+        name: b.name,
+        team: b.team,
+        hp: b.hp,
+        alive: b.alive,
+        x: b.body.x,
+        y: b.body.y,
+        aim: b.aim,
+        facing: b.facing,
+      })),
     };
   }
 }

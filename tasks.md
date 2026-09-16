@@ -10,53 +10,53 @@ Status: ☐ open · ☑ done
 
 ## Overview
 
-| # | Task | Status | Version |
-|---|---|---|---|
-| T0 | Task list in `tasks.md`, kept current with every commit | ☑ | 1.1.12, 1.4.1 |
-| T1 | Fix buddies floating after the ground below is blasted away | ☑ | 1.1.13 |
-| T2 | Stronger Garlic Punch | ☑ | 1.1.14 |
-| T3 | Sound: charge whoosh, flight sounds, louder bounces | ☑ | 1.2.0, 1.3.2 |
-| T4 | Cluster bomb | ☑ | 1.3.0 |
-| T11 | Versioning: bump every commit, tag only releases; `AGENTS.md` | ☑ | 1.3.1 |
-| T5 | Sheep | ☑ | 1.4.0 |
-| T6 | Air strike | ☑ | 1.5.0 |
-| T7 | Random crates | ☑ | 1.6.0 |
-| T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☑ | 1.6.1 |
-| T14 | Blowtorch: dig forward through rock for three seconds | ☑ | 1.10.0 |
-| T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☑ | 1.8.0 |
-| T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
-| T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☑ | 1.9.0 |
-| T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☑ | 1.17.0 |
-| T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☑ | 1.12.0 |
-| T20 | Banana Bomb: bursts into bouncing explosive bananas | ☑ | 1.13.0 |
-| T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☑ | 1.14.0 |
-| T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☑ | 1.15.0 |
-| T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
-| T24 | Compact weapon bar and hotkeys for 15 weapons | ☑ | 1.16.0 |
-| T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
-| T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
-| T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly | ☑ | 1.18.0 |
-| T28 | Louder sound effects | ☑ | 1.18.3 |
-| T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☑ | 1.19.0 |
-| T30 | More sceneries: Candy Shop and Frosty Peaks | ☑ | 1.23.0 |
-| T31 | Comic tombstones where buddies die | ☑ | 1.22.0 |
-| T37 | Play-in-browser link to GitHub Pages at the top of the README | ☑ | 1.18.1 |
-| T32 | Review and update all documents and Markdown files, including the architecture | ☐ | |
-| T33 | New screenshots and screen recordings for the README | ☐ | |
-| T34 | More README badges, like Cullendula | ☐ | |
-| T35 | Crate drops: teleport sound and a short camera pan to the new crate | ☑ | 1.18.5 |
-| T36 | Banana bomb throw range reported as tiny | ☐ | |
-| T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☑ | 1.21.0 |
-| T39 | Bigger font option, persisted settings restored for the next game, Reset all button | ☑ | 1.24.0 |
-| T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play | ☑ | 1.25.0 |
-| T41 | Drill: dig vertically downwards, no fall damage while drilling | ☑ | 1.20.0 |
-| T42 | SPDX compatible project with check scripts | ☑ | 1.25.1 |
-| T43 | Linters (best practice for the stack), fix findings, run on every push | ☐ | |
-| T44 | New full-code `/reviewBranch`, fix the worst findings | ☐ | |
-| T8 | GitHub Pages deployment | ☑ | 1.17.2 |
-| T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
-| T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
-| T13 | Push to GitHub and publish a public release | ☑ | v1.17.5 |
+| #   | Task                                                                                                      | Status | Version       |
+| --- | --------------------------------------------------------------------------------------------------------- | ------ | ------------- |
+| T0  | Task list in `tasks.md`, kept current with every commit                                                   | ☑      | 1.1.12, 1.4.1 |
+| T1  | Fix buddies floating after the ground below is blasted away                                               | ☑      | 1.1.13        |
+| T2  | Stronger Garlic Punch                                                                                     | ☑      | 1.1.14        |
+| T3  | Sound: charge whoosh, flight sounds, louder bounces                                                       | ☑      | 1.2.0, 1.3.2  |
+| T4  | Cluster bomb                                                                                              | ☑      | 1.3.0         |
+| T11 | Versioning: bump every commit, tag only releases; `AGENTS.md`                                             | ☑      | 1.3.1         |
+| T5  | Sheep                                                                                                     | ☑      | 1.4.0         |
+| T6  | Air strike                                                                                                | ☑      | 1.5.0         |
+| T7  | Random crates                                                                                             | ☑      | 1.6.0         |
+| T10 | End-to-end tests in Chrome for every weapon, crates and sounds                                            | ☑      | 1.6.1         |
+| T14 | Blowtorch: dig forward through rock for three seconds                                                     | ☑      | 1.10.0        |
+| T15 | Baseball bat: less damage than the punch, knocks enemies far away                                         | ☑      | 1.8.0         |
+| T16 | Sounds for walking and jumping buddies                                                                    | ☑      | 1.7.0         |
+| T17 | Self-destruct: the buddy blows up with a blast that grows with its health                                 | ☑      | 1.9.0         |
+| T18 | Arsenal setting: all weapons from the start, or special weapons only from crates                          | ☑      | 1.17.0        |
+| T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast                                       | ☑      | 1.12.0        |
+| T20 | Banana Bomb: bursts into bouncing explosive bananas                                                       | ☑      | 1.13.0        |
+| T21 | Flying Sheep: steer the sheep through the air, detonate on demand                                         | ☑      | 1.14.0        |
+| T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly                          | ☑      | 1.15.0        |
+| T23 | Minigun: long rapid-fire burst that shoves buddies across the map                                         | ☑      | 1.11.0        |
+| T24 | Compact weapon bar and hotkeys for 15 weapons                                                             | ☑      | 1.16.0        |
+| T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify                                | ☑      | 1.17.1        |
+| T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md`                    | ☑      | 1.17.3        |
+| T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly                                | ☑      | 1.18.0        |
+| T28 | Louder sound effects                                                                                      | ☑      | 1.18.3        |
+| T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon                                       | ☑      | 1.19.0        |
+| T30 | More sceneries: Candy Shop and Frosty Peaks                                                               | ☑      | 1.23.0        |
+| T31 | Comic tombstones where buddies die                                                                        | ☑      | 1.22.0        |
+| T37 | Play-in-browser link to GitHub Pages at the top of the README                                             | ☑      | 1.18.1        |
+| T32 | Review and update all documents and Markdown files, including the architecture                            | ☐      |               |
+| T33 | New screenshots and screen recordings for the README                                                      | ☐      |               |
+| T34 | More README badges, like Cullendula                                                                       | ☐      |               |
+| T35 | Crate drops: teleport sound and a short camera pan to the new crate                                       | ☑      | 1.18.5        |
+| T36 | Banana bomb throw range reported as tiny                                                                  | ☐      |               |
+| T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☑      | 1.21.0        |
+| T39 | Bigger font option, persisted settings restored for the next game, Reset all button                       | ☑      | 1.24.0        |
+| T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play                                | ☑      | 1.25.0        |
+| T41 | Drill: dig vertically downwards, no fall damage while drilling                                            | ☑      | 1.20.0        |
+| T42 | SPDX compatible project with check scripts                                                                | ☑      | 1.25.1        |
+| T43 | Linters (best practice for the stack), fix findings, run on every push                                    | ☑      | 1.26.0        |
+| T44 | New full-code `/reviewBranch`, fix the worst findings                                                     | ☐      |               |
+| T8  | GitHub Pages deployment                                                                                   | ☑      | 1.17.2        |
+| T9  | Docs: README, VISION, ARCHITECTURE                                                                        | ☑      | 1.17.5        |
+| T12 | Self-review of all changes, fix findings                                                                  | ☑      | 1.17.4        |
+| T13 | Push to GitHub and publish a public release                                                               | ☑      | v1.17.5       |
 
 ## Answered questions
 
@@ -70,6 +70,7 @@ Status: ☐ open · ☑ done
 ## Details
 
 ### T1 — Buddies float after the ground under them is blasted away ☑
+
 - Cause: `Terrain.distance()` estimates the distance to the surface from the local field value
   and gradient. `carve()` only lowers the field inside the crater disc, so the unchanged field
   above the crater still extrapolates to the old, now removed surface. `touchingGround()` and
@@ -79,9 +80,11 @@ Status: ☐ open · ☑ done
 - Test: carve the ground away below a resting buddy without touching it — it must fall.
 
 ### T2 — Stronger Garlic Punch ☑
+
 Damage 30 → 45, launch force 13 → 15.
 
 ### T3 — Sound ☑
+
 - Continuous sounds: charge whoosh while Space is held (pitch/volume rise with the charge,
   stops on fire, pause, focus loss), flight whistle per projectile in the air.
 - One-shots: louder impact-scaled grenade bounce, weapon select, last-5-seconds tick.
@@ -89,12 +92,14 @@ Damage 30 → 45, launch force 13 → 15.
   pickup and heal (T7).
 
 ### T4 — Cluster bomb ☑
+
 - Weapon bar and hotkeys generalised beyond four weapons (1–9), hidden fragment weapons.
 - Red grenade, 3 s fuse, 3 per team. Explodes and releases 5 bomblets which explode on contact
   for a flat 10 damage each.
 - AI considers it (main blast + estimated bomblet damage).
 
 ### T5 — Sheep ☑
+
 - Space releases the sheep; it hops 45° upwards in small hops in the facing direction and turns
   around at walls. Second Space detonates it (75 damage, radius 4). Auto-detonates after 10 s or
   when the turn time runs out; drowns in water.
@@ -103,6 +108,7 @@ Damage 30 → 45, launch force 13 → 15.
 - AI replays the sheep's hops for both directions and detonates at the best moment.
 
 ### T6 — Air strike ☑
+
 - Select it, click on the map: a plane flies over and drops 5 bomblets around the target.
 - Click vs. drag detection, screen → world picking, target cursor, plane sound.
 - AI picks the target position that hits the most enemies.
@@ -110,6 +116,7 @@ Damage 30 → 45, launch force 13 → 15.
   spot), like in Worms.
 
 ### T7 — Random crates ☑
+
 - At a turn start, with a chance (setting Off / Normal / Lots) a crate teleports onto a random
   land spot (seeded, at most 4 on the map). Crates fall and can be destroyed by explosions.
 - Health crate: +25 HP for the collecting buddy. Weapon crate: +1 sheep, air strike or cluster
@@ -118,7 +125,9 @@ Damage 30 → 45, launch force 13 → 15.
   no good shot.
 
 ### T10 — End-to-end tests for the game and its features ☑
+
 Goal: know that the game and each feature work in a real browser, in addition to unit tests.
+
 - Playwright driving Google Chrome (DevTools protocol), real keyboard and mouse input.
 - One E2E test per weapon: bazooka, grenade, shotgun, punch, cluster bomb, sheep, air strike —
   each checks the visible effect (projectile/sheep/plane, crater, damage) through the
@@ -131,29 +140,33 @@ Goal: know that the game and each feature work in a real browser, in addition to
   weapon bar), shared helpers in `e2e/support.ts`; the audio engine counts played effects.
 
 ### T14 — Blowtorch ☑
+
 - New weapon: on Space the buddy walks forward for three seconds and burns a tunnel through the
   rock in front of it.
 - Works with gravity: without supporting ground the buddy falls; it never tunnels upwards.
 - Torch sound, flame particles, AI use when an enemy is behind a wall, unit and E2E tests.
 
 ### T15 — Baseball bat ☑
+
 - New melee weapon: less damage than the Garlic Punch but a much stronger, flatter knock-back
   along the aim direction, to swat enemies over edges and into the water.
 - Swing sound and bat model, AI use near cliffs and water, unit and E2E tests.
 
 ### T17 — Self-destruct ☑
+
 - New weapon: the active buddy explodes on the spot and dies. Damage equals its current health,
   the blast radius grows with it (health ÷ 10 units: 10 units at 100 HP), so a healthy buddy
   takes a big part of the map with it.
 - Countdown sound and flash, AI use only when it pays off, unit and E2E tests.
 
 ### T18 — Arsenal setting ☑
-- Match setup option **Arsenal**: *All weapons* (every weapon with its normal starting ammo) or
-  *Find in crates* (special weapons start empty and are only found in weapon crates).
+
+- Match setup option **Arsenal**: _All weapons_ (every weapon with its normal starting ammo) or
+  _Find in crates_ (special weapons start empty and are only found in weapon crates).
 - Picking up a weapon crate adds one more of that weapon to the team's inventory.
 - Special weapons: cluster bomb, sheep, air strike, self-destruct, minigun, holy garlic grenade,
   banana bomb, flying sheep, concrete mule. Weapon crates can contain any of them. Choosing
-  *Find in crates* switches crates on if they were off.
+  _Find in crates_ switches crates on if they were off.
 - Unit and E2E tests.
 
 ### Plan for T14, T17–T24
@@ -168,33 +181,39 @@ garlic-flavoured ones (Holy Garlic Grenade, Flying Sheep, Concrete Mule) because
 design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 
 ### T19 — Holy Garlic Grenade ☑
+
 - Thrown like a grenade but with little bounce and no timer: once it has come to rest it sings a
   "Hallelujah" chord and explodes 1.6 s later — enormous blast (radius 7, 100 damage). 1 per team.
 - Core: `restFuse` on the weapon definition; golden grenade model with a cross; choir sound.
 
 ### T20 — Banana Bomb ☑
+
 - Thrown with a 3 s fuse; bursts into five bananas that bounce around and explode after
   staggered short fuses (30 damage each), wrecking a large area. 1 per team.
 - Core: cluster fragments with bounce and their own fuses; yellow banana models.
 
 ### T21 — Flying Sheep ☑
+
 - Space releases it; it flies at constant speed, ← → steer it, Space detonates (75 damage). Hits
   on terrain or buddies detonate it; 10 s flight time. 1 per team.
 - Core: steerable flyer in the `guiding` phase; sheep model with a cape; AI steers towards the
   nearest enemy.
 
 ### T22 — Concrete Mule ☑
+
 - Click a target: a giant concrete mule drops from the sky and smashes down, exploding on each
   of up to six impacts as it bounces and crushes its way through the ground. 1 per team.
 - Core: strike weapon without a plane; heavy projectile that survives impacts.
 
 ### T23 — Minigun ☑
+
 - Instant long burst: 14 bullets over 1.4 s along the (slightly spreading) aim line, 5 damage and
   a strong shove each, so a full hit pushes a buddy far (about 20 units on flat ground). 1 per
   team.
 - Core: `burst` on hitscan weapons, a locked `firing` phase while it rattles; rapid-fire sound.
 
 ### T25 — Dependency update ☑
+
 - All dependencies were already pinned to exact versions.
 - `@babylonjs/core` 9.26.1 → 9.26.2.
 - `typescript` stays at 6.0.3: 7.0.2 is out, but the latest `typescript-eslint` (8.70.0) only
@@ -202,11 +221,13 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - Everything else was already on its latest stable release.
 
 ### T24 — Compact weapon bar ☑
+
 - Icon slots with ammo badges and the selected weapon's name in the hint; fits 15 weapons at
   1280 px and wraps on narrow screens. Hotkeys 1–9 and 0 for the first ten, Shift+1–5 for the
   rest, Tab cycles, clicks work for all.
 
 ### T27 — Flying Sheep steering ☑
+
 - Reproduced in Chrome: ← → did steer repeatedly, but the sheep flew so fast (13 units/s) that it
   usually hit something within two seconds, the controls turned it relative to its own heading,
   and ↑ ↓ did nothing.
@@ -218,21 +239,25 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   climbs at 45°) and dives in the last 6 units.
 
 ### T28 — Louder sounds ☑
+
 - Raise the master volume and the quieter effects (footsteps, bounces, flight voices) so the game
   is clearly audible at normal system volume, without clipping on big explosions (compressor on
   the master bus).
 
 ### T29 — Infinite supplies ☑
-- Third arsenal option next to *All weapons* and *Find in crates*: every weapon has unlimited ammo.
+
+- Third arsenal option next to _All weapons_ and _Find in crates_: every weapon has unlimited ammo.
   Unit and E2E tests.
 
 ### T30 — More sceneries ☑
+
 - **Candy Shop**: pink frosting on chocolate ground, strawberry-milk water, pastel hills,
   lollipop trees and gumdrop props.
 - **Frosty Peaks**: snow-covered ground, icy blue rock and water, snowy pines.
 - Selectable in the setup, used by the title demo; E2E screenshot of each.
 
 ### T31 — Tombstones ☑
+
 - When a buddy dies (0 HP death blast or self-destruct) a comic tombstone drops on the spot:
   rounded slab with "RIP", the buddy's name and a team-coloured ribbon, with a little wobble.
 - Tombstones are physics bodies: they fall, get knocked around by explosions and sink in water.
@@ -240,40 +265,49 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - Unit tests (grave on death, pushed by blasts, none when drowned) and E2E screenshot.
 
 ### Plan for T27–T31
+
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
 
 ### T36 — Banana bomb range ☐
+
 - Reported: even at full charge the banana bomb only flies a short distance.
 - Checked: at full charge and 43° aim it flies 63.5 units in Chrome with real keys, the same as
   the grenade (63.6); the core simulation agrees (first bounce 38 units out for both). Not
   reproduced yet — need the situation (aim angle, map, how it was charged).
 
 ### Batch plan
+
 See `docs/PLAN.md` section 6 for the plan and execution order of T28–T36.
 
 ### T16 — Walking and jumping sounds ☑
+
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.
 - E2E check that the sounds play.
 
 ### T8 — GitHub Pages deployment ☑
+
 - Workflow `.github/workflows/pages.yml`: build and deploy `dist/` via `actions/deploy-pages`
   when a release tag is pushed (and on manual dispatch).
 - Repository Pages source set to GitHub Actions; game served at
   <https://marcelpetrick.github.io/AlliumAssault/>.
 
 ### T9 — Docs ☑
+
 README (features, controls, weapons, Pages link), `docs/VISION.md`, `docs/ARCHITECTURE.md`.
 
 ### T12 — Self-review ☑
+
 Review the full diff since v1.1.11 for bugs and cleanups, fix findings, re-run `npm run verify`.
 Findings and their resolution are in `review.md`; #3 (in-turn action state as one union) stays
 open as design debt.
 
 ### T13 — Push and public release ☑
+
 Push `master`, tag the release version, push the tag (the release workflow publishes the GitHub
 release with the zipped web build), confirm the Pages deployment.
+
 - Done: `master` pushed, v1.17.5 released with the web zip, game live at
   <https://marcelpetrick.github.io/AlliumAssault/>. Pages needed enabling (source: GitHub Actions)
   and a `v*` tag rule on the `github-pages` environment.
@@ -282,11 +316,11 @@ release with the zipped web build), confirm the Pages deployment.
 
 ## Defaults chosen (change on request)
 
-| Topic | Value |
-|---|---|
-| Punch | 45 damage |
-| Cluster bomb | 3 per team, 25 damage main blast, 5 bomblets × 10 damage |
-| Sheep | 1 per team, 75 damage, radius 4, 10 s max |
-| Air strike | 1 per team, 5 bomblets × 25 damage |
-| Crates | Normal = 35 % chance per turn, max 4 on the map; health +25 HP |
-| Self-destruct | damage = health, radius = health ÷ 10 |
+| Topic         | Value                                                          |
+| ------------- | -------------------------------------------------------------- |
+| Punch         | 45 damage                                                      |
+| Cluster bomb  | 3 per team, 25 damage main blast, 5 bomblets × 10 damage       |
+| Sheep         | 1 per team, 75 damage, radius 4, 10 s max                      |
+| Air strike    | 1 per team, 5 bomblets × 25 damage                             |
+| Crates        | Normal = 35 % chance per turn, max 4 on the map; health +25 HP |
+| Self-destruct | damage = health, radius = health ÷ 10                          |

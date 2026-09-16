@@ -68,8 +68,12 @@ export class Menu {
     this.el = document.createElement('div');
     this.el.className = 'menu';
     uiRoot.appendChild(this.el);
-    this.el.addEventListener('click', (e) => this.onClick(e));
-    this.el.addEventListener('input', (e) => this.onInput(e));
+    this.el.addEventListener('click', (e) => {
+      this.onClick(e);
+    });
+    this.el.addEventListener('input', (e) => {
+      this.onInput(e);
+    });
   }
 
   hide(): void {
@@ -101,7 +105,10 @@ export class Menu {
     const d = this.draft;
     const seg = (items: { label: string; value: string | number; on: boolean }[], action: string, team?: number) =>
       `<div class="seg">${items
-        .map((i) => `<button class="${i.on ? 'on' : ''}" data-action="${action}" data-value="${i.value}" ${team !== undefined ? `data-team="${team}"` : ''}>${i.label}</button>`)
+        .map(
+          (i) =>
+            `<button class="${i.on ? 'on' : ''}" data-action="${action}" data-value="${i.value}" ${team !== undefined ? `data-team="${team}"` : ''}>${i.label}</button>`,
+        )
         .join('')}</div>`;
     this.el.innerHTML = `
       <div class="screen setup-screen">
@@ -124,7 +131,11 @@ export class Menu {
                 </div>
                 <div class="swatches">${TEAM_COLORS.map((c) => `<button class="swatch ${c === t.color ? 'on' : ''}" style="--c:${c}" data-action="color" data-team="${i}" data-value="${c}"></button>`).join('')}</div>
                 <label class="field-label">Player</label>
-                ${seg(CONTROLLERS.map((c) => ({ label: c.label, value: c.id, on: c.id === ctrl })), 'controller', i)}
+                ${seg(
+                  CONTROLLERS.map((c) => ({ label: c.label, value: c.id, on: c.id === ctrl })),
+                  'controller',
+                  i,
+                )}
                 <label class="field-label">Buddies</label>
                 <div class="buddies">
                   <div class="stepper">
@@ -140,11 +151,26 @@ export class Menu {
             ${d.teams.length < 4 ? `<button class="team-card add" data-action="add-team">＋<span>Add team</span></button>` : ''}
           </section>
           <section class="options">
-            <div><label class="field-label">Turn time</label>${seg(TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })), 'turn')}</div>
-            <div><label class="field-label">Wind</label>${seg(WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })), 'wind')}</div>
-            <div><label class="field-label">Crates</label>${seg(CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })), 'crates')}</div>
-            <div><label class="field-label">Text size</label>${seg(TEXT_SIZES.map((t) => ({ label: t.label, value: t.value, on: t.value === this.textSize })), 'text-size')}</div>
-            <div><label class="field-label">Arsenal</label>${seg(ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })), 'arsenal')}</div>
+            <div><label class="field-label">Turn time</label>${seg(
+              TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })),
+              'turn',
+            )}</div>
+            <div><label class="field-label">Wind</label>${seg(
+              WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })),
+              'wind',
+            )}</div>
+            <div><label class="field-label">Crates</label>${seg(
+              CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })),
+              'crates',
+            )}</div>
+            <div><label class="field-label">Text size</label>${seg(
+              TEXT_SIZES.map((t) => ({ label: t.label, value: t.value, on: t.value === this.textSize })),
+              'text-size',
+            )}</div>
+            <div><label class="field-label">Arsenal</label>${seg(
+              ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })),
+              'arsenal',
+            )}</div>
             <div><label class="field-label">Map seed</label>
               <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
             </div>
@@ -285,35 +311,64 @@ export class Menu {
       case 'quick':
         this.actions.start(quickMatch());
         return;
-      case 'setup':
-        return this.showSetup();
-      case 'title':
-        return this.showTitle();
-      case 'help':
-        return this.showHelp('title');
-      case 'about':
-        return this.showAbout();
-      case 'help-pause':
-        return this.showHelp('pause');
-      case 'help-back':
-        return this.returnFromHelp();
+      case 'setup': {
+        this.showSetup();
+        return;
+      }
+      case 'title': {
+        this.showTitle();
+        return;
+      }
+      case 'help': {
+        this.showHelp('title');
+        return;
+      }
+      case 'about': {
+        this.showAbout();
+        return;
+      }
+      case 'help-pause': {
+        this.showHelp('pause');
+        return;
+      }
+      case 'help-back': {
+        this.returnFromHelp();
+        return;
+      }
       case 'start':
         this.actions.start(structuredClone(d));
         return;
-      case 'resume':
-        return this.actions.resume();
-      case 'restart':
-        return this.actions.restart();
-      case 'rematch':
-        return this.actions.rematch();
-      case 'quit':
-        return this.actions.quit();
+      case 'resume': {
+        this.actions.resume();
+        return;
+      }
+      case 'restart': {
+        this.actions.restart();
+        return;
+      }
+      case 'rematch': {
+        this.actions.rematch();
+        return;
+      }
+      case 'quit': {
+        this.actions.quit();
+        return;
+      }
       case 'mute':
         this.actions.toggleMute();
-        return this.showPause();
+        {
+          this.showPause();
+          return;
+        }
       case 'add-team': {
         const used = d.teams.map((t) => t.color);
-        const t = makeTeam(d.teams.length, 'ai', 'normal', 3, d.teams.flatMap((x) => x.buddyNames));
+        const t = makeTeam(
+          d.teams.length,
+          'ai',
+          'normal',
+          3,
+          d.teams.flatMap((x) => x.buddyNames),
+        );
         t.color = TEAM_COLORS.find((c) => !used.includes(c)) ?? t.color;
         d.teams.push(t);
         break;
@@ -325,7 +380,8 @@ export class Menu {
         team.color = value;
         break;
       case 'controller': {
-        const c = CONTROLLERS.find((x) => x.id === value)!;
+        const c = CONTROLLERS.find((x) => x.id === value);
+        if (!c) break;
         team.controller = c.controller;
         team.aiLevel = c.level;
         break;
@@ -363,7 +419,8 @@ export class Menu {
         this.draft = defaults.match;
         this.textSize = defaults.textSize;
         applyTextSize(this.textSize);
-        return this.showSetup();
+        this.showSetup();
+        return;
       }
     }
     this.persist();

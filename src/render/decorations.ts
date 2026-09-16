@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Color3, Matrix, Mesh, MeshBuilder, Quaternion, StandardMaterial, Vector3, VertexBuffer, type Scene } from '@babylonjs/core';
+import { defined } from '../core/assert';
 import { mulberry32 } from '../core/rng';
 import type { Terrain } from '../core/terrain';
 import type { Theme } from './themes';
@@ -46,14 +47,7 @@ export class Decorations {
             this.sprout(scene, theme),
           ]
         : theme.style === 'snow'
-          ? [
-              this.grass(scene, theme),
-              this.snowball(scene),
-              this.iceCrystal(scene),
-              this.pebble(scene, theme),
-              this.snowball(scene),
-              this.sprout(scene, theme),
-            ]
+          ? [this.grass(scene, theme), this.snowball(scene), this.iceCrystal(scene), this.pebble(scene, theme), this.snowball(scene), this.sprout(scene, theme)]
           : [
               this.grass(scene, theme),
               this.flower(scene, new Color3(1, 0.85, 0.3)),
@@ -119,7 +113,7 @@ export class Decorations {
       for (let v = 0; v < n; v++) data.set([c.r, c.g, c.b, 1], v * 4);
       m.setVerticesData(VertexBuffer.ColorKind, data);
     });
-    const mesh = Mesh.MergeMeshes(parts, true)!;
+    const mesh = defined(Mesh.MergeMeshes(parts, true), `${name} prop mesh`);
     mesh.name = name;
     mesh.material = this.material;
     mesh.isPickable = false;

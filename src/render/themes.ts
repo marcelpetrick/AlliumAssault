@@ -35,7 +35,7 @@ export interface Theme {
   accent?: Color3;
 }
 
-const hex = Color3.FromHexString;
+const hex = (value: string) => Color3.FromHexString(value);
 
 export const THEMES: Record<string, Theme> = {
   meadow: {

@@ -27,9 +27,7 @@ const COMMENTS = [
 ];
 
 const fix = process.argv.includes('--fix');
-const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' })
-  .split('\n')
-  .filter(Boolean);
+const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' }).split('\n').filter(Boolean);
 const covered = reuseTomlGlobs();
 const problems = [];
 const licenses = new Set();

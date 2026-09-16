@@ -1,8 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Color3, Matrix, Mesh, MeshBuilder, Quaternion, ShaderMaterial, StandardMaterial, Vector3, VertexBuffer, VertexData, type Scene } from '@babylonjs/core';
+import {
+  Color3,
+  Matrix,
+  Mesh,
+  MeshBuilder,
+  Quaternion,
+  ShaderMaterial,
+  StandardMaterial,
+  Vector3,
+  VertexBuffer,
+  VertexData,
+  type Scene,
+} from '@babylonjs/core';
 import { createNoise2D } from 'simplex-noise';
+import { defined } from '../core/assert';
 import { mulberry32 } from '../core/rng';
 import type { Theme } from './themes';
 
@@ -104,10 +117,15 @@ export class Environment {
     const sunDir = new Vector3(...theme.sunDirection).normalize();
 
     const sky = MeshBuilder.CreateSphere('sky', { diameter: 1600, segments: 24, sideOrientation: Mesh.BACKSIDE }, scene);
-    const skyMat = new ShaderMaterial('skyMat', scene, { vertexSource: SKY_VERTEX, fragmentSource: SKY_FRAGMENT }, {
-      attributes: ['position'],
-      uniforms: ['worldViewProjection', 'top', 'horizon', 'sunDir', 'sunColor', 'stars'],
-    });
+    const skyMat = new ShaderMaterial(
+      'skyMat',
+      scene,
+      { vertexSource: SKY_VERTEX, fragmentSource: SKY_FRAGMENT },
+      {
+        attributes: ['position'],
+        uniforms: ['worldViewProjection', 'top', 'horizon', 'sunDir', 'sunColor', 'stars'],
+      },
+    );
     skyMat.setColor3('top', theme.skyTop);
     skyMat.setColor3('horizon', theme.skyHorizon);
     skyMat.setVector3('sunDir', sunDir);
@@ -122,11 +140,16 @@ export class Environment {
 
     const water = MeshBuilder.CreateGround('water', { width: 900, height: 420, subdivisions: 160 }, scene);
     water.position.set(worldWidth / 2, waterLevel, 170);
-    this.water = new ShaderMaterial('waterMat', scene, { vertexSource: WATER_VERTEX, fragmentSource: WATER_FRAGMENT }, {
-      attributes: ['position'],
-      uniforms: ['world', 'viewProjection', 'time', 'eye', 'shallow', 'deep', 'sunDir', 'sunColor', 'fogColor', 'fogDensity'],
-      needAlphaBlending: true,
-    });
+    this.water = new ShaderMaterial(
+      'waterMat',
+      scene,
+      { vertexSource: WATER_VERTEX, fragmentSource: WATER_FRAGMENT },
+      {
+        attributes: ['position'],
+        uniforms: ['world', 'viewProjection', 'time', 'eye', 'shallow', 'deep', 'sunDir', 'sunColor', 'fogColor', 'fogDensity'],
+        needAlphaBlending: true,
+      },
+    );
     this.water.setColor3('shallow', theme.waterShallow);
     this.water.setColor3('deep', theme.waterDeep);
     this.water.setVector3('sunDir', sunDir);
@@ -171,7 +194,7 @@ export class Environment {
       const zs = [0, 0.15, 0.35, 0.5, 0.65, 0.85, 1];
       const height = (x: number, t: number) => {
         const ridge = Math.sin(t * Math.PI) ** 0.8;
-        const h = (noise(x * 0.012 / (index + 1), index * 10) * 0.5 + 0.5) * layer.height + noise(x * 0.05, index * 20 + t) * layer.height * 0.12;
+        const h = (noise((x * 0.012) / (index + 1), index * 10) * 0.5 + 0.5) * layer.height + noise(x * 0.05, index * 20 + t) * layer.height * 0.12;
         return waterLevel - 2 + ridge * (h + layer.height * 0.25);
       };
       const positions: number[] = [];
@@ -209,7 +232,11 @@ export class Environment {
           const x = xs[0] + rng() * (xs[w - 1] - xs[0]);
           const t = 0.2 + rng() * 0.45;
           const s = (0.8 + rng() * 1.1) * (index === 0 ? 1.1 : 1.9);
-          Matrix.Compose(new Vector3(s, s * (0.8 + rng() * 0.5), s), Quaternion.RotationAxis(Vector3.Up(), rng() * 6.28), new Vector3(x, height(x, t) - 0.3, layer.z + t * layer.depth)).copyToArray(matrices, n * 16);
+          Matrix.Compose(
+            new Vector3(s, s * (0.8 + rng() * 0.5), s),
+            Quaternion.RotationAxis(Vector3.Up(), rng() * 6.28),
+            new Vector3(x, height(x, t) - 0.3, layer.z + t * layer.depth),
+          ).copyToArray(matrices, n * 16);
         }
         inst.thinInstanceSetBuffer('matrix', matrices, 16, true);
         this.meshes.push(inst);
@@ -248,7 +275,11 @@ export class Environment {
       trunk.position.y = 0.6;
       paint(trunk, this.theme.trunk);
       [0, 1, 2].forEach((k) => {
-        const cone = MeshBuilder.CreateCylinder('cone', { height: 1.9 - k * 0.35, diameterTop: 0, diameterBottom: 2.2 - k * 0.55, tessellation: 7 }, this.scene);
+        const cone = MeshBuilder.CreateCylinder(
+          'cone',
+          { height: 1.9 - k * 0.35, diameterTop: 0, diameterBottom: 2.2 - k * 0.55, tessellation: 7 },
+          this.scene,
+        );
         cone.position.y = 1.5 + k * 0.85;
         paint(cone, this.theme.foliage.scale(1 + k * 0.12));
         if (this.theme.style === 'snow') {
@@ -259,7 +290,7 @@ export class Environment {
         }
       });
     }
-    const merged = Mesh.MergeMeshes(parts, true)!;
+    const merged = defined(Mesh.MergeMeshes(parts, true), 'tree mesh');
     const mat = new StandardMaterial('treeMat', this.scene);
     mat.specularColor = Color3.Black();
     mat.emissiveColor = this.theme.foliage.scale(0.08);
@@ -285,7 +316,7 @@ export class Environment {
         puff.scaling.y = 0.65;
         puffs.push(puff);
       }
-      const cloud = Mesh.MergeMeshes(puffs, true)!;
+      const cloud = defined(Mesh.MergeMeshes(puffs, true), 'cloud mesh');
       cloud.material = mat;
       cloud.position.set(worldWidth / 2 - 300 + rng() * 700, 42 + rng() * 38, 130 + rng() * 140);
       cloud.isPickable = false;

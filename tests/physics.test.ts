@@ -14,7 +14,9 @@ describe('character body', () => {
   it('falls onto flat ground and comes to rest on it', () => {
     const t = flatTerrain(20);
     const b = createBody(50, 30, 0.6);
-    run(3, () => stepBody(t, b, 1 / 60, null));
+    run(3, () => {
+      stepBody(t, b, 1 / 60, null);
+    });
     expect(b.grounded).toBe(true);
     expect(b.y).toBeCloseTo(20.6, 1);
     expect(b.restTime).toBeGreaterThan(1);
@@ -24,10 +26,14 @@ describe('character body', () => {
     for (const craterY of [17.2, 17.5, 17.8]) {
       const t = flatTerrain(20);
       const b = createBody(50, 20.6, 0.6);
-      run(1, () => stepBody(t, b, 1 / 60, null));
+      run(1, () => {
+        stepBody(t, b, 1 / 60, null);
+      });
       expect(b.grounded).toBe(true);
       t.carve(50, craterY, 2.8);
-      run(1.5, () => stepBody(t, b, 1 / 60, null));
+      run(1.5, () => {
+        stepBody(t, b, 1 / 60, null);
+      });
       expect(b.y).toBeLessThan(18);
     }
   });
@@ -35,8 +41,12 @@ describe('character body', () => {
   it('walks horizontally along flat ground', () => {
     const t = flatTerrain(20);
     const b = createBody(50, 20.6, 0.6);
-    run(0.5, () => stepBody(t, b, 1 / 60, null));
-    run(1, () => stepBody(t, b, 1 / 60, 3));
+    run(0.5, () => {
+      stepBody(t, b, 1 / 60, null);
+    });
+    run(1, () => {
+      stepBody(t, b, 1 / 60, 3);
+    });
     expect(b.x).toBeGreaterThan(52.5);
     expect(b.y).toBeCloseTo(20.6, 1);
   });
@@ -45,15 +55,23 @@ describe('character body', () => {
     const slope = new Terrain(60, 40, 1);
     slope.fill((x, y) => 10 + Math.max(0, x - 20) * 0.5 - y);
     const b = createBody(15, 10.6, 0.6);
-    run(0.5, () => stepBody(slope, b, 1 / 60, null));
-    run(3, () => stepBody(slope, b, 1 / 60, 3));
+    run(0.5, () => {
+      stepBody(slope, b, 1 / 60, null);
+    });
+    run(3, () => {
+      stepBody(slope, b, 1 / 60, 3);
+    });
     expect(b.y).toBeGreaterThan(12);
 
     const wall = new Terrain(60, 40, 1);
     wall.fill((x, y) => Math.max(10 - y, x - 30));
     const w = createBody(25, 10.6, 0.6);
-    run(0.5, () => stepBody(wall, w, 1 / 60, null));
-    run(4, () => stepBody(wall, w, 1 / 60, 3));
+    run(0.5, () => {
+      stepBody(wall, w, 1 / 60, null);
+    });
+    run(4, () => {
+      stepBody(wall, w, 1 / 60, 3);
+    });
     expect(w.x).toBeLessThan(30);
   });
 
