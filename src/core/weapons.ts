@@ -104,8 +104,8 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     restitution: null,
     fuse: 0,
     radius: 0.7,
-    damage: 30,
-    force: 13,
+    damage: 45,
+    force: 15,
     range: 1.3,
   },
 };

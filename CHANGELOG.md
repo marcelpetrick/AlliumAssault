@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.14] — 2026-09-16
+
+### Changed
+- Garlic Punch hits harder: 45 damage (was 30) and a stronger launch.
+
 ## [1.1.13] — 2026-09-16
 
 ### Fixed

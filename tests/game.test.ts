@@ -102,7 +102,7 @@ describe('match flow', () => {
     g.buddies[0].aim = 0.2;
     g.pressFire();
     g.simulate(0.2);
-    expect(g.buddies[1].hp).toBe(70);
+    expect(g.buddies[1].hp).toBe(55);
     expect(g.buddies[1].body.y).toBeGreaterThan(21.5);
   });
 

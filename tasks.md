@@ -18,7 +18,7 @@ Status: ☐ open · ☑ done
 
 ## Balance
 
-- ☐ **T2 — Stronger Garlic Punch** (patch): damage 30 → 45, launch force 13 → 15.
+- ☑ **T2 — Stronger Garlic Punch** (patch): damage 30 → 45, launch force 13 → 15.
 
 ## Features
 

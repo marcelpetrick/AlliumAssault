@@ -69,7 +69,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🚀 Bazooka | ∞ | Charged shot, strong wind drift, explodes on contact (50 dmg) |
 | 💣 Grenade | ∞ | Charged throw, bounces, 3 s fuse, little wind drift (50 dmg) |
 | 🔫 Shotgun | 2 | Two instant shots along the aim line (22 dmg each) |
-| 👊 Garlic Punch | ∞ | Close-range uppercut that launches the victim (30 dmg) |
+| 👊 Garlic Punch | ∞ | Close-range uppercut that launches the victim (45 dmg) |
 
 ## Architecture
 
