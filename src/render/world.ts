@@ -165,6 +165,7 @@ export class World {
           break;
         case 'punch':
           this.effects.punch(e.x, e.y);
+          if (e.weapon === 'bat') this.hold = { x: e.x + e.dx * 8, y: e.y + 3, until: this.time + 0.6 };
           break;
         case 'splash':
           this.effects.splash(e.x, e.y);

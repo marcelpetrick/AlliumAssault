@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.8.0] — 2026-09-16
+
+### Added
+- Baseball Bat (key 8, 2 per team): 25 damage, less than the punch, but knocks the victim far
+  along the aim line, always at least 20° upwards, to swat enemies over edges. Wooden crack
+  sound, bat model, camera follows the flight.
+- The AI simulates where punches and bat swings send their victim and goes for knock-outs into
+  the water.
+- Unit and E2E tests for the bat.
+
+### Changed
+- E2E melee tests aim at the enemy after it settles; the weapon bar test no longer assumes a
+  fixed number of weapons.
+- `tasks.md`: new open task for the arsenal setting.
+
 ## [1.7.0] — 2026-09-16
 
 ### Added

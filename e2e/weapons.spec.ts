@@ -6,6 +6,26 @@ import { aim, boot, chargeAndRelease, fastForward, played, select, startDuel, st
  * weapon does to the match (projectiles, craters, damage) and which sounds it produces.
  */
 
+/** Stand the enemy right in front of the active buddy, let it settle, and aim at it. */
+async function faceEnemyUpClose(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const me = g.activeBuddy!;
+    const enemy = g.buddies.find((b) => b !== me)!;
+    enemy.body.x = me.body.x + 1.2;
+    enemy.body.y = me.body.y + 0.3;
+    enemy.body.vx = enemy.body.vy = 0;
+  });
+  await fastForward(page, 0.6);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const me = g.activeBuddy!;
+    const enemy = g.buddies.find((b) => b !== me)!;
+    g.face(enemy.body.x < me.body.x ? -1 : 1);
+    me.aim = Math.atan2(enemy.body.y - me.body.y, Math.abs(enemy.body.x - me.body.x));
+  });
+}
+
 const me = (page: Page) => page.evaluate(() => window.__allium.state().buddies.find((b) => b.name === window.__allium.state().activeBuddy)!);
 
 test('bazooka: charge whoosh while holding Space, whistling rocket, explosion and crater', async ({ page }, info) => {
@@ -83,16 +103,7 @@ test('garlic punch: 45 damage and launches the enemy upwards', async ({ page }) 
   await startDuel(page);
   await select(page, 4, 'punch');
   const puncher = await me(page);
-  // Stand the enemy right in front of the active buddy.
-  await page.evaluate((m) => {
-    const g = window.__allium.app.game!;
-    const enemy = g.buddies.find((b) => b.name !== m.name)!;
-    enemy.body.x = m.x + 1.2;
-    enemy.body.y = m.y + 0.3;
-    enemy.body.vx = enemy.body.vy = 0;
-  }, puncher);
-  await fastForward(page, 0.6);
-  await aim(page, 0.2, 1);
+  await faceEnemyUpClose(page);
   await page.keyboard.press('Space');
   await waitForSound(page, 'punch');
   const s = await state(page);
@@ -100,6 +111,26 @@ test('garlic punch: 45 damage and launches the enemy upwards', async ({ page }) 
   expect(enemy.hp).toBe(55);
   expect(played(s, 'punch')).toBe(1);
   expect(played(s, 'hurt')).toBeGreaterThanOrEqual(1);
+  expect(errors).toEqual([]);
+});
+
+test('baseball bat: crack, 25 damage and a long flight for the enemy', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 8, 'bat');
+  const batter = await me(page);
+  await faceEnemyUpClose(page);
+  const standing = (await state(page)).buddies.find((b) => b.name !== batter.name)!;
+  await page.keyboard.press('Space');
+  await waitForSound(page, 'bat');
+  const s = await state(page);
+  const enemy = s.buddies.find((b) => b.name !== batter.name)!;
+  expect(enemy.hp).toBe(75);
+  expect(s.ammo!.bat).toBe(1);
+  await fastForward(page, 0.5);
+  const flying = (await state(page)).buddies.find((b) => b.name !== batter.name)!;
+  expect(!flying.alive || Math.hypot(flying.x - standing.x, flying.y - standing.y) > 5).toBe(true);
+  await info.attach('bat', { body: await page.screenshot(), contentType: 'image/png' });
   expect(errors).toEqual([]);
 });
 

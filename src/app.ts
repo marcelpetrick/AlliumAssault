@@ -213,7 +213,7 @@ export class App {
         case 'fire':
           if (e.weapon === 'shotgun') this.audio.play('shot');
           else if (e.weapon === 'sheep') this.audio.play('baa');
-          else if (e.weapon !== 'punch') this.audio.play('fire');
+          else if (WEAPONS[e.weapon].kind !== 'melee') this.audio.play('fire');
           break;
         case 'sheepHop':
           this.audio.play('hop');
@@ -228,7 +228,7 @@ export class App {
           this.audio.play(e.kind === 'health' ? 'heal' : 'pickup');
           break;
         case 'punch':
-          this.audio.play('punch');
+          this.audio.play(e.weapon === 'bat' ? 'bat' : 'punch');
           break;
         case 'jump':
           this.audio.play('jump');

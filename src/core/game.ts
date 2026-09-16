@@ -105,7 +105,7 @@ export type GameEvent =
   | { type: 'fire'; weapon: WeaponId; x: number; y: number; dx: number; dy: number; power: number }
   | { type: 'explosion'; x: number; y: number; radius: number }
   | { type: 'shot'; x0: number; y0: number; x1: number; y1: number }
-  | { type: 'punch'; buddy: number; x: number; y: number }
+  | { type: 'punch'; weapon: WeaponId; buddy: number; x: number; y: number; dx: number; dy: number }
   | { type: 'damage'; buddy: number; amount: number }
   | { type: 'death'; buddy: number }
   | { type: 'drown'; buddy: number }
@@ -124,6 +124,19 @@ export interface InputState {
   right: boolean;
   up: boolean;
   down: boolean;
+}
+
+/** Lowest launch angle of a swing, radians above horizontal. */
+const MIN_SWING_ANGLE = 0.35;
+
+/** Velocity a melee hit gives its victim. */
+export function meleeLaunch(def: WeaponDef, facing: 1 | -1, dir: Point): Point {
+  if (def.knock === 'swing') {
+    // Always a lofted drive: swinging down into the ground would just stop the victim.
+    const angle = Math.max(Math.atan2(dir.y, Math.abs(dir.x)), MIN_SWING_ANGLE);
+    return { x: facing * Math.cos(angle) * def.force, y: Math.sin(angle) * def.force };
+  }
+  return { x: facing * def.force * 0.45, y: def.force };
 }
 
 export class Game {
@@ -586,7 +599,7 @@ export class Game {
       this.setPhase('guiding');
       return;
     } else if (def.kind === 'melee') {
-      this.punch(b, dir);
+      this.melee(b, def, dir);
     } else {
       this.shoot(b, m, dir);
     }
@@ -611,20 +624,20 @@ export class Game {
     return p;
   }
 
-  private punch(b: Buddy, dir: Point): void {
-    const def = WEAPONS.punch;
+  private melee(b: Buddy, def: WeaponDef, dir: Point): void {
     const cx = b.body.x + dir.x * def.range;
     const cy = b.body.y + dir.y * def.range;
-    this.emit({ type: 'punch', buddy: b.id, x: cx, y: cy });
+    this.emit({ type: 'punch', weapon: def.id, buddy: b.id, x: cx, y: cy, dx: dir.x, dy: dir.y });
     for (const t of this.buddies) {
       if (!t.alive || t === b || Math.hypot(t.body.x - cx, t.body.y - cy) > def.range + BUDDY_RADIUS * 0.5) continue;
-      t.body.vx = b.facing * def.force * 0.45;
-      t.body.vy = def.force;
+      const v = meleeLaunch(def, b.facing, dir);
+      t.body.vx = v.x;
+      t.body.vy = v.y;
       t.body.grounded = false;
       t.body.restTime = 0;
       this.damage(t, def.damage);
     }
-    this.terrain.carve(cx, cy, def.radius);
+    if (def.radius > 0) this.terrain.carve(cx, cy, def.radius);
   }
 
   private shoot(b: Buddy, from: Point, dir: Point): void {

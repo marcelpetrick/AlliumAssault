@@ -60,7 +60,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | Backspace | Back-flip (high jump) |
 | ↑ ↓ | Aim |
 | Space | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–7 / Tab | Choose weapon |
+| 1–8 / Tab | Choose weapon |
 | Mouse wheel / drag | Zoom / pan camera |
 | Click | Call the air strike onto that spot |
 | M / Esc | Mute / pause menu |
@@ -76,6 +76,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🧨 Cluster Bomb | 3 | Red grenade, 3 s fuse (25 dmg), bursts into five bomblets of 10 dmg each |
 | 🐑 Sheep | 1 | Space releases it, it hops forward in small 45° leaps; Space again detonates it (75 dmg), at the latest after 10 s |
 | ✈️ Air Strike | 1 | Click on the map: a plane drops five bombs around that spot (25 dmg each) |
+| 🏏 Baseball Bat | 2 | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards) |
 
 ## Architecture
 

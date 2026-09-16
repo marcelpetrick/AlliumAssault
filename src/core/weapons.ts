@@ -1,4 +1,4 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike';
 
 export interface WeaponDef {
@@ -25,6 +25,8 @@ export interface WeaponDef {
   damage: number;
   force: number;
   range: number;
+  /** Melee: 'uppercut' launches victims skywards, 'swing' bats them away along the aim line. */
+  knock?: 'uppercut' | 'swing';
   /** Every buddy inside the blast takes the full damage instead of less towards the edge. */
   flatDamage?: boolean;
   /** Air strikes: bombs dropped around the clicked target. */
@@ -113,6 +115,28 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     damage: 45,
     force: 15,
     range: 1.3,
+    knock: 'uppercut',
+  },
+  bat: {
+    id: 'bat',
+    name: 'Baseball Bat',
+    icon: '🏏',
+    blurb: 'Home run! Less damage than a punch, but swats the victim far along the aim line.',
+    kind: 'melee',
+    ammo: 2,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 0,
+    damage: 25,
+    force: 26,
+    range: 1.4,
+    knock: 'swing',
   },
   cluster: {
     id: 'cluster',
@@ -220,5 +244,5 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

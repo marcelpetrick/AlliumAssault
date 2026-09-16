@@ -1,7 +1,7 @@
 import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, WIND_ACCEL } from './constants';
-import type { AiLevel, Buddy, Game } from './game';
+import { meleeLaunch, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';
-import { GRAVITY, stepProjectile } from './physics';
+import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
 import type { Crate } from './crates';
 import { releaseSheep, stepSheep } from './sheep';
@@ -161,9 +161,14 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const dy = enemy.body.y - me.body.y;
     const facing: 1 | -1 = dx < 0 ? -1 : 1;
     const dist = Math.hypot(dx, dy);
-    if (allowed('punch') && dist < WEAPONS.punch.range + BUDDY_RADIUS * 1.5) {
-      const score = WEAPONS.punch.damage + (enemy.hp <= WEAPONS.punch.damage ? 40 : 0) + 5;
-      if (score > best.score) best = { weapon: 'punch', facing, aim: directAim(enemy), power: 1, score };
+    for (const weapon of ['punch', 'bat'] as const) {
+      const def = WEAPONS[weapon];
+      if (!allowed(weapon) || dist >= def.range + BUDDY_RADIUS * 1.5) continue;
+      const aim = directAim(enemy);
+      const launch = meleeLaunch(def, facing, { x: Math.cos(aim) * facing, y: Math.sin(aim) });
+      const lethal = enemy.hp <= def.damage || knockedOut(game, enemy, launch.x, launch.y);
+      const score = def.damage + (lethal ? enemy.hp + 40 : 0) + 5 - (team.ammo[weapon] === Infinity ? 0 : 8);
+      if (score > best.score) best = { weapon, facing, aim, power: 1, score };
     }
     if (allowed('shotgun') && dist < WEAPONS.shotgun.range && lineOfSight(game, me, enemy)) {
       const damage = WEAPONS.shotgun.damage * 2;
@@ -178,6 +183,18 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     power: clamp(best.power + gaussian(rng) * cfg.powerError, 0.05, 1),
     delay: best.delay === undefined ? undefined : Math.max(0.2, best.delay + gaussian(rng) * cfg.powerError * 5),
   };
+}
+
+/** Would a buddy launched with this velocity end up in the water or off the map? */
+function knockedOut(game: Game, target: Buddy, vx: number, vy: number): boolean {
+  const body = { ...createBody(target.body.x, target.body.y, target.body.radius), vx, vy };
+  const t = game.terrain;
+  for (let time = 0; time < 5; time += 1 / 30) {
+    stepBody(t, body, 1 / 30, null);
+    if (body.y < t.waterLevel - 0.4 || body.x < -30 || body.x > t.width + 30) return true;
+    if (body.grounded && Math.hypot(body.vx, body.vy) < 0.5) return false;
+  }
+  return false;
 }
 
 function lineOfSight(game: Game, me: Buddy, target: Buddy): boolean {

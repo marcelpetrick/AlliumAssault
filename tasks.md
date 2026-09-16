@@ -23,9 +23,10 @@ Status: ☐ open · ☑ done
 | T7 | Random crates | ☑ | 1.6.0 |
 | T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☑ | 1.6.1 |
 | T14 | Blowtorch: dig forward through rock for three seconds | ☐ | |
-| T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☐ | |
+| T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☑ | 1.8.0 |
 | T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
 | T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☐ | |
+| T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
 | T12 | Self-review of all changes, fix findings | ☐ | |
@@ -109,7 +110,7 @@ Goal: know that the game and each feature work in a real browser, in addition to
 - Works with gravity: without supporting ground the buddy falls; it never tunnels upwards.
 - Torch sound, flame particles, AI use when an enemy is behind a wall, unit and E2E tests.
 
-### T15 — Baseball bat ☐
+### T15 — Baseball bat ☑
 - New melee weapon: less damage than the Garlic Punch but a much stronger, flatter knock-back
   along the aim direction, to swat enemies over edges and into the water.
 - Swing sound and bat model, AI use near cliffs and water, unit and E2E tests.
@@ -119,6 +120,12 @@ Goal: know that the game and each feature work in a real browser, in addition to
   the blast radius grows with it (health ÷ 10 units: 10 units at 100 HP), so a healthy buddy
   takes a big part of the map with it.
 - Countdown sound and flash, AI use only when it pays off, unit and E2E tests.
+
+### T18 — Arsenal setting ☐
+- Match setup option **Arsenal**: *All weapons* (every weapon with its normal starting ammo) or
+  *Find in crates* (special weapons start empty and are only found in weapon crates).
+- Picking up a weapon crate adds one more of that weapon to the team's inventory.
+- Unit and E2E tests.
 
 ### T16 — Walking and jumping sounds ☑
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.

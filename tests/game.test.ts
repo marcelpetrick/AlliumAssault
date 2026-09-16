@@ -107,6 +107,27 @@ describe('match flow', () => {
     expect(g.buddies[1].body.y).toBeGreaterThan(21.5);
   });
 
+  it('baseball bat does less damage than the punch but knocks the enemy much further', () => {
+    const hit = (weapon: 'punch' | 'bat') => {
+      const g = flatGame([40, 41.2], [team('A', 1), team('B', 1)]);
+      toAiming(g);
+      g.selectWeapon(weapon);
+      g.buddies[0].facing = 1;
+      g.buddies[0].aim = 0.3;
+      g.pressFire();
+      const enemy = g.buddies[1];
+      const damage = 100 - enemy.hp;
+      runUntil(g, () => enemy.body.grounded && enemy.body.restTime > 0.2, 8);
+      return { damage, distance: enemy.body.x - 41.2 };
+    };
+    const punch = hit('punch');
+    const bat = hit('bat');
+    expect(bat.damage).toBe(25);
+    expect(bat.damage).toBeLessThan(punch.damage);
+    expect(bat.distance).toBeGreaterThan(punch.distance * 2);
+    expect(bat.distance).toBeGreaterThan(12);
+  });
+
   it('kills buddies at 0 hp with a death explosion and declares a winner', () => {
     const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
     toAiming(g);
@@ -374,6 +395,17 @@ describe('AI', () => {
     runUntil(g, () => g.crates.length === 0 || g.phase !== 'aiming' && g.phase !== 'turnStart', 20);
     expect(g.crates).toHaveLength(0);
     expect(g.buddies[0].hp).toBe(125);
+  });
+
+  it('bats an enemy standing near a cliff into the water', () => {
+    const g = flatGame([40, 41.3], [team('A', 1, 'ai'), team('B', 1)]);
+    // The ground ends at about x = 55: beyond a punch's reach, but not a bat's.
+    for (let x = 60; x <= 128; x += 3) g.terrain.carve(x, 10, 11);
+    runUntil(g, () => g.phase === 'aiming', 5);
+    const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(2));
+    expect(plan.weapon).toBe('bat');
+    runUntil(g, () => !g.buddies[1].alive, 15);
+    expect(g.buddies[1].alive).toBe(false);
   });
 
   it('re-plans with the current weapon after the first shotgun shot', () => {

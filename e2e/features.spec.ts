@@ -79,18 +79,19 @@ test('movement sounds: footsteps while walking, a hup when jumping, a thud on la
   expect(errors).toEqual([]);
 });
 
-test('HUD: weapon bar lists all seven weapons with ammo and follows the selection', async ({ page }) => {
+test('HUD: weapon bar lists every weapon with ammo and follows the selection', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
   const slots = page.locator('.weapons .slot');
-  await expect(slots).toHaveCount(7);
-  await expect(slots.nth(4)).toContainText('Cluster Bomb');
-  await expect(slots.nth(4)).toContainText('×3');
-  await expect(slots.nth(5)).toContainText('Sheep');
-  await expect(slots.nth(6)).toContainText('Air Strike');
-  await slots.nth(5).click();
+  const ids = await page.evaluate(() => Object.keys(window.__allium.state().ammo!));
+  const selectable = await slots.evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.weapon!));
+  expect(selectable.length).toBeGreaterThanOrEqual(8);
+  for (const id of selectable) expect(ids).toContain(id);
+  await expect(page.locator('.slot[data-weapon="cluster"]')).toContainText('×3');
+  const sheep = page.locator('.slot[data-weapon="sheep"]');
+  await sheep.click();
   await waitFor(page, (s) => s.weapon === 'sheep', 10_000);
-  await expect(slots.nth(5)).toHaveClass(/on/);
+  await expect(sheep).toHaveClass(/on/);
   await expect(page.locator('.hint')).toContainText('release the sheep');
   expect(errors).toEqual([]);
 });
