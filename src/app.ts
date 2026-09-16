@@ -213,6 +213,7 @@ export class App {
         case 'fire':
           if (e.weapon === 'shotgun') this.audio.play('shot');
           else if (e.weapon === 'sheep') this.audio.play('baa');
+          else if (e.weapon === 'selfdestruct') this.audio.play('alarm');
           else if (WEAPONS[e.weapon].kind !== 'melee') this.audio.play('fire');
           break;
         case 'sheepHop':

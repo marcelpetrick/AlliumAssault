@@ -161,7 +161,7 @@ export class World {
           this.effects.tracer(e.x0, e.y0, e.x1, e.y1);
           break;
         case 'fire':
-          if (e.weapon !== 'sheep') this.effects.muzzle(e.x, e.y);
+          if (WEAPONS[e.weapon].kind !== 'walker' && WEAPONS[e.weapon].kind !== 'self') this.effects.muzzle(e.x, e.y);
           break;
         case 'punch':
           this.effects.punch(e.x, e.y);

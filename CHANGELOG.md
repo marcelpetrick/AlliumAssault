@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.9.0] — 2026-09-16
+
+### Added
+- Self-Destruct (key 9, 1 per team): the buddy blows itself up on the spot. Damage equals its
+  health and the blast radius is health ÷ 10, so a healthy buddy levels a big part of the map.
+  Siren sound and detonator model.
+- The AI self-destructs only when the blast is worth more than the buddy it costs.
+- Unit and E2E tests.
+
 ## [1.8.1] — 2026-09-16
 
 ### Changed

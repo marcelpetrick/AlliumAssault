@@ -25,7 +25,7 @@ Status: ☐ open · ☑ done
 | T14 | Blowtorch: dig forward through rock for three seconds | ☐ | |
 | T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☑ | 1.8.0 |
 | T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
-| T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☐ | |
+| T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☑ | 1.9.0 |
 | T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☐ | |
 | T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☐ | |
 | T20 | Banana Bomb: bursts into bouncing explosive bananas | ☐ | |
@@ -121,7 +121,7 @@ Goal: know that the game and each feature work in a real browser, in addition to
   along the aim direction, to swat enemies over edges and into the water.
 - Swing sound and bat model, AI use near cliffs and water, unit and E2E tests.
 
-### T17 — Self-destruct ☐
+### T17 — Self-destruct ☑
 - New weapon: the active buddy explodes on the spot and dies. Damage equals its current health,
   the blast radius grows with it (health ÷ 10 units: 10 units at 100 HP), so a healthy buddy
   takes a big part of the map with it.

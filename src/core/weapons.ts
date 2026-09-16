@@ -1,5 +1,5 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self';
 
 export interface WeaponDef {
   id: WeaponId;
@@ -241,8 +241,29 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 10,
     range: 0,
   },
+  selfdestruct: {
+    id: 'selfdestruct',
+    name: 'Self-Destruct',
+    icon: '💥',
+    blurb: 'The buddy blows itself up: damage equals its health, and the blast grows with it.',
+    kind: 'self',
+    ammo: 1,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    // Scaled by the buddy's health when used: radius = hp / 10, damage = hp.
+    radius: 10,
+    damage: 100,
+    force: 22,
+    range: 0,
+  },
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'selfdestruct'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

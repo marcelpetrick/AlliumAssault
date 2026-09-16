@@ -128,6 +128,23 @@ describe('match flow', () => {
     expect(bat.distance).toBeGreaterThan(12);
   });
 
+  it('self-destruct kills the buddy with a blast that scales with its health', () => {
+    const blast = (hp: number, enemyX: number) => {
+      const g = flatGame([40, enemyX], [team('A', 1), team('B', 1)]);
+      toAiming(g);
+      g.buddies[0].hp = hp;
+      g.selectWeapon('selfdestruct');
+      g.pressFire();
+      expect(g.buddies[0].alive).toBe(false);
+      expect(g.phase).toBe('settling');
+      return 100 - g.buddies[1].hp;
+    };
+    expect(blast(100, 42)).toBeGreaterThan(75);
+    expect(blast(100, 48)).toBeGreaterThan(15);
+    expect(blast(50, 42)).toBeLessThan(50);
+    expect(blast(50, 48)).toBe(0);
+  });
+
   it('kills buddies at 0 hp with a death explosion and declares a winner', () => {
     const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
     toAiming(g);

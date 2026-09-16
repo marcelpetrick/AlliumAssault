@@ -17,6 +17,7 @@ export type Sfx =
   | 'baa'
   | 'hop'
   | 'plane'
+  | 'alarm'
   | 'bat'
   | 'step'
   | 'teleport'
@@ -124,6 +125,11 @@ export class Audio {
       case 'land':
         this.noise(0.12, 'lowpass', 700, 120, 0.35 * i);
         this.tone('sine', 150 * pitch, 55, 0.14, 0.28 * i);
+        break;
+      case 'alarm':
+        // Frantic rising siren right before the bang.
+        [0, 0.09, 0.18].forEach((d) => this.tone('square', 700 * pitch, 1400 * pitch, 0.08, 0.1, d));
+        this.tone('sawtooth', 90, 40, 0.9, 0.25);
         break;
       case 'bat':
         // Wooden crack: a sharp click, a hollow knock and a swish.

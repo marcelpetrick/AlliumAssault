@@ -202,6 +202,10 @@ export class BuddyView {
         [MeshBuilder.CreateCylinder('bat', { height: 1.05, diameterTop: 0.07, diameterBottom: 0.2, tessellation: 12 }, scene), kit.wood, [0.6, 0.05, 0], true],
         [MeshBuilder.CreateSphere('batKnob', { diameter: 0.1, segments: 8 }, scene), kit.wood, [0.07, 0.05, 0], false],
       ]),
+      selfdestruct: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
+        [MeshBuilder.CreateCylinder('plunger', { height: 0.1, diameter: 0.12, tessellation: 10 }, scene), kit.glove, [0.5, 0.07, 0], false],
+      ]),
       shotgun: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('barrel', { height: 1.1, diameter: 0.1, tessellation: 10 }, scene), kit.metal, [0.5, 0.03, 0], true],
         [MeshBuilder.CreateBox('stock', { width: 0.45, height: 0.18, depth: 0.12 }, scene), kit.wood, [0.02, -0.03, 0], false],

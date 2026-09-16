@@ -126,6 +126,12 @@ export interface InputState {
   down: boolean;
 }
 
+/** Blast of a self-destructing buddy with `hp` health; scales the weapon's 100 HP values. */
+export function selfDestructBlast(def: WeaponDef, hp: number): { radius: number; damage: number; force: number } {
+  const k = Math.max(hp, 0) / 100;
+  return { radius: Math.max(1.5, def.radius * k), damage: Math.round(def.damage * k), force: def.force * Math.max(k, 0.3) };
+}
+
 /** Lowest launch angle of a swing, radians above horizontal. */
 const MIN_SWING_ANGLE = 0.35;
 
@@ -598,6 +604,9 @@ export class Game {
       this.sheep = releaseSheep(this.nextId++, b.id, b.body.x, b.body.y, b.facing);
       this.setPhase('guiding');
       return;
+    } else if (def.kind === 'self') {
+      this.selfDestruct(b, def);
+      return;
     } else if (def.kind === 'melee') {
       this.melee(b, def, dir);
     } else {
@@ -622,6 +631,16 @@ export class Game {
     const p: Projectile = { id: this.nextId++, weapon, x, y, vx, vy, radius: 0.15, bounces: 0, fuse: WEAPONS[weapon].fuse, age: 0, owner };
     this.projectiles.push(p);
     return p;
+  }
+
+  /** The buddy explodes: damage equals its health and the blast radius grows with it. */
+  private selfDestruct(b: Buddy, def: WeaponDef): void {
+    const blast = selfDestructBlast(def, b.hp);
+    b.alive = false;
+    b.hp = 0;
+    this.emit({ type: 'death', buddy: b.id });
+    this.explode(b.body.x, b.body.y, blast.radius, blast.damage, blast.force);
+    this.endTurnEarly();
   }
 
   private melee(b: Buddy, def: WeaponDef, dir: Point): void {

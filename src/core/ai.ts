@@ -1,5 +1,5 @@
 import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, WIND_ACCEL } from './constants';
-import { meleeLaunch, type AiLevel, type Buddy, type Game } from './game';
+import { meleeLaunch, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
@@ -154,6 +154,20 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
         if (score > best.score) best = { weapon: 'airstrike', facing, aim: me.aim, power: 1, score, target };
       }
     }
+  }
+
+  if (allowed('selfdestruct')) {
+    // Worth it only when the blast takes out more than the buddy it costs.
+    const blast = selfDestructBlast(WEAPONS.selfdestruct, me.hp);
+    let score = -me.hp - 30;
+    for (const b of game.buddies) {
+      if (!b.alive || b === me) continue;
+      const reach = Math.max(0, Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) - BUDDY_RADIUS * 0.5);
+      if (reach >= blast.radius) continue;
+      const dmg = blast.damage * (1 - reach / blast.radius);
+      score += b.team === me.team ? -dmg * 1.5 : dmg + (dmg >= b.hp ? 40 : 0);
+    }
+    if (score > best.score) best = { weapon: 'selfdestruct', facing: best.facing, aim: me.aim, power: 1, score };
   }
 
   for (const enemy of enemies) {

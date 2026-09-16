@@ -134,6 +134,23 @@ test('baseball bat: crack, 25 damage and a long flight for the enemy', async ({ 
   expect(errors).toEqual([]);
 });
 
+test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 9, 'selfdestruct');
+  const bomber = await me(page);
+  await faceEnemyUpClose(page);
+  const before = await state(page);
+  await page.keyboard.press('Space');
+  await waitForSound(page, 'alarm');
+  await waitForSound(page, 'explosion', played(before, 'explosion') + 1);
+  const s = await state(page);
+  expect(s.buddies.find((b) => b.name === bomber.name)!.alive).toBe(false);
+  expect(s.buddies.find((b) => b.name !== bomber.name)!.hp).toBeLessThan(40);
+  expect(s.terrainRevision).toBeGreaterThan(before.terrainRevision);
+  expect(errors).toEqual([]);
+});
+
 test('cluster bomb: red grenade bursts into five exploding bomblets', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
