@@ -1,6 +1,6 @@
 {
   "name": "allium-assault",
-  "version": "1.26.1",
+  "version": "1.26.2",
   "description": "Turn-based 3D artillery game with garlic buddies, in the spirit of Worms Armageddon. Runs in the browser.",
   "private": true,
   "type": "module",
@@ -18,7 +18,8 @@
     "lint:spdx": "node scripts/spdx.mjs",
     "spdx:fix": "node scripts/spdx.mjs --fix",
     "lint:reuse": "uvx reuse lint",
-    "format": "prettier --write . && stylelint \"src/**/*.css\" --fix && markdownlint-cli2 --fix \"**/*.md\""
+    "format": "prettier --write . && stylelint \"src/**/*.css\" --fix && markdownlint-cli2 --fix \"**/*.md\"",
+    "capture-media": "node scripts/capture-media.mjs"
   },
   "dependencies": {
     "@babylonjs/core": "9.26.2",

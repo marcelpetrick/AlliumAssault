@@ -19,13 +19,17 @@ No install, no account: open **<https://marcelpetrick.github.io/AlliumAssault/>*
 browser and start a Quick Match.
 
 <p align="center">
-  <img src="docs/screenshots/battle.gif" alt="Garlic buddies trading bazooka fire: missile flight, explosion, crater and knockback" width="100%">
+  <img src="docs/screenshots/battle.gif" alt="A banana bomb bursting into bouncing bananas that blast craters into the meadow" width="100%">
 </p>
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/action-1.jpg" alt="Bazooka missile streaking towards the enemy team"></td>
-    <td width="50%"><img src="docs/screenshots/action-2.jpg" alt="Explosion carving a crater and launching a garlic buddy"></td>
+    <td width="50%"><img src="docs/screenshots/action-1.jpg" alt="Bazooka rocket streaking towards the enemy team"></td>
+    <td width="50%"><img src="docs/screenshots/action-2.jpg" alt="Explosion carving a crater next to a garlic buddy, with floating damage"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/candy-shop.jpg" alt="Flying sheep over the Candy Shop scenery with lollipop trees"></td>
+    <td width="50%"><img src="docs/screenshots/frosty-peaks.jpg" alt="Air strike plane dropping bombs over the snowy Frosty Peaks"></td>
   </tr>
 </table>
 
@@ -177,9 +181,11 @@ publishes a GitHub release with the web build. Contributor and agent rules are i
 
 ## More screenshots
 
-| Title screen                         | Floating islands                         |
-| ------------------------------------ | ---------------------------------------- |
-| ![Title](docs/screenshots/title.jpg) | ![Islands](docs/screenshots/islands.jpg) |
+| Title screen                                                   | Napalm strike                                                                 | Tombstone                                                                |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| ![Title screen with the live demo](docs/screenshots/title.jpg) | ![Napalm burning on a floating island at sunset](docs/screenshots/napalm.jpg) | ![R.I.P. tombstone in the Moonlit Grove](docs/screenshots/tombstone.jpg) |
+
+Regenerate all media with `npm run capture-media -- <preview url>` against a running preview build (needs ffmpeg).
 
 ## History
 

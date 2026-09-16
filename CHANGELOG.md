@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.2] — 2026-09-16
+
+### Changed
+
+- New README media: a banana bomb recording, bazooka flight and blast, flying sheep in the Candy
+  Shop, an air strike over Frosty Peaks, burning napalm, a tombstone and the title screen.
+
+### Added
+
+- `scripts/capture-media.mjs` (`npm run capture-media`) scripts the scenes in Chrome and
+  regenerates all README screenshots and the GIF.
+
 ## [1.26.1] — 2026-09-16
 
 ### Changed
