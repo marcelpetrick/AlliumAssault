@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.5] — 2026-09-16
+
+### Fixed
+
+- Saved settings are validated field by field: an invalid AI level, controller, option value,
+  scenery, team colour or buddy name from an old or edited entry falls back to its default instead
+  of crashing the AI loop or the setup screen (review #1).
+
 ## [1.26.4] — 2026-09-16
 
 ### Changed

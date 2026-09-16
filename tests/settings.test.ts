@@ -17,12 +17,52 @@ describe('persisted settings', () => {
     expect(parsed.match.teams).toHaveLength(2);
   });
 
-  it('reject broken or tampered entries instead of breaking the setup screen', () => {
+  it('fall back field by field for broken or tampered entries instead of breaking the game', () => {
     expect(parseSettings('not json')).toBeNull();
-    expect(parseSettings('{}')).toBeNull();
-    const settings = defaultSettings();
-    expect(parseSettings(JSON.stringify({ ...settings, match: { ...settings.match, theme: 'lava' } }))).toBeNull();
-    expect(parseSettings(JSON.stringify({ ...settings, match: { ...settings.match, teams: [settings.match.teams[0]] } }))).toBeNull();
-    expect(parseSettings(JSON.stringify({ ...settings, textSize: 'gigantic' }))!.textSize).toBe('normal');
+    expect(parseSettings('[]')).toBeNull();
+    const defaults = defaultSettings();
+    const good = defaults.match.teams[0];
+    const tampered = parseSettings(
+      JSON.stringify({
+        textSize: 'gigantic',
+        match: {
+          ...defaults.match,
+          theme: 'lava',
+          turnTime: -5,
+          arsenal: 'everything',
+          crates: 'lots',
+          teams: [
+            { ...good, aiLevel: 'godlike', controller: 'robot' },
+            { ...good, name: 'Blue', color: '#3d8bfd' },
+          ],
+        },
+      }),
+    )!;
+    expect(tampered.textSize).toBe('normal');
+    expect(tampered.match.theme).toBe('meadow');
+    expect(tampered.match.turnTime).toBe(45);
+    expect(tampered.match.arsenal).toBe('all');
+    expect(tampered.match.crates).toBe(defaults.match.crates);
+    expect(tampered.match.teams[0].aiLevel).toBe('normal');
+    expect(tampered.match.teams[0].controller).toBe('human');
+
+    // Teams with unusable names or colours are replaced by the default teams as a whole.
+    const badTeams = parseSettings(
+      JSON.stringify({
+        match: {
+          ...defaults.match,
+          teams: [
+            { ...good, buddyNames: [42] },
+            { ...good, color: 'red;"><script>' },
+          ],
+        },
+      }),
+    )!;
+    expect(badTeams.match.teams).toHaveLength(2);
+    for (const t of badTeams.match.teams) {
+      expect(t.color).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(t.buddyNames.every((n) => typeof n === 'string')).toBe(true);
+    }
+    expect(parseSettings(JSON.stringify({ match: { ...defaults.match, teams: [good] } }))!.match.teams).toHaveLength(2);
   });
 });
