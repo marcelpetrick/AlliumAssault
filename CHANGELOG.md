@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.18.4] — 2026-09-16
+
+### Changed
+- Plan and task list: drill, napalm strike, font size with persisted settings and Reset all, and
+  an About screen.
+
 ## [1.18.3] — 2026-09-16
 
 ### Changed

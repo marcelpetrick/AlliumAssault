@@ -93,6 +93,10 @@ progress.
 | T35 | Crate drops noticeable | Teleport sound on spawn (exists, make it louder) plus a short camera pan to the crate at the turn start | ☐ |
 | T31 | Comic tombstones for dead buddies | Physics tombstone per death (not drowning), knocked by blasts, sinks; RIP model with name and team ribbon | ☐ |
 | T30 | More sceneries, e.g. a candy shop | Candy Shop (lollipop trees, gumdrops, frosting) and Frosty Peaks themes; theme-specific props | ☐ |
+| T41 | Drill: dig straight down, like the blowtorch but vertical; no fall damage while drilling | New `drilling` phase: carve below the feet for 3 s, the buddy sinks with gravity, fall damage suppressed; model, sound, AI, tests | ☐ |
+| T38 | Napalm strike: plane drops napalm that sets the ground aflame for 1–2 s; flames make buddies jump (tiny damage), go out in water; heavily wind-affected | Strike weapon with wind-driven napalm canisters; burning patches as core entities spreading along the surface, extinguished by water; flame hops with small damage; fire particles and crackle sound; AI; tests | ☐ |
+| T39 | Bigger in-game font option; persist the last settings and reload them for the next game; "Reset all" in the setup | UI scale setting (Normal / Large / Huge) applied to the HTML overlay; match setup and UI scale stored in localStorage and restored; Reset all restores defaults and clears storage; E2E tests | ☐ |
+| T40 | About screen: author, tech stack, open-source licenses, hosted on GitHub Pages, free to play | Title-menu "About" panel listing author (mail@marcelpetrick.it), stack with versions, dependency licenses, links; E2E test | ☐ |
 | T34 | More README badges like Cullendula | Badges for Pages, Babylon.js, TypeScript, Vite, Vitest, Playwright versions | ☐ |
 | T33 | New screenshots and screen recordings in the README | Capture with Playwright in Chrome: weapons, crates, sceneries; GIF recording of a battle | ☐ |
 | T32 | Review and update all documents | README, AGENTS, VISION, ARCHITECTURE, PLAN, CHANGELOG consistency with the code | ☐ |
@@ -102,10 +106,11 @@ progress.
 ### 6.2 Execution order
 
 1. Gameplay fixes first: T28 volume, T35 crate camera, T29 infinite supplies.
-2. New content: T31 tombstones, T30 sceneries.
-3. Presentation: T34 badges, T33 screenshots and recordings (after the content they show).
-4. T32 documentation pass over every Markdown file.
-5. T12b review of the whole batch, fix findings, full verification.
-6. T13b push, tag and release; confirm the Pages build is live.
+2. New content: T41 drill, T38 napalm strike, T31 tombstones, T30 sceneries.
+3. Menus: T39 font size, persisted settings and Reset all; T40 About screen.
+4. Presentation: T34 badges, T33 screenshots and recordings (after the content they show).
+5. T32 documentation pass over every Markdown file.
+6. T12b review of the whole batch, fix findings, full verification.
+7. T13b push, tag and release; confirm the Pages build is live.
 
 Each task is one atomic commit with its own version bump, tests and a `tasks.md` update.

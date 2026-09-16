@@ -46,6 +46,10 @@ Status: ☐ open · ☑ done
 | T34 | More README badges, like Cullendula | ☐ | |
 | T35 | Crate drops: teleport sound and a short camera pan to the new crate | ☐ | |
 | T36 | Banana bomb throw range reported as tiny | ☐ | |
+| T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☐ | |
+| T39 | Bigger font option, persisted settings restored for the next game, Reset all button | ☐ | |
+| T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play | ☐ | |
+| T41 | Drill: dig vertically downwards, no fall damage while drilling | ☐ | |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
 | T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
