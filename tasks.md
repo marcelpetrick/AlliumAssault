@@ -35,7 +35,7 @@ Status: ☐ open · ☑ done
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☑ | 1.16.0 |
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☐ | |
-| T8 | GitHub Pages deployment | ☐ | |
+| T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
 | T12 | Self-review of all changes, fix findings | ☐ | |
 | T13 | Push to GitHub and publish a public release | ☐ | |
@@ -192,7 +192,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.
 - E2E check that the sounds play.
 
-### T8 — GitHub Pages deployment ☐
+### T8 — GitHub Pages deployment ☑
 - Workflow `.github/workflows/pages.yml`: build and deploy `dist/` via `actions/deploy-pages`
   when a release tag is pushed (and on manual dispatch).
 - Repository Pages source set to GitHub Actions; game served at

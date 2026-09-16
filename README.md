@@ -125,7 +125,8 @@ npm run verify       # all of the above plus production build
 The page exposes `window.__allium` (`state()`, `startMatch()`, `fastForward()`) for automated tests.
 
 Continuous integration runs lint, typecheck, unit tests, build and the Chrome E2E suite on every
-push. Pushing a `v*` tag builds and publishes a GitHub release with the zipped static site.
+push. Pushing a `v*` tag builds and publishes a GitHub release with the zipped static site and
+deploys the game to GitHub Pages: <https://marcelpetrick.github.io/AlliumAssault/>.
 
 ## Versioning
 

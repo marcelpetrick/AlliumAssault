@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.2] — 2026-09-16
+
+### Added
+- GitHub Pages deployment: every release tag (or a manual run) builds the game and publishes it
+  at https://marcelpetrick.github.io/AlliumAssault/.
+
 ## [1.17.1] — 2026-09-16
 
 ### Changed
