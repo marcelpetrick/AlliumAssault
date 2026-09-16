@@ -1,57 +1,48 @@
-# Branch review
+# Code review — full codebase
 
 ```text
-Base: master @ dfafe26 (v1.1.11, origin/master before this work)   Head: 87783b5
-Files changed: 34   +3947 / -206 lines
+Base: v1.17.5 (last release) @ 199d2d6   Head: 68f6d11
+Files changed since the release: 77   +6644 / -800 lines
 ```
 
-`master` is the only branch, so the merge-base with itself is HEAD. The review uses the last
-published state before this work, v1.1.11 (`dfafe26`). `origin/master` has since moved to
-`f5212d8`, partway through the work. Resolved findings are marked **(fixed in x.y.z)**.
+Scope: the whole current code (`src/`, `tests/`, `e2e/`, `scripts/`, CI), with extra attention on
+what changed since the v1.17.5 release. `master` is the only branch, so there is no merge-base to
+diff against; the release tag is used as the reference point. Every finding below was checked
+against the file contents.
 
 ## Findings
 
 ```text
-#1  MEDIUM  Code  src/core/ai.ts:102
-    planAttack now tries every projectile, strike, melee, sheep, flyer, torch and self-destruct option synchronously inside Game.step, taking 57–90 ms per decision (measured in Node, hard AI, full arsenal; 14–34 ms with the original four weapons), so every AI turn freezes the frame for several frames. Budget the search (fewer samples for limited-ammo weapons, early exit on lethal plans) or spread it over several steps.
+#1  MEDIUM  Code  src/ui/settings.ts:61
+    parseSettings promises that a stored entry "can never break the setup screen", but it only checks team names, colours and buddy-name counts: a stored aiLevel outside easy/normal/hard makes LEVELS[level] undefined and AiDriver.update throws on every frame, and a non-string buddy name crashes esc() while rendering the setup. Validate every field that is used (controller, aiLevel, buddy-name strings, retreat/turn times, crates, arsenal) and fall back to defaults field by field.
 
-#2  MEDIUM  Architecture  src/core/ai.ts:117
-    Weapon behaviour is keyed by hard-coded weapon ids spread over many modules: the AI candidate lists (ai.ts:117, 145, 203), flight-sound kinds (src/app.ts:175), projectile models (src/render/effects.ts:521), held models, muzzle and sound switches. A new weapon silently gets no AI use, no sound and a default grenade model unless eight files are touched. Derive AI candidates from WeaponDef.kind and move model and sound keys into the weapon table.
+#2  MEDIUM  Architecture  src/core/game.ts:231
+    The in-turn action is still spread over six independent fields (sheep, flyer, burst, drill, torch, drops) plus phases in a 1100-line Game; every timed weapon adds a field, a step method, cleanup lines in beginTurn/endTurnEarly and phase handling, and nothing prevents two actions being active at once. Model the current action as one discriminated union with a single step/cleanup path, keeping read-only accessors for the renderer and HUD.
 
-#3  MEDIUM  Architecture  src/core/game.ts:877
-    The in-turn action state is five independent nullable fields (sheep, flyer, torch, burst, drops) plus phases, and the list of "active buddy can end the turn" phases is copied in damage() (877), drown() (885), `acting` (281) and the per-phase timers in stepPhase, which has no 'firing' case. Every new timed weapon has to update all of them consistently. Model the current action as one discriminated union with its own step, detonate and cleanup.
+#3  MEDIUM  Architecture  src/app.ts:195
+    Presentation is keyed by hard-coded weapon ids across modules — flight sound kinds (app.ts:195), fire sounds (app.ts:245), projectile models (render/effects.ts:654), held models and muzzle rules — so a new projectile silently gets a grenade model and the wrong sound. Declare presentation keys (flight sound, fire sound, projectile model) in the weapon table and look them up generically.
 
-#4  MEDIUM  Code  src/core/ai.ts:170
-    The AI releases the flying sheep with a fixed aim of 0.8 rad toward the nearest enemy without checking the path. Under an overhang or next to a wall, stepFlyer reports a hit on the first sub-steps and the sheep explodes (75 damage, radius 4) right beside the AI's own buddy. Trace the first metres of the launch (as simulateShot does) and skip or re-aim blocked launches.
+#4  LOW  Code  src/app.ts:116
+    Every started match calls menu.setDraft, which now persists the config, so playing a Quick Match (random teams, default options) overwrites the custom setup the player saved for next time. Persist only matches started from the custom setup (and their restarts), keeping Quick Match out of the saved draft.
 
-#5  MEDIUM  Code  .github/workflows/pages.yml:37
-    GitHub Pages is not enabled for the repository (`GET /repos/…/pages` returns 404), so configure-pages/deploy-pages fail on every release tag until Pages is switched to "GitHub Actions" in the repository settings. Enable Pages before the first tagged release, or pass `enablement: true` with a token that is allowed to.
+#5  LOW  Code  src/core/ai.ts:165
+    The AI scores every strike weapon as if its payload lands on the chosen target, but the napalm strike is deliberately not wind-aimed (strike.windAimed = false), so in wind the AI's napalm drifts far off and its expected score is wrong. Offset the AI's target by the napalm's wind drift (the same fall-time maths planStrike uses).
 
-#6  LOW  Code  src/app.ts:189
-    The last-seconds tick only sounds in the 'aiming' phase, but the turn timer keeps running and the HUD timer turns urgent (src/ui/hud.ts:145) while guiding a sheep. The audio cue goes missing exactly when the player is racing the clock. Tick in every phase that counts down turnTimeLeft.
+#6  LOW  Code  src/core/game.ts:645
+    New crates avoid living buddies and other crates but not tombstones, so a crate can teleport into a grave on the same spot. Include grave bodies in the occupied list.
 
-#7  LOW  Code  src/render/world.ts:183
-    During an air strike the camera saves the zoom and restores it 4.5 s later (world.ts:225), overwriting any zoom the player chose meanwhile. Restore only if the zoom still matches the forced value, or zoom out through a temporary offset instead.
+#7  LOW  Code  .github/workflows/pages.yml:9
+    The Pages deployment runs on any v* tag with lint, typecheck and unit tests but without the Chrome E2E suite and independently of the CI result for that commit, so a tag on a commit with failing E2E tests still goes live. Run the E2E suite in the Pages build job (or gate deployment on a successful CI run for the tagged commit).
 
-#8  LOW  Architecture  src/core/game.ts:237
-    With `arsenal: 'crates'` special weapons start empty, but only the setup screen (src/ui/menu.ts:290) makes sure crates are enabled. Any other MatchConfig source (tests, test hook, a future preset) can build a match where special weapons can never appear. Enforce the invariant in Game (or in one config normaliser) rather than in the menu.
+#8  LOW  Code  tests/game.test.ts
+    The AI's use of the drill and the napalm strike has no test (every other AI weapon choice is covered), so regressions in DRILL_REACH or strike scoring for napalm go unnoticed. Add planAttack tests for an enemy buried below and for a napalm strike in wind.
+
+#9  LOW  Code  scripts/capture-media.mjs:123
+    The napalm scene sets `bannerTime` on the World, which has no such field (it lives privately in Hud), so the "Retreat!" banner still covers the screenshot. Wait until the banner has faded (it lasts 1.8 s) instead of poking a non-existent field.
 ```
-
-## Resolution (1.17.4)
-
-| #   | Status                                                                                                                                                                                                                          |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Fixed (mostly):** limited-ammo projectile weapons search a coarser grid; a full-arsenal decision dropped from 69 ms to 48 ms (bazooka + grenade alone: 34 ms). Spreading the search over several frames stays open if needed. |
-| 2   | **Partly fixed:** AI candidates now come from `WeaponDef.kind` (projectile, strike, melee), so new weapons of those kinds are used automatically. Sounds and models are still keyed by id.                                      |
-| 3   | **Open:** design debt; worth doing before the next timed weapon.                                                                                                                                                                |
-| 4   | **Fixed:** the AI only launches the flying sheep along a path that clears the blast radius; test added.                                                                                                                         |
-| 5   | **Fixed at release:** Pages is enabled with the GitHub Actions source before the release tag is pushed.                                                                                                                         |
-| 6   | **Fixed:** the clock ticks, and the HUD timer turns urgent, while guiding and torching too; E2E test added.                                                                                                                     |
-| 7   | **Fixed:** the forced strike zoom is only undone if the player did not zoom meanwhile.                                                                                                                                          |
-| 8   | **Fixed:** the game drops crates at the default chance when the arsenal is crates-only and no crate chance is set; test added.                                                                                                  |
 
 ## Verdict
 
-Every feature works and is covered by unit and Chrome E2E tests; nothing here corrupts matches.
-Fix #5 before the first release that relies on Pages, and #1 and #4 are the user-visible ones
-worth fixing before release. #2 and #3 are design debt that grows with each new weapon.
+No crash or data loss in normal play; #1 can break the game from a bad stored entry and #2/#3 are
+the design debt most likely to cause bugs with the next weapons. Fix #1–#6 and #8–#9 now; #7 is a
+delivery safeguard worth adding before the next release.

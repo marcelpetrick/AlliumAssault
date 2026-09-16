@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.4] — 2026-09-16
+
+### Changed
+
+- `review.md`: new review of the full codebase against the v1.17.5 release, with nine verified
+  findings.
+
 ## [1.26.3] — 2026-09-16
 
 ### Changed
