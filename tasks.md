@@ -39,7 +39,7 @@ Status: ☐ open · ☑ done
 | T28 | Louder sound effects | ☑ | 1.18.3 |
 | T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☑ | 1.19.0 |
 | T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
-| T31 | Comic tombstones where buddies die | ☐ | |
+| T31 | Comic tombstones where buddies die | ☑ | 1.22.0 |
 | T37 | Play-in-browser link to GitHub Pages at the top of the README | ☑ | 1.18.1 |
 | T32 | Review and update all documents and Markdown files, including the architecture | ☐ | |
 | T33 | New screenshots and screen recordings for the README | ☐ | |
@@ -232,7 +232,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - **Frosty Peaks**: snow-covered ground, icy blue rock and water, snowy pines.
 - Selectable in the setup, used by the title demo; E2E screenshot of each.
 
-### T31 — Tombstones ☐
+### T31 — Tombstones ☑
 - When a buddy dies (0 HP death blast or self-destruct) a comic tombstone drops on the spot:
   rounded slab with "RIP", the buddy's name and a team-coloured ribbon, with a little wobble.
 - Tombstones are physics bodies: they fall, get knocked around by explosions and sink in water.

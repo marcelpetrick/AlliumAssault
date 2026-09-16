@@ -59,6 +59,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 - **Arsenal setting** — start with every weapon, find the special weapons (cluster bomb, sheep,
   air strike, self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule) in
   crates only, or play with infinite supplies of everything.
+- **Tombstones** — fallen buddies leave a comic R.I.P. tombstone with their name that explosions
+  knock around.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real
   trajectories to find its shots.
 - **Three sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove; seeded maps you can share.

@@ -18,6 +18,7 @@ export type Sfx =
   | 'hop'
   | 'plane'
   | 'alarm'
+  | 'thud'
   | 'ignite'
   | 'yelp'
   | 'bray'
@@ -170,6 +171,12 @@ export class Audio {
         // "Hot hot hot!": quick squeaky rising hop.
         this.tone('square', 600 * pitch, 1300 * pitch, 0.12, 0.12);
         this.tone('triangle', 900 * pitch, 1600 * pitch, 0.1, 0.1, 0.09);
+        break;
+      case 'thud':
+        // Stone slab plonking down, with a sad little trombone slide.
+        this.noise(0.12, 'lowpass', 600, 120, 0.4);
+        this.tone('sine', 110, 60, 0.2, 0.35);
+        [0, 0.28, 0.56].forEach((d, k) => this.tone('sawtooth', 311 - k * 18, 294 - k * 18, 0.26, 0.05, 0.25 + d));
         break;
       case 'alarm':
         // Frantic rising siren right before the bang.

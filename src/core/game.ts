@@ -95,6 +95,15 @@ export interface Buddy {
   walking: boolean;
 }
 
+/** A comic tombstone marking where a buddy died; a loose physics body like a crate. */
+export interface Grave {
+  id: number;
+  buddy: number;
+  team: number;
+  name: string;
+  body: Body;
+}
+
 export interface Team {
   index: number;
   config: TeamConfig;
@@ -132,6 +141,7 @@ export type GameEvent =
   | { type: 'punch'; weapon: WeaponId; buddy: number; x: number; y: number; dx: number; dy: number }
   | { type: 'damage'; buddy: number; amount: number }
   | { type: 'death'; buddy: number }
+  | { type: 'grave'; grave: number; buddy: number; x: number; y: number }
   | { type: 'drown'; buddy: number }
   | { type: 'splash'; x: number; y: number }
   | { type: 'jump'; buddy: number }
@@ -177,6 +187,10 @@ const REST_MAX_WAIT = 10;
 /** Upward speed a smashing projectile rebounds with after each impact. */
 const SMASH_REBOUND = 6;
 
+/** Tombstone collision radius and the upward pop it appears with. */
+const GRAVE_RADIUS = 0.45;
+const GRAVE_POP = 6;
+
 /** Napalm flames: reach from a flame to a buddy's feet, the hop they cause, its damage and cooldown. */
 const FLAME_REACH = 0.8;
 const FLAME_FALL_SPEED = 8;
@@ -214,6 +228,8 @@ export class Game {
   /** The flying sheep, while it flies. */
   flyer: Flyer | null = null;
   crates: Crate[] = [];
+  /** Tombstones left where buddies died. */
+  graves: Grave[] = [];
   /** Burning napalm patches. */
   flames: Flame[] = [];
   /** Game time until which each buddy (by id) is immune to flames after being scorched. */
@@ -454,6 +470,7 @@ export class Game {
     this.stepBurst(dt);
     this.stepCrates(dt);
     this.stepFlames(dt);
+    this.stepGraves(dt);
     this.stepPhase(dt);
   }
 
@@ -471,6 +488,7 @@ export class Game {
       this.flames.length === 0 &&
       this.drops.length === 0 &&
       this.crates.every((c) => c.body.restTime > 0.25) &&
+      this.graves.every((g) => g.body.restTime > 0.25) &&
       this.buddies.every((b) => !b.alive || b.body.restTime > 0.25)
     );
   }
@@ -793,6 +811,7 @@ export class Game {
             doomed.alive = false;
             this.emit({ type: 'death', buddy: doomed.id });
             this.explode(doomed.body.x, doomed.body.y, DEATH_BLAST.radius, DEATH_BLAST.damage, DEATH_BLAST.force);
+            this.raiseGrave(doomed);
             this.setPhase('settling');
           }
           break;
@@ -923,7 +942,25 @@ export class Game {
     b.hp = 0;
     this.emit({ type: 'death', buddy: b.id });
     this.explode(b.body.x, b.body.y, blast.radius, blast.damage, blast.force);
+    this.raiseGrave(b);
     this.endTurnEarly();
+  }
+
+  /** A tombstone pops up where a buddy died (drowned buddies sink without one). */
+  private raiseGrave(b: Buddy): void {
+    const body = createBody(b.body.x, b.body.y + 0.3, GRAVE_RADIUS);
+    body.vy = GRAVE_POP;
+    const grave: Grave = { id: this.nextId++, buddy: b.id, team: b.team, name: b.name, body };
+    this.graves.push(grave);
+    this.emit({ type: 'grave', grave: grave.id, buddy: b.id, x: body.x, y: body.y });
+  }
+
+  private stepGraves(dt: number): void {
+    if (!this.graves.length) return;
+    for (const g of this.graves) stepBody(this.terrain, g.body, dt, null);
+    const sunk = this.graves.filter((g) => g.body.y < this.terrain.waterLevel - 0.3 || g.body.x < -30 || g.body.x > this.terrain.width + 30);
+    for (const g of sunk) if (g.body.y < this.terrain.waterLevel) this.emit({ type: 'splash', x: g.body.x, y: this.terrain.waterLevel });
+    if (sunk.length) this.graves = this.graves.filter((g) => !sunk.includes(g));
   }
 
   private melee(b: Buddy, def: WeaponDef, dir: Point): void {
@@ -983,6 +1020,18 @@ export class Game {
       b.body.grounded = false;
       b.body.restTime = 0;
       this.damage(b, flatDamage ? damage : Math.round(damage * f));
+    }
+    // Tombstones get knocked around like buddies, without taking damage.
+    for (const g of this.graves) {
+      const dx = g.body.x - x;
+      const dy = g.body.y - y;
+      const dist = Math.hypot(dx, dy);
+      if (dist >= radius + g.body.radius) continue;
+      const f = 1 - Math.max(0, dist - g.body.radius) / radius;
+      g.body.vx += (dist > 1e-3 ? dx / dist : 0) * force * f;
+      g.body.vy += (dist > 1e-3 ? dy / dist : 1) * force * f + force * 0.35 * f;
+      g.body.grounded = false;
+      g.body.restTime = 0;
     }
     for (const crate of this.crates.filter((c) => Math.hypot(c.body.x - x, c.body.y - y) < radius + c.body.radius)) {
       // A chained blast may already have taken it; remove it before its own blast so it cannot recurse.

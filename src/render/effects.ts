@@ -1,4 +1,4 @@
-import { Color3, Color4, Mesh, MeshBuilder, ParticleSystem, PointLight, StandardMaterial, TransformNode, Vector3, type Scene, type Texture } from '@babylonjs/core';
+import { Color3, Color4, DynamicTexture, Mesh, MeshBuilder, ParticleSystem, PointLight, StandardMaterial, TransformNode, Vector3, type Scene, type Texture } from '@babylonjs/core';
 import { MUZZLE_OFFSET } from '../core/constants';
 import type { Game } from '../core/game';
 import type { WeaponId } from '../core/weapons';
@@ -38,6 +38,12 @@ interface PlaneView {
   age: number;
 }
 
+interface GraveView {
+  node: TransformNode;
+  age: number;
+  dispose(): void;
+}
+
 interface CrateView {
   node: TransformNode;
   age: number;
@@ -61,6 +67,7 @@ export class Effects {
   private flyer: SheepView | null = null;
   private readonly planes: PlaneView[] = [];
   private readonly crates = new Map<number, CrateView>();
+  private readonly graves = new Map<number, GraveView>();
   private readonly strikeCursor: Mesh;
   private flame: ParticleSystem | null = null;
   private dust: ParticleSystem | null = null;
@@ -102,6 +109,7 @@ export class Effects {
       crateWood: mat('fxCrateWood', '#b07a45', 0.08),
       crateBand: mat('fxCrateBand', '#5a3b22'),
       medWhite: mat('fxMedWhite', '#f5f5f2', 0.2),
+      stone: mat('fxStone', '#a9adb3', 0.05),
       medRed: mat('fxMedRed', '#e12b2b', 0.4),
       sheepFace: mat('fxSheepFace', '#2b2522'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
@@ -415,6 +423,29 @@ export class Effects {
     this.shake(0.05);
   }
 
+  /** Create, move and retire tombstones; new ones pop up with a springy wobble. */
+  syncGraves(game: Game, dt: number): void {
+    const live = new Set<number>();
+    for (const g of game.graves) {
+      live.add(g.id);
+      let view = this.graves.get(g.id);
+      if (!view) {
+        view = this.createGrave(g.name, Color3.FromHexString(game.teams[g.team].config.color));
+        this.graves.set(g.id, view);
+      }
+      view.age += dt;
+      const spring = view.age < 0.8 ? 1 + Math.sin(view.age * 18) * 0.25 * (1 - view.age / 0.8) : 1;
+      view.node.scaling.set(2 - spring, spring, 1);
+      view.node.position.set(g.body.x, g.body.y - g.body.radius, 0);
+      view.node.rotation.z = g.body.grounded ? 0 : -g.body.vx * 0.05;
+    }
+    for (const [id, view] of this.graves) {
+      if (live.has(id)) continue;
+      view.dispose();
+      this.graves.delete(id);
+    }
+  }
+
   /** Column of sparkles where a crate materialises. */
   teleport(x: number, y: number): void {
     this.burst(new Vector3(x, y + 0.4, -0.5), {
@@ -618,6 +649,55 @@ export class Effects {
       default:
         return this.createGrenade(this.materials.bomb);
     }
+  }
+
+  /** Cartoon tombstone: rounded slab with "R.I.P." and the name, a team-coloured ribbon and a sprout. */
+  private createGrave(name: string, team: Color3): GraveView {
+    const node = new TransformNode('grave', this.scene);
+    const part = (mesh: Mesh, material: StandardMaterial, x = 0, y = 0, z = 0) => {
+      mesh.material = material;
+      mesh.position.set(x, y, z);
+      mesh.parent = node;
+      mesh.isPickable = false;
+      return mesh;
+    };
+    part(MeshBuilder.CreateBox('graveSlab', { width: 0.9, height: 0.8, depth: 0.28 }, this.scene), this.materials.stone, 0, 0.4);
+    const top = part(MeshBuilder.CreateCylinder('graveTop', { height: 0.28, diameter: 0.9, tessellation: 24 }, this.scene), this.materials.stone, 0, 0.8);
+    top.rotation.x = Math.PI / 2;
+    part(MeshBuilder.CreateBox('graveBase', { width: 1.1, height: 0.14, depth: 0.42 }, this.scene), this.materials.stone, 0, 0.07);
+
+    const texture = new DynamicTexture('graveText', { width: 256, height: 256 }, this.scene, true);
+    const ctx = texture.getContext() as CanvasRenderingContext2D;
+    ctx.clearRect(0, 0, 256, 256);
+    ctx.fillStyle = '#4a4e55';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 76px sans-serif';
+    ctx.fillText('R.I.P.', 128, 118);
+    ctx.font = 'bold 40px sans-serif';
+    ctx.fillText(name.length > 10 ? `${name.slice(0, 9)}…` : name, 128, 190);
+    texture.hasAlpha = true;
+    texture.update();
+    const textMat = new StandardMaterial('graveTextMat', this.scene);
+    textMat.diffuseTexture = texture;
+    textMat.useAlphaFromDiffuseTexture = true;
+    textMat.specularColor = Color3.Black();
+    part(MeshBuilder.CreatePlane('graveFace', { width: 0.82, height: 0.82 }, this.scene), textMat, 0, 0.55, -0.15);
+
+    const ribbonMat = new StandardMaterial('graveRibbon', this.scene);
+    ribbonMat.diffuseColor = team;
+    ribbonMat.emissiveColor = team.scale(0.25);
+    part(MeshBuilder.CreateBox('graveRibbon', { width: 0.92, height: 0.1, depth: 0.3 }, this.scene), ribbonMat, 0, 0.18);
+    const sprout = part(MeshBuilder.CreateCylinder('graveSprout', { height: 0.3, diameterTop: 0, diameterBottom: 0.08, tessellation: 6 }, this.scene), this.materials.olive, 0.25, 1.05);
+    sprout.rotation.z = -0.4;
+    node.scaling.setAll(0.01);
+    return {
+      node,
+      age: 0,
+      dispose: () => {
+        node.dispose(false, true);
+        texture.dispose();
+      },
+    };
   }
 
   private createCrate(kind: 'health' | 'weapon'): TransformNode {

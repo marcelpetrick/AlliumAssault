@@ -49,6 +49,30 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
   expect(errors).toEqual([]);
 });
 
+test('tombstones: a buddy that dies leaves a comic tombstone with its name', async ({ page }, info) => {
+  const errors = await boot(page);
+  const start = await startDuel(page, { teams: [
+    { name: 'Red Roasters', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Ruby', 'Rex'] },
+    { name: 'Blue Bulbs', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Blu', 'Bo'] },
+  ] });
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const b = g.activeBuddy!;
+    b.hp = 1;
+    g.explode(b.body.x + 0.5, b.body.y - 0.4, 1.2, 5, 1);
+  });
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 12 && !app.game!.graves.length; k++) app.fastForward(1 / 60);
+  });
+  await waitForSound(page, 'thud');
+  const s = await state(page);
+  expect(s.graves).toHaveLength(1);
+  expect(s.graves[0].name).toBe(start.activeBuddy);
+  await info.attach('tombstone', { body: await page.screenshot(), contentType: 'image/png' });
+  expect(errors).toEqual([]);
+});
+
 test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute silences', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

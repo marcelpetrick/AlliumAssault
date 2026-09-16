@@ -232,6 +232,9 @@ export class App {
         case 'scorch':
           this.audio.play('yelp');
           break;
+        case 'grave':
+          this.audio.play('thud');
+          break;
         case 'hallelujah':
           this.audio.play('hallelujah');
           break;
@@ -392,6 +395,7 @@ export class App {
       terrainRevision: g?.terrain.revision ?? 0,
       projectiles: g?.projectiles.length ?? 0,
       sheep: g?.sheep ? { x: g.sheep.body.x, y: g.sheep.body.y } : null,
+      graves: (g?.graves ?? []).map((grave) => ({ name: grave.name, x: grave.body.x, y: grave.body.y })),
       crates: (g?.crates ?? []).map((c) => ({ id: c.id, kind: c.kind, weapon: c.weapon, x: c.body.x, y: c.body.y })),
       ammo: g?.activeTeamData ? { ...g.activeTeamData.ammo } : null,
       sound: this.audio.voices,

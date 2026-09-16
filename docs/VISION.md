@@ -24,7 +24,7 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 | Turn | 45 s (configurable), rotating team order, rotating buddy within a team |
 | Retreat | 5 s after an attack; movement only |
 | Settling | Turn ends only after all bodies and projectiles came to rest |
-| Health | 100 HP; ≤ 0 HP → death explosion at end of turn |
+| Health | 100 HP; ≤ 0 HP → death explosion at end of turn, leaving a tombstone (not when drowned) |
 | Hazards | Water at the bottom = instant death; fall damage above a speed threshold |
 | Wind | New random wind each turn, shown in HUD; affects projectiles per weapon |
 | Victory | Last team with living buddies wins; draw if none survive |

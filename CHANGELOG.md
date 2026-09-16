@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.22.0] — 2026-09-16
+
+### Added
+- Tombstones: a buddy that dies (death blast or self-destruct) leaves a comic tombstone with
+  "R.I.P.", its name and a team-coloured ribbon. It pops up with a springy wobble and a sad little
+  trombone, gets knocked around by explosions and sinks in water. Drowned buddies leave none.
+
 ## [1.21.0] — 2026-09-16
 
 ### Added

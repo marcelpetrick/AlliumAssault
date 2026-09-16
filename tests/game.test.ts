@@ -293,6 +293,37 @@ describe('match flow', () => {
     expect(g.winner).toBe(0);
   });
 
+  it('leaves a tombstone where a buddy died, which blasts knock around and water swallows', () => {
+    const g = flatGame([30, 70], [team('A', 1), team('B', 2)]);
+    toAiming(g);
+    const victim = g.buddies[1];
+    victim.hp = 5;
+    g.explode(victim.body.x, victim.body.y - 0.5, 2.5, 30, 2);
+    g.skipTurn();
+    runUntil(g, () => g.graves.length > 0, 10);
+    expect(g.graves).toHaveLength(1);
+    const grave = g.graves[0];
+    expect(grave.name).toBe(victim.name);
+    expect(Math.abs(grave.body.x - victim.body.x)).toBeLessThan(1);
+    runUntil(g, () => grave.body.grounded && grave.body.restTime > 0.3, 5);
+    const x = grave.body.x;
+    g.explode(x - 1.5, grave.body.y - 0.3, 3, 20, 10);
+    g.simulate(0.5);
+    expect(grave.body.x).toBeGreaterThan(x + 0.5);
+    g.terrain.carve(grave.body.x, 10, 12);
+    runUntil(g, () => g.graves.length === 0, 5);
+    expect(g.graves).toHaveLength(0);
+  });
+
+  it('leaves no tombstone for a drowned buddy', () => {
+    const g = flatGame([30, 70], [team('A', 1), team('B', 2)]);
+    toAiming(g);
+    g.terrain.carve(70, 12, 12);
+    runUntil(g, () => !g.buddies[1].alive, 10);
+    g.simulate(1);
+    expect(g.graves).toHaveLength(0);
+  });
+
   it('drowns buddies that fall into the water', () => {
     const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
     toAiming(g);
