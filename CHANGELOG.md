@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.4.1] — 2026-09-16
+
+### Changed
+- `tasks.md` tracks every request with its status and version: open features, E2E coverage,
+  GitHub Pages, review and release, plus answered questions.
+
 ## [1.4.0] — 2026-09-16
 
 ### Added
