@@ -115,8 +115,10 @@ push. Pushing a `v*` tag builds and publishes a GitHub release with the zipped s
 
 The project follows [Semantic Versioning](https://semver.org/). Every commit on `master` carries
 its own version: bump `package.json` (patch for fixes, docs and dependency updates; minor for
-features; major for breaking changes), add a matching entry to [`CHANGELOG.md`](CHANGELOG.md), and
-tag the commit `vX.Y.Z`. Pushing the tag publishes a GitHub release with the web build.
+features; major for breaking changes) and add a matching entry to [`CHANGELOG.md`](CHANGELOG.md).
+Commits are not tagged individually: a `vX.Y.Z` tag is created only for a release, and pushing it
+publishes a GitHub release with the web build. Contributor and agent rules are in
+[`AGENTS.md`](AGENTS.md).
 
 ## More screenshots
 

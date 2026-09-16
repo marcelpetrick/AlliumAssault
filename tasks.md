@@ -1,7 +1,8 @@
 # Tasks
 
-Every commit gets its own SemVer version (`package.json`, `CHANGELOG.md`, tag `vX.Y.Z`):
-patch for fixes/docs/balance, minor for features. `npm run verify` must be green before each commit.
+Every commit gets its own SemVer version (`package.json`, `CHANGELOG.md`; no tag — tags only for
+releases): patch for fixes/docs/balance, minor for features. `npm run verify` must be green before
+each commit. See `AGENTS.md`.
 
 Status: ☐ open · ☑ done
 

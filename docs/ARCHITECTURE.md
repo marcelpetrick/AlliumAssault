@@ -20,7 +20,7 @@ C4Context
   title System context — Allium Assault
 
   Person(player, "Player", "Plays hot-seat or against the AI with keyboard and mouse")
-  Person(dev, "Developer", "Changes code, pushes commits and version tags")
+  Person(dev, "Developer", "Changes code, pushes commits and release tags")
 
   System(game, "Allium Assault", "Static browser game: TypeScript, Babylon.js, Web Audio")
 
@@ -31,7 +31,7 @@ C4Context
   Rel(player, game, "Plays in", "Modern browser, WebGL2")
   Rel(host, game, "Serves static files", "HTTP")
   Rel(game, fonts, "Loads font stylesheet", "HTTPS")
-  Rel(dev, github, "Pushes commits and vX.Y.Z tags")
+  Rel(dev, github, "Pushes commits and release tags vX.Y.Z")
   Rel(github, host, "Provides zipped web build", "Release asset")
 ```
 
@@ -246,8 +246,8 @@ flowchart LR
   host --> browser["Player's browser"]
 ```
 
-Every commit on `master` carries its own SemVer version in `package.json`, a `CHANGELOG.md`
-entry and a matching tag; see the Versioning section of the README.
+Every commit on `master` carries its own SemVer version in `package.json` and a `CHANGELOG.md`
+entry; only releases get a `vX.Y.Z` tag. See the Versioning section of the README and `AGENTS.md`.
 
 ## 10. Key decisions
 

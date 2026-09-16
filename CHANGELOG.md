@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.3.1] — 2026-09-16
+
+### Added
+- `AGENTS.md`: project layout, commands, working rules and versioning for contributors and coding
+  agents.
+
+### Changed
+- Versioning: every commit still bumps the version and CHANGELOG, but only releases are tagged.
+
 ## [1.3.0] — 2026-09-16
 
 ### Added
