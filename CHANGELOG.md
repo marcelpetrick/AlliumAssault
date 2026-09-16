@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.6.1] — 2026-09-16
+
+### Added
+- End-to-end tests in Google Chrome for every weapon (bazooka, grenade, shotgun, punch, cluster
+  bomb, sheep, air strike) with real keyboard and mouse input, checking projectiles, craters,
+  damage and the sounds each weapon makes.
+- End-to-end tests for crates (teleport and pickup), audio cues (select, tick, turn chime, mute)
+  and the weapon bar.
+- The audio engine counts played sound effects; the test hook exposes them together with crates,
+  ammo and a world-to-screen projection.
+
+### Changed
+- E2E helpers moved to `e2e/support.ts`, typed from the app's test hook.
+- `tasks.md`: new open tasks for the blowtorch, baseball bat, walking and jumping sounds and
+  self-destruct.
+
 ## [1.6.0] — 2026-09-16
 
 ### Added

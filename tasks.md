@@ -21,7 +21,11 @@ Status: ☐ open · ☑ done
 | T5 | Sheep | ☑ | 1.4.0 |
 | T6 | Air strike | ☑ | 1.5.0 |
 | T7 | Random crates | ☑ | 1.6.0 |
-| T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☐ | |
+| T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☑ | 1.6.1 |
+| T14 | Blowtorch: dig forward through rock for three seconds | ☐ | |
+| T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☐ | |
+| T16 | Sounds for walking and jumping buddies | ☐ | |
+| T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
 | T12 | Self-review of all changes, fix findings | ☐ | |
@@ -86,7 +90,7 @@ Damage 30 → 45, launch force 13 → 15.
 - Crate model, teleport effect, pickup banner and sounds; AI walks to a nearby crate when it has
   no good shot.
 
-### T10 — End-to-end tests for the game and its features ☐
+### T10 — End-to-end tests for the game and its features ☑
 Goal: know that the game and each feature work in a real browser, in addition to unit tests.
 - Playwright driving Google Chrome (DevTools protocol), real keyboard and mouse input.
 - One E2E test per weapon: bazooka, grenade, shotgun, punch, cluster bomb, sheep, air strike —
@@ -96,6 +100,29 @@ Goal: know that the game and each feature work in a real browser, in addition to
 - Sounds: the audio engine records which sound effects played and which continuous voices run;
   tests assert the expected sounds for charging, flight, bounce, explosion, sheep, plane, crates.
 - No console errors in any test.
+- Done: `e2e/weapons.spec.ts` (one test per weapon), `e2e/features.spec.ts` (crates, audio cues,
+  weapon bar), shared helpers in `e2e/support.ts`; the audio engine counts played effects.
+
+### T14 — Blowtorch ☐
+- New weapon: on Space the buddy walks forward for three seconds and burns a tunnel through the
+  rock in front of it.
+- Works with gravity: without supporting ground the buddy falls; it never tunnels upwards.
+- Torch sound, flame particles, AI use when an enemy is behind a wall, unit and E2E tests.
+
+### T15 — Baseball bat ☐
+- New melee weapon: less damage than the Garlic Punch but a much stronger, flatter knock-back
+  along the aim direction, to swat enemies over edges and into the water.
+- Swing sound and bat model, AI use near cliffs and water, unit and E2E tests.
+
+### T17 — Self-destruct ☐
+- New weapon: the active buddy explodes on the spot and dies. Damage equals its current health,
+  the blast radius grows with it (health ÷ 10 units: 10 units at 100 HP), so a healthy buddy
+  takes a big part of the map with it.
+- Countdown sound and flash, AI use only when it pays off, unit and E2E tests.
+
+### T16 — Walking and jumping sounds ☐
+- Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.
+- E2E check that the sounds play.
 
 ### T8 — GitHub Pages deployment ☐
 - Workflow `.github/workflows/pages.yml`: build and deploy `dist/` via `actions/deploy-pages`
@@ -122,3 +149,4 @@ release with the zipped web build), confirm the Pages deployment.
 | Sheep | 1 per team, 75 damage, radius 4, 10 s max |
 | Air strike | 1 per team, 5 bomblets × 25 damage |
 | Crates | Normal = 35 % chance per turn, max 4 on the map; health +25 HP |
+| Self-destruct | damage = health, radius = health ÷ 10 |

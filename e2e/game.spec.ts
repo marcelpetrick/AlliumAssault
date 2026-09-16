@@ -1,65 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import type { MatchConfig } from '../src/core/game';
-
-interface BuddyState {
-  name: string;
-  team: number;
-  hp: number;
-  alive: boolean;
-  x: number;
-  y: number;
-  aim: number;
-}
-
-interface AppState {
-  demo: boolean;
-  paused: boolean;
-  screen: string | null;
-  phase: string | null;
-  turn: number;
-  activeTeam: number;
-  activeBuddy: string | null;
-  humanTurn: boolean;
-  weapon: string | null;
-  charge: number | null;
-  winner: number | null;
-  terrainRevision: number;
-  projectiles: number;
-  sheep: { x: number; y: number } | null;
-  sound: { charge: boolean; flights: number };
-  buddies: BuddyState[];
-}
-
-interface Hook {
-  ready: boolean;
-  state(): AppState;
-  startMatch(config: MatchConfig): void;
-  fastForward(seconds: number): void;
-}
-
-declare global {
-  interface Window {
-    __allium: Hook;
-  }
-}
-
-const state = (page: Page) => page.evaluate(() => window.__allium.state());
-const waitFor = (page: Page, fn: (s: AppState) => boolean, timeout = 90_000) =>
-  page.waitForFunction((src) => new Function('s', `return (${src})(s)`)(window.__allium.state()), fn.toString(), { timeout, polling: 'raf' });
-
-async function boot(page: Page): Promise<string[]> {
-  const errors: string[] = [];
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-  page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/?quality=low');
-  await page.waitForFunction(() => window.__allium?.ready, null, { timeout: 60_000 });
-  return errors;
-}
-
-async function toHumanAiming(page: Page): Promise<AppState> {
-  await waitFor(page, (s) => s.phase === 'aiming' && s.humanTurn);
-  return state(page);
-}
+import { expect, test } from '@playwright/test';
+import { boot, state, toHumanAiming, waitFor } from './support';
 
 test('title screen runs a live 3D demo behind the menu', async ({ page }, info) => {
   const errors = await boot(page);
@@ -124,39 +64,6 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
   await waitFor(page, (s) => s.phase === 'retreat' || s.phase === 'settling', 20_000);
   // Firing on key-up happens between frames; sounds follow on the next frame.
   await waitFor(page, (s) => !s.sound.charge && (s.projectiles === 0 || s.sound.flights > 0), 10_000);
-  expect(errors).toEqual([]);
-});
-
-test('sheep: release with Space, it hops away, Space again blows it up', async ({ page }, info) => {
-  const errors = await boot(page);
-  await page.evaluate(() =>
-    window.__allium.startMatch({
-      seed: 'e2e-sheep',
-      teams: [
-        { name: 'Red Roasters', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Ruby'] },
-        { name: 'Blue Bulbs', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Blu'] },
-      ],
-      turnTime: 60,
-      retreatTime: 3,
-      windMax: 0,
-      theme: 'meadow',
-    }),
-  );
-  const start = await toHumanAiming(page);
-  const me = start.buddies.find((b) => b.name === start.activeBuddy)!;
-  await page.keyboard.press('Digit6');
-  await waitFor(page, (s) => s.weapon === 'sheep', 10_000);
-  await page.keyboard.press('Space');
-  await waitFor(page, (s) => s.phase === 'guiding' && s.sheep !== null, 10_000);
-  await page.evaluate(() => window.__allium.fastForward(1.5));
-  const guiding = await state(page);
-  expect(guiding.phase).toBe('guiding');
-  expect(Math.abs(guiding.sheep!.x - me.x)).toBeGreaterThan(2);
-  await info.attach('sheep', { body: await page.screenshot(), contentType: 'image/png' });
-  const before = guiding.terrainRevision;
-  await page.keyboard.press('Space');
-  await page.waitForFunction((rev) => window.__allium.state().sheep === null && window.__allium.state().terrainRevision > rev, before, { timeout: 10_000 });
-  expect(['retreat', 'settling']).toContain((await state(page)).phase);
   expect(errors).toEqual([]);
 });
 

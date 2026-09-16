@@ -12,6 +12,9 @@ const hook = {
   fastForward: (seconds: number) => app.fastForward(seconds),
   stepFrames: (count: number, dt?: number) => app.stepFrames(count, dt),
   setManual: (manual: boolean) => (app.manual = manual),
+  /** World position → CSS pixels relative to the canvas, for real mouse clicks in tests. */
+  project: (x: number, y: number) => app.world?.project(x, y) ?? null,
 };
+export type AlliumHook = typeof hook;
 (window as unknown as { __allium: typeof hook }).__allium = hook;
 app.engine.onEndFrameObservable.addOnce(() => (hook.ready = true));

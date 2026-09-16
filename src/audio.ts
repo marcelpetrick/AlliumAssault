@@ -49,6 +49,8 @@ export class Audio {
   private noiseBuffer: AudioBuffer | null = null;
   private chargeVoice: Voice | null = null;
   private readonly flightVoices = new Map<number, Voice>();
+  /** How often each sound effect was played (for tests). */
+  readonly played: Partial<Record<Sfx, number>> = {};
   muted: boolean;
 
   constructor() {
@@ -91,6 +93,7 @@ export class Audio {
 
   play(sfx: Sfx, intensity = 1): void {
     if (!this.ctx || this.muted) return;
+    this.played[sfx] = (this.played[sfx] ?? 0) + 1;
     const i = Math.min(Math.max(intensity, 0.2), 1.5);
     const pitch = 0.9 + Math.random() * 0.2;
     switch (sfx) {
@@ -221,8 +224,8 @@ export class Audio {
   }
 
   /** Continuous sounds currently playing (for tests). */
-  get voices(): { charge: boolean; flights: number } {
-    return { charge: this.chargeVoice !== null, flights: this.flightVoices.size };
+  get voices(): { charge: boolean; flights: number; played: Partial<Record<Sfx, number>> } {
+    return { charge: this.chargeVoice !== null, flights: this.flightVoices.size, played: { ...this.played } };
   }
 
   /** Stop every continuous sound (pause, mute, match change). */
