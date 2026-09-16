@@ -38,6 +38,11 @@ interface PlaneView {
   age: number;
 }
 
+interface CrateView {
+  node: TransformNode;
+  age: number;
+}
+
 interface SheepView {
   id: number;
   node: TransformNode;
@@ -54,6 +59,7 @@ export class Effects {
   private readonly projectiles = new Map<number, ProjectileView>();
   private sheep: SheepView | null = null;
   private readonly planes: PlaneView[] = [];
+  private readonly crates = new Map<number, CrateView>();
   private readonly strikeCursor: Mesh;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
@@ -84,6 +90,10 @@ export class Effects {
       cluster: mat('fxCluster', '#d42a24', 0.15),
       metal: mat('fxMetal', '#9aa3ad'),
       wool: mat('fxWool', '#f4f1ea', 0.25),
+      crateWood: mat('fxCrateWood', '#b07a45', 0.08),
+      crateBand: mat('fxCrateBand', '#5a3b22'),
+      medWhite: mat('fxMedWhite', '#f5f5f2', 0.2),
+      medRed: mat('fxMedRed', '#e12b2b', 0.4),
       sheepFace: mat('fxSheepFace', '#2b2522'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
       tracer: mat('fxTracer', '#ffe27a', 1),
@@ -259,6 +269,59 @@ export class Effects {
     }
   }
 
+  /** Create, move and retire crate models; new crates scale in with a teleport shimmer. */
+  syncCrates(game: Game, dt: number): void {
+    const live = new Set<number>();
+    for (const c of game.crates) {
+      live.add(c.id);
+      let view = this.crates.get(c.id);
+      if (!view) {
+        view = { node: this.createCrate(c.kind), age: 0 };
+        this.crates.set(c.id, view);
+      }
+      view.age += dt;
+      const grow = Math.min(1, view.age / 0.45);
+      const pop = grow < 1 ? grow * (1 + Math.sin(grow * Math.PI) * 0.35) : 1;
+      view.node.scaling.setAll(Math.max(0.01, pop));
+      view.node.position.set(c.body.x, c.body.y, 0);
+      view.node.rotation.y = grow < 1 ? (1 - grow) * 6 : 0;
+    }
+    for (const [id, view] of this.crates) {
+      if (live.has(id)) continue;
+      view.node.dispose();
+      this.crates.delete(id);
+    }
+  }
+
+  /** Column of sparkles where a crate materialises. */
+  teleport(x: number, y: number): void {
+    this.burst(new Vector3(x, y + 0.4, -0.5), {
+      count: 60,
+      colors: [new Color4(0.7, 0.95, 1, 1), new Color4(0.5, 0.7, 1, 0.9), new Color4(0.8, 0.6, 1, 0)],
+      size: [0.08, 0.26],
+      life: [0.4, 0.9],
+      power: [0.5, 2.5],
+      radius: 0.5,
+      gravity: 5,
+      additive: true,
+    });
+  }
+
+  /** Sparkle burst when a crate is collected. */
+  pickup(x: number, y: number, health: boolean): void {
+    const tint = health ? new Color4(0.5, 1, 0.55, 1) : new Color4(1, 0.85, 0.35, 1);
+    this.burst(new Vector3(x, y, -0.6), {
+      count: 45,
+      colors: [tint, new Color4(1, 1, 1, 0.9), new Color4(tint.r, tint.g, tint.b, 0)],
+      size: [0.1, 0.3],
+      life: [0.35, 0.8],
+      power: [2, 6],
+      radius: 0.3,
+      gravity: 2,
+      additive: true,
+    });
+  }
+
   /** Crosshair where a click would call the air strike; null hides it. */
   setStrikeCursor(at: { x: number; y: number } | null, time: number): void {
     this.strikeCursor.setEnabled(!!at);
@@ -398,6 +461,32 @@ export class Effects {
       default:
         return this.createGrenade(this.materials.bomb);
     }
+  }
+
+  private createCrate(kind: 'health' | 'weapon'): TransformNode {
+    const node = new TransformNode('crate', this.scene);
+    const part = (mesh: Mesh, material: StandardMaterial, x = 0, y = 0, z = 0) => {
+      mesh.material = material;
+      mesh.position.set(x, y, z);
+      mesh.parent = node;
+      mesh.isPickable = false;
+      return mesh;
+    };
+    const size = 0.82;
+    if (kind === 'health') {
+      part(MeshBuilder.CreateBox('crateBox', { size }, this.scene), this.materials.medWhite);
+      // Red cross on the front face, towards the camera.
+      part(MeshBuilder.CreateBox('crossH', { width: 0.56, height: 0.16, depth: 0.02 }, this.scene), this.materials.medRed, 0, 0, -size / 2 - 0.01);
+      part(MeshBuilder.CreateBox('crossV', { width: 0.16, height: 0.56, depth: 0.02 }, this.scene), this.materials.medRed, 0, 0, -size / 2 - 0.01);
+    } else {
+      part(MeshBuilder.CreateBox('crateBox', { size }, this.scene), this.materials.crateWood);
+      for (const y of [-0.28, 0.28]) {
+        part(MeshBuilder.CreateBox('band', { width: size + 0.03, height: 0.1, depth: size + 0.03 }, this.scene), this.materials.crateBand, 0, y);
+      }
+      const mark = part(MeshBuilder.CreateBox('mark', { width: 0.1, height: 0.46, depth: 0.02 }, this.scene), this.materials.crateBand, 0, 0, -size / 2 - 0.02);
+      mark.rotation.z = Math.PI / 4;
+    }
+    return node;
   }
 
   private createSheep(id: number): SheepView {

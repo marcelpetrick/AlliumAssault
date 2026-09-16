@@ -25,6 +25,7 @@ import {
 import { clamp, lerp, type Point } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
+import { CRATE_BLAST, CRATE_HEAL, MAX_CRATES, rollCrate, type Crate } from './crates';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { PLANE_SPEED, planStrike } from './strike';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
@@ -48,6 +49,8 @@ export interface MatchConfig {
   retreatTime: number;
   /** Maximum wind strength, 0..1. */
   windMax: number;
+  /** Chance per turn (0..1) that a crate teleports onto the map; missing means no crates. */
+  crates?: number;
   theme: string;
 }
 
@@ -111,6 +114,8 @@ export type GameEvent =
   | { type: 'land'; buddy: number; speed: number }
   | { type: 'bounce'; x: number; y: number; speed: number }
   | { type: 'sheepHop'; x: number; y: number }
+  | { type: 'crateSpawn'; crate: number; x: number; y: number }
+  | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number }
   | { type: 'airstrike'; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'gameOver'; winner: number | null };
 
@@ -128,6 +133,7 @@ export class Game {
   projectiles: Projectile[] = [];
   /** The released sheep, while it hops. */
   sheep: Sheep | null = null;
+  crates: Crate[] = [];
   /** Air strike bombs waiting for the plane to reach their release point. */
   drops: { weapon: WeaponId; x: number; y: number; vx: number; at: number; owner: number }[] = [];
   readonly input: InputState = { left: false, right: false, up: false, down: false };
@@ -149,6 +155,7 @@ export class Game {
 
   private events: GameEvent[] = [];
   private readonly windRng: Rng;
+  private readonly crateRng: Rng;
   private readonly ai = new Map<number, AiDriver>();
   private nextId = 1;
 
@@ -167,6 +174,7 @@ export class Game {
     }
     this.terrain = terrain!;
     this.windRng = rngFor(config.seed, 'wind');
+    this.crateRng = rngFor(config.seed, 'crates');
 
     // Interleave teams from left to right: A B C D A B C D ...
     const ordered = [...spawns!].sort((a, b) => a.x - b.x);
@@ -338,6 +346,7 @@ export class Game {
     this.stepDrops();
     this.stepProjectiles(dt);
     this.stepSheep(dt);
+    this.stepCrates(dt);
     this.stepPhase(dt);
   }
 
@@ -348,7 +357,13 @@ export class Game {
   }
 
   isSettled(): boolean {
-    return this.projectiles.length === 0 && !this.sheep && this.drops.length === 0 && this.buddies.every((b) => !b.alive || b.body.restTime > 0.25);
+    return (
+      this.projectiles.length === 0 &&
+      !this.sheep &&
+      this.drops.length === 0 &&
+      this.crates.every((c) => c.body.restTime > 0.25) &&
+      this.buddies.every((b) => !b.alive || b.body.restTime > 0.25)
+    );
   }
 
   private stepBuddies(dt: number): void {
@@ -390,6 +405,47 @@ export class Game {
         if (hit === 'water') this.emit({ type: 'splash', x: p.x, y: this.terrain.waterLevel });
       }
     }
+  }
+
+  private stepCrates(dt: number): void {
+    for (const crate of [...this.crates]) {
+      stepBody(this.terrain, crate.body, dt, null);
+      const { x, y } = crate.body;
+      if (y < this.terrain.waterLevel - 0.3 || x < -30 || x > this.terrain.width + 30) {
+        this.removeCrate(crate);
+        if (y < this.terrain.waterLevel) this.emit({ type: 'splash', x, y: this.terrain.waterLevel });
+        continue;
+      }
+      const finder = this.buddies.find((b) => b.alive && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + crate.body.radius + 0.1);
+      if (finder) this.collectCrate(crate, finder);
+    }
+  }
+
+  private collectCrate(crate: Crate, b: Buddy): void {
+    this.removeCrate(crate);
+    let amount = 1;
+    if (crate.kind === 'health') {
+      amount = CRATE_HEAL;
+      b.hp += amount;
+    } else if (crate.weapon) {
+      this.teams[b.team].ammo[crate.weapon] += amount;
+    }
+    this.emit({ type: 'cratePickup', crate: crate.id, buddy: b.id, kind: crate.kind, weapon: crate.weapon, amount });
+  }
+
+  private removeCrate(crate: Crate): void {
+    this.crates = this.crates.filter((c) => c !== crate);
+  }
+
+  /** At a turn start, maybe teleport a new crate onto a free land spot. */
+  private maybeDropCrate(): void {
+    const chance = this.config.crates ?? 0;
+    if (chance <= 0 || this.turn <= 1 || this.crates.length >= MAX_CRATES || this.crateRng() >= chance) return;
+    const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body)];
+    const crate = rollCrate(this.terrain, this.crateRng, this.nextId++, occupied);
+    if (!crate) return;
+    this.crates.push(crate);
+    this.emit({ type: 'crateSpawn', crate: crate.id, x: crate.body.x, y: crate.body.y });
   }
 
   private stepDrops(): void {
@@ -494,6 +550,7 @@ export class Game {
       break;
     }
     this.turn++;
+    this.maybeDropCrate();
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
@@ -612,6 +669,12 @@ export class Game {
       b.body.grounded = false;
       b.body.restTime = 0;
       this.damage(b, flatDamage ? damage : Math.round(damage * f));
+    }
+    for (const crate of this.crates.filter((c) => Math.hypot(c.body.x - x, c.body.y - y) < radius + c.body.radius)) {
+      // A chained blast may already have taken it; remove it before its own blast so it cannot recurse.
+      if (!this.crates.includes(crate)) continue;
+      this.removeCrate(crate);
+      this.explode(crate.body.x, crate.body.y, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force);
     }
     for (const p of this.projectiles) {
       const dist = Math.hypot(p.x - x, p.y - y);

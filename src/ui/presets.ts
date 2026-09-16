@@ -16,6 +16,11 @@ export const WIND_OPTIONS = [
   { label: 'Strong', value: 1 },
 ];
 export const TURN_OPTIONS = [30, 45, 60, 90];
+export const CRATE_OPTIONS = [
+  { label: 'Off', value: 0 },
+  { label: 'Normal', value: 0.35 },
+  { label: 'Lots', value: 0.7 },
+];
 
 export const randomSeed = (): string => Math.random().toString(36).slice(2, 8);
 
@@ -42,6 +47,7 @@ export function quickMatch(): MatchConfig {
     turnTime: 45,
     retreatTime: 5,
     windMax: 0.7,
+    crates: 0.35,
     theme: 'meadow',
   };
 }
@@ -54,6 +60,7 @@ export function demoMatch(): MatchConfig {
     turnTime: 20,
     retreatTime: 2,
     windMax: 0.5,
+    crates: 0.35,
     theme: THEME_IDS[Math.floor(Math.random() * THEME_IDS.length)],
   };
 }

@@ -98,6 +98,12 @@ export class Hud {
         case 'damage':
           if (buddy) this.float(`−${e.amount}`, buddy.body.x, buddy.body.y + 1.6, g.teams[buddy.team].config.color);
           break;
+        case 'cratePickup':
+          if (buddy) {
+            const text = e.kind === 'health' ? `+${e.amount} HP` : `+${e.amount} ${WEAPONS[e.weapon!].icon} ${WEAPONS[e.weapon!].name}`;
+            this.float(text, buddy.body.x, buddy.body.y + 1.6, e.kind === 'health' ? '#5ee27a' : '#ffd166');
+          }
+          break;
         case 'drown':
           if (buddy) this.banner('Splash!', `${buddy.name} went for a swim`, '#4fc3f7');
           break;
@@ -152,7 +158,7 @@ export class Hud {
     this.el.querySelectorAll<HTMLElement>('.team-bar').forEach((bar, k) => {
       const t = g.teams[k];
       const hp = t.buddies.reduce((sum, b) => sum + (b.alive ? b.hp : 0), 0);
-      (bar.querySelector('.team-bar-fill') as HTMLElement).style.width = `${(hp / (t.buddies.length * 100)) * 100}%`;
+      (bar.querySelector('.team-bar-fill') as HTMLElement).style.width = `${Math.min(100, (hp / (t.buddies.length * 100)) * 100)}%`;
       bar.classList.toggle('active', k === g.activeTeam);
       bar.classList.toggle('out', hp <= 0);
     });

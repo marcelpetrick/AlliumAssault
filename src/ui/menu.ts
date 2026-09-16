@@ -1,7 +1,7 @@
 import type { AiLevel, Controller, MatchConfig } from '../core/game';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
-import { makeTeam, quickMatch, randomSeed, setBuddyCount, TEAM_COLORS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
+import { CRATE_OPTIONS, makeTeam, quickMatch, randomSeed, setBuddyCount, TEAM_COLORS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
 
 export type Screen = 'title' | 'setup' | 'help' | 'pause' | 'victory';
 
@@ -125,6 +125,7 @@ export class Menu {
           <section class="options">
             <div><label class="field-label">Turn time</label>${seg(TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })), 'turn')}</div>
             <div><label class="field-label">Wind</label>${seg(WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })), 'wind')}</div>
+            <div><label class="field-label">Crates</label>${seg(CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })), 'crates')}</div>
             <div><label class="field-label">Map seed</label>
               <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
             </div>
@@ -278,6 +279,9 @@ export class Menu {
         break;
       case 'wind':
         d.windMax = Number(value);
+        break;
+      case 'crates':
+        d.crates = Number(value);
         break;
       case 'dice':
         d.seed = randomSeed();

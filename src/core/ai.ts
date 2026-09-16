@@ -3,6 +3,7 @@ import type { AiLevel, Buddy, Game } from './game';
 import { clamp, lerp } from './math';
 import { GRAVITY, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
+import type { Crate } from './crates';
 import { releaseSheep, stepSheep } from './sheep';
 import { groundBelow } from './strike';
 import { WEAPONS, type WeaponDef, type WeaponId } from './weapons';
@@ -189,9 +190,26 @@ function lineOfSight(game: Game, me: Buddy, target: Buddy): boolean {
   return true;
 }
 
+/** Attacks scoring below this are worth skipping for a crate within reach. */
+const CRATE_WORTH = 15;
+
+/** Closest crate the buddy can plausibly walk to this turn. */
+function nearbyCrate(game: Game, me: Buddy): Crate | null {
+  let best: Crate | null = null;
+  for (const c of game.crates) {
+    const dx = Math.abs(c.body.x - me.body.x);
+    if (dx > 12 || Math.abs(c.body.y - me.body.y) > 3 || !c.body.grounded) continue;
+    if (!best || dx < Math.abs(best.body.x - me.body.x)) best = c;
+  }
+  return best;
+}
+
 /** Drives an AI team through the same commands a human uses. */
 export class AiDriver {
-  private stage: 'think' | 'aim' | 'fire' | 'wait' = 'think';
+  private stage: 'think' | 'fetch' | 'aim' | 'fire' | 'wait' = 'think';
+  /** Crate being walked to, and how often this turn the AI already went for one. */
+  private fetch: { crate: number; lastX: number; stuck: number } | null = null;
+  private fetches = 0;
   private timer = 0;
   private plan: AttackPlan | null = null;
 
@@ -201,6 +219,8 @@ export class AiDriver {
   ) {}
 
   reset(): void {
+    this.fetch = null;
+    this.fetches = 0;
     this.stage = 'think';
     this.timer = 0;
     this.plan = null;
@@ -232,11 +252,35 @@ export class AiDriver {
         if (this.timer < LEVELS[this.level].think) return;
         const midUse = game.shotsLeft < WEAPONS[game.weapon].shots;
         const plan = planAttack(game, me, this.level, this.rng, midUse ? game.weapon : undefined);
+        const crate = midUse ? null : nearbyCrate(game, me);
+        if (crate && plan.score < CRATE_WORTH && this.fetches < 2 && game.turnTimeLeft > 12) {
+          this.fetches++;
+          this.fetch = { crate: crate.id, lastX: me.body.x, stuck: 0 };
+          this.stage = 'fetch';
+          this.timer = 0;
+          return;
+        }
         this.plan = plan;
         game.selectWeapon(plan.weapon);
         game.face(plan.facing);
         this.stage = 'aim';
         this.timer = 0;
+        return;
+      }
+      case 'fetch': {
+        const target = game.crates.find((c) => c.id === this.fetch?.crate);
+        if (!target || this.timer > 6) {
+          // Picked up, destroyed or out of reach: think again from the new position.
+          this.stage = 'think';
+          this.timer = LEVELS[this.level].think * 0.5;
+          return;
+        }
+        const f = this.fetch!;
+        if (target.body.x < me.body.x) input.left = true;
+        else input.right = true;
+        f.stuck = Math.abs(me.body.x - f.lastX) < 0.01 ? f.stuck + dt : 0;
+        f.lastX = me.body.x;
+        if (f.stuck > 0.3) game.jump(false);
         return;
       }
       case 'aim': {

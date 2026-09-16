@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.6.0] — 2026-09-16
+
+### Added
+- Random crates: from the second turn on, a crate may teleport onto free land at the start of a
+  turn (at most four on the map, placement follows the map seed). Health crates heal the buddy who
+  touches them by 25 HP; weapon crates add a cluster bomb, sheep or air strike to the team.
+  Crates fall, and explode when caught in a blast.
+- Crates option in the match setup (Off / Normal / Lots); quick matches use Normal.
+- Crate models, teleport shimmer, pickup sparkles, floating "+25 HP" / "+1 Sheep" text and
+  teleport, pickup and heal sounds.
+- The AI walks to a nearby crate when it has no good shot.
+
 ## [1.5.0] — 2026-09-16
 
 ### Added

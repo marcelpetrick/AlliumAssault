@@ -182,6 +182,14 @@ export class World {
           this.goalDistance = Math.max(this.goalDistance, 44);
           break;
         }
+        case 'crateSpawn':
+          this.effects.teleport(e.x, e.y);
+          break;
+        case 'cratePickup': {
+          const finder = this.game.buddies.find((b) => b.id === e.buddy);
+          if (finder) this.effects.pickup(finder.body.x, finder.body.y + 0.5, e.kind === 'health');
+          break;
+        }
         case 'turnStart':
           this.manualUntil = -1;
           this.hold = null;
@@ -207,6 +215,7 @@ export class World {
 
     this.effects.syncProjectiles(g, dt);
     this.effects.syncSheep(g);
+    this.effects.syncCrates(g, dt);
     const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
     this.effects.setStrikeCursor(targeting ? this.pointer : null, this.time);
     if (this.strikeView && this.time > this.strikeView.until) {

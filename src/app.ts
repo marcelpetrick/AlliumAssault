@@ -207,6 +207,12 @@ export class App {
         case 'airstrike':
           this.audio.play('plane');
           break;
+        case 'crateSpawn':
+          this.audio.play('teleport');
+          break;
+        case 'cratePickup':
+          this.audio.play(e.kind === 'health' ? 'heal' : 'pickup');
+          break;
         case 'punch':
           this.audio.play('punch');
           break;
@@ -352,6 +358,8 @@ export class App {
       terrainRevision: g?.terrain.revision ?? 0,
       projectiles: g?.projectiles.length ?? 0,
       sheep: g?.sheep ? { x: g.sheep.body.x, y: g.sheep.body.y } : null,
+      crates: (g?.crates ?? []).map((c) => ({ id: c.id, kind: c.kind, weapon: c.weapon, x: c.body.x, y: c.body.y })),
+      ammo: g?.activeTeamData ? { ...g.activeTeamData.ammo } : null,
       sound: this.audio.voices,
       buddies: (g?.buddies ?? []).map((b) => ({ id: b.id, name: b.name, team: b.team, hp: b.hp, alive: b.alive, x: b.body.x, y: b.body.y, aim: b.aim, facing: b.facing })),
     };

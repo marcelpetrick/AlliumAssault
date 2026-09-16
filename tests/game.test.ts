@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { planAttack } from '../src/core/ai';
 import { Game, type GameEvent } from '../src/core/game';
+import { createBody } from '../src/core/physics';
 import { mulberry32 } from '../src/core/rng';
 import { config, flatGame, runUntil, team } from './helpers';
 
@@ -266,6 +267,65 @@ describe('match flow', () => {
   });
 });
 
+describe('crates', () => {
+  const crateGame = (crates: number) => flatGame([20, 100], [team('A', 1), team('B', 1)], { crates, turnTime: 1 });
+  const nextTurn = (g: Game) => {
+    g.skipTurn();
+    runUntil(g, () => g.phase === 'aiming', 20);
+  };
+
+  it('teleport onto free land from the second turn on, at most four, never with crates off', () => {
+    const off = crateGame(0);
+    for (let k = 0; k < 6; k++) nextTurn(off);
+    expect(off.crates).toHaveLength(0);
+
+    const g = crateGame(1);
+    toAiming(g);
+    expect(g.crates).toHaveLength(0);
+    for (let k = 0; k < 8; k++) nextTurn(g);
+    expect(g.crates).toHaveLength(4);
+    for (const c of g.crates) {
+      expect(c.body.y).toBeCloseTo(20.45, 0);
+      for (const b of g.buddies) expect(Math.abs(b.body.x - c.body.x)).toBeGreaterThan(2);
+    }
+  });
+
+  it('are placed the same way for the same seed', () => {
+    const a = crateGame(0.5);
+    const b = crateGame(0.5);
+    for (let k = 0; k < 8; k++) {
+      nextTurn(a);
+      nextTurn(b);
+    }
+    expect(a.crates.map((c) => [c.kind, c.weapon, c.body.x])).toEqual(b.crates.map((c) => [c.kind, c.weapon, c.body.x]));
+  });
+
+  it('health crate heals the buddy who touches it; weapon crate adds team ammo', () => {
+    const g = crateGame(0);
+    toAiming(g);
+    const me = g.buddies[0];
+    me.hp = 40;
+    g.crates.push({ id: 900, kind: 'health', weapon: null, body: createBody(me.body.x + 0.9, me.body.y, 0.45) });
+    g.step();
+    expect(g.crates).toHaveLength(0);
+    expect(me.hp).toBe(65);
+    g.crates.push({ id: 901, kind: 'weapon', weapon: 'sheep', body: createBody(me.body.x - 0.9, me.body.y, 0.45) });
+    g.step();
+    expect(g.teams[0].ammo.sheep).toBe(2);
+    expect(g.drainEvents().filter((e) => e.type === 'cratePickup')).toHaveLength(2);
+  });
+
+  it('blow up when caught in an explosion', () => {
+    const g = crateGame(0);
+    toAiming(g);
+    g.crates.push({ id: 902, kind: 'weapon', weapon: 'airstrike', body: createBody(60, 20.45, 0.45) });
+    g.crates.push({ id: 903, kind: 'health', weapon: null, body: createBody(61.5, 20.45, 0.45) });
+    g.explode(59, 20, 2, 20, 5);
+    expect(g.crates).toHaveLength(0);
+    expect(g.drainEvents().filter((e) => e.type === 'explosion')).toHaveLength(3);
+  });
+});
+
 describe('AI', () => {
   it('finds a damaging bazooka or grenade shot on open ground', () => {
     const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)]);
@@ -305,6 +365,15 @@ describe('AI', () => {
     runUntil(g, () => g.drops.length > 0, 10);
     runUntil(g, () => g.phase === 'turnStart', 20);
     expect(g.buddies[1].hp).toBeLessThan(70);
+  });
+
+  it('walks to a nearby crate when it has no good shot', () => {
+    const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0 });
+    for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(75, y, 3);
+    g.crates.push({ id: 950, kind: 'health', weapon: null, body: createBody(47, 20.45, 0.45) });
+    runUntil(g, () => g.crates.length === 0 || g.phase !== 'aiming' && g.phase !== 'turnStart', 20);
+    expect(g.crates).toHaveLength(0);
+    expect(g.buddies[0].hp).toBe(125);
   });
 
   it('re-plans with the current weapon after the first shotgun shot', () => {

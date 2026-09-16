@@ -20,7 +20,7 @@ Status: ☐ open · ☑ done
 | T11 | Versioning: bump every commit, tag only releases; `AGENTS.md` | ☑ | 1.3.1 |
 | T5 | Sheep | ☑ | 1.4.0 |
 | T6 | Air strike | ☑ | 1.5.0 |
-| T7 | Random crates | ☐ | |
+| T7 | Random crates | ☑ | 1.6.0 |
 | T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
@@ -78,7 +78,7 @@ Damage 30 → 45, launch force 13 → 15.
 - Bombs land on the highest ground below the target (e.g. a floating island above the clicked
   spot), like in Worms.
 
-### T7 — Random crates ☐
+### T7 — Random crates ☑
 - At a turn start, with a chance (setting Off / Normal / Lots) a crate teleports onto a random
   land spot (seeded, at most 4 on the map). Crates fall and can be destroyed by explosions.
 - Health crate: +25 HP for the collecting buddy. Weapon crate: +1 sheep, air strike or cluster

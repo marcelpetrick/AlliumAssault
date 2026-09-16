@@ -16,7 +16,10 @@ export type Sfx =
   | 'tick'
   | 'baa'
   | 'hop'
-  | 'plane';
+  | 'plane'
+  | 'teleport'
+  | 'pickup'
+  | 'heal';
 
 /** Something in flight that should be heard for as long as it flies. */
 export interface FlightSound {
@@ -150,6 +153,16 @@ export class Audio {
         break;
       case 'plane':
         this.planeFlyby();
+        break;
+      case 'teleport':
+        [880, 1320, 1760, 2640].forEach((f, k) => this.tone('sine', f, f * 1.5, 0.12, 0.07, k * 0.05));
+        this.noise(0.35, 'highpass', 3000, 7000, 0.06);
+        break;
+      case 'pickup':
+        [523, 784, 1047].forEach((f, k) => this.tone('square', f, f, 0.09, 0.06, k * 0.07));
+        break;
+      case 'heal':
+        [392, 523, 659, 784].forEach((f, k) => this.tone('triangle', f, f * 1.02, 0.3, 0.12, k * 0.08));
         break;
       case 'hop':
         this.tone('sine', 260 * pitch, 520 * pitch, 0.07, 0.05);
