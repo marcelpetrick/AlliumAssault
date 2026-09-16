@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.9] — 2026-09-16
+
+### Fixed
+
+- Media capture script: the napalm screenshot waits for the "Retreat!" banner to fade instead of
+  setting a field the world does not have (review #9).
+
 ## [1.26.8] — 2026-09-16
 
 ### Fixed

@@ -120,8 +120,9 @@ await page.evaluate(() => {
   w.goal.y = g.flames[0].y + 2;
   w.manualUntil = w.time + 100;
   w.goalDistance = 20;
-  w.bannerTime = 0;
 });
+// Let the "Retreat!" banner (1.8 s) fade and the camera settle before switching to real time.
+await frames(60);
 // Particle emitters need real frame time, so let the page run for a while.
 await page.evaluate(() => window.__allium.setManual(false));
 await page.waitForTimeout(8000);
