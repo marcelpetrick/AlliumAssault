@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.7] — 2026-09-16
+
+### Changed
+- `tasks.md`: new tasks for continuous flying sheep steering, louder sounds, an infinite-supplies
+  arsenal and the Candy Shop and Frosty Peaks sceneries.
+
 ## [1.17.6] — 2026-09-16
 
 ### Fixed

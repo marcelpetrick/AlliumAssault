@@ -35,6 +35,10 @@ Status: ☐ open · ☑ done
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☑ | 1.16.0 |
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
+| T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly | ☐ | |
+| T28 | Louder sound effects | ☐ | |
+| T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☐ | |
+| T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
 | T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
@@ -187,6 +191,30 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - Icon slots with ammo badges and the selected weapon's name in the hint; fits 15 weapons at
   1280 px and wraps on narrow screens. Hotkeys 1–9 and 0 for the first ten, Shift+1–5 for the
   rest, Tab cycles, clicks work for all.
+
+### T27 — Flying Sheep steering ☐
+- Reproduced in Chrome: ← → did steer repeatedly, but the sheep flew so fast (13 units/s) that it
+  usually hit something within two seconds, the controls turned it relative to its own heading,
+  and ↑ ↓ did nothing.
+- Fix: all four arrow keys steer relative to the screen (the sheep turns towards the pressed
+  direction, diagonals included) for the whole flight until it explodes; slower flight
+  (9 units/s) and a longer fuse (15 s) so there is time to steer. E2E test steering in several
+  directions one after another.
+
+### T28 — Louder sounds ☐
+- Raise the master volume and the quieter effects (footsteps, bounces, flight voices) so the game
+  is clearly audible at normal system volume, without clipping on big explosions (compressor on
+  the master bus).
+
+### T29 — Infinite supplies ☐
+- Third arsenal option next to *All weapons* and *Find in crates*: every weapon has unlimited ammo.
+  Unit and E2E tests.
+
+### T30 — More sceneries ☐
+- **Candy Shop**: pink frosting on chocolate ground, strawberry-milk water, pastel hills,
+  lollipop trees and gumdrop props.
+- **Frosty Peaks**: snow-covered ground, icy blue rock and water, snowy pines.
+- Selectable in the setup, used by the title demo; E2E screenshot of each.
 
 ### T16 — Walking and jumping sounds ☑
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.
