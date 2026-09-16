@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.10] — 2026-09-16
+
+### Changed
+
+- The GitHub Pages deployment runs the Chrome E2E suite before publishing, so a build with failing
+  browser tests never goes live (review #7).
+
 ## [1.26.9] — 2026-09-16
 
 ### Fixed

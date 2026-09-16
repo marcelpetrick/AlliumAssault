@@ -20,9 +20,9 @@ concurrency:
 
 jobs:
   build:
-    name: Build web game
+    name: Build and test web game
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -36,6 +36,11 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+      # Nothing goes live unless the game also passes the browser tests.
+      - name: Install Google Chrome for Playwright
+        run: npx playwright install --with-deps chrome
+      - run: npm run e2e
 
       - uses: actions/configure-pages@v6
 
