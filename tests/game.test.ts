@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { planAttack } from '../src/core/ai';
 import { Game, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
-import { hotkeyLabel, WEAPON_ORDER, weaponForKey } from '../src/core/weapons';
+import { CRATE_WEAPONS } from '../src/core/crates';
+import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_ORDER, weaponForKey } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { config, flatGame, onlyWeapon, runUntil, team } from './helpers';
 
@@ -526,6 +527,27 @@ describe('crates', () => {
     g.step();
     expect(g.teams[0].ammo.sheep).toBe(2);
     expect(g.drainEvents().filter((e) => e.type === 'cratePickup')).toHaveLength(2);
+  });
+
+  it('arsenal "crates": special weapons start empty and each weapon crate adds one more', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { arsenal: 'crates' });
+    toAiming(g);
+    const ammo = g.teams[0].ammo;
+    expect(ammo.bazooka).toBe(Infinity);
+    expect(ammo.bat).toBe(2);
+    for (const id of SPECIAL_WEAPONS) expect(ammo[id]).toBe(0);
+    g.selectWeapon('sheep');
+    expect(g.weapon).toBe('bazooka');
+    const me = g.buddies[0];
+    for (const id of [900, 901]) g.crates.push({ id, kind: 'weapon', weapon: 'sheep', body: createBody(me.body.x + 0.9, me.body.y, 0.45) });
+    g.step();
+    g.step();
+    expect(ammo.sheep).toBe(2);
+    g.selectWeapon('sheep');
+    expect(g.weapon).toBe('sheep');
+    expect(flatGame([20, 100], [team('A', 1), team('B', 1)]).teams[0].ammo.sheep).toBe(1);
+    expect(CRATE_WEAPONS).toEqual(SPECIAL_WEAPONS);
+    expect(SPECIAL_WEAPONS.length).toBeGreaterThanOrEqual(9);
   });
 
   it('blow up when caught in an explosion', () => {

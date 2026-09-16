@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.0] — 2026-09-16
+
+### Added
+- Arsenal option in the match setup: *All weapons* (default) or *Find in crates*, where special
+  weapons (cluster bomb, sheep, air strike, self-destruct, minigun, holy garlic grenade, banana
+  bomb, flying sheep, concrete mule) start empty and each weapon crate adds one more. Choosing it
+  switches crates on if they were off.
+
+### Changed
+- Weapon crates can contain any special weapon.
+
 ## [1.16.0] — 2026-09-16
 
 ### Changed

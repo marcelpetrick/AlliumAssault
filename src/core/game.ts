@@ -34,6 +34,7 @@ import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from '
 import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export type Controller = 'human' | 'ai';
+export type Arsenal = 'all' | 'crates';
 export type AiLevel = 'easy' | 'normal' | 'hard';
 
 export interface TeamConfig {
@@ -53,6 +54,8 @@ export interface MatchConfig {
   windMax: number;
   /** Chance per turn (0..1) that a crate teleports onto the map; missing means no crates. */
   crates?: number;
+  /** 'all': every weapon from the start (default); 'crates': special weapons only come from crates. */
+  arsenal?: Arsenal;
   theme: string;
 }
 
@@ -231,7 +234,7 @@ export class Game {
       config: cfg,
       buddies: [],
       cursor: 0,
-      ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, WEAPONS[id].ammo])) as Record<WeaponId, number>,
+      ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, config.arsenal === 'crates' && WEAPONS[id].special ? 0 : WEAPONS[id].ammo])) as Record<WeaponId, number>,
       weapon: 'bazooka' as WeaponId,
     }));
     let slot = 0;

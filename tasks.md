@@ -26,7 +26,7 @@ Status: ☐ open · ☑ done
 | T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☑ | 1.8.0 |
 | T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
 | T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☑ | 1.9.0 |
-| T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☐ | |
+| T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☑ | 1.17.0 |
 | T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☑ | 1.12.0 |
 | T20 | Banana Bomb: bursts into bouncing explosive bananas | ☑ | 1.13.0 |
 | T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☑ | 1.14.0 |
@@ -129,10 +129,13 @@ Goal: know that the game and each feature work in a real browser, in addition to
   takes a big part of the map with it.
 - Countdown sound and flash, AI use only when it pays off, unit and E2E tests.
 
-### T18 — Arsenal setting ☐
+### T18 — Arsenal setting ☑
 - Match setup option **Arsenal**: *All weapons* (every weapon with its normal starting ammo) or
   *Find in crates* (special weapons start empty and are only found in weapon crates).
 - Picking up a weapon crate adds one more of that weapon to the team's inventory.
+- Special weapons: cluster bomb, sheep, air strike, self-destruct, minigun, holy garlic grenade,
+  banana bomb, flying sheep, concrete mule. Weapon crates can contain any of them. Choosing
+  *Find in crates* switches crates on if they were off.
 - Unit and E2E tests.
 
 ### Plan for T14, T17–T24

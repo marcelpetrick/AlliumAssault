@@ -1,13 +1,13 @@
 import { createBody, type Body } from './physics';
 import type { Rng } from './rng';
 import { findSpawnCandidates, type Terrain } from './terrain';
-import type { WeaponId } from './weapons';
+import { SPECIAL_WEAPONS, type WeaponId } from './weapons';
 
 export const CRATE_RADIUS = 0.45;
 export const MAX_CRATES = 4;
 export const CRATE_HEAL = 25;
-/** Weapons a weapon crate can contain. */
-export const CRATE_WEAPONS: readonly WeaponId[] = ['cluster', 'sheep', 'airstrike'];
+/** Weapons a weapon crate can contain: every special weapon. */
+export const CRATE_WEAPONS: readonly WeaponId[] = SPECIAL_WEAPONS;
 /** Share of crates that are health crates. */
 const HEALTH_SHARE = 0.4;
 /** Crates do not appear right next to a buddy. */

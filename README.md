@@ -45,7 +45,10 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 - **Worms-style rules** — 2–4 teams of 1–4 buddies, rotating turns, turn timer, 5 s retreat,
   wind, knockback, fall damage, drowning, death explosions, last team standing wins.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
-  25 HP, weapon crates add a cluster bomb, sheep or air strike. Off / Normal / Lots in the setup.
+  25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots in the setup.
+- **Arsenal setting** — start with every weapon, or find the special weapons (cluster bomb, sheep,
+  air strike, self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule) in
+  crates only.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real
   trajectories to find its shots.
 - **Three sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove; seeded maps you can share.

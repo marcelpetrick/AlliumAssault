@@ -107,6 +107,7 @@ test('custom match setup: add a team, change options, start', async ({ page }, i
   await page.locator('.team-card:not(.add)').nth(0).getByRole('button', { name: '+' }).click();
   await page.getByRole('button', { name: '60s' }).click();
   await page.getByRole('button', { name: 'Moonlit Grove' }).click();
+  await page.getByRole('button', { name: 'Find in crates' }).click();
   await info.attach('setup', { body: await page.screenshot(), contentType: 'image/png' });
   await page.getByRole('button', { name: /Start Battle/ }).click();
   const s = await state(page);
@@ -115,6 +116,9 @@ test('custom match setup: add a team, change options, start', async ({ page }, i
   expect(s.buddies).toHaveLength(10);
   expect(new Set(s.buddies.map((b) => b.team)).size).toBe(3);
   await expect(page.locator('.team-bar-name', { hasText: 'Onion Outlaws' })).toBeVisible();
+  // Special weapons have to be found in crates first.
+  await expect(page.locator('.slot[data-weapon="sheep"]')).toHaveClass(/empty/);
+  await expect(page.locator('.slot[data-weapon="bazooka"]')).not.toHaveClass(/empty/);
   expect(errors).toEqual([]);
 });
 

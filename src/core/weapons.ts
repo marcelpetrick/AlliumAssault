@@ -27,6 +27,8 @@ export interface WeaponDef {
   range: number;
   /** Melee: 'uppercut' launches victims skywards, 'swing' bats them away along the aim line. */
   knock?: 'uppercut' | 'swing';
+  /** Special weapons can be restricted to crates by the match's arsenal setting. */
+  special?: boolean;
   /** Hitscan bursts: bullets fired one after another, `interval` seconds apart, fanning by `spread` radians. */
   burst?: { count: number; interval: number; spread: number };
   /** Upward kick a hitscan hit adds, on top of the push along the shot. */
@@ -113,6 +115,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   minigun: {
     id: 'minigun',
+    special: true,
     name: 'Minigun',
     icon: '🔩',
     blurb: 'A long rattling burst of 14 bullets that shoves victims right across the map.',
@@ -178,6 +181,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   cluster: {
     id: 'cluster',
+    special: true,
     name: 'Cluster Bomb',
     icon: '🧨',
     blurb: 'Red grenade with a 3 second fuse. Bursts into five bomblets of 10 damage each.',
@@ -199,6 +203,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   holy: {
     id: 'holy',
+    special: true,
     name: 'Holy Garlic Grenade',
     icon: '✨',
     blurb: 'Rolls to a stop, sings Hallelujah, then erupts in an enormous blast.',
@@ -220,6 +225,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   banana: {
     id: 'banana',
+    special: true,
     name: 'Banana Bomb',
     icon: '🍌',
     blurb: '3 second fuse, then five explosive bananas bounce everywhere and go off one by one.',
@@ -282,6 +288,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   sheep: {
     id: 'sheep',
+    special: true,
     name: 'Sheep',
     icon: '🐑',
     blurb: 'Space lets it hop off in small leaps; press Space again to blow it up.',
@@ -302,6 +309,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   airstrike: {
     id: 'airstrike',
+    special: true,
     name: 'Air Strike',
     icon: '✈️',
     blurb: 'Click on the map: a plane flies over and drops five bombs around that spot.',
@@ -323,6 +331,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   mule: {
     id: 'mule',
+    special: true,
     name: 'Concrete Mule',
     icon: '🫏',
     blurb: 'Click on the map: a giant concrete mule drops from the sky and smashes down again and again.',
@@ -385,6 +394,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   flysheep: {
     id: 'flysheep',
+    special: true,
     name: 'Flying Sheep',
     icon: '🦸',
     blurb: 'Takes off in the aim direction; steer it with ← →, Space to detonate (or it hits something).',
@@ -427,6 +437,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   selfdestruct: {
     id: 'selfdestruct',
+    special: true,
     name: 'Self-Destruct',
     icon: '💥',
     blurb: 'The buddy blows itself up: damage equals its health, and the blast grows with it.',
@@ -451,6 +462,8 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
 export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
+/** Selectable weapons that crates can contain. */
+export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);
 
 /**
  * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 the next ones.

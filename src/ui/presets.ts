@@ -1,4 +1,4 @@
-import type { AiLevel, Controller, MatchConfig, TeamConfig } from '../core/game';
+import type { AiLevel, Arsenal, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { shuffle } from '../core/rng';
 import { THEME_IDS } from '../render/themes';
 
@@ -16,6 +16,10 @@ export const WIND_OPTIONS = [
   { label: 'Strong', value: 1 },
 ];
 export const TURN_OPTIONS = [30, 45, 60, 90];
+export const ARSENAL_OPTIONS: { label: string; value: Arsenal }[] = [
+  { label: 'All weapons', value: 'all' },
+  { label: 'Find in crates', value: 'crates' },
+];
 export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },
   { label: 'Normal', value: 0.35 },
@@ -48,6 +52,7 @@ export function quickMatch(): MatchConfig {
     retreatTime: 5,
     windMax: 0.7,
     crates: 0.35,
+    arsenal: 'all',
     theme: 'meadow',
   };
 }

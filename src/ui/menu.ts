@@ -1,7 +1,7 @@
-import type { AiLevel, Controller, MatchConfig } from '../core/game';
+import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
-import { CRATE_OPTIONS, makeTeam, quickMatch, randomSeed, setBuddyCount, TEAM_COLORS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
+import { ARSENAL_OPTIONS, CRATE_OPTIONS, makeTeam, quickMatch, randomSeed, setBuddyCount, TEAM_COLORS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
 
 export type Screen = 'title' | 'setup' | 'help' | 'pause' | 'victory';
 
@@ -126,6 +126,7 @@ export class Menu {
             <div><label class="field-label">Turn time</label>${seg(TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })), 'turn')}</div>
             <div><label class="field-label">Wind</label>${seg(WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })), 'wind')}</div>
             <div><label class="field-label">Crates</label>${seg(CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })), 'crates')}</div>
+            <div><label class="field-label">Arsenal</label>${seg(ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })), 'arsenal')}</div>
             <div><label class="field-label">Map seed</label>
               <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
             </div>
@@ -282,6 +283,11 @@ export class Menu {
         break;
       case 'crates':
         d.crates = Number(value);
+        break;
+      case 'arsenal':
+        d.arsenal = value as Arsenal;
+        // Special weapons only come from crates, so make sure crates drop.
+        if (d.arsenal === 'crates' && !d.crates) d.crates = CRATE_OPTIONS[1].value;
         break;
       case 'dice':
         d.seed = randomSeed();
