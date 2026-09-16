@@ -8,24 +8,28 @@ Turn-based 3D artillery game in the spirit of Worms Armageddon, starring garlic 
 entirely in the browser as a static site: local hot-seat and human-vs-AI.
 
 - Stack: TypeScript (strict), Babylon.js 9 (`@babylonjs/core`), Vite 8, Vitest 5, Playwright on
-  Google Chrome. Dependencies are pinned to exact versions.
+  Google Chrome; ESLint (typescript-eslint type-checked), Prettier, Stylelint, markdownlint.
+  Dependencies are pinned to exact versions; `overrides` in `package.json` pins patched transitive
+  dependencies.
 - Real 3D graphics only — no pixel or voxel art. The earlier 2D prototypes were discarded; do not
   reference or restore them.
 
 ## Layout
 
-| Path           | Contents                                                                                                                                                              | Rule                                                             |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `src/core/`    | Game rules: terrain field, marching squares, physics, weapon table, sheep/flyer/strike actors, crates, match state machine, AI                                        | Pure TypeScript — no Babylon, no DOM. Unit tested.               |
-| `src/render/`  | Babylon.js scene, terrain mesh, buddies, effects, camera                                                                                                              | Reads core state and events, never changes rules                 |
-| `src/ui/`      | HTML/CSS overlay: menus, setup, HUD                                                                                                                                   |                                                                  |
-| `src/audio.ts` | Web Audio synthesizer; every sound is generated, no asset files                                                                                                       |                                                                  |
-| `src/app.ts`   | Frame loop, input, event dispatch, `window.__allium` test hook                                                                                                        |                                                                  |
-| `tests/`       | Vitest core tests                                                                                                                                                     |                                                                  |
-| `e2e/`         | Playwright tests in Google Chrome: `game.spec.ts` (flows), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, sounds, HUD), helpers in `support.ts` | Every new weapon or feature gets an E2E test                     |
-| `docs/`        | `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `archive/`                                                                                                  |                                                                  |
-| `tasks.md`     | Every request with status and version                                                                                                                                 | Update in every commit: add new requests, tick off finished ones |
-| `review.md`    | Latest code and architecture review with resolutions                                                                                                                  |                                                                  |
+| Path                      | Contents                                                                                                                                                                                                      | Rule                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `src/core/`               | Game rules: terrain field, marching squares, physics, weapon table, sheep/flyer/strike actors, napalm flames, crates, match state machine, AI; `assert.ts` invariants                                         | Pure TypeScript — no Babylon, no DOM. Unit tested.               |
+| `src/render/`             | Babylon.js scene, terrain mesh, buddies, effects, camera                                                                                                                                                      | Reads core state and events, never changes rules                 |
+| `src/ui/`                 | HTML/CSS overlay: menus, setup, about, HUD; `settings.ts` persisted settings, `dom.ts` element lookup                                                                                                         |                                                                  |
+| `src/audio.ts`            | Web Audio synthesizer; every sound is generated, no asset files                                                                                                                                               |                                                                  |
+| `src/app.ts`              | Frame loop, input, event dispatch, `window.__allium` test hook                                                                                                                                                |                                                                  |
+| `tests/`                  | Vitest core tests                                                                                                                                                                                             |                                                                  |
+| `e2e/`                    | Playwright tests in Google Chrome: `game.spec.ts` (flows, settings, about), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, tombstones, sceneries, sounds, HUD), helpers in `support.ts` | Every new weapon or feature gets an E2E test                     |
+| `scripts/`                | `spdx.mjs` (SPDX check and fixer), `capture-media.mjs` (README screenshots and GIF)                                                                                                                           |                                                                  |
+| `REUSE.toml`, `LICENSES/` | REUSE annotations for files without headers, license texts                                                                                                                                                    |                                                                  |
+| `docs/`                   | `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `archive/`                                                                                                                                          |                                                                  |
+| `tasks.md`                | Every request with status and version                                                                                                                                                                         | Update in every commit: add new requests, tick off finished ones |
+| `review.md`               | Latest code and architecture review with resolutions                                                                                                                                                          |                                                                  |
 
 Core emits `GameEvent`s; renderer, HUD and audio consume them. Continuous state (charge level,
 projectiles in flight) is read from the game every frame instead.
@@ -37,10 +41,13 @@ npm install
 npm run dev        # http://localhost:5173
 npm run lint       # ESLint (type-checked), Prettier, Stylelint, markdownlint, SPDX check
 npm run format     # apply Prettier, Stylelint and markdownlint fixes
+npm run spdx:fix   # add SPDX headers to new files
+npm run lint:reuse # official REUSE check (needs uv)
 npm run typecheck
 npm test           # Vitest
 npm run e2e        # Playwright, Google Chrome, builds and serves on :4173
-npm run verify     # all of the above plus production build
+npm run verify     # lint, typecheck, test, build, e2e
+npm run capture-media -- http://localhost:4173   # regenerate README media from a preview build
 ```
 
 ## Working rules
@@ -48,10 +55,13 @@ npm run verify     # all of the above plus production build
 - **Controls:** Enter = jump, Backspace = back-flip, Space hold/release = charge and fire (Space
   again detonates sheep), arrows walk, aim and steer the flying sheep, 1–9, 0 and Shift+1–7 /
   Tab select weapons, a click on the map calls strikes.
-- **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`), behaviour in
-  `Game` for new kinds, held model in `buddyView.ts`, projectile model in `effects.ts`, sounds in
-  `app.ts`/`audio.ts`, README and VISION tables, unit test and E2E test. The AI picks up
-  projectile, strike and melee weapons from their kind.
+- **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`), appended to
+  `WEAPON_ORDER` so existing hotkeys stay; behaviour in `Game` for new kinds (a new phase goes into
+  `COUNTDOWN_PHASES`/`ACTION_PHASES`); held model in `buddyView.ts`, projectile model in
+  `effects.ts`, sounds in `app.ts`/`audio.ts`; README and VISION tables; unit test and E2E test.
+  The AI picks up projectile, strike and melee weapons from their kind.
+- **Invariants:** no non-null assertions in `src` — use `defined()` from `src/core/assert.ts` or
+  `query()` from `src/ui/dom.ts`, which fail with a clear message.
 - **Verification:** `npm run verify` must be green before every commit. Add or update unit tests
   for rule changes and E2E checks for user-visible flows.
 - **E2E in headless Chrome** renders with SwiftShader at about 2 fps: drive tests through

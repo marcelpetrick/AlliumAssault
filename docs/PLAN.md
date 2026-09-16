@@ -14,6 +14,9 @@ The old code and branch have been removed; only `master` remains.
 
 ## 2. Requirements mapping
 
+> Historical: the original v2.0 requirements. Later requests are tracked in section 6 and in
+> [`tasks.md`](../tasks.md).
+
 | Requirement (user)                  | Implementation                                                                          |
 | ----------------------------------- | --------------------------------------------------------------------------------------- |
 | Worms clone in the browser          | Babylon.js + Vite static site                                                           |
@@ -26,6 +29,9 @@ The old code and branch have been removed; only `master` remains.
 | One clean branch                    | Old code removed, old branch deleted                                                    |
 
 ## 3. Architecture
+
+> Historical: the architecture as planned for v2.0. The current structure is described in
+> [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ```text
 src/
@@ -102,7 +108,7 @@ progress.
 | T44  | New `/reviewBranch` of the full code, fix the worst findings                                                                                            | Review the whole codebase into `review.md`, fix the highest-impact findings, re-verify                                                                                                                                    | ☐                                                                         |
 | T34  | More README badges like Cullendula                                                                                                                      | Badges for Pages, Babylon.js, TypeScript, Vite, Vitest, Playwright versions                                                                                                                                               | ✅ 1.26.1                                                                 |
 | T33  | New screenshots and screen recordings in the README                                                                                                     | Capture with Playwright in Chrome: weapons, crates, sceneries; GIF recording of a battle                                                                                                                                  | ✅ 1.26.2                                                                 |
-| T32  | Review and update all documents                                                                                                                         | README, AGENTS, VISION, ARCHITECTURE, PLAN, CHANGELOG consistency with the code                                                                                                                                           | ☐                                                                         |
+| T32  | Review and update all documents                                                                                                                         | README, AGENTS, VISION, ARCHITECTURE, PLAN, CHANGELOG consistency with the code                                                                                                                                           | ✅ 1.26.3                                                                 |
 | T12b | Review the batch and test                                                                                                                               | `/reviewBranch`-style review of the batch into `review.md`, fix findings, full `npm run verify`                                                                                                                           | ☐                                                                         |
 | T13b | Publish                                                                                                                                                 | Push, release tag, Pages deployment, confirm live                                                                                                                                                                         | ☐                                                                         |
 

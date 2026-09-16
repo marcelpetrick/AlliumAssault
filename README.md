@@ -34,9 +34,9 @@ browser and start a Quick Match.
 </table>
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
-garlic buddies. Destructible islands, wind, fifteen weapons from bazookas and banana bombs to
-flying sheep and a concrete mule, random crates — rendered with real-time 3D graphics in your
-browser.
+garlic buddies. Destructible islands, wind, seventeen weapons from bazookas and banana bombs to
+a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones and
+five sceneries — rendered with real-time 3D graphics in your browser.
 
 **Download:** grab the ready-to-host web build from the [latest release](https://github.com/marcelpetrick/AlliumAssault/releases/latest),
 unzip it and serve the folder with any static web server (e.g. `npx serve`).
@@ -70,8 +70,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
   25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots in the setup.
 - **Arsenal setting** — start with every weapon, find the special weapons (cluster bomb, sheep,
-  air strike, self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule) in
-  crates only, or play with infinite supplies of everything.
+  air strike, self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule,
+  napalm strike) in crates only, or play with infinite supplies of everything.
 - **Tombstones** — fallen buddies leave a comic R.I.P. tombstone with their name that explosions
   knock around.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real
@@ -80,21 +80,24 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice); seeded maps you can share.
 - **Comfortable setup** — text size Normal / Large / Huge, and the last match settings are
   remembered in the browser for the next game (Reset all restores the defaults).
-- **Synthesized sound** — all effects generated with Web Audio, no asset files.
+- **Synthesized sound** — every effect generated with Web Audio, no asset files: charge whoosh,
+  whistling rockets, bleating sheep, a propeller plane, crackling napalm, footsteps and more.
+- **About screen** — author, tech stack with versions and open-source licenses.
 
 ## Controls
 
-| Key                     | Action                                                                                            |
-| ----------------------- | ------------------------------------------------------------------------------------------------- |
-| ← →                     | Walk                                                                                              |
-| Enter                   | Jump forward                                                                                      |
-| Backspace               | Back-flip (high jump)                                                                             |
-| ↑ ↓                     | Aim                                                                                               |
-| Space                   | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–7 / Tab | Choose weapon (or click it in the weapon bar)                                                     |
-| Mouse wheel / drag      | Zoom / pan camera                                                                                 |
-| Click                   | Call the air strike or napalm strike, or drop the concrete mule, onto that spot                   |
-| M / Esc                 | Mute / pause menu                                                                                 |
+| Key                       | Action                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| ← →                       | Walk                                                                                              |
+| Enter                     | Jump forward                                                                                      |
+| Backspace                 | Back-flip (high jump)                                                                             |
+| ↑ ↓                       | Aim                                                                                               |
+| Space                     | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
+| 1–9, 0, Shift+1–7 / Tab   | Choose weapon (or click it in the weapon bar)                                                     |
+| Mouse wheel / drag        | Zoom / pan camera                                                                                 |
+| Click                     | Call the air strike or napalm strike, or drop the concrete mule, onto that spot                   |
+| Arrow keys (flying sheep) | Steer the flying sheep towards that direction                                                     |
+| M / Esc                   | Mute / pause menu (Esc also closes help and about)                                                |
 
 ## Weapons
 
@@ -126,16 +129,17 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── weapons.ts   weapon table (15 weapons by kind), hotkey mapping
-│   ├── game.ts      match state machine, turns, weapon execution, damage, crates
+│   ├── weapons.ts   weapon table (17 weapons by kind), arsenal flags, hotkey mapping
+│   ├── game.ts      match state machine, turns, weapon execution, damage, crates, flames, tombstones
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep
-│   ├── strike.ts    air strike and concrete mule drop planning
-│   ├── crates.ts    seeded crate contents and spots
+│   ├── strike.ts    air strike, napalm and concrete mule drop planning
+│   ├── fire.ts      napalm flames on the ground · crates.ts seeded crate contents and spots
 │   └── ai.ts        trajectory-search AI driving the same commands as players
-├── render/   Babylon.js presentation: terrain mesh, buddies, environment, effects, camera
-├── ui/       HTML/CSS overlay: title, match setup, HUD, pause, victory
+├── render/   Babylon.js presentation: terrain mesh, buddies, sceneries, effects, camera
+├── ui/       HTML/CSS overlay: title, setup, HUD, help, about, pause, victory; persisted settings
 ├── audio.ts  Web Audio synthesizer
 └── app.ts    engine, fixed 60 Hz loop, input, wiring
+scripts/      SPDX check and fixer, README media capture
 ```
 
 Terrain is a scalar field sampled every 0.25 units: positive values are rock and approximate the
@@ -150,16 +154,18 @@ research session is archived in [`docs/archive/`](docs/archive/).
 ## Testing
 
 ```bash
+npm run lint         # type-aware ESLint, Prettier, Stylelint, markdownlint, SPDX headers
 npm run typecheck    # TypeScript strict
-npm test             # Vitest: terrain, contour, physics, match rules, AI (incl. full AI match)
-npm run e2e          # Playwright in Google Chrome: menus, human turns, every weapon, crates, sounds
+npm test             # Vitest: terrain, physics, every weapon's rules, crates, settings, AI (incl. a full AI match)
+npm run e2e          # Playwright in Google Chrome: menus, settings, every weapon, crates, tombstones, sceneries, sounds
 npm run verify       # all of the above plus production build
 ```
 
-The page exposes `window.__allium` (`state()`, `startMatch()`, `fastForward()`) for automated tests.
+The page exposes `window.__allium` (`state()`, `startMatch()`, `fastForward()`, `stepFrames()`,
+`project()`) for automated tests.
 
-Continuous integration runs lint (including the SPDX header check), typecheck, unit tests, build,
-the Chrome E2E suite and a REUSE compliance check on every push.
+Continuous integration runs all linters, typecheck, unit tests, build and the Chrome E2E suite on
+every push, plus a REUSE compliance check and actionlint on the workflows.
 
 ```bash
 npm run lint:spdx    # every file has SPDX headers or a REUSE.toml annotation

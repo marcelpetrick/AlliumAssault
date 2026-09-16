@@ -15,7 +15,7 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 4. **Testable.** The game rules live in a headless, deterministic TypeScript core with unit
    tests; the browser build is verified end-to-end in Chrome via Playwright.
 
-## Game rules (MVP)
+## Game rules
 
 | Topic    | Rule                                                                                    |
 | -------- | --------------------------------------------------------------------------------------- |
@@ -28,6 +28,8 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 | Hazards  | Water at the bottom = instant death; fall damage above a speed threshold                |
 | Wind     | New random wind each turn, shown in HUD; affects projectiles per weapon                 |
 | Victory  | Last team with living buddies wins; draw if none survive                                |
+| Crates   | Optional random health and weapon crates (see below)                                    |
+| Arsenal  | All weapons, special weapons from crates only, or infinite supplies                     |
 
 ## Weapons
 
@@ -84,20 +86,25 @@ Following the last control decision made in the 2D prototype:
   squash-and-stretch and bobbing animations, held weapon models.
 - **World:** gradient sky, sun with shadows, layered distant hills and low-poly trees,
   animated transparent water, drifting clouds, particle explosions with fire, smoke, debris.
-- **UI:** polished HTML/CSS overlay — title screen, match setup (teams, colours,
-  controller, buddies, turn time, map seed, theme), HUD (timer, wind, weapons, team health),
-  pause and victory screens.
+- **Sceneries:** Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
+  gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice).
+- **UI:** polished HTML/CSS overlay — title screen, match setup (teams, colours, controller,
+  buddies, turn time, wind, crates, arsenal, text size, map seed, scenery; remembered for the next
+  game, Reset all), HUD (timer, wind, compact weapon bar, team health), help, about, pause and
+  victory screens.
+- **Comedy:** comic R.I.P. tombstones, a hallelujah choir, bleating sheep, a braying mule.
 
 ## Technology
 
-| Role       | Choice                     | Why                                                                              |
-| ---------- | -------------------------- | -------------------------------------------------------------------------------- |
-| 3D engine  | **Babylon.js 9**           | Full browser game engine (scene graph, PBR, shadows, post-processing, particles) |
-| Language   | TypeScript (strict)        | Safety for the rules core                                                        |
-| Bundler    | Vite                       | Fast dev server, static build                                                    |
-| Unit tests | Vitest                     | Headless core tests                                                              |
-| E2E tests  | Playwright + Google Chrome | Real WebGL rendering and input                                                   |
-| Noise      | simplex-noise              | Seeded terrain generation                                                        |
+| Role       | Choice                                           | Why                                                                              |
+| ---------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| 3D engine  | **Babylon.js 9**                                 | Full browser game engine (scene graph, PBR, shadows, post-processing, particles) |
+| Language   | TypeScript (strict)                              | Safety for the rules core                                                        |
+| Bundler    | Vite                                             | Fast dev server, static build                                                    |
+| Unit tests | Vitest                                           | Headless core tests                                                              |
+| E2E tests  | Playwright + Google Chrome                       | Real WebGL rendering and input                                                   |
+| Noise      | simplex-noise                                    | Seeded terrain generation                                                        |
+| Quality    | ESLint, Prettier, Stylelint, markdownlint, REUSE | Type-aware lint, consistent formatting, SPDX licensing                           |
 
 Physics for terrain, characters, and projectiles is custom 2D against the density field —
 general-purpose physics engines cannot do arbitrarily destructible Worms terrain well

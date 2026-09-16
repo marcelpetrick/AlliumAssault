@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.3] — 2026-09-16
+
+### Changed
+
+- Documentation reviewed and brought up to date with the code: README (seventeen weapons, controls,
+  architecture tree, test and lint commands), AGENTS (layout, commands, weapon checklist,
+  invariants), VISION (rules, sceneries, setup, quality tooling), ARCHITECTURE (components, drilling
+  phase, settle rules, AI flow, CI jobs, key decisions, testing map) and PLAN (historical sections
+  marked).
+
 ## [1.26.2] — 2026-09-16
 
 ### Changed

@@ -41,7 +41,7 @@ Status: ☐ open · ☑ done
 | T30 | More sceneries: Candy Shop and Frosty Peaks                                                               | ☑      | 1.23.0        |
 | T31 | Comic tombstones where buddies die                                                                        | ☑      | 1.22.0        |
 | T37 | Play-in-browser link to GitHub Pages at the top of the README                                             | ☑      | 1.18.1        |
-| T32 | Review and update all documents and Markdown files, including the architecture                            | ☐      |               |
+| T32 | Review and update all documents and Markdown files, including the architecture                            | ☑      | 1.26.3        |
 | T33 | New screenshots and screen recordings for the README                                                      | ☑      | 1.26.2        |
 | T34 | More README badges, like Cullendula                                                                       | ☑      | 1.26.1        |
 | T35 | Crate drops: teleport sound and a short camera pan to the new crate                                       | ☑      | 1.18.5        |
