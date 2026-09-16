@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Engine } from '@babylonjs/core';
 import pkg from '../package.json';
 import { Audio, type FlightSound } from './audio';

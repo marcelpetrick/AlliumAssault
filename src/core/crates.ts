@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { createBody, type Body } from './physics';
 import type { Rng } from './rng';
 import { findSpawnCandidates, type Terrain } from './terrain';

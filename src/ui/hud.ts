@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { Game, GameEvent, Phase } from '../core/game';
 import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import type { World } from '../render/world';

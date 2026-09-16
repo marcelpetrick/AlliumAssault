@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { expect, type Page } from '@playwright/test';
 import type { MatchConfig } from '../src/core/game';
 import type { AlliumHook } from '../src/main';

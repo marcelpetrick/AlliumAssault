@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 export const WORLD_WIDTH = 128;
 export const WORLD_HEIGHT = 64;
 export const WATER_LEVEL = 3;

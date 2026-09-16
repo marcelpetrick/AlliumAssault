@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';

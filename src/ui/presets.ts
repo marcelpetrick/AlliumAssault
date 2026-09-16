@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { DEFAULT_CRATE_CHANCE } from '../core/crates';
 import type { AiLevel, Arsenal, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { shuffle } from '../core/rng';

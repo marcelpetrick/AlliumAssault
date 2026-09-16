@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.25.1] — 2026-09-16
+
+### Added
+- SPDX / REUSE compliance: every source, style, script, workflow and HTML file carries
+  `SPDX-FileCopyrightText` and `SPDX-License-Identifier: GPL-3.0-or-later` headers; `REUSE.toml`
+  covers Markdown, JSON and images; the license text is in `LICENSES/`. The official REUSE tool
+  reports the project compliant with REUSE 3.3.
+- Scripts: `npm run lint:spdx` (part of `npm run lint`), `npm run spdx:fix` and
+  `npm run lint:reuse`; CI runs the REUSE check on every push.
+
 ## [1.25.0] — 2026-09-16
 
 ### Added

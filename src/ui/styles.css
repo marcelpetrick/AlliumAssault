@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it> */
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
 :root {
   --font: 'Fredoka', 'Nunito', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
   --glass: rgba(14, 20, 38, 0.55);

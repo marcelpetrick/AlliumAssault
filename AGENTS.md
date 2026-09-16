@@ -56,6 +56,10 @@ npm run verify     # all of the above plus production build
 - **E2E in headless Chrome** renders with SwiftShader at about 2 fps: drive tests through
   `window.__allium` (`state()`, `startMatch()`, `fastForward()`, `stepFrames()`) instead of
   waiting on real time.
+- **Licensing (SPDX / REUSE):** every file carries `SPDX-FileCopyrightText` and
+  `SPDX-License-Identifier: GPL-3.0-or-later` headers, or is annotated in `REUSE.toml` (Markdown,
+  JSON, images). `npm run spdx:fix` adds headers to new files, `npm run lint:spdx` checks (part of
+  `npm run lint`), `npm run lint:reuse` runs the official REUSE tool (needs uv); CI runs it too.
 - **Commits:** small and atomic, Conventional Commit messages (`feat(core): …`, `fix(render): …`,
   `docs: …`) with a body explaining why.
 

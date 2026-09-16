@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep' | 'mule' | 'mulebody' | 'drill' | 'napalm' | 'napalmbomb';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill';
 

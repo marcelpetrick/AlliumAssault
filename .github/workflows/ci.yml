@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 name: CI
 
 on:
@@ -14,6 +17,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  reuse:
+    name: REUSE / SPDX compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: fsfe/reuse-action@v6
+
   verify:
     name: Lint, test, build, E2E
     runs-on: ubuntu-latest

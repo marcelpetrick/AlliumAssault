@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Color3, Color4, DynamicTexture, Mesh, MeshBuilder, ParticleSystem, PointLight, StandardMaterial, TransformNode, Vector3, type Scene, type Texture } from '@babylonjs/core';
 import { MUZZLE_OFFSET } from '../core/constants';
 import type { Game } from '../core/game';

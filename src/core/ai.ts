@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, TORCH_SPEED, WIND_ACCEL } from './constants';
 import { meleeLaunch, REST_SPEED, REST_TIME, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';

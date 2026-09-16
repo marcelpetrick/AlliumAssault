@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Color3, Mesh, StandardMaterial, VertexData, type Scene } from '@babylonjs/core';
 import { createNoise2D } from 'simplex-noise';
 import { contourRegion } from '../core/contour';

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { expect, test } from '@playwright/test';
 import { boot, state, toHumanAiming, waitFor } from './support';
 

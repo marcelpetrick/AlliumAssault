@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { MatchConfig } from '../core/game';
 import { THEME_IDS } from '../render/themes';
 import { quickMatch, randomSeed } from './presets';

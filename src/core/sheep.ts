@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { BUDDY_RADIUS } from './constants';
 import { createBody, stepBody, type Body } from './physics';
 import type { Terrain } from './terrain';

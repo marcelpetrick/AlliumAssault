@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { Terrain } from './terrain';
 
 /** Flight speed of the flying sheep, units per second: slow enough to steer around obstacles. */
