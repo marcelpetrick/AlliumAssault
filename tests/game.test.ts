@@ -718,6 +718,22 @@ describe('crates', () => {
     expect(g.turnTimeLeft).toBeCloseTo(1, 1);
   });
 
+  it('never teleport into a tombstone', () => {
+    const g = crateGame(1);
+    toAiming(g);
+    // Graves on every spot a crate could otherwise use would leave no room at all.
+    for (let x = 6; x <= 122; x += 2.5) g.graves.push({ id: 5000 + x, buddy: 0, team: 0, name: 'X', body: createBody(x, 20.45, 0.45) });
+    g.skipTurn();
+    runUntil(g, () => g.phase === 'aiming', 20);
+    expect(g.crates).toHaveLength(0);
+    // With one gap left, the crate lands in the gap.
+    g.graves = g.graves.filter((grave) => Math.abs(grave.body.x - 60) > 4);
+    g.skipTurn();
+    runUntil(g, () => g.phase === 'aiming', 20);
+    expect(g.crates).toHaveLength(1);
+    expect(Math.abs(g.crates[0].body.x - 60)).toBeLessThan(2);
+  });
+
   it('are placed the same way for the same seed', () => {
     const a = crateGame(0.5);
     const b = crateGame(0.5);

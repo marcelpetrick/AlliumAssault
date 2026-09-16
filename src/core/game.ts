@@ -642,7 +642,7 @@ export class Game {
     const configured = this.config.crates ?? 0;
     const chance = configured > 0 ? configured : this.config.arsenal === 'crates' ? DEFAULT_CRATE_CHANCE : 0;
     if (chance <= 0 || this.turn <= 1 || this.crates.length >= MAX_CRATES || this.crateRng() >= chance) return false;
-    const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body)];
+    const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body), ...this.graves.map((g) => g.body)];
     const crate = rollCrate(this.terrain, this.crateRng, this.nextId++, occupied);
     if (!crate) return false;
     this.crates.push(crate);

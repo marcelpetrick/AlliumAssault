@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.7] — 2026-09-16
+
+### Fixed
+
+- Crates no longer teleport into a tombstone (review #6).
+
 ## [1.26.6] — 2026-09-16
 
 ### Fixed
