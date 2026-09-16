@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.3] — 2026-09-16
+
+### Added
+- `review.md`: code and architecture review of all changes since v1.1.11, with eight verified
+  findings ranked by impact.
+
 ## [1.17.2] — 2026-09-16
 
 ### Added

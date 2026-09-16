@@ -34,7 +34,7 @@ Status: ☐ open · ☑ done
 | T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☑ | 1.16.0 |
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
-| T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☐ | |
+| T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
 | T12 | Self-review of all changes, fix findings | ☐ | |
