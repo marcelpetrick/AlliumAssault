@@ -143,6 +143,33 @@ test('arsenal "Infinite supplies": every weapon slot shows unlimited ammo', asyn
   expect(errors).toEqual([]);
 });
 
+test('settings persist across reloads, text size scales the UI, Reset all restores defaults', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => localStorage.removeItem('allium.settings'));
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.getByRole('button', { name: 'Large' }).click();
+  await page.getByRole('button', { name: '60s' }).click();
+  await page.getByRole('button', { name: 'Candy Shop' }).click();
+  expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('large');
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ui-scale'))).toBe('1.25');
+
+  // A fresh page load restores everything for the next game.
+  await boot(page);
+  expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('large');
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await expect(page.getByRole('button', { name: '60s' })).toHaveClass(/on/);
+  await expect(page.getByRole('button', { name: 'Candy Shop' })).toHaveClass(/on/);
+  await expect(page.getByRole('button', { name: 'Large' })).toHaveClass(/on/);
+
+  await page.getByRole('button', { name: /Reset all/ }).click();
+  await expect(page.getByRole('button', { name: '45s' })).toHaveClass(/on/);
+  await expect(page.getByRole('button', { name: 'Garlic Meadow' })).toHaveClass(/on/);
+  await expect(page.locator('[data-action="text-size"][data-value="normal"]')).toHaveClass(/on/);
+  expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('normal');
+  expect(await page.evaluate(() => localStorage.getItem('allium.settings'))).toBeNull();
+  expect(errors).toEqual([]);
+});
+
 test('pause menu: controls, resume and quit to title', async ({ page }) => {
   const errors = await boot(page);
   await page.getByRole('button', { name: /Quick Match/ }).click();

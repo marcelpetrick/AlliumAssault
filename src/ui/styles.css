@@ -42,6 +42,14 @@ body {
   pointer-events: none;
 }
 
+/* Text size setting: scales HUD, banners and menu panels. */
+.hud-top,
+.hud-bottom,
+.banner,
+.menu .screen > * {
+  zoom: var(--ui-scale, 1);
+}
+
 button,
 input {
   font-family: inherit;
@@ -124,18 +132,19 @@ button.icon {
   border-radius: 26px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
   padding: 26px 30px;
-  width: min(760px, 94vw);
-  max-height: 92vh;
+  /* Viewport units are divided by the text-size zoom so a scaled panel still fits the screen. */
+  width: min(760px, calc(94vw / var(--ui-scale, 1)));
+  max-height: calc(92vh / var(--ui-scale, 1));
   overflow: auto;
   animation: pop 0.28s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
 
 .panel.wide {
-  width: min(1120px, 96vw);
+  width: min(1120px, calc(96vw / var(--ui-scale, 1)));
 }
 
 .panel.narrow {
-  width: min(420px, 92vw);
+  width: min(420px, calc(92vw / var(--ui-scale, 1)));
   text-align: center;
 }
 
@@ -159,6 +168,8 @@ button.icon {
 .panel-foot {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 16px;
   margin-top: 22px;
 }
 
@@ -760,7 +771,7 @@ kbd {
   gap: 4px;
   padding: 6px 8px 8px;
   pointer-events: auto;
-  max-width: min(880px, calc(100vw - 32px));
+  max-width: min(880px, calc((100vw - 32px) / var(--ui-scale, 1)));
 }
 
 .weapon-caption {
@@ -841,6 +852,8 @@ kbd {
   position: fixed;
   left: 0;
   top: 0;
+  /* Scaled about the anchor point (translate, scale, then offset to bottom centre). */
+  transform-origin: 0 0;
   will-change: transform;
 }
 

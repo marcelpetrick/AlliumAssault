@@ -47,7 +47,7 @@ Status: ☐ open · ☑ done
 | T35 | Crate drops: teleport sound and a short camera pan to the new crate | ☑ | 1.18.5 |
 | T36 | Banana bomb throw range reported as tiny | ☐ | |
 | T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☑ | 1.21.0 |
-| T39 | Bigger font option, persisted settings restored for the next game, Reset all button | ☐ | |
+| T39 | Bigger font option, persisted settings restored for the next game, Reset all button | ☑ | 1.24.0 |
 | T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play | ☐ | |
 | T41 | Drill: dig vertically downwards, no fall damage while drilling | ☑ | 1.20.0 |
 | T42 | SPDX compatible project with check scripts | ☐ | |

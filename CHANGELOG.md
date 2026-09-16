@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.24.0] — 2026-09-16
+
+### Added
+- Text size option (Normal / Large / Huge) in the match setup, scaling the HUD, name tags, banners
+  and menus.
+- The setup and text size are saved in the browser and restored for the next game, also after a
+  reload (with a fresh map seed).
+- *Reset all* button in the setup restores every default and clears the saved settings.
+
 ## [1.23.0] — 2026-09-16
 
 ### Added

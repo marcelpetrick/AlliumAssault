@@ -65,6 +65,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   trajectories to find its shots.
 - **Five sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice); seeded maps you can share.
+- **Comfortable setup** — text size Normal / Large / Huge, and the last match settings are
+  remembered in the browser for the next game (Reset all restores the defaults).
 - **Synthesized sound** — all effects generated with Web Audio, no asset files.
 
 ## Controls

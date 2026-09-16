@@ -2,6 +2,7 @@ import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { ARSENAL_OPTIONS, CRATE_OPTIONS, makeTeam, quickMatch, randomSeed, setBuddyCount, TEAM_COLORS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
+import { applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
 
 export type Screen = 'title' | 'setup' | 'help' | 'pause' | 'victory';
 
@@ -42,7 +43,8 @@ export const CONTROLS_HTML = `
 export class Menu {
   screen: Screen | null = null;
   private readonly el: HTMLElement;
-  private draft: MatchConfig = quickMatch();
+  private draft: MatchConfig;
+  private textSize: TextSize;
   private helpReturn: Screen = 'title';
 
   constructor(
@@ -50,6 +52,10 @@ export class Menu {
     private readonly version: string,
     private readonly actions: MenuActions,
   ) {
+    const settings = loadSettings();
+    this.draft = settings.match;
+    this.textSize = settings.textSize;
+    applyTextSize(this.textSize);
     this.el = document.createElement('div');
     this.el.className = 'menu';
     uiRoot.appendChild(this.el);
@@ -127,6 +133,7 @@ export class Menu {
             <div><label class="field-label">Turn time</label>${seg(TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })), 'turn')}</div>
             <div><label class="field-label">Wind</label>${seg(WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })), 'wind')}</div>
             <div><label class="field-label">Crates</label>${seg(CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })), 'crates')}</div>
+            <div><label class="field-label">Text size</label>${seg(TEXT_SIZES.map((t) => ({ label: t.label, value: t.value, on: t.value === this.textSize })), 'text-size')}</div>
             <div><label class="field-label">Arsenal</label>${seg(ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })), 'arsenal')}</div>
             <div><label class="field-label">Map seed</label>
               <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
@@ -141,7 +148,10 @@ export class Menu {
                 <span>${th.name}</span></button>`;
             }).join('')}
           </section>
-          <footer class="panel-foot"><button class="primary big" data-action="start">Start Battle ▶</button></footer>
+          <footer class="panel-foot">
+            <button class="ghost" data-action="reset" title="Restore all default settings">↺ Reset all</button>
+            <button class="primary big" data-action="start">Start Battle ▶</button>
+          </footer>
         </div>
       </div>`;
   }
@@ -217,6 +227,7 @@ export class Menu {
     const input = e.target as HTMLInputElement;
     if (input.dataset.field === 'seed') this.draft.seed = input.value.trim() || randomSeed();
     if (input.dataset.field === 'team-name') this.draft.teams[Number(input.dataset.team)].name = input.value || 'Team';
+    this.persist();
   }
 
   private onClick(e: Event): void {
@@ -296,12 +307,30 @@ export class Menu {
       case 'theme':
         d.theme = value;
         break;
+      case 'text-size':
+        this.textSize = value as TextSize;
+        applyTextSize(this.textSize);
+        break;
+      case 'reset': {
+        clearSettings();
+        const defaults = defaultSettings();
+        this.draft = defaults.match;
+        this.textSize = defaults.textSize;
+        applyTextSize(this.textSize);
+        return this.showSetup();
+      }
     }
+    this.persist();
     this.showSetup();
   }
 
-  /** Remember a finished match's config so "Change setup" starts from it. */
+  /** Remember a started match's config so "Change setup" and the next session start from it. */
   setDraft(config: MatchConfig): void {
     this.draft = structuredClone(config);
+    this.persist();
+  }
+
+  private persist(): void {
+    saveSettings({ match: this.draft, textSize: this.textSize });
   }
 }

@@ -9,6 +9,9 @@ interface Floater {
   age: number;
 }
 
+/** Current text size scale from the root style (1 when unset). */
+const uiScale = () => Number(document.documentElement.style.getPropertyValue('--ui-scale')) || 1;
+
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const RING = 2 * Math.PI * 26;
 
@@ -205,7 +208,7 @@ export class Hud {
         continue;
       }
       label.el.style.display = '';
-      label.el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -100%)`;
+      label.el.style.transform = `translate(${p.x}px, ${p.y}px) scale(${uiScale()}) translate(-50%, -100%)`;
       label.el.classList.toggle('active', b === active && (g.phase === 'aiming' || g.phase === 'turnStart'));
       if (label.shown > b.hp) label.shown = Math.max(b.hp, label.shown - dt * 40);
       else label.shown = b.hp;
@@ -228,7 +231,7 @@ export class Hud {
       }
       const pos = w.project(p.x, p.y + 0.7);
       el.textContent = String(Math.max(0, Math.ceil(p.fuse)));
-      if (pos) el.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -100%)`;
+      if (pos) el.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${uiScale()}) translate(-50%, -100%)`;
     }
     for (const [id, el] of this.fuses) {
       if (!live.has(id)) {
@@ -240,7 +243,7 @@ export class Hud {
     this.floaters = this.floaters.filter((f) => {
       f.age += dt;
       const pos = w.project(f.x, f.y + f.age * 1.4);
-      if (pos) f.el.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -100%) scale(${1 + Math.max(0, 0.3 - f.age)})`;
+      if (pos) f.el.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${(1 + Math.max(0, 0.3 - f.age)) * uiScale()}) translate(-50%, -100%)`;
       f.el.style.opacity = String(Math.max(0, 1 - Math.max(0, f.age - 0.9) / 0.6));
       if (f.age > 1.5) f.el.remove();
       return f.age <= 1.5;
