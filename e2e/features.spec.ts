@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { boot, fastForward, played, select, startDuel, state, waitFor } from './support';
+import { boot, fastForward, played, select, startDuel, state, waitFor, waitForSound } from './support';
 
 /** Crates, audio cues and HUD behaviour in real Google Chrome. */
 
@@ -58,6 +58,24 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
   await select(page, 1, 'bazooka');
   expect(played(await state(page), 'select')).toBe(played(muted, 'select'));
   await page.keyboard.press('KeyM');
+  expect(errors).toEqual([]);
+});
+
+test('movement sounds: footsteps while walking, a hup when jumping, a thud on landing', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.keyboard.down('ArrowRight');
+  await waitForSound(page, 'step', 2);
+  await page.keyboard.up('ArrowRight');
+  await page.keyboard.down('ArrowLeft');
+  await waitForSound(page, 'step', 4);
+  await page.keyboard.up('ArrowLeft');
+  await fastForward(page, 0.5);
+
+  await page.keyboard.press('Backspace');
+  await waitForSound(page, 'jump');
+  await fastForward(page, 2);
+  expect(played(await state(page), 'land')).toBeGreaterThanOrEqual(1);
   expect(errors).toEqual([]);
 });
 

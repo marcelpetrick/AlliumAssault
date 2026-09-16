@@ -13,6 +13,8 @@ const STEP = 1 / 60;
 const MAX_STEPS_PER_FRAME = 8;
 /** Pointer travel in pixels below which a press counts as a click rather than a drag. */
 const CLICK_SLOP = 6;
+/** Distance walked between two footstep sounds. */
+const STEP_LENGTH = 0.55;
 const GAME_KEYS = ['Space', 'Tab', 'Backspace', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 
 /** Owns the engine, the current match, input, audio and all overlay UI. */
@@ -37,6 +39,8 @@ export class App {
   private afterGameOver = -1;
   /** Last whole second announced by the turn-timer tick. */
   private lastTick = 0;
+  /** Where the walking buddy last made a footstep sound. */
+  private lastStep: { buddy: number; x: number } | null = null;
   private readonly quality: Quality;
 
   constructor(
@@ -168,6 +172,16 @@ export class App {
     this.audio.setCharge(game.charge);
     const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
     this.audio.setFlights(flights);
+    const walker = game.activeBuddy;
+    if (walker?.walking && walker.body.grounded) {
+      if (this.lastStep?.buddy !== walker.id) this.lastStep = { buddy: walker.id, x: walker.body.x };
+      if (Math.abs(walker.body.x - this.lastStep.x) >= STEP_LENGTH) {
+        this.audio.play('step');
+        this.lastStep.x = walker.body.x;
+      }
+    } else {
+      this.lastStep = null;
+    }
     const second = game.phase === 'aiming' ? Math.ceil(game.turnTimeLeft) : 0;
     if (second !== this.lastTick && second > 0 && second <= 5) this.audio.play('tick');
     this.lastTick = second;
@@ -220,7 +234,7 @@ export class App {
           this.audio.play('jump');
           break;
         case 'land':
-          if (e.speed > 7) this.audio.play('land', e.speed / 15);
+          if (e.speed > 5) this.audio.play('land', e.speed / 15);
           break;
         case 'bounce':
           this.audio.play('bounce', e.speed / 12);

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.7.0] — 2026-09-16
+
+### Added
+- Footstep patter while a buddy walks, a "hup" with a puff of air on jumps and a softer thud on
+  lighter landings.
+- E2E test for walking, jumping and landing sounds.
+
 ## [1.6.1] — 2026-09-16
 
 ### Added

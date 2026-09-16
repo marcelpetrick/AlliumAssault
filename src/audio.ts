@@ -17,6 +17,7 @@ export type Sfx =
   | 'baa'
   | 'hop'
   | 'plane'
+  | 'step'
   | 'teleport'
   | 'pickup'
   | 'heal';
@@ -114,10 +115,19 @@ export class Audio {
         this.tone('sine', 220 * pitch, 70, 0.18, 0.45);
         break;
       case 'jump':
-        this.tone('sine', 320 * pitch, 760 * pitch, 0.18, 0.22);
+        // A little "hup!": a quick rising voice blip plus a puff of air.
+        this.tone('triangle', 300 * pitch, 620 * pitch, 0.13, 0.2);
+        this.tone('sine', 620 * pitch, 900 * pitch, 0.1, 0.1, 0.05);
+        this.noise(0.18, 'bandpass', 900, 2600, 0.12);
         break;
       case 'land':
-        this.tone('sine', 150 * pitch, 55, 0.12, 0.25 * i);
+        this.noise(0.12, 'lowpass', 700, 120, 0.35 * i);
+        this.tone('sine', 150 * pitch, 55, 0.14, 0.28 * i);
+        break;
+      case 'step':
+        // Soft papery patter of a garlic clove's feet.
+        this.noise(0.05, 'bandpass', 1500 * pitch, 700, 0.14);
+        this.tone('sine', 210 * pitch, 150, 0.05, 0.05);
         break;
       case 'bounce':
         // A clunk you can hear: thud body plus a metallic tick, both scaled by the impact.

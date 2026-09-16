@@ -24,7 +24,7 @@ Status: ☐ open · ☑ done
 | T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☑ | 1.6.1 |
 | T14 | Blowtorch: dig forward through rock for three seconds | ☐ | |
 | T15 | Baseball bat: less damage than the punch, knocks enemies far away | ☐ | |
-| T16 | Sounds for walking and jumping buddies | ☐ | |
+| T16 | Sounds for walking and jumping buddies | ☑ | 1.7.0 |
 | T17 | Self-destruct: the buddy blows up with a blast that grows with its health | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
@@ -120,7 +120,7 @@ Goal: know that the game and each feature work in a real browser, in addition to
   takes a big part of the map with it.
 - Countdown sound and flash, AI use only when it pays off, unit and E2E tests.
 
-### T16 — Walking and jumping sounds ☐
+### T16 — Walking and jumping sounds ☑
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.
 - E2E check that the sounds play.
 
