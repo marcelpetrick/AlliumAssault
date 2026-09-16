@@ -192,6 +192,50 @@ describe('match flow', () => {
     expect(g.terrain.isSolid(44, 23)).toBe(true);
   });
 
+  it('drill digs straight down for three seconds without fall damage and hits a buddy below', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const [me, enemy] = g.buddies;
+    // Bury the enemy in a pocket five units under the driller.
+    enemy.body.x = 40;
+    enemy.body.y = 15;
+    g.terrain.carve(40, 15, 0.8);
+    const start = { x: me.body.x, y: me.body.y };
+    g.selectWeapon('drill');
+    g.pressFire();
+    expect(g.phase).toBe('drilling');
+    let lowest = start.y;
+    runUntil(g, () => {
+      lowest = Math.min(lowest, me.body.y);
+      return g.phase !== 'drilling';
+    }, 4);
+    expect(g.phase === 'retreat' || g.phase === 'settling').toBe(true);
+    expect(start.y - lowest).toBeGreaterThan(4);
+    expect(Math.abs(me.body.x - start.x)).toBeLessThan(0.6);
+    expect(me.hp).toBe(100);
+    expect(enemy.hp).toBeLessThan(100);
+    expect(g.terrain.isSolid(40, start.y - 2)).toBe(false);
+    expect(g.terrain.isSolid(42.5, start.y - 2)).toBe(true);
+  });
+
+  it('drill cushions falls: drilling through into a cave does not hurt', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    // A tall cave (y 10–18) under a two-unit floor: breaking through means a fall of about eight units.
+    g.terrain.carve(40, 14, 4);
+    toAiming(g);
+    const me = g.buddies[0];
+    g.selectWeapon('drill');
+    g.pressFire();
+    let impact = 0;
+    runUntil(g, () => {
+      impact = Math.max(impact, me.body.impact);
+      return me.body.y < 12 && me.body.grounded;
+    }, 3);
+    expect(me.body.y).toBeLessThan(12);
+    expect(impact).toBeGreaterThan(17);
+    expect(me.hp).toBe(100);
+  });
+
   it('blowtorch does not carry the buddy over a gap: it falls', () => {
     const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
     g.terrain.carve(47, 17, 4.5);

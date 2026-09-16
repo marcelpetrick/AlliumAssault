@@ -57,7 +57,7 @@ export class Audio {
   private master: GainNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private chargeVoice: Voice | null = null;
-  private torchVoice: Voice | null = null;
+  private toolVoice: { tool: 'torch' | 'drill'; voice: Voice } | null = null;
   private readonly flightVoices = new Map<number, Voice>();
   /** How often each sound effect was played (for tests). */
   readonly played: Partial<Record<Sfx, number>> = {};
@@ -250,21 +250,21 @@ export class Audio {
     v.gain.gain.setTargetAtTime(0.06 + level * 0.3, t, 0.03);
   }
 
-  /** Roaring blowtorch while `on`. */
-  setTorch(on: boolean): void {
-    if (!on || !this.ctx || this.muted) {
-      this.stopVoice(this.torchVoice);
-      this.torchVoice = null;
-      return;
+  /** Roaring blowtorch or grinding drill while that tool is in use; null stops it. */
+  setTool(tool: 'torch' | 'drill' | null): void {
+    if (this.toolVoice && this.toolVoice.tool !== tool) {
+      this.stopVoice(this.toolVoice.voice);
+      this.toolVoice = null;
     }
-    if (this.torchVoice) return;
-    const v = this.startVoice('bandpass', 'sawtooth');
+    if (!tool || !this.ctx || this.muted || this.toolVoice) return;
+    const drill = tool === 'drill';
+    const v = this.startVoice(drill ? 'lowpass' : 'bandpass', drill ? 'square' : 'sawtooth');
     const t = this.ctx.currentTime;
-    v.filter!.frequency.setValueAtTime(1600, t);
-    v.filter!.Q.setValueAtTime(0.6, t);
-    v.osc!.frequency.setValueAtTime(55, t);
-    v.gain.gain.setTargetAtTime(0.3, t, 0.08);
-    this.torchVoice = v;
+    v.filter!.frequency.setValueAtTime(drill ? 900 : 1600, t);
+    v.filter!.Q.setValueAtTime(drill ? 4 : 0.6, t);
+    v.osc!.frequency.setValueAtTime(drill ? 38 : 55, t);
+    v.gain.gain.setTargetAtTime(drill ? 0.35 : 0.3, t, 0.08);
+    this.toolVoice = { tool, voice: v };
   }
 
   /** Keep one flight voice per airborne projectile; call every frame with what is flying. */
@@ -299,14 +299,14 @@ export class Audio {
   }
 
   /** Continuous sounds currently playing (for tests). */
-  get voices(): { charge: boolean; torch: boolean; flights: number; played: Partial<Record<Sfx, number>> } {
-    return { charge: this.chargeVoice !== null, torch: this.torchVoice !== null, flights: this.flightVoices.size, played: { ...this.played } };
+  get voices(): { charge: boolean; torch: boolean; drill: boolean; flights: number; played: Partial<Record<Sfx, number>> } {
+    return { charge: this.chargeVoice !== null, torch: this.toolVoice?.tool === 'torch', drill: this.toolVoice?.tool === 'drill', flights: this.flightVoices.size, played: { ...this.played } };
   }
 
   /** Stop every continuous sound (pause, mute, match change). */
   silence(): void {
     this.setCharge(null);
-    this.setTorch(false);
+    this.setTool(null);
     this.setFlights([]);
   }
 

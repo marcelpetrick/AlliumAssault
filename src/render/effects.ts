@@ -63,6 +63,7 @@ export class Effects {
   private readonly crates = new Map<number, CrateView>();
   private readonly strikeCursor: Mesh;
   private flame: ParticleSystem | null = null;
+  private dust: ParticleSystem | null = null;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
@@ -334,6 +335,38 @@ export class Effects {
     this.flashLevel = Math.max(this.flashLevel, 1.2);
     this.flash.position.set(nozzle.x, nozzle.y, -1.5);
     this.flash.range = 6;
+  }
+
+  /** Dirt spraying up out of the shaft while the drill runs. */
+  updateDrill(game: Game, debris: Color3): void {
+    const b = game.activeBuddy;
+    if (!game.drill || !b) {
+      this.dust?.stop();
+      return;
+    }
+    if (!this.dust) {
+      const ps = new ParticleSystem('drillDust', 300, this.scene);
+      ps.particleTexture = this.dot;
+      ps.emitter = new Vector3();
+      ps.createConeEmitter(0.5, 0.9);
+      ps.direction1.set(-1.5, 3, -0.5);
+      ps.direction2.set(1.5, 5, 0.5);
+      ps.emitRate = 120;
+      ps.minLifeTime = 0.25;
+      ps.maxLifeTime = 0.6;
+      ps.minSize = 0.1;
+      ps.maxSize = 0.3;
+      ps.minEmitPower = 1;
+      ps.maxEmitPower = 2.5;
+      ps.gravity = new Vector3(0, -20, 0);
+      ps.color1 = Color4.FromColor3(debris, 1);
+      ps.color2 = Color4.FromColor3(debris.scale(0.7), 1);
+      ps.colorDead = Color4.FromColor3(debris.scale(0.5), 0);
+      this.dust = ps;
+    }
+    (this.dust.emitter as Vector3).set(b.body.x, b.body.y - b.body.radius, -0.5);
+    if (!this.dust.isStarted()) this.dust.start();
+    this.shake(0.05);
   }
 
   /** Column of sparkles where a crate materialises. */

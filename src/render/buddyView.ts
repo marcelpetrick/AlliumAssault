@@ -234,6 +234,10 @@ export class BuddyView {
         [MeshBuilder.CreateBox('muleRadio', { width: 0.22, height: 0.34, depth: 0.14 }, scene), kit.metal, [0.55, 0, 0], false],
         [MeshBuilder.CreateCylinder('muleAntenna', { height: 0.4, diameter: 0.025, tessellation: 6 }, scene), kit.glove, [0.6, 0.35, 0], false],
       ]),
+      drill: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCylinder('drillBody', { height: 0.34, diameter: 0.2, tessellation: 10 }, scene), kit.glove, [0.32, 0, 0], true],
+        [MeshBuilder.CreateCylinder('drillBit', { height: 0.42, diameterTop: 0, diameterBottom: 0.14, tessellation: 10 }, scene), kit.metal, [0.68, 0, 0], true],
+      ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
         [MeshBuilder.CreateCylinder('plunger', { height: 0.1, diameter: 0.12, tessellation: 10 }, scene), kit.glove, [0.5, 0.07, 0], false],
@@ -318,7 +322,7 @@ export class BuddyView {
     for (const pupil of this.pupils) pupil.position.x = b.facing * 0.03;
     this.root.rotation.z = this.hurtTime > 0 ? Math.sin(time * 60) * 0.12 : 0;
 
-    const showWeapon = !!game && isActive && (game.phase === 'aiming' || game.phase === 'turnStart' || game.phase === 'torching');
+    const showWeapon = !!game && isActive && (game.phase === 'aiming' || game.phase === 'turnStart' || game.phase === 'torching' || game.phase === 'drilling');
     for (const [id, node] of Object.entries(this.weapons)) node.setEnabled(showWeapon && game?.weapon === id);
     this.weaponPivot.rotation.z = b.facing > 0 ? b.aim : Math.PI - b.aim;
     this.weaponPivot.rotation.x = b.facing > 0 ? 0 : Math.PI;

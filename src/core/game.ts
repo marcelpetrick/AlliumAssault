@@ -71,9 +71,15 @@ export interface GameOverrides {
 /**
  * `guiding`: a released sheep is hopping or flying; the turn timer runs and Space detonates it.
  * `torching`: the active buddy walks forward burning a tunnel; no other input.
+ * `drilling`: the active buddy drills straight down; no other input, no fall damage.
  * `firing`: a burst weapon is rattling off its bullets; no other input.
  */
-export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'firing' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'drilling' | 'firing' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+
+/** Phases in which the turn timer counts down. */
+const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling'];
+/** Phases in which the active team is still playing its turn, so hurting its buddy ends it. */
+const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'firing', 'retreat'];
 
 export interface Buddy {
   id: number;
@@ -168,6 +174,10 @@ const REST_MAX_WAIT = 10;
 /** Upward speed a smashing projectile rebounds with after each impact. */
 const SMASH_REBOUND = 6;
 
+/** Seconds between two shaft carves of the drill, and how far below the feet each one bites. */
+const DRILL_CARVE_INTERVAL = 0.12;
+const DRILL_BITE = 0.35;
+
 /** Seconds between two tunnel carves of the blowtorch. */
 const TORCH_CARVE_INTERVAL = 0.08;
 
@@ -196,6 +206,8 @@ export class Game {
   crates: Crate[] = [];
   /** Burst weapon firing: bullets left and seconds until the next one. */
   burst: { weapon: WeaponId; left: number; next: number } | null = null;
+  /** Drill in use: seconds left and buddies already hit this use. */
+  drill: { left: number; carveIn: number; hit: number[] } | null = null;
   /** Blowtorch in use: seconds left and buddies already burnt this use. */
   torch: { left: number; carveIn: number; burnt: number[] } | null = null;
   /** Air strike bombs waiting for the plane to reach their release point. */
@@ -294,7 +306,17 @@ export class Game {
 
   /** The active team still acts this turn: controlling its buddy or guiding its sheep. */
   get acting(): boolean {
-    return this.controllable || this.phase === 'guiding' || this.phase === 'torching';
+    return this.controllable || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'drilling';
+  }
+
+  /** The turn timer is running. */
+  get countingDown(): boolean {
+    return COUNTDOWN_PHASES.includes(this.phase);
+  }
+
+  /** The active team is still playing its turn. */
+  get activeBuddyInPlay(): boolean {
+    return ACTION_PHASES.includes(this.phase);
   }
 
   drainEvents(): GameEvent[] {
@@ -414,6 +436,7 @@ export class Game {
     this.stepSheep(dt);
     this.stepFlyer(dt);
     this.stepTorch(dt);
+    this.stepDrill(dt);
     this.stepBurst(dt);
     this.stepCrates(dt);
     this.stepPhase(dt);
@@ -451,7 +474,8 @@ export class Game {
       b.walking = walk !== null;
       stepBody(this.terrain, b.body, dt, walk);
       if (b.body.impact > 4) this.emit({ type: 'land', buddy: b.id, speed: b.body.impact });
-      if (b.body.impact > SAFE_FALL_SPEED) this.damage(b, Math.round((b.body.impact - SAFE_FALL_SPEED) * FALL_DAMAGE_PER_SPEED));
+      const cushioned = b === active && this.drill !== null;
+      if (b.body.impact > SAFE_FALL_SPEED && !cushioned) this.damage(b, Math.round((b.body.impact - SAFE_FALL_SPEED) * FALL_DAMAGE_PER_SPEED));
       if (b.body.y < this.terrain.waterLevel - 0.4 || b.body.x < -30 || b.body.x > this.terrain.width + 30) this.drown(b);
     }
   }
@@ -570,6 +594,38 @@ export class Game {
     }
   }
 
+  private stepDrill(dt: number): void {
+    const drill = this.drill;
+    const b = this.activeBuddy;
+    if (!drill) return;
+    if (!b?.alive || this.phase !== 'drilling') {
+      this.drill = null;
+      return;
+    }
+    const def = WEAPONS.drill;
+    drill.left -= dt;
+    drill.carveIn -= dt;
+    if (drill.carveIn <= 0) {
+      drill.carveIn = DRILL_CARVE_INTERVAL;
+      // A disc reaching a little below the feet: the buddy sinks into the shaft under gravity.
+      this.terrain.carve(b.body.x, b.body.y - b.body.radius - DRILL_BITE + def.radius, def.radius);
+    }
+    const tipY = b.body.y - b.body.radius - DRILL_BITE;
+    for (const t of this.buddies) {
+      if (!t.alive || t === b || drill.hit.includes(t.id) || Math.hypot(t.body.x - b.body.x, t.body.y - tipY) > def.radius + t.body.radius) continue;
+      drill.hit.push(t.id);
+      t.body.vx = (t.body.x < b.body.x ? -1 : 1) * def.force;
+      t.body.vy = def.force * 0.4;
+      t.body.grounded = false;
+      t.body.restTime = 0;
+      this.damage(t, def.damage);
+    }
+    if (drill.left <= 0) {
+      this.drill = null;
+      this.startRetreat();
+    }
+  }
+
   private stepBurst(dt: number): void {
     const burst = this.burst;
     const b = this.activeBuddy;
@@ -671,6 +727,7 @@ export class Game {
         if (this.turnTimeLeft <= 0) this.detonateGuided();
         break;
       case 'torching':
+      case 'drilling':
         this.turnTimeLeft -= dt;
         if (this.turnTimeLeft <= 0) this.endTurnEarly();
         break;
@@ -732,6 +789,7 @@ export class Game {
     this.sheep = null;
     this.flyer = null;
     this.torch = null;
+    this.drill = null;
     this.burst = null;
     this.drops = [];
     const team = this.activeTeamData!;
@@ -770,6 +828,10 @@ export class Game {
     } else if (def.burst) {
       this.burst = { weapon: def.id, left: def.burst.count, next: 0 };
       this.setPhase('firing');
+      return;
+    } else if (def.kind === 'drill') {
+      this.drill = { left: def.fuse, carveIn: 0, hit: [] };
+      this.setPhase('drilling');
       return;
     } else if (def.kind === 'torch') {
       this.torch = { left: def.fuse, carveIn: 0, burnt: [] };
@@ -892,7 +954,7 @@ export class Game {
     if (amount <= 0 || !b.alive) return;
     b.hp = Math.max(0, b.hp - amount);
     this.emit({ type: 'damage', buddy: b.id, amount });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'firing' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && this.activeBuddyInPlay) this.endTurnEarly();
   }
 
   private drown(b: Buddy): void {
@@ -900,12 +962,13 @@ export class Game {
     b.hp = 0;
     this.emit({ type: 'drown', buddy: b.id });
     this.emit({ type: 'splash', x: b.body.x, y: this.terrain.waterLevel });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'firing' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && this.activeBuddyInPlay) this.endTurnEarly();
   }
 
   private endTurnEarly(): void {
     this.charge = null;
     this.torch = null;
+    this.drill = null;
     this.burst = null;
     this.detonateGuided();
     this.setPhase('settling');

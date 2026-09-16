@@ -280,6 +280,27 @@ test('concrete mule: a click drops it, it brays and smashes down repeatedly', as
   expect(errors).toEqual([]);
 });
 
+test('drill: Shift+6, grinding sound, the buddy drills straight down', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'Shift+6', 'drill');
+  const start = await me(page);
+  const before = await state(page);
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.phase === 'drilling' && s.sound.drill, 10_000);
+  await page.evaluate(() => window.__allium.stepFrames(15, 1 / 30));
+  await info.attach('drill', { body: await page.screenshot(), contentType: 'image/png' });
+  await page.evaluate(() => window.__allium.setManual(false));
+  await fastForward(page, 3);
+  await waitFor(page, (s) => s.phase !== 'drilling' && !s.sound.drill, 10_000);
+  const after = await state(page);
+  const driller = after.buddies.find((b) => b.name === start.name)!;
+  expect(start.y - driller.y).toBeGreaterThan(2);
+  expect(Math.abs(driller.x - start.x)).toBeLessThan(1);
+  expect(after.terrainRevision).toBeGreaterThan(before.terrainRevision);
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

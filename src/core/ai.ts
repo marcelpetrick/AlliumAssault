@@ -187,6 +187,17 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     }
   }
 
+  if (allowed('drill')) {
+    // Drill down onto an enemy buried right below.
+    const def = WEAPONS.drill;
+    for (const enemy of enemies) {
+      const below = me.body.y - enemy.body.y;
+      if (Math.abs(enemy.body.x - me.body.x) > def.radius + BUDDY_RADIUS || below < 1 || below > DRILL_REACH || lineOfSight(game, me, enemy)) continue;
+      const score = def.damage + (enemy.hp <= def.damage ? 40 : 0) - 6;
+      if (score > best.score) best = { weapon: 'drill', facing: best.facing, aim: me.aim, power: 1, score };
+    }
+  }
+
   if (allowed('selfdestruct')) {
     // Worth it only when the blast takes out more than the buddy it costs.
     const blast = selfDestructBlast(WEAPONS.selfdestruct, me.hp);
@@ -273,6 +284,9 @@ function lineOfSight(game: Game, me: Buddy, target: Buddy): boolean {
   }
   return true;
 }
+
+/** How deep the drill gets in one use, roughly. */
+const DRILL_REACH = 8;
 
 /** Horizontal distance from the target at which a steered flying sheep starts its dive. */
 const FLYER_APPROACH = 6;

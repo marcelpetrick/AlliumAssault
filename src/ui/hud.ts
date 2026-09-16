@@ -136,13 +136,13 @@ export class Hud {
       (this.el.querySelector('.turn-card') as HTMLElement).style.setProperty('--team', team.config.color);
     }
     const retreat = g.phase === 'retreat';
-    const seconds = retreat ? g.retreatLeft : g.phase === 'aiming' || g.phase === 'guiding' || g.phase === 'torching' || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
+    const seconds = retreat ? g.retreatLeft : g.countingDown || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
     const total = retreat ? g.config.retreatTime : g.config.turnTime;
     this.text('.timer-value', g.phase === 'settling' || g.phase === 'deaths' ? '…' : String(Math.max(0, Math.ceil(seconds))));
     this.text('.timer-caption', retreat ? 'retreat' : 'turn');
     const progress = this.el.querySelector('.progress') as SVGCircleElement;
     progress.style.strokeDashoffset = String(RING * (1 - Math.max(0, seconds) / total));
-    this.el.querySelector('.timer')!.classList.toggle('urgent', (g.phase === 'aiming' || g.phase === 'guiding' || g.phase === 'torching') && seconds <= 5);
+    this.el.querySelector('.timer')!.classList.toggle('urgent', g.countingDown && seconds <= 5);
     this.el.querySelector('.timer')!.classList.toggle('retreat', retreat);
     const fill = this.el.querySelector('.wind-fill') as HTMLElement;
     fill.style.width = `${Math.abs(g.wind) * 50}%`;
@@ -179,6 +179,8 @@ export class Hud {
           ? `Click on the map to drop the ${def.name.toLowerCase()} · Enter jump · Esc menu`
         : g.phase === 'firing'
           ? 'Rat-a-tat-tat! 🔩'
+        : g.phase === 'drilling'
+          ? 'Drilling down… ⛏️'
         : g.phase === 'torching'
           ? 'Burning through the rock… 🔥'
         : g.phase === 'guiding'
@@ -187,7 +189,7 @@ export class Hud {
             : 'Space to blow up the sheep! 🐑'
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'
-          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`,
+          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : def.kind === 'drill' ? 'Space to start drilling' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`,
     );
 
     // Name tags follow buddies; HP counts down Worms-style.

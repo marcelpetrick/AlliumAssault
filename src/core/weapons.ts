@@ -1,5 +1,5 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep' | 'mule' | 'mulebody';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep' | 'mule' | 'mulebody' | 'drill';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill';
 
 export interface WeaponDef {
   id: WeaponId;
@@ -435,6 +435,28 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 7,
     range: 0.9,
   },
+  drill: {
+    id: 'drill',
+    name: 'Drill',
+    icon: '⛏️',
+    blurb: 'Drills straight down for 3 seconds. No fall damage while drilling.',
+    kind: 'drill',
+    ammo: 2,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    // Drilling time in seconds.
+    fuse: 3,
+    // Shaft radius.
+    radius: 0.8,
+    damage: 15,
+    force: 7,
+    range: 0,
+  },
   selfdestruct: {
     id: 'selfdestruct',
     special: true,
@@ -460,7 +482,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule', 'drill'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);

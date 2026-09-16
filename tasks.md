@@ -49,7 +49,7 @@ Status: ☐ open · ☑ done
 | T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☐ | |
 | T39 | Bigger font option, persisted settings restored for the next game, Reset all button | ☐ | |
 | T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play | ☐ | |
-| T41 | Drill: dig vertically downwards, no fall damage while drilling | ☐ | |
+| T41 | Drill: dig vertically downwards, no fall damage while drilling | ☑ | 1.20.0 |
 | T42 | SPDX compatible project with check scripts | ☐ | |
 | T43 | Linters (best practice for the stack), fix findings, run on every push | ☐ | |
 | T44 | New full-code `/reviewBranch`, fix the worst findings | ☐ | |

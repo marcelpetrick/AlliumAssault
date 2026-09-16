@@ -45,7 +45,7 @@ npm run verify     # all of the above plus production build
 ## Working rules
 
 - **Controls:** Enter = jump, Backspace = back-flip, Space hold/release = charge and fire (Space
-  again detonates sheep), arrows walk, aim and steer the flying sheep, 1–9, 0 and Shift+1–5 /
+  again detonates sheep), arrows walk, aim and steer the flying sheep, 1–9, 0 and Shift+1–6 /
   Tab select weapons, a click on the map calls strikes.
 - **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`), behaviour in
   `Game` for new kinds, held model in `buddyView.ts`, projectile model in `effects.ts`, sounds in

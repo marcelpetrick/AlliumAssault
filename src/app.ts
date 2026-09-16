@@ -171,7 +171,7 @@ export class App {
       return;
     }
     this.audio.setCharge(game.charge);
-    this.audio.setTorch(game.phase === 'torching');
+    this.audio.setTool(game.phase === 'torching' ? 'torch' : game.phase === 'drilling' ? 'drill' : null);
     const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' || p.weapon === 'mulebody' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
     const f = game.flyer;
     if (f) flights.push({ id: f.id, kind: 'lob', vx: Math.cos(f.angle) * FLYER_SPEED, vy: Math.sin(f.angle) * FLYER_SPEED });
@@ -186,8 +186,7 @@ export class App {
     } else {
       this.lastStep = null;
     }
-    const counting = game.phase === 'aiming' || game.phase === 'guiding' || game.phase === 'torching';
-    const second = counting ? Math.ceil(game.turnTimeLeft) : 0;
+    const second = game.countingDown ? Math.ceil(game.turnTimeLeft) : 0;
     if (second !== this.lastTick && second > 0 && second <= 5) this.audio.play('tick');
     this.lastTick = second;
   }

@@ -760,7 +760,7 @@ kbd {
   gap: 4px;
   padding: 6px 8px 8px;
   pointer-events: auto;
-  max-width: min(820px, calc(100vw - 32px));
+  max-width: min(880px, calc(100vw - 32px));
 }
 
 .weapon-caption {
@@ -789,7 +789,7 @@ kbd {
 
 .slot {
   position: relative;
-  width: 48px;
+  width: 46px;
   height: 52px;
   padding: 4px 2px 2px;
   border-radius: 12px;

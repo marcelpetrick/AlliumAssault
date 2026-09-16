@@ -228,6 +228,7 @@ export class World {
     this.effects.syncFlyer(g, this.time);
     this.effects.syncCrates(g, dt);
     this.effects.updateTorch(g);
+    this.effects.updateDrill(g, this.theme.dirt);
     const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
     this.effects.setStrikeCursor(targeting ? this.pointer : null, this.time);
     if (this.strikeView && this.time > this.strikeView.until) {

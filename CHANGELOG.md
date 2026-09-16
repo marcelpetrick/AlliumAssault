@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.20.0] — 2026-09-16
+
+### Added
+- Drill (Shift+6, 2 per team): drills straight down for three seconds, the buddy sinking into its
+  own shaft under gravity. No fall damage while drilling, even when breaking into a cave; buddies
+  in the way take 15 damage and a shove. Grinding sound, dirt spray, drill model; the AI drills
+  onto enemies buried right below.
+
+### Changed
+- The phases that count down the turn timer and the phases that end the turn when the active buddy
+  is hurt are defined once in the game instead of being repeated across game, HUD and app.
+
 ## [1.19.0] — 2026-09-16
 
 ### Added

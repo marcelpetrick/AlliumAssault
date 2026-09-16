@@ -73,7 +73,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | Backspace | Back-flip (high jump) |
 | ↑ ↓ | Aim |
 | Space | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–5 / Tab | Choose weapon (or click it in the weapon bar) |
+| 1–9, 0, Shift+1–6 / Tab | Choose weapon (or click it in the weapon bar) |
 | Mouse wheel / drag | Zoom / pan camera |
 | Click | Call the air strike or drop the concrete mule onto that spot |
 | M / Esc | Mute / pause menu |
@@ -97,6 +97,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🍌 Banana Bomb | 1 | 3 s fuse (40 dmg), then five bouncing bananas explode one after another (30 dmg each) |
 | 🦸 Flying Sheep | 1 | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates (75 dmg); explodes on impact or after 15 s |
 | 🫏 Concrete Mule | 1 | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each) |
+| ⛏️ Drill | 2 | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way) |
 
 ## Architecture
 
