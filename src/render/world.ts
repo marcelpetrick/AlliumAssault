@@ -156,7 +156,7 @@ export class World {
           this.effects.tracer(e.x0, e.y0, e.x1, e.y1);
           break;
         case 'fire':
-          this.effects.muzzle(e.x, e.y);
+          if (e.weapon !== 'sheep') this.effects.muzzle(e.x, e.y);
           break;
         case 'punch':
           this.effects.punch(e.x, e.y);
@@ -194,6 +194,7 @@ export class World {
     }
 
     this.effects.syncProjectiles(g, dt);
+    this.effects.syncSheep(g);
     this.effects.updateAim(g, this.time);
     this.effects.update(dt);
     this.updateCamera(dt);
@@ -236,7 +237,7 @@ export class World {
 
   private cameraTarget(): { x: number; y: number; fast: boolean } | null {
     const g = this.game;
-    const p = g.projectiles[0];
+    const p = g.projectiles[0] ?? g.sheep?.body;
     if (p) return { x: p.x, y: p.y, fast: true };
     if (this.hold && this.time < this.hold.until) return { x: this.hold.x, y: this.hold.y, fast: true };
     if (g.phase === 'settling' || g.phase === 'deaths' || g.phase === 'gameOver') {

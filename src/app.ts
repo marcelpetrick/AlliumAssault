@@ -196,7 +196,11 @@ export class App {
           break;
         case 'fire':
           if (e.weapon === 'shotgun') this.audio.play('shot');
+          else if (e.weapon === 'sheep') this.audio.play('baa');
           else if (e.weapon !== 'punch') this.audio.play('fire');
+          break;
+        case 'sheepHop':
+          this.audio.play('hop');
           break;
         case 'punch':
           this.audio.play('punch');
@@ -323,6 +327,7 @@ export class App {
       winner: g?.winner ?? null,
       terrainRevision: g?.terrain.revision ?? 0,
       projectiles: g?.projectiles.length ?? 0,
+      sheep: g?.sheep ? { x: g.sheep.body.x, y: g.sheep.body.y } : null,
       sound: this.audio.voices,
       buddies: (g?.buddies ?? []).map((b) => ({ id: b.id, name: b.name, team: b.team, hp: b.hp, alive: b.alive, x: b.body.x, y: b.body.y, aim: b.aim, facing: b.facing })),
     };

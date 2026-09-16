@@ -29,6 +29,13 @@ interface ProjectileView {
   trail: ParticleSystem | null;
 }
 
+interface SheepView {
+  id: number;
+  node: TransformNode;
+  body: TransformNode;
+  legs: Mesh[];
+}
+
 /** Explosions, splashes, tracers, projectile models and the aiming reticle. */
 export class Effects {
   private readonly dot: Texture;
@@ -36,6 +43,7 @@ export class Effects {
   private readonly flash: PointLight;
   private flashLevel = 0;
   private readonly projectiles = new Map<number, ProjectileView>();
+  private sheep: SheepView | null = null;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
@@ -64,6 +72,8 @@ export class Effects {
       bomb: mat('fxBomb', '#2f4a2a'),
       cluster: mat('fxCluster', '#d42a24', 0.15),
       metal: mat('fxMetal', '#9aa3ad'),
+      wool: mat('fxWool', '#f4f1ea', 0.25),
+      sheepFace: mat('fxSheepFace', '#2b2522'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
       tracer: mat('fxTracer', '#ffe27a', 1),
     };
@@ -225,6 +235,23 @@ export class Effects {
     }
   }
 
+  /** Show the released sheep, facing its hop direction, legs tucked in mid-air. */
+  syncSheep(game: Game): void {
+    const s = game.sheep;
+    if (this.sheep && this.sheep.id !== s?.id) {
+      this.sheep.node.dispose();
+      this.sheep = null;
+    }
+    if (!s) return;
+    this.sheep ??= this.createSheep(s.id);
+    const view = this.sheep;
+    view.node.position.set(s.body.x, s.body.y, 0);
+    view.node.scaling.x = s.facing;
+    const airborne = !s.body.grounded;
+    view.body.rotation.z = airborne ? Math.atan2(s.body.vy, Math.abs(s.body.vx) + 1e-3) * 0.5 : 0;
+    for (const leg of view.legs) leg.scaling.y = airborne ? 0.6 : 1;
+  }
+
   updateAim(game: Game, time: number): void {
     const b = game.activeBuddy;
     const show = !!b && b.alive && game.phase === 'aiming';
@@ -301,6 +328,38 @@ export class Effects {
       default:
         return this.createGrenade(this.materials.bomb);
     }
+  }
+
+  private createSheep(id: number): SheepView {
+    const node = new TransformNode('sheep', this.scene);
+    const body = new TransformNode('sheepBody', this.scene);
+    body.parent = node;
+    const part = (mesh: Mesh, material: StandardMaterial, x: number, y: number, z = 0) => {
+      mesh.material = material;
+      mesh.position.set(x, y, z);
+      mesh.parent = body;
+      mesh.isPickable = false;
+      return mesh;
+    };
+    // Wool: a cluster of puffs around an oval core.
+    part(MeshBuilder.CreateSphere('wool', { diameterX: 0.72, diameterY: 0.5, diameterZ: 0.5, segments: 10 }, this.scene), this.materials.wool, 0, 0.05);
+    for (const [x, y, z] of [[-0.25, 0.2, 0], [0, 0.26, -0.1], [0.22, 0.2, 0.05], [-0.1, 0.12, -0.22], [0.12, 0.08, 0.22], [-0.32, 0.02, 0.1]]) {
+      part(MeshBuilder.CreateSphere('puff', { diameter: 0.26, segments: 8 }, this.scene), this.materials.wool, x, y, z);
+    }
+    part(MeshBuilder.CreateSphere('head', { diameterX: 0.26, diameterY: 0.24, diameterZ: 0.22, segments: 10 }, this.scene), this.materials.sheepFace, 0.4, 0.14);
+    for (const z of [-0.09, 0.09]) {
+      const ear = part(MeshBuilder.CreateSphere('ear', { diameterX: 0.14, diameterY: 0.05, diameterZ: 0.08, segments: 6 }, this.scene), this.materials.sheepFace, 0.36, 0.22, z);
+      ear.rotation.x = z * 4;
+      part(MeshBuilder.CreateSphere('sheepEye', { diameter: 0.05, segments: 6 }, this.scene), this.materials.wool, 0.5, 0.18, z * 0.6 - 0.05);
+    }
+    const legs = [-0.18, 0.18].flatMap((x) =>
+      [-0.12, 0.12].map((z) => {
+        const leg = part(MeshBuilder.CreateCylinder('leg', { height: 0.22, diameter: 0.06, tessellation: 6 }, this.scene), this.materials.sheepFace, x, -0.24, z);
+        leg.setPivotPoint(new Vector3(0, 0.11, 0));
+        return leg;
+      }),
+    );
+    return { id, node, body, legs };
   }
 
   private createBomblet(): ProjectileView {

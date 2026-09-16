@@ -25,6 +25,7 @@ import {
 import { clamp, lerp, type Point } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
+import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
 import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
@@ -54,7 +55,8 @@ export interface GameOverrides {
   spawns?: Point[];
 }
 
-export type Phase = 'turnStart' | 'aiming' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+/** `guiding`: a released sheep is hopping; the turn timer runs and Space detonates it. */
+export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
 
 export interface Buddy {
   id: number;
@@ -107,6 +109,7 @@ export type GameEvent =
   | { type: 'jump'; buddy: number }
   | { type: 'land'; buddy: number; speed: number }
   | { type: 'bounce'; x: number; y: number; speed: number }
+  | { type: 'sheepHop'; x: number; y: number }
   | { type: 'gameOver'; winner: number | null };
 
 export interface InputState {
@@ -121,6 +124,8 @@ export class Game {
   readonly teams: Team[];
   readonly buddies: Buddy[] = [];
   projectiles: Projectile[] = [];
+  /** The released sheep, while it hops. */
+  sheep: Sheep | null = null;
   readonly input: InputState = { left: false, right: false, up: false, down: false };
 
   phase: Phase = 'turnStart';
@@ -209,6 +214,11 @@ export class Game {
     return (this.phase === 'aiming' || this.phase === 'retreat') && !!this.activeBuddy?.alive;
   }
 
+  /** The active team still acts this turn: controlling its buddy or guiding its sheep. */
+  get acting(): boolean {
+    return this.controllable || this.phase === 'guiding';
+  }
+
   drainEvents(): GameEvent[] {
     const out = this.events;
     this.events = [];
@@ -260,8 +270,9 @@ export class Game {
     }
   }
 
-  /** Space pressed: start charging, or fire instantly for non-charge weapons. */
+  /** Space pressed: start charging, fire instantly for non-charge weapons, or detonate the sheep. */
   pressFire(): void {
+    if (this.phase === 'guiding') return this.detonateSheep();
     const team = this.activeTeamData;
     const def = WEAPONS[this.weapon];
     if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || this.charge !== null) return;
@@ -293,7 +304,7 @@ export class Game {
     this.phaseTime += dt;
     const active = this.activeBuddy;
 
-    if (this.controllable && !this.isHumanTurn) this.ai.get(this.activeTeam)?.update(this, dt);
+    if (this.acting && !this.isHumanTurn) this.ai.get(this.activeTeam)?.update(this, dt);
 
     if (active && this.phase === 'aiming' && this.charge === null) {
       const dir = Number(this.input.up) - Number(this.input.down);
@@ -306,6 +317,7 @@ export class Game {
 
     this.stepBuddies(dt);
     this.stepProjectiles(dt);
+    this.stepSheep(dt);
     this.stepPhase(dt);
   }
 
@@ -316,7 +328,7 @@ export class Game {
   }
 
   isSettled(): boolean {
-    return this.projectiles.length === 0 && this.buddies.every((b) => !b.alive || b.body.restTime > 0.25);
+    return this.projectiles.length === 0 && !this.sheep && this.buddies.every((b) => !b.alive || b.body.restTime > 0.25);
   }
 
   private stepBuddies(dt: number): void {
@@ -360,6 +372,35 @@ export class Game {
     }
   }
 
+  private stepSheep(dt: number): void {
+    const s = this.sheep;
+    if (!s) return;
+    const result = stepSheep(this.terrain, s, dt);
+    if (result === 'hop') this.emit({ type: 'sheepHop', x: s.body.x, y: s.body.y });
+    if (result === 'water' || result === 'out') {
+      this.sheep = null;
+      if (result === 'water') this.emit({ type: 'splash', x: s.body.x, y: this.terrain.waterLevel });
+      if (this.phase === 'guiding') this.startRetreat();
+    } else if (s.age >= WEAPONS.sheep.fuse) {
+      this.detonateSheep();
+    }
+  }
+
+  private detonateSheep(): void {
+    const s = this.sheep;
+    if (!s) return;
+    this.sheep = null;
+    // Enter retreat first: if the blast hurts the active buddy, damage() ends the turn from there.
+    if (this.phase === 'guiding') this.startRetreat();
+    const def = WEAPONS.sheep;
+    this.explode(s.body.x, s.body.y, def.radius, def.damage, def.force);
+  }
+
+  private startRetreat(): void {
+    this.retreatLeft = this.config.retreatTime;
+    this.setPhase('retreat');
+  }
+
   private stepPhase(dt: number): void {
     switch (this.phase) {
       case 'turnStart':
@@ -368,6 +409,10 @@ export class Game {
       case 'aiming':
         this.turnTimeLeft -= dt;
         if (this.turnTimeLeft <= 0) this.endTurnEarly();
+        break;
+      case 'guiding':
+        this.turnTimeLeft -= dt;
+        if (this.turnTimeLeft <= 0) this.detonateSheep();
         break;
       case 'retreat':
         this.retreatLeft -= dt;
@@ -423,6 +468,7 @@ export class Game {
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
+    this.sheep = null;
     const team = this.activeTeamData!;
     this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
     this.shotsLeft = WEAPONS[this.weapon].shots;
@@ -448,16 +494,17 @@ export class Game {
     if (def.kind === 'projectile') {
       const speed = lerp(def.minSpeed, def.maxSpeed, power);
       this.spawnProjectile(def.id, m.x, m.y, dir.x * speed, dir.y * speed, b.id);
+    } else if (def.kind === 'walker') {
+      this.sheep = releaseSheep(this.nextId++, b.id, b.body.x, b.body.y, b.facing);
+      this.setPhase('guiding');
+      return;
     } else if (def.kind === 'melee') {
       this.punch(b, dir);
     } else {
       this.shoot(b, m, dir);
     }
 
-    if (this.shotsLeft <= 0) {
-      this.retreatLeft = this.config.retreatTime;
-      this.setPhase('retreat');
-    }
+    if (this.shotsLeft <= 0) this.startRetreat();
   }
 
   /** Throw cluster fragments upwards in a fan from an exploded projectile. */
@@ -549,7 +596,7 @@ export class Game {
     if (amount <= 0 || !b.alive) return;
     b.hp = Math.max(0, b.hp - amount);
     this.emit({ type: 'damage', buddy: b.id, amount });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'retreat')) this.endTurnEarly();
   }
 
   private drown(b: Buddy): void {
@@ -557,11 +604,12 @@ export class Game {
     b.hp = 0;
     this.emit({ type: 'drown', buddy: b.id });
     this.emit({ type: 'splash', x: b.body.x, y: this.terrain.waterLevel });
-    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'retreat')) this.endTurnEarly();
+    if (b === this.activeBuddy && (this.phase === 'aiming' || this.phase === 'guiding' || this.phase === 'retreat')) this.endTurnEarly();
   }
 
   private endTurnEarly(): void {
     this.charge = null;
+    this.detonateSheep();
     this.setPhase('settling');
   }
 

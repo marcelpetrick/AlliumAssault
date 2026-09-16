@@ -3,6 +3,7 @@ import type { AiLevel, Buddy, Game } from './game';
 import { clamp, lerp } from './math';
 import { GRAVITY, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
+import { releaseSheep, stepSheep } from './sheep';
 import { WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export interface AttackPlan {
@@ -11,6 +12,8 @@ export interface AttackPlan {
   aim: number;
   power: number;
   score: number;
+  /** Walkers: seconds after release to detonate. */
+  delay?: number;
 }
 
 const LEVELS: Record<AiLevel, { angles: number; powers: number; aimError: number; powerError: number; think: number }> = {
@@ -39,6 +42,22 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
     if (def.fuse > 0 && t + dt >= def.fuse) return { x: p.x, y: p.y };
   }
   return null;
+}
+
+/** Replay a sheep's hops without touching game state; returns the best moment to detonate. */
+export function simulateSheep(game: Game, me: Buddy, facing: 1 | -1, maxTime: number): { score: number; time: number } {
+  const def = WEAPONS.sheep;
+  const sheep = releaseSheep(0, me.id, me.body.x, me.body.y, facing);
+  const dt = 1 / 60;
+  let best = { score: -Infinity, time: 0 };
+  for (let step = 1; step * dt <= Math.min(maxTime, def.fuse); step++) {
+    const result = stepSheep(game.terrain, sheep, dt);
+    if (result === 'water' || result === 'out') break;
+    if (step % 6) continue;
+    const score = scoreBlast(game, me, sheep.body.x, sheep.body.y, def);
+    if (score > best.score) best = { score, time: step * dt };
+  }
+  return best;
 }
 
 /** Blast score plus a rough estimate for cluster fragments raining down around the impact. */
@@ -106,6 +125,16 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     }
   }
 
+  if (allowed('sheep') && enemies.length) {
+    // Keep a margin so the sheep still detonates in time with think and aim delays.
+    const budget = game.turnTimeLeft - cfg.think - 1.5;
+    for (const facing of [1, -1] as const) {
+      const run = simulateSheep(game, me, facing, budget);
+      const score = run.score - 15;
+      if (score > best.score) best = { weapon: 'sheep', facing, aim: me.aim, power: 1, score, delay: run.time };
+    }
+  }
+
   for (const enemy of enemies) {
     const dx = enemy.body.x - me.body.x;
     const dy = enemy.body.y - me.body.y;
@@ -126,6 +155,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     ...best,
     aim: clamp(best.aim + gaussian(rng) * cfg.aimError, AIM_MIN, AIM_MAX),
     power: clamp(best.power + gaussian(rng) * cfg.powerError, 0.05, 1),
+    delay: best.delay === undefined ? undefined : Math.max(0.2, best.delay + gaussian(rng) * cfg.powerError * 5),
   };
 }
 
@@ -169,6 +199,10 @@ export class AiDriver {
         if (this.plan.facing > 0) input.left = true;
         else input.right = true;
       }
+      return;
+    }
+    if (game.phase === 'guiding') {
+      if (this.timer >= (this.plan?.delay ?? 0)) game.pressFire();
       return;
     }
     if (game.phase !== 'aiming') return;

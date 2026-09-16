@@ -34,7 +34,7 @@ Status: ☐ open · ☑ done
   - Red grenade, 3 s fuse, 3 per team. Explodes and releases 5 bomblets which explode on
     contact for 10 damage each.
   - AI considers it (main blast + estimated bomblet damage).
-- ☐ **T5 — Sheep** (minor)
+- ☑ **T5 — Sheep** (minor)
   - Space releases the sheep; it hops 45° upwards in small hops in the facing direction, turns
     around at walls. Second Space detonates it (big blast). Auto-detonates after 10 s or when
     the turn time runs out; drowns in water.

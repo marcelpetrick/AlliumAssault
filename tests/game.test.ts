@@ -162,6 +162,55 @@ describe('match flow', () => {
     expect(enemy.hp).toBe(90);
   });
 
+  it('sheep hops forwards and explodes on the second Space press', () => {
+    const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const me = g.buddies[0];
+    me.facing = 1;
+    g.selectWeapon('sheep');
+    g.pressFire();
+    expect(g.phase).toBe('guiding');
+    expect(g.teams[0].ammo.sheep).toBe(0);
+    g.simulate(2);
+    const sheep = g.sheep!;
+    expect(sheep.body.x).toBeGreaterThan(me.body.x + 4);
+    expect(sheep.body.y).toBeLessThan(23);
+    const x = me.body.x;
+    g.input.right = true;
+    g.simulate(0.3);
+    expect(me.body.x).toBeCloseTo(x, 3);
+    g.input.right = false;
+    const revision = g.terrain.revision;
+    g.pressFire();
+    expect(g.sheep).toBeNull();
+    expect(g.terrain.revision).toBeGreaterThan(revision);
+    expect(g.phase).toBe('retreat');
+  });
+
+  it('sheep damages an enemy it reaches and turns around at walls', () => {
+    const g = flatGame([40, 47], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    for (let y = 20; y <= 30; y += 1) g.terrain.addDisc(34, y, 1.5);
+    g.buddies[0].facing = -1;
+    g.selectWeapon('sheep');
+    g.pressFire();
+    runUntil(g, () => (g.sheep?.body.x ?? 0) > 46, 8);
+    expect(g.sheep!.facing).toBe(1);
+    g.pressFire();
+    g.simulate(0.2);
+    expect(g.buddies[1].hp).toBeLessThan(60);
+  });
+
+  it('sheep detonates by itself when the turn time runs out', () => {
+    const g = flatGame([40, 80], [team('A', 1), team('B', 1)], { turnTime: 3 });
+    toAiming(g);
+    g.selectWeapon('sheep');
+    g.pressFire();
+    runUntil(g, () => g.phase !== 'guiding', 5);
+    expect(g.sheep).toBeNull();
+    expect(g.phase).toBe('retreat');
+  });
+
   it('walking is blocked while charging', () => {
     const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
     toAiming(g);
@@ -186,6 +235,20 @@ describe('AI', () => {
     const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(3), 'cluster');
     expect(plan.weapon).toBe('cluster');
     expect(plan.score).toBeGreaterThan(20);
+  });
+
+  it('guides a sheep to the enemy and detonates it there', () => {
+    const g = flatGame([40, 52], [team('A', 1, 'ai'), team('B', 1)]);
+    const ammo = g.teams[0].ammo;
+    ammo.bazooka = ammo.grenade = ammo.shotgun = ammo.punch = ammo.cluster = 0;
+    const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(9));
+    expect(plan.weapon).toBe('sheep');
+    expect(plan.facing).toBe(1);
+    expect(plan.delay).toBeGreaterThan(2);
+    runUntil(g, () => g.phase === 'guiding', 10);
+    runUntil(g, () => g.phase !== 'guiding', 15);
+    expect(g.buddies[1].hp).toBeLessThan(50);
+    expect(g.buddies[0].hp).toBe(100);
   });
 
   it('re-plans with the current weapon after the first shotgun shot', () => {

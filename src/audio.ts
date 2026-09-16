@@ -13,7 +13,9 @@ export type Sfx =
   | 'victory'
   | 'click'
   | 'select'
-  | 'tick';
+  | 'tick'
+  | 'baa'
+  | 'hop';
 
 /** Something in flight that should be heard for as long as it flies. */
 export interface FlightSound {
@@ -142,6 +144,12 @@ export class Audio {
       case 'tick':
         this.tone('square', 1500, 1500, 0.035, 0.07);
         break;
+      case 'baa':
+        this.bleat(pitch);
+        break;
+      case 'hop':
+        this.tone('sine', 260 * pitch, 520 * pitch, 0.07, 0.05);
+        break;
     }
   }
 
@@ -204,6 +212,32 @@ export class Audio {
   silence(): void {
     this.setCharge(null);
     this.setFlights([]);
+  }
+
+  /** Nasal, wobbling "baa": a sawtooth through a vowel-like bandpass with fast vibrato. */
+  private bleat(pitch: number): void {
+    const ctx = this.ctx!;
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(420 * pitch, t0);
+    osc.frequency.exponentialRampToValueAtTime(330 * pitch, t0 + 0.6);
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 26;
+    const depth = ctx.createGain();
+    depth.gain.value = 18;
+    lfo.connect(depth);
+    depth.connect(osc.frequency);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1100;
+    filter.Q.value = 2.5;
+    osc.connect(filter);
+    filter.connect(this.envelope(0.3, 0.65, 0));
+    osc.start(t0);
+    lfo.start(t0);
+    osc.stop(t0 + 0.7);
+    lfo.stop(t0 + 0.7);
   }
 
   /** Filtered looping noise, optionally mixed with an oscillator, starting silent. */

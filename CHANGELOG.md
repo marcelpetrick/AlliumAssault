@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.4.0] — 2026-09-16
+
+### Added
+- Sheep (key 6, 1 per team): Space releases it and it hops forward in small 45° leaps, turning
+  around at walls; Space again detonates it (75 damage). It blows up by itself after 10 seconds or
+  when the turn time runs out, and drowns in water. Fuse countdown, baa and hop sounds.
+- The camera follows the sheep; the AI replays its hops and detonates it at the best moment.
+- E2E test for releasing and detonating the sheep.
+
 ## [1.3.2] — 2026-09-16
 
 ### Fixed

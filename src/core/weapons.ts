@@ -1,5 +1,5 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker';
 
 export interface WeaponDef {
   id: WeaponId;
@@ -19,7 +19,7 @@ export interface WeaponDef {
   gravityScale: number;
   /** null = explode on contact; otherwise bounce with this restitution. */
   restitution: number | null;
-  /** Seconds until detonation; 0 = no fuse. */
+  /** Seconds until detonation; 0 = no fuse. Walkers detonate when it runs out. */
   fuse: number;
   radius: number;
   damage: number;
@@ -154,8 +154,28 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     range: 0,
     flatDamage: true,
   },
+  sheep: {
+    id: 'sheep',
+    name: 'Sheep',
+    icon: '🐑',
+    blurb: 'Space lets it hop off in small leaps; press Space again to blow it up.',
+    kind: 'walker',
+    ammo: 1,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 1,
+    restitution: null,
+    fuse: 10,
+    radius: 4,
+    damage: 75,
+    force: 17,
+    range: 0,
+  },
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

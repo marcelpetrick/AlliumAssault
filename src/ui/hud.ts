@@ -127,13 +127,13 @@ export class Hud {
       (this.el.querySelector('.turn-card') as HTMLElement).style.setProperty('--team', team.config.color);
     }
     const retreat = g.phase === 'retreat';
-    const seconds = retreat ? g.retreatLeft : g.phase === 'aiming' || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
+    const seconds = retreat ? g.retreatLeft : g.phase === 'aiming' || g.phase === 'guiding' || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
     const total = retreat ? g.config.retreatTime : g.config.turnTime;
     this.text('.timer-value', g.phase === 'settling' || g.phase === 'deaths' ? '…' : String(Math.max(0, Math.ceil(seconds))));
     this.text('.timer-caption', retreat ? 'retreat' : 'turn');
     const progress = this.el.querySelector('.progress') as SVGCircleElement;
     progress.style.strokeDashoffset = String(RING * (1 - Math.max(0, seconds) / total));
-    this.el.querySelector('.timer')!.classList.toggle('urgent', !retreat && g.phase === 'aiming' && seconds <= 5);
+    this.el.querySelector('.timer')!.classList.toggle('urgent', (g.phase === 'aiming' || g.phase === 'guiding') && seconds <= 5);
     this.el.querySelector('.timer')!.classList.toggle('retreat', retreat);
     const fill = this.el.querySelector('.wind-fill') as HTMLElement;
     fill.style.width = `${Math.abs(g.wind) * 50}%`;
@@ -163,9 +163,11 @@ export class Hud {
         ? 'Match over'
         : !human
           ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
+        : g.phase === 'guiding'
+          ? 'Space to blow up the sheep! 🐑'
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'
-          : `${def.charge ? 'Hold Space to charge, release to fire' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–${WEAPON_ORDER.length} weapons · Esc menu`,
+          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–${WEAPON_ORDER.length} weapons · Esc menu`,
     );
 
     // Name tags follow buddies; HP counts down Worms-style.
@@ -188,10 +190,11 @@ export class Hud {
       label.hpEl.textContent = String(Math.ceil(label.shown));
     }
 
-    // Grenade fuse countdown.
+    // Grenade and sheep fuse countdown.
     const live = new Set<number>();
-    for (const p of g.projectiles) {
-      if (WEAPONS[p.weapon].fuse <= 0) continue;
+    const fused = g.projectiles.filter((p) => WEAPONS[p.weapon].fuse > 0).map((p) => ({ id: p.id, x: p.x, y: p.y, fuse: p.fuse }));
+    if (g.sheep) fused.push({ id: g.sheep.id, x: g.sheep.body.x, y: g.sheep.body.y, fuse: Math.min(WEAPONS.sheep.fuse - g.sheep.age, g.turnTimeLeft) });
+    for (const p of fused) {
       live.add(p.id);
       let el = this.fuses.get(p.id);
       if (!el) {
