@@ -20,6 +20,7 @@ export const TURN_OPTIONS = [30, 45, 60, 90];
 export const ARSENAL_OPTIONS: { label: string; value: Arsenal }[] = [
   { label: 'All weapons', value: 'all' },
   { label: 'Find in crates', value: 'crates' },
+  { label: 'Infinite supplies', value: 'infinite' },
 ];
 export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },

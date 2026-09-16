@@ -35,7 +35,7 @@ import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from '
 import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export type Controller = 'human' | 'ai';
-export type Arsenal = 'all' | 'crates';
+export type Arsenal = 'all' | 'crates' | 'infinite';
 export type AiLevel = 'easy' | 'normal' | 'hard';
 
 export interface TeamConfig {
@@ -55,7 +55,10 @@ export interface MatchConfig {
   windMax: number;
   /** Chance per turn (0..1) that a crate teleports onto the map; missing means no crates. */
   crates?: number;
-  /** 'all': every weapon from the start (default); 'crates': special weapons only come from crates. */
+  /**
+   * 'all': every weapon with its normal ammo (default); 'crates': special weapons only come from
+   * crates; 'infinite': unlimited ammo for every weapon.
+   */
   arsenal?: Arsenal;
   theme: string;
 }
@@ -139,6 +142,15 @@ export interface InputState {
   right: boolean;
   up: boolean;
   down: boolean;
+}
+
+/** Ammo a team starts with for `id` under the given arsenal setting. */
+export function startingAmmo(arsenal: Arsenal | undefined, id: WeaponId): number {
+  const def = WEAPONS[id];
+  if (!WEAPON_ORDER.includes(id)) return def.ammo;
+  if (arsenal === 'infinite') return Infinity;
+  if (arsenal === 'crates' && def.special) return 0;
+  return def.ammo;
 }
 
 /** Blast of a self-destructing buddy with `hp` health; scales the weapon's 100 HP values. */
@@ -237,7 +249,7 @@ export class Game {
       config: cfg,
       buddies: [],
       cursor: 0,
-      ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, config.arsenal === 'crates' && WEAPONS[id].special ? 0 : WEAPONS[id].ammo])) as Record<WeaponId, number>,
+      ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, startingAmmo(config.arsenal, id)])) as Record<WeaponId, number>,
       weapon: 'bazooka' as WeaponId,
     }));
     let slot = 0;

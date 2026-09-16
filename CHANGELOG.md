@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.19.0] — 2026-09-16
+
+### Added
+- Arsenal option *Infinite supplies*: every weapon has unlimited ammo for the whole match.
+
 ## [1.18.6] — 2026-09-16
 
 ### Changed

@@ -37,7 +37,7 @@ Status: ☐ open · ☑ done
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
 | T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly | ☑ | 1.18.0 |
 | T28 | Louder sound effects | ☑ | 1.18.3 |
-| T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☐ | |
+| T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☑ | 1.19.0 |
 | T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
 | T31 | Comic tombstones where buddies die | ☐ | |
 | T37 | Play-in-browser link to GitHub Pages at the top of the README | ☑ | 1.18.1 |
@@ -222,7 +222,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   is clearly audible at normal system volume, without clipping on big explosions (compressor on
   the master bus).
 
-### T29 — Infinite supplies ☐
+### T29 — Infinite supplies ☑
 - Third arsenal option next to *All weapons* and *Find in crates*: every weapon has unlimited ammo.
   Unit and E2E tests.
 

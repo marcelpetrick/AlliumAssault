@@ -129,6 +129,20 @@ test('custom match setup: add a team, change options, start', async ({ page }, i
   expect(errors).toEqual([]);
 });
 
+test('arsenal "Infinite supplies": every weapon slot shows unlimited ammo', async ({ page }) => {
+  const errors = await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.getByRole('button', { name: 'Infinite supplies' }).click();
+  await page.getByRole('button', { name: /Start Battle/ }).click();
+  await waitFor(page, (s) => !s.demo && s.screen === null, 30_000);
+  const ammo = page.locator('.weapons .slot .slot-ammo');
+  await expect(ammo.first()).toHaveText('∞');
+  const texts = await ammo.allTextContents();
+  expect(texts.length).toBeGreaterThanOrEqual(15);
+  expect(texts.every((t) => t === '∞')).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test('pause menu: controls, resume and quit to title', async ({ page }) => {
   const errors = await boot(page);
   await page.getByRole('button', { name: /Quick Match/ }).click();

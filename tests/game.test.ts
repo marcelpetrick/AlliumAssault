@@ -583,6 +583,16 @@ describe('crates', () => {
     expect(SPECIAL_WEAPONS.length).toBeGreaterThanOrEqual(9);
   });
 
+  it('arsenal "infinite": every selectable weapon has unlimited ammo and never runs out', () => {
+    const g = flatGame([30, 100], [team('A', 1), team('B', 1)], { arsenal: 'infinite' });
+    toAiming(g);
+    for (const id of WEAPON_ORDER) expect(g.teams[0].ammo[id]).toBe(Infinity);
+    expect(g.teams[0].ammo.bomblet).toBe(0);
+    g.selectWeapon('airstrike');
+    g.strike(90);
+    expect(g.teams[0].ammo.airstrike).toBe(Infinity);
+  });
+
   it('blow up when caught in an explosion', () => {
     const g = crateGame(0);
     toAiming(g);
