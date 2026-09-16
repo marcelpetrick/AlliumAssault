@@ -17,6 +17,18 @@ describe('character body', () => {
     expect(b.restTime).toBeGreaterThan(1);
   });
 
+  it('falls when a crater removes the ground below without touching the body', () => {
+    for (const craterY of [17.2, 17.5, 17.8]) {
+      const t = flatTerrain(20);
+      const b = createBody(50, 20.6, 0.6);
+      run(1, () => stepBody(t, b, 1 / 60, null));
+      expect(b.grounded).toBe(true);
+      t.carve(50, craterY, 2.8);
+      run(1.5, () => stepBody(t, b, 1 / 60, null));
+      expect(b.y).toBeLessThan(18);
+    }
+  });
+
   it('walks horizontally along flat ground', () => {
     const t = flatTerrain(20);
     const b = createBody(50, 20.6, 0.6);

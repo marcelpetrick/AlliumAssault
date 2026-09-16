@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.13] — 2026-09-16
+
+### Fixed
+- Buddies no longer float in mid-air when a crater removes the ground below them without the
+  blast reaching them; they now fall.
+
 ## [1.1.12] — 2026-09-16
 
 ### Added

@@ -7,7 +7,7 @@ Status: ☐ open · ☑ done
 
 ## Bugs
 
-- ☐ **T1 — Buddies float after the ground under them is blasted away** (patch)
+- ☑ **T1 — Buddies float after the ground under them is blasted away** (patch)
   - Cause: `Terrain.distance()` estimates the distance to the surface from the local field value
     and gradient. `carve()` only lowers the field inside the crater disc, so the unchanged field
     above the crater still extrapolates to the old, now removed surface. `touchingGround()` and

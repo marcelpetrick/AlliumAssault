@@ -60,7 +60,7 @@ export function stepBody(t: Terrain, b: Body, dt: number, walk: number | null): 
   if (!grounded && wasGrounded && walk !== null && b.vy <= 0.1) {
     // Follow the ground when walking down a slope instead of hopping off it.
     for (let d = 0.05; d <= 0.45; d += 0.05) {
-      if (t.distance(b.x, b.y - d) < b.radius + 0.02) {
+      if (contactDistance(t, b.x, b.y - d) < b.radius + 0.02) {
         b.y -= d;
         resolve(t, b);
         grounded = touchingGround(t, b);
@@ -74,7 +74,7 @@ export function stepBody(t: Terrain, b: Body, dt: number, walk: number | null): 
 
 function resolve(t: Terrain, b: Body): void {
   for (let iter = 0; iter < 4; iter++) {
-    const d = t.distance(b.x, b.y);
+    const d = contactDistance(t, b.x, b.y);
     if (d >= b.radius) return;
     const n = t.normal(b.x, b.y);
     const push = b.radius - d;
@@ -92,7 +92,23 @@ function resolve(t: Terrain, b: Body): void {
 }
 
 function touchingGround(t: Terrain, b: Body): boolean {
-  return t.distance(b.x, b.y - 0.08) < b.radius && t.normal(b.x, b.y).y > GROUND_NORMAL_Y;
+  return contactDistance(t, b.x, b.y - 0.08) < b.radius && t.normal(b.x, b.y).y > GROUND_NORMAL_Y;
+}
+
+/**
+ * Distance to the surface, or Infinity when no rock backs it. The field is only an approximate
+ * distance: a crater lowers it inside its disc but leaves the field above untouched, which then
+ * still extrapolates to the blasted-away surface. Checking for rock just behind the estimated
+ * surface point rejects those phantom contacts.
+ */
+function contactDistance(t: Terrain, x: number, y: number): number {
+  const d = t.distance(x, y);
+  if (d > 1.5 || t.isSolid(x, y)) return d;
+  const n = t.normal(x, y);
+  for (const depth of [0.06, 0.2]) {
+    if (t.isSolid(x - n.x * (d + depth), y - n.y * (d + depth))) return d;
+  }
+  return Infinity;
 }
 
 export interface ProjectileBody {
