@@ -45,6 +45,20 @@ export function groundBelow(t: Terrain, x: number): number {
 }
 
 /**
+ * How far the wind pushes a strike's payload away from the aimed target. Zero for strikes that aim
+ * against the wind; for the others (napalm) it is the drift over the fall from the plane.
+ */
+export function strikeWindShift(t: Terrain, def: WeaponDef, target: number, wind: number): number {
+  const { weapon, plane, windAimed = true } = defined(def.strike, `${def.id} strike payload`);
+  if (windAimed || !plane) return 0;
+  const bomb = WEAPONS[weapon];
+  const ground = groundBelow(t, target);
+  const altitude = Math.min(WORLD_HEIGHT + 4, ground + CLEARANCE);
+  const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * bomb.gravityScale));
+  return 0.5 * wind * WIND_ACCEL * bomb.windInfluence * fall * fall;
+}
+
+/**
  * Where and when the plane releases its bombs so they land spaced around `target`, allowing for
  * the fall time, the bombs' forward speed and the wind.
  */

@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.8] — 2026-09-16
+
+### Fixed
+
+- The AI aims its napalm strike upwind so the wind carries the napalm onto the enemy, and scores
+  the strike where it will actually land (review #5).
+
+### Added
+
+- AI tests for drilling onto a buried enemy and for the wind-aware napalm strike (review #8).
+
 ## [1.26.7] — 2026-09-16
 
 ### Fixed

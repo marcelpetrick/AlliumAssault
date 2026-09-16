@@ -860,6 +860,46 @@ describe('AI', () => {
     expect(setup(true).weapon).not.toBe('flysheep');
   });
 
+  it('drills down onto an enemy buried right below', () => {
+    const g = flatGame([40, 100], [team('A', 1, 'ai'), team('B', 1)]);
+    const enemy = g.buddies[1];
+    enemy.body.x = 40.3;
+    enemy.body.y = 15;
+    g.terrain.carve(40.3, 15, 0.8);
+    onlyWeapon(g, 0, 'drill');
+    runUntil(g, () => g.phase === 'aiming', 5);
+    const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(6));
+    expect(plan.weapon).toBe('drill');
+    runUntil(g, () => g.phase !== 'aiming' && g.phase !== 'turnStart', 10);
+    runUntil(g, () => g.phase !== 'drilling', 5);
+    expect(enemy.hp).toBeLessThan(100);
+  });
+
+  it('aims a napalm strike upwind so the wind carries it onto the enemy', () => {
+    const land = (wind: number) => {
+      const g = flatGame([30, 80], [team('A', 1, 'ai'), team('B', 1)], { windMax: 1 });
+      onlyWeapon(g, 0, 'napalm');
+      runUntil(g, () => g.phase === 'aiming', 5);
+      g.wind = wind;
+      const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(8));
+      expect(plan.weapon).toBe('napalm');
+      let fireX: number | null = null;
+      runUntil(
+        g,
+        () => {
+          for (const e of g.drainEvents()) if (e.type === 'ignite') fireX ??= e.x;
+          return fireX !== null;
+        },
+        20,
+      );
+      return { target: plan.target!, fireX: fireX! };
+    };
+    const calm = land(0);
+    const windy = land(1);
+    expect(Math.abs(windy.target - calm.target)).toBeGreaterThan(8);
+    expect(Math.abs(windy.fireX - 80)).toBeLessThan(5);
+  });
+
   it('calls an air strike onto an enemy', () => {
     const g = flatGame([30, 80], [team('A', 1, 'ai'), team('B', 1)]);
     onlyWeapon(g, 0, 'airstrike');

@@ -10,7 +10,7 @@ import { defined } from './assert';
 import type { Crate } from './crates';
 import { FLYER_SPEED, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep } from './sheep';
-import { groundBelow } from './strike';
+import { groundBelow, strikeWindShift } from './strike';
 import { WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export interface AttackPlan {
@@ -158,10 +158,13 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const hitsPerBomb = bomb.impacts ? bomb.impacts * 0.5 : 1;
     for (const enemy of enemies) {
       for (const shift of spacing > 0 ? [-spacing, 0, spacing] : [0]) {
-        const target = clamp(enemy.body.x + shift, 0, game.terrain.width);
+        // Payloads that are not aimed against the wind land downwind: aim upwind by that drift.
+        const drift = strikeWindShift(game.terrain, WEAPONS[strike], enemy.body.x, game.wind);
+        const target = clamp(enemy.body.x + shift - drift, 0, game.terrain.width);
+        const landing = target + drift;
         let score = -20;
         for (let k = 0; k < count; k++) {
-          const x = target + (k - (count - 1) / 2) * spacing;
+          const x = landing + (k - (count - 1) / 2) * spacing;
           score += scoreBlast(game, me, x, groundBelow(game.terrain, x), bomb) * hitsPerBomb;
         }
         const facing: 1 | -1 = target < me.body.x ? -1 : 1;
