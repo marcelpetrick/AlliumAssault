@@ -50,6 +50,9 @@ Status: ☐ open · ☑ done
 | T39 | Bigger font option, persisted settings restored for the next game, Reset all button | ☐ | |
 | T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play | ☐ | |
 | T41 | Drill: dig vertically downwards, no fall damage while drilling | ☐ | |
+| T42 | SPDX compatible project with check scripts | ☐ | |
+| T43 | Linters (best practice for the stack), fix findings, run on every push | ☐ | |
+| T44 | New full-code `/reviewBranch`, fix the worst findings | ☐ | |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
 | T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |

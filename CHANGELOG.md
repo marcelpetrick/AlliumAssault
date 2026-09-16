@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.18.6] — 2026-09-16
+
+### Changed
+- Plan: SPDX compliance, the linter proposal and a new full-code review added with their order.
+
 ## [1.18.5] — 2026-09-16
 
 ### Added
