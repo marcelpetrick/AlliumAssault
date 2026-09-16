@@ -170,6 +170,23 @@ test('settings persist across reloads, text size scales the UI, Reset all restor
   expect(errors).toEqual([]);
 });
 
+test('about screen: author, free to play on GitHub Pages, tech stack and licenses', async ({ page }) => {
+  const errors = await boot(page);
+  await page.getByRole('button', { name: /About/ }).click();
+  await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();
+  const about = page.locator('.panel.about');
+  await expect(about).toContainText('mail@marcelpetrick.it');
+  await expect(about).toContainText('free to play');
+  await expect(about.getByRole('link', { name: /marcelpetrick.github.io\/AlliumAssault/ })).toHaveAttribute('href', 'https://marcelpetrick.github.io/AlliumAssault/');
+  await expect(about).toContainText('Babylon.js');
+  await expect(about).toContainText('Apache-2.0');
+  await expect(about).toContainText('GPL-3.0-or-later');
+  await expect(about.locator('.licenses tr')).toHaveCount(9);
+  await page.keyboard.press('Escape');
+  await waitFor(page, (s) => s.screen === 'title', 10_000);
+  expect(errors).toEqual([]);
+});
+
 test('pause menu: controls, resume and quit to title', async ({ page }) => {
   const errors = await boot(page);
   await page.getByRole('button', { name: /Quick Match/ }).click();

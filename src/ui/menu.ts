@@ -1,10 +1,11 @@
+import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { ARSENAL_OPTIONS, CRATE_OPTIONS, makeTeam, quickMatch, randomSeed, setBuddyCount, TEAM_COLORS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
 import { applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
 
-export type Screen = 'title' | 'setup' | 'help' | 'pause' | 'victory';
+export type Screen = 'title' | 'setup' | 'help' | 'about' | 'pause' | 'victory';
 
 export interface MenuActions {
   start(config: MatchConfig): void;
@@ -23,6 +24,11 @@ const CONTROLLERS: { id: string; label: string; controller: Controller; level: A
   { id: 'normal', label: 'AI Normal', controller: 'ai', level: 'normal' },
   { id: 'hard', label: 'AI Hard', controller: 'ai', level: 'hard' },
 ];
+
+const PAGES_URL = 'https://marcelpetrick.github.io/AlliumAssault/';
+const REPO_URL = 'https://github.com/marcelpetrick/AlliumAssault';
+/** Exact dependency versions, straight from package.json. */
+const DEPENDENCY_VERSIONS: Record<string, string> = { ...pkg.dependencies, ...pkg.devDependencies };
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -81,6 +87,7 @@ export class Menu {
           <button class="primary big" data-action="quick">▶ Quick Match <small>You vs AI</small></button>
           <button class="glass big" data-action="setup">⚙ Custom Match</button>
           <button class="glass big" data-action="help">❔ How to Play</button>
+          <button class="ghost" data-action="about">ℹ About</button>
         </div>
         <footer class="version">v${this.version} · sound ${this.actions.isMuted() ? 'off' : 'on'} (M)</footer>
       </div>`;
@@ -156,6 +163,39 @@ export class Menu {
       </div>`;
   }
 
+  showAbout(): void {
+    this.screen = 'about';
+    const dep = (name: string) => esc(DEPENDENCY_VERSIONS[name] ?? '');
+    const row = (name: string, version: string, license: string, url: string) =>
+      `<tr><td><a href="${url}" target="_blank" rel="noopener">${name}</a></td><td>${version}</td><td>${license}</td></tr>`;
+    this.el.innerHTML = `
+      <div class="screen">
+        <div class="panel about">
+          <header class="panel-head"><button class="ghost" data-action="title">← Back</button><h2>About</h2><span></span></header>
+          <p class="lead"><b>Allium Assault</b> v${esc(this.version)} — turn-based garlic warfare, <b>free to play</b> in your browser.</p>
+          <ul class="about-facts">
+            <li><b>Author:</b> Marcel Petrick · <a href="mailto:mail@marcelpetrick.it">mail@marcelpetrick.it</a></li>
+            <li><b>Play online:</b> hosted on GitHub Pages at <a href="${PAGES_URL}" target="_blank" rel="noopener">marcelpetrick.github.io/AlliumAssault</a></li>
+            <li><b>Source code:</b> <a href="${REPO_URL}" target="_blank" rel="noopener">github.com/marcelpetrick/AlliumAssault</a> · licensed GPL-3.0-or-later</li>
+          </ul>
+          <h3>Tech stack and open-source licenses</h3>
+          <table class="licenses">
+            <tr><th>Component</th><th>Version</th><th>License</th></tr>
+            ${row('Babylon.js (3D engine)', dep('@babylonjs/core'), 'Apache-2.0', 'https://www.babylonjs.com/')}
+            ${row('simplex-noise (terrain)', dep('simplex-noise'), 'MIT', 'https://github.com/jwagner/simplex-noise.js')}
+            ${row('Fredoka font', 'Google Fonts', 'OFL-1.1', 'https://fonts.google.com/specimen/Fredoka')}
+            ${row('TypeScript', dep('typescript'), 'Apache-2.0', 'https://www.typescriptlang.org/')}
+            ${row('Vite (build)', dep('vite'), 'MIT', 'https://vite.dev/')}
+            ${row('Vitest (unit tests)', dep('vitest'), 'MIT', 'https://vitest.dev/')}
+            ${row('Playwright (browser tests)', dep('@playwright/test'), 'Apache-2.0', 'https://playwright.dev/')}
+            ${row('ESLint + typescript-eslint', dep('eslint'), 'MIT', 'https://eslint.org/')}
+          </table>
+          <p class="fine">Sound effects are synthesized live with the Web Audio API; graphics are generated in code. Game
+          mechanics are inspired by Team17's Worms series; all design, art, sound and code are original.</p>
+        </div>
+      </div>`;
+  }
+
   showHelp(from: Screen): void {
     this.helpReturn = from;
     this.screen = 'help';
@@ -215,6 +255,7 @@ export class Menu {
 
   back(): void {
     if (this.screen === 'help') this.returnFromHelp();
+    else if (this.screen === 'about') this.showTitle();
     else if (this.screen === 'setup') this.showTitle();
   }
 
@@ -247,6 +288,8 @@ export class Menu {
         return this.showTitle();
       case 'help':
         return this.showHelp('title');
+      case 'about':
+        return this.showAbout();
       case 'help-pause':
         return this.showHelp('pause');
       case 'help-back':

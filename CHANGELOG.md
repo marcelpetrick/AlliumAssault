@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.25.0] — 2026-09-16
+
+### Added
+- About screen on the title menu: author and contact, free to play on GitHub Pages, source link and
+  license, and the tech stack with exact versions and open-source licenses (Babylon.js, simplex-noise,
+  Fredoka font, TypeScript, Vite, Vitest, Playwright, ESLint).
+
 ## [1.24.0] — 2026-09-16
 
 ### Added

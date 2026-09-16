@@ -296,7 +296,7 @@ export class App {
       this.audio.unlock();
       if (e.code === 'KeyM' && !(e.target instanceof HTMLInputElement)) this.audio.toggleMute();
       if (e.code === 'Escape') {
-        if (this.menu.screen === 'help' || (this.menu.screen === 'setup' && this.demo)) this.menu.back();
+        if (this.menu.screen === 'help' || this.menu.screen === 'about' || (this.menu.screen === 'setup' && this.demo)) this.menu.back();
         else if (this.paused && this.menu.screen === 'pause') this.resume();
         else if (!this.demo && !this.menu.screen) this.pause();
         return;

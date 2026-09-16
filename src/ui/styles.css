@@ -949,3 +949,39 @@ kbd {
     grid-template-columns: 1fr;
   }
 }
+
+.about-facts {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.about a,
+.fine a {
+  color: var(--accent-2);
+}
+
+.licenses {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.licenses th,
+.licenses td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.licenses th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.fine {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
