@@ -33,7 +33,7 @@ Status: ☐ open · ☑ done
 | T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☑ | 1.15.0 |
 | T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☑ | 1.16.0 |
-| T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☐ | |
+| T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
@@ -175,6 +175,13 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   a strong shove each, so a full hit pushes a buddy far (about 20 units on flat ground). 1 per
   team.
 - Core: `burst` on hitscan weapons, a locked `firing` phase while it rattles; rapid-fire sound.
+
+### T25 — Dependency update ☑
+- All dependencies were already pinned to exact versions.
+- `@babylonjs/core` 9.26.1 → 9.26.2.
+- `typescript` stays at 6.0.3: 7.0.2 is out, but the latest `typescript-eslint` (8.70.0) only
+  supports TypeScript < 6.1. Revisit when typescript-eslint supports TypeScript 7.
+- Everything else was already on its latest stable release.
 
 ### T24 — Compact weapon bar ☑
 - Icon slots with ammo badges and the selected weapon's name in the hint; fits 15 weapons at

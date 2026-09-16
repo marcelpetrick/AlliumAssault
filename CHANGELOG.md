@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.1] — 2026-09-16
+
+### Changed
+- `@babylonjs/core` 9.26.1 → 9.26.2. TypeScript stays at 6.0.3 because typescript-eslint 8.70.0
+  does not support TypeScript 7 yet.
+
 ## [1.17.0] — 2026-09-16
 
 ### Added
