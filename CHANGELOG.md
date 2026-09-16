@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.8] — 2026-09-16
+
+### Changed
+- `tasks.md`: tombstone task and the plan for the current batch; `docs/PLAN.md` points to it.
+
 ## [1.17.7] — 2026-09-16
 
 ### Changed

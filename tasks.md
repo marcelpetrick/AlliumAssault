@@ -39,6 +39,7 @@ Status: ☐ open · ☑ done
 | T28 | Louder sound effects | ☐ | |
 | T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☐ | |
 | T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
+| T31 | Comic tombstones where buddies die | ☐ | |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
 | T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
@@ -215,6 +216,18 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   lollipop trees and gumdrop props.
 - **Frosty Peaks**: snow-covered ground, icy blue rock and water, snowy pines.
 - Selectable in the setup, used by the title demo; E2E screenshot of each.
+
+### T31 — Tombstones ☐
+- When a buddy dies (0 HP death blast or self-destruct) a comic tombstone drops on the spot:
+  rounded slab with "RIP", the buddy's name and a team-coloured ribbon, with a little wobble.
+- Tombstones are physics bodies: they fall, get knocked around by explosions and sink in water.
+  Drowned buddies leave none.
+- Unit tests (grave on death, pushed by blasts, none when drowned) and E2E screenshot.
+
+### Plan for T27–T31
+Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
+T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
+full E2E suite, and a push and release once approved.
 
 ### T16 — Walking and jumping sounds ☑
 - Soft footstep patter while a buddy walks, a hop sound on jump and a thud on landing.

@@ -74,3 +74,9 @@ The AI moved into 0.3.0 because the headless AI-vs-AI match is the strongest cor
 - `npm run e2e` — Playwright in Google Chrome: menu → setup → match, firing destroys terrain,
   turns advance, AI vs AI match ends with a winner, no console errors, screenshots saved
 - `npm run verify` — all of the above
+
+## 6. Current work
+
+The live task list and plan — every request, its status, design notes and the version that
+delivered it — is kept in [`tasks.md`](../tasks.md) and updated with every commit.
+
