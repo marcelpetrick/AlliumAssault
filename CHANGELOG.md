@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.1.12] — 2026-09-16
+
+### Added
+- `tasks.md`: task list for the floating-buddy fix, punch balance, sound, cluster grenade, sheep,
+  air strike, crates, GitHub Pages deployment and docs.
+
 ## [1.1.11] — 2026-09-15
 
 ### Added
