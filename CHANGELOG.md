@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.5.0] — 2026-09-16
+
+### Added
+- Air Strike (key 7, 1 per team): click on the map and a plane flies over in the buddy's facing
+  direction, dropping five bombs (25 damage each) spaced around that spot. Release points allow
+  for fall time and wind.
+- Target crosshair under the mouse, plane model with spinning propeller, propeller fly-by sound,
+  whistling bombs, and a camera that pulls back to show the strike.
+- The AI calls air strikes onto enemy positions.
+
+### Changed
+- A short press on the map counts as a click; dragging still pans the camera.
+
 ## [1.4.1] — 2026-09-16
 
 ### Changed

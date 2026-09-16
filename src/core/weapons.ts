@@ -1,5 +1,5 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike';
 
 export interface WeaponDef {
   id: WeaponId;
@@ -27,6 +27,8 @@ export interface WeaponDef {
   range: number;
   /** Every buddy inside the blast takes the full damage instead of less towards the edge. */
   flatDamage?: boolean;
+  /** Air strikes: bombs dropped around the clicked target. */
+  strike?: { weapon: WeaponId; count: number; spacing: number };
   /** Fragments released when this projectile explodes. */
   cluster?: { weapon: WeaponId; count: number; speed: number };
 }
@@ -174,8 +176,49 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 17,
     range: 0,
   },
+  airstrike: {
+    id: 'airstrike',
+    name: 'Air Strike',
+    icon: '✈️',
+    blurb: 'Click on the map: a plane flies over and drops five bombs around that spot.',
+    kind: 'strike',
+    ammo: 1,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 2.4,
+    damage: 25,
+    force: 10,
+    range: 0,
+    strike: { weapon: 'airbomb', count: 5, spacing: 1.7 },
+  },
+  airbomb: {
+    id: 'airbomb',
+    name: 'Air Bomb',
+    icon: '•',
+    blurb: 'Air strike bomb; explodes on contact.',
+    kind: 'projectile',
+    ammo: 0,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0.15,
+    gravityScale: 1,
+    restitution: null,
+    fuse: 0,
+    radius: 2.4,
+    damage: 25,
+    force: 10,
+    range: 0,
+  },
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { planAttack } from '../src/core/ai';
-import { Game } from '../src/core/game';
+import { Game, type GameEvent } from '../src/core/game';
 import { mulberry32 } from '../src/core/rng';
 import { config, flatGame, runUntil, team } from './helpers';
 
@@ -211,6 +211,50 @@ describe('match flow', () => {
     expect(g.phase).toBe('retreat');
   });
 
+  it('air strike drops five bombs around the target and damages an enemy there', () => {
+    const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('airstrike');
+    g.pressFire();
+    expect(g.phase).toBe('aiming');
+    const events: GameEvent[] = [];
+    const craters: number[] = [];
+    g.strike(70);
+    expect(g.teams[0].ammo.airstrike).toBe(0);
+    expect(g.phase).toBe('retreat');
+    expect(g.drops).toHaveLength(5);
+    runUntil(g, () => {
+      for (const e of g.drainEvents()) {
+        events.push(e);
+        if (e.type === 'explosion') craters.push(e.x);
+      }
+      return craters.length >= 5;
+    }, 8);
+    expect(events.some((e) => e.type === 'airstrike')).toBe(true);
+    expect(craters).toHaveLength(5);
+    const center = craters.reduce((a, b) => a + b, 0) / craters.length;
+    expect(Math.abs(center - 70)).toBeLessThan(1.5);
+    expect(Math.max(...craters) - Math.min(...craters)).toBeGreaterThan(4);
+    expect(g.buddies[1].hp).toBeLessThan(70);
+    expect(g.buddies[0].hp).toBe(100);
+  });
+
+  it('air strike allows for wind', () => {
+    const g = flatGame([30, 90], [team('A', 1), team('B', 1)], { windMax: 1 });
+    toAiming(g);
+    g.wind = -1;
+    g.selectWeapon('airstrike');
+    g.buddies[0].facing = 1;
+    g.strike(60);
+    const craters: number[] = [];
+    runUntil(g, () => {
+      for (const e of g.drainEvents()) if (e.type === 'explosion') craters.push(e.x);
+      return craters.length >= 5;
+    }, 8);
+    const center = craters.reduce((a, b) => a + b, 0) / craters.length;
+    expect(Math.abs(center - 60)).toBeLessThan(1.5);
+  });
+
   it('walking is blocked while charging', () => {
     const g = flatGame([40, 80], [team('A', 1), team('B', 1)]);
     toAiming(g);
@@ -249,6 +293,18 @@ describe('AI', () => {
     runUntil(g, () => g.phase !== 'guiding', 15);
     expect(g.buddies[1].hp).toBeLessThan(50);
     expect(g.buddies[0].hp).toBe(100);
+  });
+
+  it('calls an air strike onto an enemy', () => {
+    const g = flatGame([30, 80], [team('A', 1, 'ai'), team('B', 1)]);
+    const ammo = g.teams[0].ammo;
+    ammo.bazooka = ammo.grenade = ammo.shotgun = ammo.punch = ammo.cluster = ammo.sheep = 0;
+    const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(4));
+    expect(plan.weapon).toBe('airstrike');
+    expect(Math.abs(plan.target! - 80)).toBeLessThan(2);
+    runUntil(g, () => g.drops.length > 0, 10);
+    runUntil(g, () => g.phase === 'turnStart', 20);
+    expect(g.buddies[1].hp).toBeLessThan(70);
   });
 
   it('re-plans with the current weapon after the first shotgun shot', () => {

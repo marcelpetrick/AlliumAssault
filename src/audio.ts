@@ -15,7 +15,8 @@ export type Sfx =
   | 'select'
   | 'tick'
   | 'baa'
-  | 'hop';
+  | 'hop'
+  | 'plane';
 
 /** Something in flight that should be heard for as long as it flies. */
 export interface FlightSound {
@@ -147,6 +148,9 @@ export class Audio {
       case 'baa':
         this.bleat(pitch);
         break;
+      case 'plane':
+        this.planeFlyby();
+        break;
       case 'hop':
         this.tone('sine', 260 * pitch, 520 * pitch, 0.07, 0.05);
         break;
@@ -212,6 +216,51 @@ export class Audio {
   silence(): void {
     this.setCharge(null);
     this.setFlights([]);
+  }
+
+  /** Propeller plane passing overhead: a buzzing drone that swells, then drops in pitch as it leaves. */
+  private planeFlyby(): void {
+    const ctx = this.ctx!;
+    const t0 = ctx.currentTime;
+    const duration = 4.2;
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t0);
+    out.gain.exponentialRampToValueAtTime(0.35, t0 + 1.8);
+    out.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    out.connect(this.master!);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(500, t0);
+    filter.frequency.linearRampToValueAtTime(1400, t0 + 1.8);
+    filter.frequency.linearRampToValueAtTime(400, t0 + duration);
+    filter.connect(out);
+    const engine = ctx.createOscillator();
+    engine.type = 'sawtooth';
+    engine.frequency.setValueAtTime(118, t0);
+    engine.frequency.setValueAtTime(118, t0 + 1.7);
+    engine.frequency.exponentialRampToValueAtTime(84, t0 + 2.6);
+    // Propeller flutter: amplitude modulation at a few dozen hertz.
+    const flutter = ctx.createGain();
+    flutter.gain.value = 0.6;
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 23;
+    const lfoDepth = ctx.createGain();
+    lfoDepth.gain.value = 0.4;
+    lfo.connect(lfoDepth);
+    lfoDepth.connect(flutter.gain);
+    engine.connect(flutter);
+    flutter.connect(filter);
+    const noise = ctx.createBufferSource();
+    noise.buffer = this.noiseBuffer;
+    noise.loop = true;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.35;
+    noise.connect(noiseGain);
+    noiseGain.connect(filter);
+    for (const node of [engine, lfo, noise]) {
+      node.start(t0);
+      node.stop(t0 + duration + 0.1);
+    }
   }
 
   /** Nasal, wobbling "baa": a sawtooth through a vowel-like bandpass with fast vibrato. */

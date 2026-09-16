@@ -34,6 +34,7 @@ export const CONTROLS_HTML = `
     <tr><td><kbd>Space</kbd></td><td>Hold to charge, release to fire</td></tr>
     <tr><td><kbd>1</kbd>–<kbd>${WEAPON_ORDER.length}</kbd> <kbd>Tab</kbd></td><td>Choose weapon</td></tr>
     <tr><td>Wheel · Drag</td><td>Zoom · Pan camera</td></tr>
+    <tr><td>Click</td><td>Call the air strike</td></tr>
     <tr><td><kbd>M</kbd> <kbd>Esc</kbd></td><td>Mute · Pause</td></tr>
   </table>`;
 

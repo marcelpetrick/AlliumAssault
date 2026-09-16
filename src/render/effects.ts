@@ -29,6 +29,15 @@ interface ProjectileView {
   trail: ParticleSystem | null;
 }
 
+interface PlaneView {
+  node: TransformNode;
+  propeller: Mesh;
+  startX: number;
+  dir: 1 | -1;
+  speed: number;
+  age: number;
+}
+
 interface SheepView {
   id: number;
   node: TransformNode;
@@ -44,6 +53,8 @@ export class Effects {
   private flashLevel = 0;
   private readonly projectiles = new Map<number, ProjectileView>();
   private sheep: SheepView | null = null;
+  private readonly planes: PlaneView[] = [];
+  private readonly strikeCursor: Mesh;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
@@ -78,11 +89,24 @@ export class Effects {
       tracer: mat('fxTracer', '#ffe27a', 1),
     };
 
+    this.strikeCursor = MeshBuilder.CreateTorus('strikeCursor', { diameter: 1.2, thickness: 0.09, tessellation: 32 }, scene);
+    this.strikeCursor.rotation.x = Math.PI / 2;
+    this.strikeCursor.isPickable = false;
+    const beam = MeshBuilder.CreateCylinder('strikeBeam', { height: 30, diameter: 0.05, tessellation: 6 }, scene);
+    beam.parent = this.strikeCursor;
+    beam.rotation.x = -Math.PI / 2;
+    beam.position.z = -15;
+    beam.isPickable = false;
+    this.strikeCursor.setEnabled(false);
+
     this.reticle = MeshBuilder.CreateTorus('reticle', { diameter: 0.55, thickness: 0.07, tessellation: 24 }, scene);
     this.reticle.rotation.x = Math.PI / 2;
     this.reticle.material = this.materials.reticle;
     this.reticle.isPickable = false;
     glow(this.reticle);
+    this.strikeCursor.material = this.materials.reticle;
+    beam.material = this.materials.reticle;
+    glow(this.strikeCursor);
     for (let k = 0; k < CHARGE_DOTS; k++) {
       const dot = MeshBuilder.CreateSphere(`charge-${k}`, { diameter: 0.14 + k * 0.022, segments: 8 }, scene);
       const t = k / (CHARGE_DOTS - 1);
@@ -221,7 +245,7 @@ export class Effects {
         this.projectiles.set(p.id, view);
       }
       view.node.position.set(p.x, p.y, 0);
-      if (p.weapon !== 'bazooka') view.node.rotation.z -= p.vx * dt * 2;
+      if (p.weapon !== 'bazooka' && p.weapon !== 'airbomb') view.node.rotation.z -= p.vx * dt * 2;
       else view.node.rotation.z = Math.atan2(p.vy, p.vx);
     }
     for (const [id, view] of this.projectiles) {
@@ -233,6 +257,38 @@ export class Effects {
       view.node.dispose();
       this.projectiles.delete(id);
     }
+  }
+
+  /** Crosshair where a click would call the air strike; null hides it. */
+  setStrikeCursor(at: { x: number; y: number } | null, time: number): void {
+    this.strikeCursor.setEnabled(!!at);
+    if (!at) return;
+    this.strikeCursor.position.set(at.x, at.y, -0.8);
+    this.strikeCursor.scaling.setAll(1 + Math.sin(time * 5) * 0.1);
+  }
+
+  /** Fly a plane across the sky; its path matches the simulation's bomb release points. */
+  plane(startX: number, altitude: number, dir: 1 | -1, speed: number): void {
+    const node = new TransformNode('plane', this.scene);
+    const part = (mesh: Mesh, material: StandardMaterial, x: number, y: number, z = 0) => {
+      mesh.material = material;
+      mesh.position.set(x, y, z);
+      mesh.parent = node;
+      mesh.isPickable = false;
+      return mesh;
+    };
+    const fuselage = part(MeshBuilder.CreateCylinder('fuselage', { height: 3.2, diameterTop: 0.35, diameterBottom: 0.6, tessellation: 14 }, this.scene), this.materials.olive, 0, 0);
+    fuselage.rotation.z = Math.PI / 2;
+    part(MeshBuilder.CreateBox('wing', { width: 0.9, height: 0.08, depth: 4.2 }, this.scene), this.materials.olive, 0.2, 0);
+    part(MeshBuilder.CreateBox('tailWing', { width: 0.45, height: 0.06, depth: 1.5 }, this.scene), this.materials.olive, -1.45, 0.05);
+    part(MeshBuilder.CreateBox('fin', { width: 0.5, height: 0.7, depth: 0.06 }, this.scene), this.materials.red, -1.45, 0.35);
+    part(MeshBuilder.CreateSphere('cockpit', { diameterX: 0.7, diameterY: 0.4, diameterZ: 0.35, segments: 10 }, this.scene), this.materials.metal, 0.55, 0.3);
+    const nose = part(MeshBuilder.CreateSphere('nose', { diameter: 0.4, segments: 8 }, this.scene), this.materials.red, 1.6, 0);
+    this.glow(nose);
+    const propeller = part(MeshBuilder.CreateBox('propeller', { width: 0.05, height: 1.3, depth: 0.12 }, this.scene), this.materials.metal, 1.8, 0);
+    node.scaling.set(dir * 1.6, 1.6, 1.6);
+    node.position.set(startX, altitude, -1.5);
+    this.planes.push({ node, propeller, startX, dir, speed, age: 0 });
   }
 
   /** Show the released sheep, facing its hop direction, legs tucked in mid-air. */
@@ -272,6 +328,17 @@ export class Effects {
   }
 
   update(dt: number): void {
+    for (let k = this.planes.length - 1; k >= 0; k--) {
+      const p = this.planes[k];
+      p.age += dt;
+      p.node.position.x = p.startX + p.dir * p.speed * p.age;
+      p.node.position.y += Math.sin(p.age * 3) * 0.004;
+      p.propeller.rotation.x += dt * 40;
+      if (p.age > 6) {
+        p.node.dispose();
+        this.planes.splice(k, 1);
+      }
+    }
     this.flashLevel *= Math.exp(-dt * 9);
     this.flash.intensity = this.flashLevel;
     for (let k = this.transients.length - 1; k >= 0; k--) {
@@ -282,7 +349,7 @@ export class Effects {
     }
   }
 
-  private createMissile(): ProjectileView {
+  private createMissile(withTrail: boolean): ProjectileView {
     const node = new TransformNode('missile', this.scene);
     const body = MeshBuilder.CreateCylinder('missileBody', { height: 0.62, diameter: 0.17, tessellation: 12 }, this.scene);
     body.rotation.z = Math.PI / 2;
@@ -294,6 +361,7 @@ export class Effects {
     nose.material = this.materials.red;
     nose.parent = node;
     this.glow(nose);
+    if (!withTrail) return { node, trail: null };
     const trail = new ParticleSystem('trail', 300, this.scene);
     trail.particleTexture = this.dot;
     trail.emitter = body;
@@ -320,7 +388,9 @@ export class Effects {
   private createProjectile(weapon: WeaponId): ProjectileView {
     switch (weapon) {
       case 'bazooka':
-        return this.createMissile();
+        return this.createMissile(true);
+      case 'airbomb':
+        return this.createMissile(false);
       case 'cluster':
         return this.createGrenade(this.materials.cluster);
       case 'bomblet':

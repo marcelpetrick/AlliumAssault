@@ -26,6 +26,7 @@ import { clamp, lerp, type Point } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
+import { PLANE_SPEED, planStrike } from './strike';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
 import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
@@ -110,6 +111,7 @@ export type GameEvent =
   | { type: 'land'; buddy: number; speed: number }
   | { type: 'bounce'; x: number; y: number; speed: number }
   | { type: 'sheepHop'; x: number; y: number }
+  | { type: 'airstrike'; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'gameOver'; winner: number | null };
 
 export interface InputState {
@@ -126,6 +128,8 @@ export class Game {
   projectiles: Projectile[] = [];
   /** The released sheep, while it hops. */
   sheep: Sheep | null = null;
+  /** Air strike bombs waiting for the plane to reach their release point. */
+  drops: { weapon: WeaponId; x: number; y: number; vx: number; at: number; owner: number }[] = [];
   readonly input: InputState = { left: false, right: false, up: false, down: false };
 
   phase: Phase = 'turnStart';
@@ -278,7 +282,7 @@ export class Game {
     if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || this.charge !== null) return;
     // Ammo is consumed on the first shot, so a multi-shot weapon may finish with zero ammo left.
     const midUse = this.shotsLeft < def.shots;
-    if (team.ammo[this.weapon] <= 0 && !midUse) return;
+    if ((team.ammo[this.weapon] <= 0 && !midUse) || def.kind === 'strike') return;
     if (def.charge) this.charge = 0;
     else this.fire(1);
   }
@@ -291,6 +295,21 @@ export class Game {
   /** Drop a charge without firing (pause, lost focus). */
   cancelCharge(): void {
     this.charge = null;
+  }
+
+  /** Call the selected air strike onto world position x; the plane flies in the buddy's facing direction. */
+  strike(x: number): void {
+    const b = this.activeBuddy;
+    const team = this.activeTeamData;
+    const def = WEAPONS[this.weapon];
+    if (this.phase !== 'aiming' || !b?.alive || !team || def.kind !== 'strike' || team.ammo[def.id] <= 0 || this.charge !== null) return;
+    const target = clamp(x, 0, this.terrain.width);
+    team.ammo[def.id] -= 1;
+    this.shotsLeft = 0;
+    const plan = planStrike(this.terrain, def, target, b.facing, this.wind);
+    for (const d of plan.drops) this.drops.push({ weapon: def.strike!.weapon, x: d.x, y: plan.altitude, vx: plan.bombVx, at: this.time + d.delay, owner: b.id });
+    this.emit({ type: 'airstrike', target, ground: plan.ground, dir: plan.dir, altitude: plan.altitude, startX: plan.startX, speed: PLANE_SPEED });
+    this.startRetreat();
   }
 
   skipTurn(): void {
@@ -316,6 +335,7 @@ export class Game {
     }
 
     this.stepBuddies(dt);
+    this.stepDrops();
     this.stepProjectiles(dt);
     this.stepSheep(dt);
     this.stepPhase(dt);
@@ -328,7 +348,7 @@ export class Game {
   }
 
   isSettled(): boolean {
-    return this.projectiles.length === 0 && !this.sheep && this.buddies.every((b) => !b.alive || b.body.restTime > 0.25);
+    return this.projectiles.length === 0 && !this.sheep && this.drops.length === 0 && this.buddies.every((b) => !b.alive || b.body.restTime > 0.25);
   }
 
   private stepBuddies(dt: number): void {
@@ -370,6 +390,15 @@ export class Game {
         if (hit === 'water') this.emit({ type: 'splash', x: p.x, y: this.terrain.waterLevel });
       }
     }
+  }
+
+  private stepDrops(): void {
+    if (!this.drops.length) return;
+    this.drops = this.drops.filter((d) => {
+      if (d.at > this.time) return true;
+      this.spawnProjectile(d.weapon, d.x, d.y, d.vx, 0, d.owner);
+      return false;
+    });
   }
 
   private stepSheep(dt: number): void {
@@ -469,6 +498,7 @@ export class Game {
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
     this.sheep = null;
+    this.drops = [];
     const team = this.activeTeamData!;
     this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
     this.shotsLeft = WEAPONS[this.weapon].shots;

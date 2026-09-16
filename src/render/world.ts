@@ -18,6 +18,7 @@ import {
   type Mesh,
 } from '@babylonjs/core';
 import type { Game, GameEvent } from '../core/game';
+import { WEAPONS } from '../core/weapons';
 import { clamp } from '../core/math';
 import { hashString } from '../core/rng';
 import { BuddyKit, BuddyView } from './buddyView';
@@ -51,6 +52,10 @@ export class World {
   private manualUntil = -1;
   /** Keep the camera on a fresh explosion for a moment, like Worms does. */
   private hold: { x: number; y: number; until: number } | null = null;
+  /** Temporary zoom-out while an air strike plays; restored afterwards. */
+  private strikeView: { distance: number; until: number } | null = null;
+  /** World point under the mouse, for the air strike cursor. */
+  private pointer: { x: number; y: number } | null = null;
   private shakeAmount = 0;
   private time = 0;
 
@@ -170,6 +175,13 @@ export class World {
         case 'damage':
           this.buddyViews.get(e.buddy)?.onHurt();
           break;
+        case 'airstrike': {
+          this.effects.plane(e.startX, e.altitude, e.dir, e.speed);
+          this.hold = { x: e.target, y: e.ground + (e.altitude - e.ground) * 0.3, until: this.time + 4.5 };
+          if (!this.strikeView) this.strikeView = { distance: this.goalDistance, until: this.time + 4.5 };
+          this.goalDistance = Math.max(this.goalDistance, 44);
+          break;
+        }
         case 'turnStart':
           this.manualUntil = -1;
           this.hold = null;
@@ -195,6 +207,12 @@ export class World {
 
     this.effects.syncProjectiles(g, dt);
     this.effects.syncSheep(g);
+    const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
+    this.effects.setStrikeCursor(targeting ? this.pointer : null, this.time);
+    if (this.strikeView && this.time > this.strikeView.until) {
+      this.goalDistance = this.strikeView.distance;
+      this.strikeView = null;
+    }
     this.effects.updateAim(g, this.time);
     this.effects.update(dt);
     this.updateCamera(dt);
@@ -215,6 +233,24 @@ export class World {
 
   zoom(delta: number): void {
     this.goalDistance = clamp(this.goalDistance * (1 + delta * 0.0012), MIN_DISTANCE, MAX_DISTANCE);
+  }
+
+  /** CSS pixels relative to the canvas → point on the gameplay plane (z = 0). */
+  pick(cssX: number, cssY: number): { x: number; y: number } | null {
+    const engine = this.scene.getEngine();
+    const canvas = engine.getRenderingCanvas()!;
+    const px = (cssX * engine.getRenderWidth()) / canvas.clientWidth;
+    const py = (cssY * engine.getRenderHeight()) / canvas.clientHeight;
+    const ray = this.scene.createPickingRay(px, py, Matrix.Identity(), this.camera);
+    if (Math.abs(ray.direction.z) < 1e-6) return null;
+    const t = -ray.origin.z / ray.direction.z;
+    if (t <= 0) return null;
+    return { x: ray.origin.x + ray.direction.x * t, y: ray.origin.y + ray.direction.y * t };
+  }
+
+  /** Track the mouse for the air strike cursor; null when it left the canvas. */
+  setPointer(cssX: number | null, cssY = 0): void {
+    this.pointer = cssX === null ? null : this.pick(cssX, cssY);
   }
 
   /** World position → CSS pixels relative to the canvas, or null when behind the camera. */

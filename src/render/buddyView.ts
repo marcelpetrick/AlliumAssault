@@ -194,6 +194,10 @@ export class BuddyView {
         [MeshBuilder.CreateSphere('heldSheep', { diameterX: 0.44, diameterY: 0.32, diameterZ: 0.32, segments: 10 }, scene), kit.eyeWhite, [0.62, 0.05, 0], false],
         [MeshBuilder.CreateSphere('heldSheepHead', { diameter: 0.16, segments: 8 }, scene), kit.pupil, [0.88, 0.12, 0], false],
       ]),
+      airstrike: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateBox('radio', { width: 0.22, height: 0.34, depth: 0.14 }, scene), kit.olive, [0.55, 0, 0], false],
+        [MeshBuilder.CreateCylinder('antenna', { height: 0.4, diameter: 0.025, tessellation: 6 }, scene), kit.metal, [0.6, 0.35, 0], false],
+      ]),
       shotgun: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('barrel', { height: 1.1, diameter: 0.1, tessellation: 10 }, scene), kit.metal, [0.5, 0.03, 0], true],
         [MeshBuilder.CreateBox('stock', { width: 0.45, height: 0.18, depth: 0.12 }, scene), kit.wood, [0.02, -0.03, 0], false],

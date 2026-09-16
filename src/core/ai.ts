@@ -4,6 +4,7 @@ import { clamp, lerp } from './math';
 import { GRAVITY, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
 import { releaseSheep, stepSheep } from './sheep';
+import { groundBelow } from './strike';
 import { WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export interface AttackPlan {
@@ -14,6 +15,8 @@ export interface AttackPlan {
   score: number;
   /** Walkers: seconds after release to detonate. */
   delay?: number;
+  /** Air strikes: world x to bomb. */
+  target?: number;
 }
 
 const LEVELS: Record<AiLevel, { angles: number; powers: number; aimError: number; powerError: number; think: number }> = {
@@ -135,6 +138,23 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     }
   }
 
+  if (allowed('airstrike')) {
+    const def = WEAPONS.airstrike;
+    const { count, spacing, weapon } = def.strike!;
+    for (const enemy of enemies) {
+      for (const shift of [-spacing, 0, spacing]) {
+        const target = clamp(enemy.body.x + shift, 0, game.terrain.width);
+        let score = -20;
+        for (let k = 0; k < count; k++) {
+          const x = target + (k - (count - 1) / 2) * spacing;
+          score += scoreBlast(game, me, x, groundBelow(game.terrain, x), WEAPONS[weapon]);
+        }
+        const facing: 1 | -1 = target < me.body.x ? -1 : 1;
+        if (score > best.score) best = { weapon: 'airstrike', facing, aim: me.aim, power: 1, score, target };
+      }
+    }
+  }
+
   for (const enemy of enemies) {
     const dx = enemy.body.x - me.body.x;
     const dy = enemy.body.y - me.body.y;
@@ -229,7 +249,8 @@ export class AiDriver {
         }
         me.aim = plan.aim;
         if (this.timer < 0.35) return;
-        game.pressFire();
+        if (plan.target !== undefined) game.strike(plan.target);
+        else game.pressFire();
         this.stage = WEAPONS[plan.weapon].charge ? 'fire' : 'wait';
         this.timer = 0;
         return;

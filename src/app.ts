@@ -2,7 +2,7 @@ import { Engine } from '@babylonjs/core';
 import pkg from '../package.json';
 import { Audio, type FlightSound } from './audio';
 import { Game, type GameEvent, type MatchConfig } from './core/game';
-import { WEAPON_ORDER } from './core/weapons';
+import { WEAPON_ORDER, WEAPONS } from './core/weapons';
 import { THEMES } from './render/themes';
 import { World, type Quality } from './render/world';
 import { Hud } from './ui/hud';
@@ -11,6 +11,8 @@ import { demoMatch, randomSeed } from './ui/presets';
 
 const STEP = 1 / 60;
 const MAX_STEPS_PER_FRAME = 8;
+/** Pointer travel in pixels below which a press counts as a click rather than a drag. */
+const CLICK_SLOP = 6;
 const GAME_KEYS = ['Space', 'Tab', 'Backspace', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 
 /** Owns the engine, the current match, input, audio and all overlay UI. */
@@ -31,7 +33,7 @@ export class App {
   private accumulator = 0;
   private readonly keys = new Set<string>();
   private config: MatchConfig | null = null;
-  private drag: { x: number; y: number } | null = null;
+  private drag: { x: number; y: number; moved: number } | null = null;
   private afterGameOver = -1;
   /** Last whole second announced by the turn-timer tick. */
   private lastTick = 0;
@@ -164,7 +166,7 @@ export class App {
       return;
     }
     this.audio.setCharge(game.charge);
-    const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
+    const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
     this.audio.setFlights(flights);
     const second = game.phase === 'aiming' ? Math.ceil(game.turnTimeLeft) : 0;
     if (second !== this.lastTick && second > 0 && second <= 5) this.audio.play('tick');
@@ -201,6 +203,9 @@ export class App {
           break;
         case 'sheepHop':
           this.audio.play('hop');
+          break;
+        case 'airstrike':
+          this.audio.play('plane');
           break;
         case 'punch':
           this.audio.play('punch');
@@ -290,14 +295,24 @@ export class App {
 
     this.canvas.addEventListener('pointerdown', (e) => {
       this.audio.unlock();
-      if (!this.demo) this.drag = { x: e.clientX, y: e.clientY };
+      if (!this.demo) this.drag = { x: e.clientX, y: e.clientY, moved: 0 };
     });
     window.addEventListener('pointermove', (e) => {
+      const rect = this.canvas.getBoundingClientRect();
+      this.world?.setPointer(e.clientX - rect.left, e.clientY - rect.top);
       if (!this.drag || !this.world) return;
       this.world.pan(e.clientX - this.drag.x, e.clientY - this.drag.y);
-      this.drag = { x: e.clientX, y: e.clientY };
+      this.drag = { x: e.clientX, y: e.clientY, moved: this.drag.moved + Math.hypot(e.clientX - this.drag.x, e.clientY - this.drag.y) };
     });
-    window.addEventListener('pointerup', () => (this.drag = null));
+    window.addEventListener('pointerup', (e) => {
+      // A click (not a drag) on the map calls the selected air strike.
+      if (this.drag && this.drag.moved < CLICK_SLOP && e.target === this.canvas) {
+        const rect = this.canvas.getBoundingClientRect();
+        this.clickMap(e.clientX - rect.left, e.clientY - rect.top);
+      }
+      this.drag = null;
+    });
+    this.canvas.addEventListener('pointerleave', () => this.world?.setPointer(null));
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     this.canvas.addEventListener(
       'wheel',
@@ -307,6 +322,15 @@ export class App {
       },
       { passive: false },
     );
+  }
+
+  /** Handle a click on the map at CSS pixels relative to the canvas. */
+  clickMap(cssX: number, cssY: number): void {
+    const game = this.game;
+    if (!game || !this.world || this.demo || this.paused || this.menu.screen || !game.isHumanTurn) return;
+    if (WEAPONS[game.weapon].kind !== 'strike') return;
+    const at = this.world.pick(cssX, cssY);
+    if (at) game.strike(at.x);
   }
 
   state() {

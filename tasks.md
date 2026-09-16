@@ -19,7 +19,7 @@ Status: ☐ open · ☑ done
 | T4 | Cluster bomb | ☑ | 1.3.0 |
 | T11 | Versioning: bump every commit, tag only releases; `AGENTS.md` | ☑ | 1.3.1 |
 | T5 | Sheep | ☑ | 1.4.0 |
-| T6 | Air strike | ☐ | |
+| T6 | Air strike | ☑ | 1.5.0 |
 | T7 | Random crates | ☐ | |
 | T10 | End-to-end tests in Chrome for every weapon, crates and sounds | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
@@ -71,10 +71,12 @@ Damage 30 → 45, launch force 13 → 15.
 - Camera follows the sheep, fuse countdown above it, baa and hop sounds.
 - AI replays the sheep's hops for both directions and detonates at the best moment.
 
-### T6 — Air strike ☐
+### T6 — Air strike ☑
 - Select it, click on the map: a plane flies over and drops 5 bomblets around the target.
 - Click vs. drag detection, screen → world picking, target cursor, plane sound.
-- AI picks the target position that hits the most enemies. Test hook for E2E.
+- AI picks the target position that hits the most enemies.
+- Bombs land on the highest ground below the target (e.g. a floating island above the clicked
+  spot), like in Worms.
 
 ### T7 — Random crates ☐
 - At a turn start, with a chance (setting Off / Normal / Lots) a crate teleports onto a random

@@ -163,6 +163,8 @@ export class Hud {
         ? 'Match over'
         : !human
           ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
+        : def.kind === 'strike' && g.phase === 'aiming'
+          ? 'Click on the map to call the air strike · Enter jump · Esc menu'
         : g.phase === 'guiding'
           ? 'Space to blow up the sheep! 🐑'
         : retreat
