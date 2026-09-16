@@ -52,7 +52,7 @@ Status: ☐ open · ☑ done
 | T41 | Drill: dig vertically downwards, no fall damage while drilling                                            | ☑      | 1.20.0        |
 | T42 | SPDX compatible project with check scripts                                                                | ☑      | 1.25.1        |
 | T43 | Linters (best practice for the stack), fix findings, run on every push                                    | ☑      | 1.26.0        |
-| T44 | New full-code `/reviewBranch`, fix the worst findings                                                     | ☐      |               |
+| T44 | New full-code `/reviewBranch`, fix the worst findings                                                     | ☑      | 1.26.14       |
 | T8  | GitHub Pages deployment                                                                                   | ☑      | 1.17.2        |
 | T9  | Docs: README, VISION, ARCHITECTURE                                                                        | ☑      | 1.17.5        |
 | T12 | Self-review of all changes, fix findings                                                                  | ☑      | 1.17.4        |

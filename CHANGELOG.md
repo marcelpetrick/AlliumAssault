@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.14] — 2026-09-16
+
+### Changed
+
+- `review.md` records how every finding of the full-code review was resolved; ARCHITECTURE describes
+  the `TurnAction` union and weapon looks.
+
 ## [1.26.13] — 2026-09-16
 
 ### Changed

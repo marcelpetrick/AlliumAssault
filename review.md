@@ -41,6 +41,23 @@ against the file contents.
     The napalm scene sets `bannerTime` on the World, which has no such field (it lives privately in Hud), so the "Retreat!" banner still covers the screenshot. Wait until the banner has faded (it lasts 1.8 s) instead of poking a non-existent field.
 ```
 
+## Resolution
+
+| #   | Status                                                                                                                                                               | Version |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1   | **Fixed:** every stored field is validated and falls back to its default on its own; unusable teams fall back to the default teams; unit test with tampered entries. | 1.26.5  |
+| 2   | **Fixed:** the action in progress is one `TurnAction` union stepped by `stepAction`; read-only accessors keep the renderer, HUD and tests unchanged.                 | 1.26.13 |
+| 3   | **Fixed:** `WeaponDef.look` declares projectile model, flight/fire/shot/hit sounds, muzzle flash and camera follow; a unit test requires them for every projectile.  | 1.26.12 |
+| 4   | **Fixed:** only the custom setup is persisted; the E2E settings test plays a Quick Match before reloading.                                                           | 1.26.6  |
+| 5   | **Fixed:** `strikeWindShift()` gives the drift of payloads that are not wind-aimed; the AI aims upwind and scores the real landing spot.                             | 1.26.8  |
+| 6   | **Fixed:** tombstones count as occupied spots for crate drops; unit test fails without the fix.                                                                      | 1.26.7  |
+| 7   | **Fixed:** the Pages workflow runs the Chrome E2E suite before deploying.                                                                                            | 1.26.10 |
+| 8   | **Fixed:** AI tests for drilling onto a buried enemy and for the wind-aware napalm strike.                                                                           | 1.26.8  |
+| 9   | **Fixed:** the capture script lets the banner fade before the napalm screenshot.                                                                                     | 1.26.9  |
+
+While fixing, the human-turn E2E test turned out to depend on Quick Match's random map (a jump could
+land in the water); it now continues on a fixed map (1.26.11).
+
 ## Verdict
 
 No crash or data loss in normal play; #1 can break the game from a bad stored entry and #2/#3 are

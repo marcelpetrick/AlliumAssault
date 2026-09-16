@@ -120,8 +120,11 @@ C4Component
 **Match state.** `Game` is the only place that mutates match state. Input arrives as commands
 (`jump`, `selectWeapon`, `pressFire`, `strike`, …) or as the held `input` flags (walking, aiming,
 steering the flying sheep); results leave as typed `GameEvent`s. Besides buddies and projectiles
-the game owns the in-turn actors (sheep, flyer, torch, drill, minigun burst, strike drops) and the
-persistent world objects (crates, napalm flames, tombstones).
+the game owns the weapon action in progress — one `TurnAction` (hopping or flying sheep, torch,
+drill or minigun burst) stepped by `stepAction` — the pending strike drops, and the persistent
+world objects (crates, napalm flames, tombstones). Presentation of each weapon (projectile model,
+sounds, muzzle flash) is declared in `WeaponDef.look`, so renderer and app never switch on weapon
+ids.
 
 ### 4.2 Renderer and UI
 
