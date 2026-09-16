@@ -222,15 +222,43 @@ export function meleeLaunch(def: WeaponDef, facing: 1 | -1, dir: Point): Point {
   return { x: facing * def.force * 0.45, y: def.force };
 }
 
+/** Blowtorch in use: seconds left and buddies already burnt this use. */
+export interface TorchAction {
+  kind: 'torch';
+  left: number;
+  carveIn: number;
+  burnt: number[];
+}
+
+/** Drill in use: seconds left and buddies already hit this use. */
+export interface DrillAction {
+  kind: 'drill';
+  left: number;
+  carveIn: number;
+  hit: number[];
+}
+
+/** Burst weapon firing: bullets left and seconds until the next one. */
+export interface BurstAction {
+  kind: 'burst';
+  weapon: WeaponId;
+  left: number;
+  next: number;
+}
+
+/** What a used weapon is doing over time; the game runs at most one. */
+export type TurnAction = { kind: 'sheep'; sheep: Sheep } | { kind: 'flyer'; flyer: Flyer } | TorchAction | DrillAction | BurstAction;
+
 export class Game {
   readonly terrain: Terrain;
   readonly teams: Team[];
   readonly buddies: Buddy[] = [];
   projectiles: Projectile[] = [];
-  /** The released sheep, while it hops. */
-  sheep: Sheep | null = null;
-  /** The flying sheep, while it flies. */
-  flyer: Flyer | null = null;
+  /**
+   * What the active buddy's weapon is doing after use — a hopping or flying sheep, the blowtorch,
+   * the drill or a minigun burst. At most one at a time; null when nothing is in progress.
+   */
+  action: TurnAction | null = null;
   crates: Crate[] = [];
   /** Tombstones left where buddies died. */
   graves: Grave[] = [];
@@ -238,12 +266,6 @@ export class Game {
   flames: Flame[] = [];
   /** Game time until which each buddy (by id) is immune to flames after being scorched. */
   private readonly scorchedUntil = new Map<number, number>();
-  /** Burst weapon firing: bullets left and seconds until the next one. */
-  burst: { weapon: WeaponId; left: number; next: number } | null = null;
-  /** Drill in use: seconds left and buddies already hit this use. */
-  drill: { left: number; carveIn: number; hit: number[] } | null = null;
-  /** Blowtorch in use: seconds left and buddies already burnt this use. */
-  torch: { left: number; carveIn: number; burnt: number[] } | null = null;
   /** Air strike bombs waiting for the plane to reach their release point. */
   drops: { weapon: WeaponId; x: number; y: number; vx: number; at: number; owner: number }[] = [];
   readonly input: InputState = { left: false, right: false, up: false, down: false };
@@ -324,6 +346,31 @@ export class Game {
       if (team.config.controller === 'ai') this.ai.set(team.index, new AiDriver(team.config.aiLevel, rngFor(config.seed, `ai${team.index}`)));
     }
     this.beginTurn();
+  }
+
+  /** The released sheep, while it hops. */
+  get sheep(): Sheep | null {
+    return this.action?.kind === 'sheep' ? this.action.sheep : null;
+  }
+
+  /** The flying sheep, while it flies. */
+  get flyer(): Flyer | null {
+    return this.action?.kind === 'flyer' ? this.action.flyer : null;
+  }
+
+  /** The blowtorch while it burns. */
+  get torch(): TorchAction | null {
+    return this.action?.kind === 'torch' ? this.action : null;
+  }
+
+  /** The drill while it runs. */
+  get drill(): DrillAction | null {
+    return this.action?.kind === 'drill' ? this.action : null;
+  }
+
+  /** The minigun burst while it fires. */
+  get burst(): BurstAction | null {
+    return this.action?.kind === 'burst' ? this.action : null;
   }
 
   get activeTeamData(): Team | null {
@@ -484,11 +531,7 @@ export class Game {
     this.stepBuddies(dt);
     this.stepDrops();
     this.stepProjectiles(dt);
-    this.stepSheep(dt);
-    this.stepFlyer(dt);
-    this.stepTorch(dt);
-    this.stepDrill(dt);
-    this.stepBurst(dt);
+    this.stepAction(dt);
     this.stepCrates(dt);
     this.stepFlames(dt);
     this.stepGraves(dt);
@@ -504,8 +547,7 @@ export class Game {
   isSettled(): boolean {
     return (
       this.projectiles.length === 0 &&
-      !this.sheep &&
-      !this.flyer &&
+      !this.action &&
       this.flames.length === 0 &&
       this.drops.length === 0 &&
       this.crates.every((c) => c.body.restTime > 0.25) &&
@@ -650,14 +692,36 @@ export class Game {
     return true;
   }
 
-  private stepTorch(dt: number): void {
-    const torch = this.torch;
+  /** Advance the weapon action in progress, dropping it if its buddy or phase is gone. */
+  private stepAction(dt: number): void {
+    const action = this.action;
+    if (!action) return;
     const b = this.activeBuddy;
-    if (!torch) return;
-    if (!b?.alive || this.phase !== 'torching') {
-      this.torch = null;
-      return;
+    switch (action.kind) {
+      case 'sheep': {
+        this.stepSheep(action.sheep, dt);
+        return;
+      }
+      case 'flyer': {
+        this.stepFlyer(action.flyer, dt);
+        return;
+      }
+      case 'torch':
+        if (b?.alive && this.phase === 'torching') this.stepTorch(action, b, dt);
+        else this.action = null;
+        return;
+      case 'drill':
+        if (b?.alive && this.phase === 'drilling') this.stepDrill(action, b, dt);
+        else this.action = null;
+        return;
+      case 'burst':
+        if (b?.alive && this.phase === 'firing') this.stepBurst(action, b, dt);
+        else this.action = null;
+        return;
     }
+  }
+
+  private stepTorch(torch: TorchAction, b: Buddy, dt: number): void {
     const def = WEAPONS.torch;
     torch.left -= dt;
     torch.carveIn -= dt;
@@ -677,19 +741,12 @@ export class Game {
       this.damage(t, def.damage);
     }
     if (torch.left <= 0) {
-      this.torch = null;
+      this.action = null;
       this.startRetreat();
     }
   }
 
-  private stepDrill(dt: number): void {
-    const drill = this.drill;
-    const b = this.activeBuddy;
-    if (!drill) return;
-    if (!b?.alive || this.phase !== 'drilling') {
-      this.drill = null;
-      return;
-    }
+  private stepDrill(drill: DrillAction, b: Buddy, dt: number): void {
     const def = WEAPONS.drill;
     drill.left -= dt;
     drill.carveIn -= dt;
@@ -709,23 +766,17 @@ export class Game {
       this.damage(t, def.damage);
     }
     if (drill.left <= 0) {
-      this.drill = null;
+      this.action = null;
       this.startRetreat();
     }
   }
 
-  private stepBurst(dt: number): void {
-    const burst = this.burst;
-    const b = this.activeBuddy;
-    if (!burst) return;
-    if (!b?.alive || this.phase !== 'firing') {
-      this.burst = null;
-      return;
-    }
+  private stepBurst(burst: BurstAction, b: Buddy, dt: number): void {
     const def = WEAPONS[burst.weapon];
     const { count, interval, spread } = defined(def.burst, `${def.id} burst`);
     burst.next -= dt;
-    while (burst.next <= 0 && burst.left > 0 && this.burst) {
+    // A bullet can end the turn (e.g. knocking the shooter's own buddy), which drops the action.
+    while (burst.next <= 0 && burst.left > 0 && this.action === burst) {
       burst.next += interval;
       // A fixed wobble pattern keeps bursts deterministic.
       const k = count - burst.left;
@@ -735,8 +786,8 @@ export class Game {
       burst.left--;
       this.shoot(b, def, { x: b.body.x + dir.x * MUZZLE_OFFSET, y: b.body.y + dir.y * MUZZLE_OFFSET }, dir);
     }
-    if (this.burst && burst.left <= 0) {
-      this.burst = null;
+    if (this.action === burst && burst.left <= 0) {
+      this.action = null;
       this.startRetreat();
     }
   }
@@ -750,13 +801,11 @@ export class Game {
     });
   }
 
-  private stepSheep(dt: number): void {
-    const s = this.sheep;
-    if (!s) return;
+  private stepSheep(s: Sheep, dt: number): void {
     const result = stepSheep(this.terrain, s, dt);
     if (result === 'hop') this.emit({ type: 'sheepHop', x: s.body.x, y: s.body.y });
     if (result === 'water' || result === 'out') {
-      this.sheep = null;
+      this.action = null;
       if (result === 'water') this.emit({ type: 'splash', x: s.body.x, y: this.terrain.waterLevel });
       if (this.phase === 'guiding') this.startRetreat();
     } else if (s.age >= WEAPONS.sheep.fuse) {
@@ -764,9 +813,7 @@ export class Game {
     }
   }
 
-  private stepFlyer(dt: number): void {
-    const f = this.flyer;
-    if (!f) return;
+  private stepFlyer(f: Flyer, dt: number): void {
     // The arrow keys point where the sheep should fly, relative to the screen.
     const i = this.input;
     const steer = this.phase === 'guiding' ? { x: Number(i.right) - Number(i.left), y: Number(i.up) - Number(i.down) } : { x: 0, y: 0 };
@@ -774,7 +821,7 @@ export class Game {
       this.buddies.some((b) => b.alive && (b.id !== f.owner || f.age > 0.4) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + 0.3),
     );
     if (result === 'water' || result === 'out') {
-      this.flyer = null;
+      this.action = null;
       if (result === 'water') this.emit({ type: 'splash', x: f.x, y: this.terrain.waterLevel });
       if (this.phase === 'guiding') this.startRetreat();
     } else if (result === 'hit' || f.age >= WEAPONS.flysheep.fuse) {
@@ -784,14 +831,13 @@ export class Game {
 
   /** Blow up whatever is being guided: the hopping or the flying sheep. */
   private detonateGuided(): void {
-    const s = this.sheep;
-    const at = s?.body ?? this.flyer;
-    if (!at) return;
-    this.sheep = null;
-    this.flyer = null;
+    const guided = this.action;
+    if (guided?.kind !== 'sheep' && guided?.kind !== 'flyer') return;
+    this.action = null;
     // Enter retreat first: if the blast hurts the active buddy, damage() ends the turn from there.
     if (this.phase === 'guiding') this.startRetreat();
-    const def = s ? WEAPONS.sheep : WEAPONS.flysheep;
+    const at = guided.kind === 'sheep' ? guided.sheep.body : guided.flyer;
+    const def = guided.kind === 'sheep' ? WEAPONS.sheep : WEAPONS.flysheep;
     this.explode(at.x, at.y, def.radius, def.damage, def.force);
   }
 
@@ -874,11 +920,7 @@ export class Game {
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
-    this.sheep = null;
-    this.flyer = null;
-    this.torch = null;
-    this.drill = null;
-    this.burst = null;
+    this.action = null;
     this.drops = [];
     this.flames = [];
     const team = defined(this.activeTeamData, 'active team');
@@ -907,23 +949,23 @@ export class Game {
       const speed = lerp(def.minSpeed, def.maxSpeed, power);
       this.spawnProjectile(def.id, m.x, m.y, dir.x * speed, dir.y * speed, b.id);
     } else if (def.kind === 'flyer') {
-      this.flyer = { id: this.nextId++, owner: b.id, x: m.x, y: m.y, angle: Math.atan2(dir.y, dir.x), age: 0 };
+      this.action = { kind: 'flyer', flyer: { id: this.nextId++, owner: b.id, x: m.x, y: m.y, angle: Math.atan2(dir.y, dir.x), age: 0 } };
       this.setPhase('guiding');
       return;
     } else if (def.kind === 'walker') {
-      this.sheep = releaseSheep(this.nextId++, b.id, b.body.x, b.body.y, b.facing);
+      this.action = { kind: 'sheep', sheep: releaseSheep(this.nextId++, b.id, b.body.x, b.body.y, b.facing) };
       this.setPhase('guiding');
       return;
     } else if (def.burst) {
-      this.burst = { weapon: def.id, left: def.burst.count, next: 0 };
+      this.action = { kind: 'burst', weapon: def.id, left: def.burst.count, next: 0 };
       this.setPhase('firing');
       return;
     } else if (def.kind === 'drill') {
-      this.drill = { left: def.fuse, carveIn: 0, hit: [] };
+      this.action = { kind: 'drill', left: def.fuse, carveIn: 0, hit: [] };
       this.setPhase('drilling');
       return;
     } else if (def.kind === 'torch') {
-      this.torch = { left: def.fuse, carveIn: 0, burnt: [] };
+      this.action = { kind: 'torch', left: def.fuse, carveIn: 0, burnt: [] };
       this.setPhase('torching');
       return;
     } else if (def.kind === 'self') {
@@ -1086,10 +1128,9 @@ export class Game {
 
   private endTurnEarly(): void {
     this.charge = null;
-    this.torch = null;
-    this.drill = null;
-    this.burst = null;
+    // A guided sheep goes off; torch, drill and bursts simply stop.
     this.detonateGuided();
+    this.action = null;
     this.setPhase('settling');
   }
 

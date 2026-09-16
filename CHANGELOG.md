@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.26.13] — 2026-09-16
+
+### Changed
+
+- The weapon action in progress (hopping or flying sheep, blowtorch, drill, minigun burst) is one
+  `TurnAction` in the game instead of five independent fields, stepped and cleared in one place,
+  so two actions can never run at once (review #2).
+
 ## [1.26.12] — 2026-09-16
 
 ### Changed

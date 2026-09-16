@@ -57,8 +57,8 @@ npm run capture-media -- http://localhost:4173   # regenerate README media from 
   Tab select weapons, a click on the map calls strikes.
 - **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`, and `look`:
   projectile model, flight/fire/hit sounds, muzzle flash — presentation never switches on ids), appended to
-  `WEAPON_ORDER` so existing hotkeys stay; behaviour in `Game` for new kinds (a new phase goes into
-  `COUNTDOWN_PHASES`/`ACTION_PHASES`); held model in `buddyView.ts`, projectile model in
+  `WEAPON_ORDER` so existing hotkeys stay; behaviour in `Game` for new kinds (a timed action is a new `TurnAction` variant stepped by
+  `stepAction`; a new phase goes into `COUNTDOWN_PHASES`/`ACTION_PHASES`); held model in `buddyView.ts`, projectile model in
   `effects.ts`, sounds in `app.ts`/`audio.ts`; README and VISION tables; unit test and E2E test.
   The AI picks up projectile, strike and melee weapons from their kind.
 - **Invariants:** no non-null assertions in `src` — use `defined()` from `src/core/assert.ts` or
