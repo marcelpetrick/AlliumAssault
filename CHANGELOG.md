@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.6] — 2026-09-16
+
+### Fixed
+- E2E: the human-turn test skips ahead exactly to the next human turn instead of a fixed 60
+  seconds, which could leave too little turn time to charge the bazooka on slow CI machines.
+
 ## [1.17.5] — 2026-09-16
 
 ### Changed

@@ -47,9 +47,16 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.phase === 'retreat', 20_000);
 
-  // Next turn belongs to the AI team; let it play, then it is our turn again.
-  await page.evaluate(() => window.__allium.fastForward(60));
-  await waitFor(page, (s) => s.turn >= 3 || s.phase === 'gameOver', 60_000);
+  // Next turn belongs to the AI team; skip ahead exactly until it is our turn again, so the human
+  // turn starts with its full timer however long the AI takes.
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 600; k++) {
+      const s = app.state();
+      if ((s.turn >= 3 && s.phase === 'aiming' && s.humanTurn) || s.phase === 'gameOver') break;
+      app.fastForward(0.25);
+    }
+  });
   expect((await state(page)).turn).toBeGreaterThanOrEqual(3);
 
   // Bazooka: charge with Space and release.

@@ -209,6 +209,11 @@ open as design debt.
 ### T13 — Push and public release ☑
 Push `master`, tag the release version, push the tag (the release workflow publishes the GitHub
 release with the zipped web build), confirm the Pages deployment.
+- Done: `master` pushed, v1.17.5 released with the web zip, game live at
+  <https://marcelpetrick.github.io/AlliumAssault/>. Pages needed enabling (source: GitHub Actions)
+  and a `v*` tag rule on the `github-pages` environment.
+- CI on the release commit hit a timing-dependent E2E failure in the human-turn test; fixed in
+  1.17.6 (skip ahead exactly to the next human turn).
 
 ## Defaults chosen (change on request)
 
