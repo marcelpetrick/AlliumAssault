@@ -1,4 +1,4 @@
-export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep' | 'mule' | 'mulebody' | 'drill';
+export type WeaponId = 'bazooka' | 'grenade' | 'shotgun' | 'punch' | 'cluster' | 'bomblet' | 'sheep' | 'airstrike' | 'airbomb' | 'bat' | 'selfdestruct' | 'torch' | 'minigun' | 'holy' | 'banana' | 'bananalet' | 'flysheep' | 'mule' | 'mulebody' | 'drill' | 'napalm' | 'napalmbomb';
 export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill';
 
 export interface WeaponDef {
@@ -37,8 +37,13 @@ export interface WeaponDef {
   restFuse?: number;
   /** Every buddy inside the blast takes the full damage instead of less towards the edge. */
   flatDamage?: boolean;
-  /** Strikes: bombs dropped around the clicked target, by a plane or straight from the sky. */
-  strike?: { weapon: WeaponId; count: number; spacing: number; plane: boolean };
+  /**
+   * Strikes: bombs dropped around the clicked target, by a plane or straight from the sky. With
+   * `windAimed: false` the release point ignores the wind, so the payload drifts off target.
+   */
+  strike?: { weapon: WeaponId; count: number; spacing: number; plane: boolean; windAimed?: boolean };
+  /** Explosions that set the ground aflame: flames spread around the impact and burn for `duration` seconds. */
+  napalm?: { flames: number; duration: number };
   /** Projectiles that explode on every impact and keep smashing downwards this many times. */
   impacts?: number;
   /** Fragments released when this projectile explodes. */
@@ -372,6 +377,50 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     range: 0,
     impacts: 6,
   },
+  napalm: {
+    id: 'napalm',
+    special: true,
+    name: 'Napalm Strike',
+    icon: '🌋',
+    blurb: 'Click on the map: a plane drops napalm that the wind carries far; burning ground makes buddies hop.',
+    kind: 'strike',
+    ammo: 1,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 1,
+    damage: 3,
+    force: 3,
+    range: 0,
+    strike: { weapon: 'napalmbomb', count: 4, spacing: 2.4, plane: true, windAimed: false },
+  },
+  napalmbomb: {
+    id: 'napalmbomb',
+    name: 'Napalm',
+    icon: '🔥',
+    blurb: 'Napalm canister; bursts into flames on contact.',
+    kind: 'projectile',
+    ammo: 0,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    // Light canisters: blown far by the wind and slow to fall.
+    windInfluence: 1.8,
+    gravityScale: 0.6,
+    restitution: null,
+    fuse: 0,
+    radius: 1,
+    damage: 5,
+    force: 3,
+    range: 0,
+    napalm: { flames: 8, duration: 1.8 },
+  },
   airbomb: {
     id: 'airbomb',
     name: 'Air Bomb',
@@ -482,7 +531,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
-export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule', 'drill'];
+export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule', 'drill', 'napalm'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);

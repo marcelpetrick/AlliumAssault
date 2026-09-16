@@ -64,6 +64,8 @@ export class Effects {
   private readonly strikeCursor: Mesh;
   private flame: ParticleSystem | null = null;
   private dust: ParticleSystem | null = null;
+  private fire: ParticleSystem | null = null;
+  private fireLight: PointLight | null = null;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
@@ -337,6 +339,50 @@ export class Effects {
     this.flash.range = 6;
   }
 
+  /** One particle system for all burning napalm: each particle starts at a random flame. */
+  updateFlames(game: Game, time: number): void {
+    const flames = game.flames;
+    if (!flames.length) {
+      this.fire?.stop();
+      if (this.fireLight) this.fireLight.intensity = 0;
+      return;
+    }
+    if (!this.fire) {
+      const ps = new ParticleSystem('napalmFire', 900, this.scene);
+      ps.particleTexture = this.dot;
+      ps.emitter = Vector3.Zero();
+      ps.startPositionFunction = (_world, position) => {
+        const f = game.flames[Math.floor(Math.random() * game.flames.length)] ?? { x: 0, y: -100 };
+        position.set(f.x + (Math.random() - 0.5) * 0.7, f.y + Math.random() * 0.2, -0.4 + (Math.random() - 0.5) * 0.6);
+      };
+      ps.direction1.set(-0.3, 1.5, -0.2);
+      ps.direction2.set(0.3, 3, 0.2);
+      ps.minLifeTime = 0.2;
+      ps.maxLifeTime = 0.5;
+      ps.minSize = 0.25;
+      ps.maxSize = 0.7;
+      ps.minEmitPower = 0.8;
+      ps.maxEmitPower = 1.8;
+      ps.addColorGradient(0, new Color4(1, 0.95, 0.5, 1));
+      ps.addColorGradient(0.35, new Color4(1, 0.5, 0.1, 0.9));
+      ps.addColorGradient(1, new Color4(0.35, 0.1, 0.05, 0));
+      ps.addSizeGradient(0, 1);
+      ps.addSizeGradient(1, 0.3);
+      ps.blendMode = ParticleSystem.BLENDMODE_ADD;
+      this.fire = ps;
+      this.fireLight = new PointLight('napalmLight', Vector3.Zero(), this.scene);
+      this.fireLight.diffuse = new Color3(1, 0.5, 0.15);
+      this.fireLight.specular = Color3.Black();
+    }
+    this.fire.emitRate = Math.min(60 * flames.length, 900);
+    if (!this.fire.isStarted()) this.fire.start();
+    const cx = flames.reduce((sum, f) => sum + f.x, 0) / flames.length;
+    const cy = flames.reduce((sum, f) => sum + f.y, 0) / flames.length;
+    this.fireLight!.position.set(cx, cy + 0.8, -2);
+    this.fireLight!.range = 10;
+    this.fireLight!.intensity = 1.6 + Math.sin(time * 23) * 0.25 + Math.sin(time * 37) * 0.15;
+  }
+
   /** Dirt spraying up out of the shaft while the drill runs. */
   updateDrill(game: Game, debris: Color3): void {
     const b = game.activeBuddy;
@@ -557,6 +603,8 @@ export class Effects {
         return this.createMissile(false);
       case 'mulebody':
         return this.createMule();
+      case 'napalmbomb':
+        return this.createGrenade(this.materials.cluster);
       case 'cluster':
         return this.createGrenade(this.materials.cluster);
       case 'holy':

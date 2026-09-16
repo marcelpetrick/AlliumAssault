@@ -234,6 +234,10 @@ export class BuddyView {
         [MeshBuilder.CreateBox('muleRadio', { width: 0.22, height: 0.34, depth: 0.14 }, scene), kit.metal, [0.55, 0, 0], false],
         [MeshBuilder.CreateCylinder('muleAntenna', { height: 0.4, diameter: 0.025, tessellation: 6 }, scene), kit.glove, [0.6, 0.35, 0], false],
       ]),
+      napalm: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateBox('napalmRadio', { width: 0.22, height: 0.34, depth: 0.14 }, scene), kit.glove, [0.55, 0, 0], false],
+        [MeshBuilder.CreateCylinder('napalmAntenna', { height: 0.4, diameter: 0.025, tessellation: 6 }, scene), kit.metal, [0.6, 0.35, 0], false],
+      ]),
       drill: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('drillBody', { height: 0.34, diameter: 0.2, tessellation: 10 }, scene), kit.glove, [0.32, 0, 0], true],
         [MeshBuilder.CreateCylinder('drillBit', { height: 0.42, diameterTop: 0, diameterBottom: 0.14, tessellation: 10 }, scene), kit.metal, [0.68, 0, 0], true],

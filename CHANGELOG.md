@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.21.0] — 2026-09-16
+
+### Added
+- Napalm Strike (Shift+7, special, 1 per team): click on the map and a plane drops four napalm
+  canisters. They are not aimed against the wind and drift far with it. Each sets the ground
+  around its impact aflame for 1–2 seconds; a buddy touching the flames takes 3 damage and hops
+  away from them, handy for pushing enemies into the water. Flames sink with blasted ground and go
+  out in water. Fire particles with flickering light, ignition whoomph, crackling fire and a yelp
+  when scorched.
+
 ## [1.20.0] — 2026-09-16
 
 ### Added

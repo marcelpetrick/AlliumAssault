@@ -301,6 +301,30 @@ test('drill: Shift+6, grinding sound, the buddy drills straight down', async ({ 
   expect(errors).toEqual([]);
 });
 
+test('napalm strike: Shift+7 and a click, flames crackle on the ground, then burn out', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'Shift+7', 'napalm');
+  const m = await me(page);
+  const canvas = (await page.locator('#stage').boundingBox())!;
+  const target = (await page.evaluate(([x, y]) => window.__allium.project(x, y), [m.x + 8, m.y] as const))!;
+  await page.mouse.click(canvas.x + target.x, canvas.y + target.y);
+  await waitForSound(page, 'plane');
+  expect((await state(page)).ammo!.napalm).toBe(0);
+  // Fast-forward until the napalm has landed, then let real frames run the fire.
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 10 && !app.game!.flames.length; k++) app.fastForward(1 / 60);
+  });
+  await waitForSound(page, 'ignite');
+  await waitFor(page, (s) => s.sound.fire, 10_000);
+  await info.attach('napalm', { body: await page.screenshot(), contentType: 'image/png' });
+  await fastForward(page, 3);
+  await waitFor(page, (s) => !s.sound.fire, 10_000);
+  expect(await page.evaluate(() => window.__allium.app.game!.flames.length)).toBe(0);
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

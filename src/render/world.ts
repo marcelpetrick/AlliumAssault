@@ -186,6 +186,12 @@ export class World {
           this.strikeView = { distance: previous, forced: this.goalDistance, until: this.time + 4.5 };
           break;
         }
+        case 'ignite':
+          this.hold = { x: e.x, y: e.y, until: this.time + 1.5 };
+          break;
+        case 'scorch':
+          this.buddyViews.get(e.buddy)?.onHurt();
+          break;
         case 'crateSpawn':
           this.effects.teleport(e.x, e.y);
           crateArrived = { x: e.x, y: e.y };
@@ -229,6 +235,7 @@ export class World {
     this.effects.syncCrates(g, dt);
     this.effects.updateTorch(g);
     this.effects.updateDrill(g, this.theme.dirt);
+    this.effects.updateFlames(g, this.time);
     const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
     this.effects.setStrikeCursor(targeting ? this.pointer : null, this.time);
     if (this.strikeView && this.time > this.strikeView.until) {

@@ -494,6 +494,65 @@ describe('match flow', () => {
     expect(g.buddies[1].hp).toBeLessThan(65);
   });
 
+  it('napalm strike sets the ground around the target aflame for one to two seconds', () => {
+    const g = flatGame([30, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('napalm');
+    g.strike(70);
+    expect(g.drops).toHaveLength(4);
+    runUntil(g, () => g.flames.length > 0, 8);
+    expect(g.flames.length).toBeGreaterThanOrEqual(8);
+    for (const f of g.flames) {
+      expect(Math.abs(f.x - 70)).toBeLessThan(10);
+      // On the ground: the surface, or the floor of a canister's small crater.
+      expect(f.y).toBeGreaterThan(18.5);
+      expect(f.y).toBeLessThan(20.5);
+    }
+    runUntil(g, () => g.drops.length === 0 && g.projectiles.length === 0, 8);
+    const burning = g.time;
+    runUntil(g, () => g.flames.length === 0, 4);
+    expect(g.flames).toHaveLength(0);
+    expect(g.time - burning).toBeLessThanOrEqual(2.05);
+  });
+
+  it('napalm is carried far by the wind', () => {
+    const land = (wind: number) => {
+      const g = flatGame([30, 110], [team('A', 1), team('B', 1)], { windMax: 1 });
+      toAiming(g);
+      g.wind = wind;
+      g.buddies[0].facing = 1;
+      g.selectWeapon('napalm');
+      g.strike(64);
+      let x = 0;
+      runUntil(g, () => {
+        const e = g.drainEvents().find((ev) => ev.type === 'ignite');
+        if (e?.type === 'ignite') x = e.x;
+        return x !== 0;
+      }, 10);
+      return x;
+    };
+    expect(land(1) - land(0)).toBeGreaterThan(8);
+    expect(land(0) - land(-1)).toBeGreaterThan(8);
+  });
+
+  it('flames make a buddy hop away with tiny damage and go out in water', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const enemy = g.buddies[1];
+    g.flames.push({ id: 990, x: enemy.body.x - 0.3, y: 20.05, life: 1.5 });
+    g.step();
+    expect(enemy.hp).toBe(97);
+    expect(enemy.body.vy).toBeGreaterThan(5);
+    expect(enemy.body.vx).toBeGreaterThan(0);
+    // A flame over a flooded crater sinks and is put out.
+    g.terrain.carve(60, 10, 12);
+    g.flames.push({ id: 991, x: 60, y: 20.05, life: 10 });
+    g.simulate(1);
+    expect(g.flames.find((f) => f.id === 991)!.y).toBeLessThan(15);
+    g.simulate(2);
+    expect(g.flames.find((f) => f.id === 991)).toBeUndefined();
+  });
+
   it('air strike allows for wind', () => {
     const g = flatGame([30, 90], [team('A', 1), team('B', 1)], { windMax: 1 });
     toAiming(g);

@@ -171,6 +171,7 @@ export class App {
       return;
     }
     this.audio.setCharge(game.charge);
+    this.audio.setFire(game.flames.length);
     this.audio.setTool(game.phase === 'torching' ? 'torch' : game.phase === 'drilling' ? 'drill' : null);
     const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' || p.weapon === 'mulebody' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
     const f = game.flyer;
@@ -224,6 +225,12 @@ export class App {
           else if (e.weapon === 'sheep' || e.weapon === 'flysheep') this.audio.play('baa');
           else if (e.weapon === 'selfdestruct') this.audio.play('alarm');
           else if (WEAPONS[e.weapon].kind !== 'melee') this.audio.play('fire');
+          break;
+        case 'ignite':
+          this.audio.play('ignite');
+          break;
+        case 'scorch':
+          this.audio.play('yelp');
           break;
         case 'hallelujah':
           this.audio.play('hallelujah');

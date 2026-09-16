@@ -73,9 +73,9 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | Backspace | Back-flip (high jump) |
 | ↑ ↓ | Aim |
 | Space | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–6 / Tab | Choose weapon (or click it in the weapon bar) |
+| 1–9, 0, Shift+1–7 / Tab | Choose weapon (or click it in the weapon bar) |
 | Mouse wheel / drag | Zoom / pan camera |
-| Click | Call the air strike or drop the concrete mule onto that spot |
+| Click | Call the air strike or napalm strike, or drop the concrete mule, onto that spot |
 | M / Esc | Mute / pause menu |
 
 ## Weapons
@@ -98,6 +98,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🦸 Flying Sheep | 1 | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates (75 dmg); explodes on impact or after 15 s |
 | 🫏 Concrete Mule | 1 | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each) |
 | ⛏️ Drill | 2 | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way) |
+| 🌋 Napalm Strike | 1 | Click on the map: a plane drops napalm that the wind carries far; burning ground (1–2 s) makes buddies hop for 3 dmg, water puts it out |
 
 ## Architecture
 

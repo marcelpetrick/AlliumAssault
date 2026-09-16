@@ -18,6 +18,8 @@ export type Sfx =
   | 'hop'
   | 'plane'
   | 'alarm'
+  | 'ignite'
+  | 'yelp'
   | 'bray'
   | 'hallelujah'
   | 'bullet'
@@ -57,6 +59,7 @@ export class Audio {
   private master: GainNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private chargeVoice: Voice | null = null;
+  private fireVoice: Voice | null = null;
   private toolVoice: { tool: 'torch' | 'drill'; voice: Voice } | null = null;
   private readonly flightVoices = new Map<number, Voice>();
   /** How often each sound effect was played (for tests). */
@@ -158,6 +161,16 @@ export class Audio {
           this.tone('square', (k % 2 ? 130 : 280) * pitch, (k % 2 ? 110 : 240) * pitch, 0.3, 0.04, d);
         });
         break;
+      case 'ignite':
+        // Whoomph of napalm catching: low thump and a rushing burst of air.
+        this.noise(0.6, 'lowpass', 2400, 300, 0.7);
+        this.tone('sine', 120 * pitch, 50, 0.4, 0.4);
+        break;
+      case 'yelp':
+        // "Hot hot hot!": quick squeaky rising hop.
+        this.tone('square', 600 * pitch, 1300 * pitch, 0.12, 0.12);
+        this.tone('triangle', 900 * pitch, 1600 * pitch, 0.1, 0.1, 0.09);
+        break;
       case 'alarm':
         // Frantic rising siren right before the bang.
         [0, 0.09, 0.18].forEach((d) => this.tone('square', 700 * pitch, 1400 * pitch, 0.08, 0.1, d));
@@ -250,6 +263,20 @@ export class Audio {
     v.gain.gain.setTargetAtTime(0.06 + level * 0.3, t, 0.03);
   }
 
+  /** Crackling fire whose loudness follows the number of burning flames; 0 stops it. */
+  setFire(flames: number): void {
+    if (flames <= 0 || !this.ctx || this.muted) {
+      this.stopVoice(this.fireVoice);
+      this.fireVoice = null;
+      return;
+    }
+    this.fireVoice ??= this.startVoice('bandpass', null);
+    const t = this.ctx.currentTime;
+    // Random flutter on the filter makes the noise crackle.
+    this.fireVoice.filter!.frequency.setTargetAtTime(700 + Math.random() * 1600, t, 0.02);
+    this.fireVoice.gain.gain.setTargetAtTime(Math.min(0.12 + flames * 0.025, 0.55) * (0.7 + Math.random() * 0.3), t, 0.03);
+  }
+
   /** Roaring blowtorch or grinding drill while that tool is in use; null stops it. */
   setTool(tool: 'torch' | 'drill' | null): void {
     if (this.toolVoice && this.toolVoice.tool !== tool) {
@@ -299,14 +326,22 @@ export class Audio {
   }
 
   /** Continuous sounds currently playing (for tests). */
-  get voices(): { charge: boolean; torch: boolean; drill: boolean; flights: number; played: Partial<Record<Sfx, number>> } {
-    return { charge: this.chargeVoice !== null, torch: this.toolVoice?.tool === 'torch', drill: this.toolVoice?.tool === 'drill', flights: this.flightVoices.size, played: { ...this.played } };
+  get voices(): { charge: boolean; torch: boolean; drill: boolean; fire: boolean; flights: number; played: Partial<Record<Sfx, number>> } {
+    return {
+      charge: this.chargeVoice !== null,
+      torch: this.toolVoice?.tool === 'torch',
+      drill: this.toolVoice?.tool === 'drill',
+      fire: this.fireVoice !== null,
+      flights: this.flightVoices.size,
+      played: { ...this.played },
+    };
   }
 
   /** Stop every continuous sound (pause, mute, match change). */
   silence(): void {
     this.setCharge(null);
     this.setTool(null);
+    this.setFire(0);
     this.setFlights([]);
   }
 

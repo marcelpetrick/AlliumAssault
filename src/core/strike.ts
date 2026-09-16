@@ -45,7 +45,7 @@ export function groundBelow(t: Terrain, x: number): number {
  * the fall time, the bombs' forward speed and the wind.
  */
 export function planStrike(t: Terrain, def: WeaponDef, target: number, dir: 1 | -1, wind: number): StrikePlan {
-  const { count, spacing, weapon, plane } = def.strike!;
+  const { count, spacing, weapon, plane, windAimed = true } = def.strike!;
   const bomb = WEAPONS[weapon];
   const ground = groundBelow(t, target);
   if (!plane) {
@@ -56,7 +56,7 @@ export function planStrike(t: Terrain, def: WeaponDef, target: number, dir: 1 | 
   }
   const altitude = Math.min(WORLD_HEIGHT + 4, ground + CLEARANCE);
   const bombVx = dir * PLANE_SPEED * BOMB_CARRY;
-  const ax = wind * WIND_ACCEL * bomb.windInfluence;
+  const ax = windAimed ? wind * WIND_ACCEL * bomb.windInfluence : 0;
   const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * bomb.gravityScale));
   const drift = bombVx * fall + 0.5 * ax * fall * fall;
   const center = target - drift;

@@ -28,6 +28,7 @@ import { clamp, lerp, type Point } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
 import { CRATE_BLAST, CRATE_HEAL, DEFAULT_CRATE_CHANCE, MAX_CRATES, rollCrate, type Crate } from './crates';
+import { spreadFlames, type Flame } from './fire';
 import { stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { PLANE_SPEED, planStrike } from './strike';
@@ -138,6 +139,8 @@ export type GameEvent =
   | { type: 'bounce'; x: number; y: number; speed: number }
   | { type: 'sheepHop'; x: number; y: number }
   | { type: 'hallelujah'; x: number; y: number }
+  | { type: 'ignite'; x: number; y: number; flames: number }
+  | { type: 'scorch'; buddy: number; x: number; y: number }
   | { type: 'crateSpawn'; crate: number; x: number; y: number }
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
@@ -174,6 +177,13 @@ const REST_MAX_WAIT = 10;
 /** Upward speed a smashing projectile rebounds with after each impact. */
 const SMASH_REBOUND = 6;
 
+/** Napalm flames: reach from a flame to a buddy's feet, the hop they cause, its damage and cooldown. */
+const FLAME_REACH = 0.8;
+const FLAME_FALL_SPEED = 8;
+const SCORCH_HOP = { vx: 4, vy: 9 };
+const SCORCH_DAMAGE = 3;
+const SCORCH_COOLDOWN = 0.6;
+
 /** Seconds between two shaft carves of the drill, and how far below the feet each one bites. */
 const DRILL_CARVE_INTERVAL = 0.12;
 const DRILL_BITE = 0.35;
@@ -204,6 +214,10 @@ export class Game {
   /** The flying sheep, while it flies. */
   flyer: Flyer | null = null;
   crates: Crate[] = [];
+  /** Burning napalm patches. */
+  flames: Flame[] = [];
+  /** Game time until which each buddy (by id) is immune to flames after being scorched. */
+  private readonly scorchedUntil = new Map<number, number>();
   /** Burst weapon firing: bullets left and seconds until the next one. */
   burst: { weapon: WeaponId; left: number; next: number } | null = null;
   /** Drill in use: seconds left and buddies already hit this use. */
@@ -439,6 +453,7 @@ export class Game {
     this.stepDrill(dt);
     this.stepBurst(dt);
     this.stepCrates(dt);
+    this.stepFlames(dt);
     this.stepPhase(dt);
   }
 
@@ -453,6 +468,7 @@ export class Game {
       this.projectiles.length === 0 &&
       !this.sheep &&
       !this.flyer &&
+      this.flames.length === 0 &&
       this.drops.length === 0 &&
       this.crates.every((c) => c.body.restTime > 0.25) &&
       this.buddies.every((b) => !b.alive || b.body.restTime > 0.25)
@@ -512,6 +528,7 @@ export class Game {
         this.removeProjectile(p);
         this.explode(p.x, p.y, def.radius, def.damage, def.force, def.flatDamage);
         if (def.cluster) this.scatter(p, def.cluster);
+        if (def.napalm) this.ignite(p.x, p.y, def.napalm);
       } else if (hit === 'water' || hit === 'out') {
         this.removeProjectile(p);
         if (hit === 'water') this.emit({ type: 'splash', x: p.x, y: this.terrain.waterLevel });
@@ -530,6 +547,37 @@ export class Game {
       }
       const finder = this.buddies.find((b) => b.alive && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + crate.body.radius + 0.1);
       if (finder) this.collectCrate(crate, finder);
+    }
+  }
+
+  private ignite(x: number, y: number, napalm: NonNullable<WeaponDef['napalm']>): void {
+    const flames = spreadFlames(this.terrain, x, y, napalm.flames, napalm.duration, () => this.nextId++);
+    this.flames.push(...flames);
+    this.emit({ type: 'ignite', x, y, flames: flames.length });
+  }
+
+  /** Flames burn down; a buddy touching one takes a little damage and hops away from it. */
+  private stepFlames(dt: number): void {
+    if (!this.flames.length) return;
+    for (const f of this.flames) {
+      f.life -= dt;
+      // Burning napalm sinks after its ground when that is blasted away.
+      if (!this.terrain.isSolid(f.x, f.y - 0.15)) f.y -= FLAME_FALL_SPEED * dt;
+    }
+    // Burnt-out flames, and flames that sank into the water, go out.
+    this.flames = this.flames.filter((f) => f.life > 0 && f.y > this.terrain.waterLevel + 0.1);
+    for (const b of this.buddies) {
+      if (!b.alive || (this.scorchedUntil.get(b.id) ?? 0) > this.time) continue;
+      const flame = this.flames.find((f) => Math.abs(f.x - b.body.x) < FLAME_REACH && Math.abs(f.y - (b.body.y - b.body.radius)) < FLAME_REACH);
+      if (!flame) continue;
+      this.scorchedUntil.set(b.id, this.time + SCORCH_COOLDOWN);
+      const away = b.body.x >= flame.x ? 1 : -1;
+      b.body.vx = away * SCORCH_HOP.vx;
+      b.body.vy = SCORCH_HOP.vy;
+      b.body.grounded = false;
+      b.body.restTime = 0;
+      this.emit({ type: 'scorch', buddy: b.id, x: b.body.x, y: b.body.y });
+      this.damage(b, SCORCH_DAMAGE);
     }
   }
 
@@ -792,6 +840,7 @@ export class Game {
     this.drill = null;
     this.burst = null;
     this.drops = [];
+    this.flames = [];
     const team = this.activeTeamData!;
     this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
     this.shotsLeft = WEAPONS[this.weapon].shots;

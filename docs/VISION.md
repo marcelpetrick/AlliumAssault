@@ -31,7 +31,7 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 
 ## Weapons
 
-Sixteen weapons. *Special* weapons can be restricted to crates with the arsenal setting.
+Seventeen weapons. *Special* weapons can be restricted to crates with the arsenal setting.
 
 | Weapon | Ammo | Behaviour |
 |---|---|---|
@@ -51,6 +51,7 @@ Sixteen weapons. *Special* weapons can be restricted to crates with the arsenal 
 | Flying Sheep (special) | 1 | Steered with the arrow keys for the whole flight, Space detonates |
 | Concrete Mule (special) | 1 | Click a target: falls from the sky and smashes down six times |
 | Drill | 2 | Drills straight down 3 s, obeys gravity, no fall damage while drilling |
+| Napalm Strike (special) | 1 | Click a target: wind-blown napalm sets the ground aflame for 1–2 s; flames make buddies hop, water puts them out |
 
 ## Crates
 
@@ -69,8 +70,8 @@ Following the last control decision made in the 2D prototype:
 | Backspace | Back-flip (high jump) |
 | ↑ / ↓ | Aim |
 | Space (hold/release) | Charge and fire; instant weapons fire on press; Space again detonates sheep |
-| 1–9, 0, Shift+1–6 / Tab | Select weapon (or click the weapon bar) |
-| Click on the map | Call the air strike or concrete mule |
+| 1–9, 0, Shift+1–7 / Tab | Select weapon (or click the weapon bar) |
+| Click on the map | Call the air strike, napalm strike or concrete mule |
 | Arrow keys while a flying sheep flies | Steer it towards that direction |
 | Mouse wheel / drag | Zoom / pan camera |
 | Esc | Pause menu |
