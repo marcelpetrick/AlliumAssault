@@ -27,6 +27,7 @@ import { clamp, lerp, type Point } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
 import { CRATE_BLAST, CRATE_HEAL, MAX_CRATES, rollCrate, type Crate } from './crates';
+import { stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { PLANE_SPEED, planStrike } from './strike';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
@@ -61,7 +62,7 @@ export interface GameOverrides {
 }
 
 /**
- * `guiding`: a released sheep is hopping; the turn timer runs and Space detonates it.
+ * `guiding`: a released sheep is hopping or flying; the turn timer runs and Space detonates it.
  * `torching`: the active buddy walks forward burning a tunnel; no other input.
  * `firing`: a burst weapon is rattling off its bullets; no other input.
  */
@@ -171,6 +172,8 @@ export class Game {
   projectiles: Projectile[] = [];
   /** The released sheep, while it hops. */
   sheep: Sheep | null = null;
+  /** The flying sheep, while it flies. */
+  flyer: Flyer | null = null;
   crates: Crate[] = [];
   /** Burst weapon firing: bullets left and seconds until the next one. */
   burst: { weapon: WeaponId; left: number; next: number } | null = null;
@@ -326,7 +329,7 @@ export class Game {
 
   /** Space pressed: start charging, fire instantly for non-charge weapons, or detonate the sheep. */
   pressFire(): void {
-    if (this.phase === 'guiding') return this.detonateSheep();
+    if (this.phase === 'guiding') return this.detonateGuided();
     const team = this.activeTeamData;
     const def = WEAPONS[this.weapon];
     if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || this.charge !== null) return;
@@ -388,6 +391,7 @@ export class Game {
     this.stepDrops();
     this.stepProjectiles(dt);
     this.stepSheep(dt);
+    this.stepFlyer(dt);
     this.stepTorch(dt);
     this.stepBurst(dt);
     this.stepCrates(dt);
@@ -404,6 +408,7 @@ export class Game {
     return (
       this.projectiles.length === 0 &&
       !this.sheep &&
+      !this.flyer &&
       this.drops.length === 0 &&
       this.crates.every((c) => c.body.restTime > 0.25) &&
       this.buddies.every((b) => !b.alive || b.body.restTime > 0.25)
@@ -582,18 +587,39 @@ export class Game {
       if (result === 'water') this.emit({ type: 'splash', x: s.body.x, y: this.terrain.waterLevel });
       if (this.phase === 'guiding') this.startRetreat();
     } else if (s.age >= WEAPONS.sheep.fuse) {
-      this.detonateSheep();
+      this.detonateGuided();
     }
   }
 
-  private detonateSheep(): void {
+  private stepFlyer(dt: number): void {
+    const f = this.flyer;
+    if (!f) return;
+    // ← turns counter-clockwise, → clockwise.
+    const steer = this.phase === 'guiding' ? Number(this.input.left) - Number(this.input.right) : 0;
+    const result = stepFlyer(this.terrain, f, dt, steer, (x, y) =>
+      this.buddies.some((b) => b.alive && (b.id !== f.owner || f.age > 0.4) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + 0.3),
+    );
+    if (result === 'water' || result === 'out') {
+      this.flyer = null;
+      if (result === 'water') this.emit({ type: 'splash', x: f.x, y: this.terrain.waterLevel });
+      if (this.phase === 'guiding') this.startRetreat();
+    } else if (result === 'hit' || f.age >= WEAPONS.flysheep.fuse) {
+      this.detonateGuided();
+    }
+  }
+
+  /** Blow up whatever is being guided: the hopping or the flying sheep. */
+  private detonateGuided(): void {
     const s = this.sheep;
-    if (!s) return;
+    const f = this.flyer;
+    if (!s && !f) return;
     this.sheep = null;
+    this.flyer = null;
     // Enter retreat first: if the blast hurts the active buddy, damage() ends the turn from there.
     if (this.phase === 'guiding') this.startRetreat();
-    const def = WEAPONS.sheep;
-    this.explode(s.body.x, s.body.y, def.radius, def.damage, def.force);
+    const def = s ? WEAPONS.sheep : WEAPONS.flysheep;
+    const at = s ? s.body : f!;
+    this.explode(at.x, at.y, def.radius, def.damage, def.force);
   }
 
   private startRetreat(): void {
@@ -612,7 +638,7 @@ export class Game {
         break;
       case 'guiding':
         this.turnTimeLeft -= dt;
-        if (this.turnTimeLeft <= 0) this.detonateSheep();
+        if (this.turnTimeLeft <= 0) this.detonateGuided();
         break;
       case 'torching':
         this.turnTimeLeft -= dt;
@@ -674,6 +700,7 @@ export class Game {
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
     this.sheep = null;
+    this.flyer = null;
     this.torch = null;
     this.burst = null;
     this.drops = [];
@@ -702,6 +729,10 @@ export class Game {
     if (def.kind === 'projectile') {
       const speed = lerp(def.minSpeed, def.maxSpeed, power);
       this.spawnProjectile(def.id, m.x, m.y, dir.x * speed, dir.y * speed, b.id);
+    } else if (def.kind === 'flyer') {
+      this.flyer = { id: this.nextId++, owner: b.id, x: m.x, y: m.y, angle: Math.atan2(dir.y, dir.x), age: 0 };
+      this.setPhase('guiding');
+      return;
     } else if (def.kind === 'walker') {
       this.sheep = releaseSheep(this.nextId++, b.id, b.body.x, b.body.y, b.facing);
       this.setPhase('guiding');
@@ -846,7 +877,7 @@ export class Game {
     this.charge = null;
     this.torch = null;
     this.burst = null;
-    this.detonateSheep();
+    this.detonateGuided();
     this.setPhase('settling');
   }
 

@@ -162,7 +162,7 @@ export class World {
           if (e.weapon === 'minigun') this.effects.muzzle(e.x0, e.y0);
           break;
         case 'fire':
-          if (WEAPONS[e.weapon].kind !== 'walker' && WEAPONS[e.weapon].kind !== 'self') this.effects.muzzle(e.x, e.y);
+          if (!['walker', 'flyer', 'self'].includes(WEAPONS[e.weapon].kind)) this.effects.muzzle(e.x, e.y);
           break;
         case 'punch':
           this.effects.punch(e.x, e.y);
@@ -217,6 +217,7 @@ export class World {
 
     this.effects.syncProjectiles(g, dt);
     this.effects.syncSheep(g);
+    this.effects.syncFlyer(g, this.time);
     this.effects.syncCrates(g, dt);
     this.effects.updateTorch(g);
     const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
@@ -285,7 +286,7 @@ export class World {
 
   private cameraTarget(): { x: number; y: number; fast: boolean } | null {
     const g = this.game;
-    const p = g.projectiles[0] ?? g.sheep?.body;
+    const p = g.projectiles[0] ?? g.sheep?.body ?? g.flyer;
     if (p) return { x: p.x, y: p.y, fast: true };
     if (this.hold && this.time < this.hold.until) return { x: this.hold.x, y: this.hold.y, fast: true };
     if (g.phase === 'settling' || g.phase === 'deaths' || g.phase === 'gameOver') {

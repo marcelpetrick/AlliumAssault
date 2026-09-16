@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.14.0] — 2026-09-16
+
+### Added
+- Flying Sheep (1 per team): takes off along the aim direction at constant speed; ← and → steer
+  it, Space detonates it (75 damage), and it explodes on hitting rock or a buddy or after 10 s.
+  Caped sheep model, bleat and whoosh, fuse countdown, camera follow.
+- The AI flies it over obstacles and dives onto the nearest enemy.
+- Unit and E2E tests.
+
+### Changed
+- Guided weapons share one detonation path; the crate and sheep AI tests restrict the arsenal.
+
 ## [1.13.0] — 2026-09-16
 
 ### Added

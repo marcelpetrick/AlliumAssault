@@ -354,6 +354,32 @@ describe('match flow', () => {
     expect(g.buddies[1].hp).toBeLessThan(60);
   });
 
+  it('flying sheep flies straight, steers with the arrow keys and explodes on impact', () => {
+    const g = flatGame([30, 100], [team('A', 1), team('B', 1)]);
+    for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(60, y, 2);
+    toAiming(g);
+    const me = g.buddies[0];
+    me.facing = 1;
+    me.aim = 0.2;
+    g.selectWeapon('flysheep');
+    g.pressFire();
+    expect(g.phase).toBe('guiding');
+    g.simulate(0.5);
+    const straight = { ...g.flyer! };
+    g.input.left = true;
+    g.simulate(0.3);
+    expect(g.flyer!.angle).toBeGreaterThan(straight.angle + 0.5);
+    g.input.left = false;
+    g.input.right = true;
+    g.simulate(0.3);
+    g.input.right = false;
+    const revision = g.terrain.revision;
+    runUntil(g, () => g.phase !== 'guiding', 6);
+    expect(g.flyer).toBeNull();
+    expect(g.terrain.revision).toBeGreaterThan(revision);
+    expect(g.phase).toBe('retreat');
+  });
+
   it('sheep detonates by itself when the turn time runs out', () => {
     const g = flatGame([40, 80], [team('A', 1), team('B', 1)], { turnTime: 3 });
     toAiming(g);
@@ -506,6 +532,16 @@ describe('AI', () => {
     expect(g.buddies[0].hp).toBe(100);
   });
 
+  it('steers a flying sheep into the enemy', () => {
+    const g = flatGame([30, 60], [team('A', 1, 'ai'), team('B', 1)]);
+    g.terrain.addDisc(45, 20, 5);
+    onlyWeapon(g, 0, 'flysheep');
+    runUntil(g, () => g.flyer !== null, 10);
+    runUntil(g, () => g.phase !== 'guiding', 12);
+    expect(g.buddies[1].hp).toBeLessThan(60);
+    expect(g.buddies[0].hp).toBe(100);
+  });
+
   it('calls an air strike onto an enemy', () => {
     const g = flatGame([30, 80], [team('A', 1, 'ai'), team('B', 1)]);
     onlyWeapon(g, 0, 'airstrike');
@@ -520,6 +556,7 @@ describe('AI', () => {
   it('walks to a nearby crate when it has no good shot', () => {
     const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0 });
     for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(75, y, 3);
+    onlyWeapon(g, 0, 'bazooka');
     g.crates.push({ id: 950, kind: 'health', weapon: null, body: createBody(47, 20.45, 0.45) });
     runUntil(g, () => g.crates.length === 0 || g.phase !== 'aiming' && g.phase !== 'turnStart', 20);
     expect(g.crates).toHaveLength(0);

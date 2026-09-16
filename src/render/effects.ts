@@ -58,6 +58,7 @@ export class Effects {
   private flashLevel = 0;
   private readonly projectiles = new Map<number, ProjectileView>();
   private sheep: SheepView | null = null;
+  private flyer: SheepView | null = null;
   private readonly planes: PlaneView[] = [];
   private readonly crates = new Map<number, CrateView>();
   private readonly strikeCursor: Mesh;
@@ -409,6 +410,31 @@ export class Effects {
     const airborne = !s.body.grounded;
     view.body.rotation.z = airborne ? Math.atan2(s.body.vy, Math.abs(s.body.vx) + 1e-3) * 0.5 : 0;
     for (const leg of view.legs) leg.scaling.y = airborne ? 0.6 : 1;
+  }
+
+  /** Show the flying sheep, nose along its flight direction, legs tucked, cape flapping. */
+  syncFlyer(game: Game, time: number): void {
+    const f = game.flyer;
+    if (this.flyer && this.flyer.id !== f?.id) {
+      this.flyer.node.dispose();
+      this.flyer = null;
+    }
+    if (!f) return;
+    if (!this.flyer) {
+      this.flyer = this.createSheep(f.id);
+      const cape = MeshBuilder.CreateBox('cape', { width: 0.55, height: 0.04, depth: 0.42 }, this.scene);
+      cape.material = this.materials.red;
+      cape.position.set(-0.32, 0.3, 0);
+      cape.parent = this.flyer.body;
+      cape.isPickable = false;
+      for (const leg of this.flyer.legs) leg.scaling.y = 0.5;
+    }
+    const view = this.flyer;
+    const left = Math.cos(f.angle) < 0;
+    view.node.position.set(f.x, f.y, 0);
+    view.node.scaling.set(left ? -1.4 : 1.4, 1.4, 1.4);
+    view.body.rotation.z = left ? Math.PI - f.angle : f.angle;
+    view.body.rotation.x = Math.sin(time * 18) * 0.08;
   }
 
   updateAim(game: Game, time: number): void {

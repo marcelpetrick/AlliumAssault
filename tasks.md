@@ -29,10 +29,12 @@ Status: ☐ open · ☑ done
 | T18 | Arsenal setting: all weapons from the start, or special weapons only from crates | ☐ | |
 | T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast | ☑ | 1.12.0 |
 | T20 | Banana Bomb: bursts into bouncing explosive bananas | ☑ | 1.13.0 |
-| T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☐ | |
+| T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☑ | 1.14.0 |
 | T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☐ | |
 | T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
 | T24 | Compact weapon bar and hotkeys for 15 weapons | ☐ | |
+| T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☐ | |
+| T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
 | T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
 | T12 | Self-review of all changes, fix findings | ☐ | |
@@ -154,7 +156,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   staggered short fuses (30 damage each), wrecking a large area. 1 per team.
 - Core: cluster fragments with bounce and their own fuses; yellow banana models.
 
-### T21 — Flying Sheep ☐
+### T21 — Flying Sheep ☑
 - Space releases it; it flies at constant speed, ← → steer it, Space detonates (75 damage). Hits
   on terrain or buddies detonate it; 10 s flight time. 1 per team.
 - Core: steerable flyer in the `guiding` phase; sheep model with a cape; AI steers towards the

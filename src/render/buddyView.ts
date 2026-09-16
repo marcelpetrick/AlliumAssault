@@ -226,6 +226,10 @@ export class BuddyView {
       banana: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCapsule('heldBanana', { height: 0.6, radius: 0.1, tessellation: 10 }, scene), kit.bananaSkin, [0.6, 0.05, 0], true],
       ]),
+      flysheep: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateSphere('heldFlySheep', { diameterX: 0.44, diameterY: 0.32, diameterZ: 0.32, segments: 10 }, scene), kit.eyeWhite, [0.62, 0.05, 0], false],
+        [MeshBuilder.CreateBox('heldCape', { width: 0.3, height: 0.03, depth: 0.3 }, scene), kit.glove, [0.52, 0.22, 0], false],
+      ]),
       selfdestruct: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('detonator', { width: 0.24, height: 0.16, depth: 0.2 }, scene), kit.metal, [0.5, -0.05, 0], false],
         [MeshBuilder.CreateCylinder('plunger', { height: 0.1, diameter: 0.12, tessellation: 10 }, scene), kit.glove, [0.5, 0.07, 0], false],

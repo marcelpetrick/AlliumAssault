@@ -176,7 +176,9 @@ export class Hud {
         : g.phase === 'torching'
           ? 'Burning through the rock… 🔥'
         : g.phase === 'guiding'
-          ? 'Space to blow up the sheep! 🐑'
+          ? g.flyer
+            ? '← → steer the flying sheep · Space to blow it up! 🦸'
+            : 'Space to blow up the sheep! 🐑'
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'
           : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–${WEAPON_ORDER.length} weapons · Esc menu`,
@@ -205,6 +207,7 @@ export class Hud {
     // Grenade and sheep fuse countdown.
     const live = new Set<number>();
     const fused = g.projectiles.filter((p) => WEAPONS[p.weapon].fuse > 0 || p.armed).map((p) => ({ id: p.id, x: p.x, y: p.y, fuse: p.fuse }));
+    if (g.flyer) fused.push({ id: g.flyer.id, x: g.flyer.x, y: g.flyer.y, fuse: Math.min(WEAPONS.flysheep.fuse - g.flyer.age, g.turnTimeLeft) });
     if (g.sheep) fused.push({ id: g.sheep.id, x: g.sheep.body.x, y: g.sheep.body.y, fuse: Math.min(WEAPONS.sheep.fuse - g.sheep.age, g.turnTimeLeft) });
     for (const p of fused) {
       live.add(p.id);

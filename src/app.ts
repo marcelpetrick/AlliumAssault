@@ -1,6 +1,7 @@
 import { Engine } from '@babylonjs/core';
 import pkg from '../package.json';
 import { Audio, type FlightSound } from './audio';
+import { FLYER_SPEED } from './core/flyer';
 import { Game, type GameEvent, type MatchConfig } from './core/game';
 import { WEAPON_ORDER, WEAPONS } from './core/weapons';
 import { THEMES } from './render/themes';
@@ -172,6 +173,8 @@ export class App {
     this.audio.setCharge(game.charge);
     this.audio.setTorch(game.phase === 'torching');
     const flights: FlightSound[] = game.projectiles.map((p) => ({ id: p.id, kind: p.weapon === 'bazooka' || p.weapon === 'airbomb' ? 'rocket' : 'lob', vx: p.vx, vy: p.vy }));
+    const f = game.flyer;
+    if (f) flights.push({ id: f.id, kind: 'lob', vx: Math.cos(f.angle) * FLYER_SPEED, vy: Math.sin(f.angle) * FLYER_SPEED });
     this.audio.setFlights(flights);
     const walker = game.activeBuddy;
     if (walker?.walking && walker.body.grounded) {
@@ -218,7 +221,7 @@ export class App {
         case 'fire':
           if (e.weapon === 'shotgun') this.audio.play('shot');
           else if (e.weapon === 'minigun') this.audio.play('spinup');
-          else if (e.weapon === 'sheep') this.audio.play('baa');
+          else if (e.weapon === 'sheep' || e.weapon === 'flysheep') this.audio.play('baa');
           else if (e.weapon === 'selfdestruct') this.audio.play('alarm');
           else if (WEAPONS[e.weapon].kind !== 'melee') this.audio.play('fire');
           break;

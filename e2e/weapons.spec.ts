@@ -223,6 +223,27 @@ test('banana bomb: five bananas scatter and explode one after another', async ({
   expect(errors).toEqual([]);
 });
 
+test('flying sheep: takes off, steers with the arrow keys, Space detonates', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => window.__allium.app.game!.selectWeapon('flysheep'));
+  await aim(page, 1.2, 1);
+  const before = await state(page);
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.phase === 'guiding' && ((s.sound.played as Record<string, number>).baa ?? 0) >= 1 && s.sound.flights > 0, 10_000);
+  const angle = () => page.evaluate(() => window.__allium.app.game!.flyer!.angle);
+  const start = await angle();
+  await page.keyboard.down('ArrowRight');
+  await page.waitForFunction((a) => (window.__allium.app.game!.flyer?.angle ?? a) < a - 0.2, start, { timeout: 30_000, polling: 'raf' });
+  await page.keyboard.up('ArrowRight');
+  await info.attach('flying sheep', { body: await page.screenshot(), contentType: 'image/png' });
+  // Space detonates it, unless it already flew into something on this map.
+  if (await page.evaluate(() => window.__allium.app.game!.flyer !== null)) await page.keyboard.press('Space');
+  await waitForSound(page, 'explosion', played(before, 'explosion') + 1);
+  expect(await page.evaluate(() => window.__allium.app.game!.flyer)).toBeNull();
+  expect(errors).toEqual([]);
+});
+
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

@@ -159,6 +159,14 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     }
   }
 
+  if (allowed('flysheep') && nearest) {
+    // Hard to predict exactly; valued as a likely, heavy hit that costs a rare weapon.
+    const def = WEAPONS.flysheep;
+    const score = def.damage * 0.55 + (nearest.hp <= def.damage * 0.55 ? 40 : 0) - 15;
+    const facing: 1 | -1 = nearest.body.x < me.body.x ? -1 : 1;
+    if (score > best.score) best = { weapon: 'flysheep', facing, aim: 0.8, power: 1, score };
+  }
+
   if (allowed('torch')) {
     // Burn towards an enemy on about the same level behind a wall, if the tunnel can reach it.
     const def = WEAPONS.torch;
@@ -282,6 +290,25 @@ export class AiDriver {
     this.plan = null;
   }
 
+  /** Home the flying sheep in on the nearest enemy: climb over obstacles first, then dive. */
+  private steerFlyer(game: Game): void {
+    const f = game.flyer!;
+    const me = game.activeBuddy!;
+    const target = game.buddies
+      .filter((b) => b.alive && b.team !== me.team)
+      .reduce<Buddy | null>((best, b) => (!best || Math.hypot(b.body.x - f.x, b.body.y - f.y) < Math.hypot(best.body.x - f.x, best.body.y - f.y) ? b : best), null);
+    if (!target) return game.pressFire();
+    const dx = target.body.x - f.x;
+    const dy = target.body.y - f.y;
+    if (Math.hypot(dx, dy) < 1.5) return game.pressFire();
+    // Stay high until nearly above the target so hills in between do not catch the sheep.
+    const aimY = Math.abs(dx) > 6 ? Math.max(target.body.y, f.y) + 4 - f.y : dy;
+    const wanted = Math.atan2(aimY, dx);
+    const diff = Math.atan2(Math.sin(wanted - f.angle), Math.cos(wanted - f.angle));
+    if (diff > 0.05) game.input.left = true;
+    else if (diff < -0.05) game.input.right = true;
+  }
+
   update(game: Game, dt: number): void {
     const me = game.activeBuddy;
     if (!me) return;
@@ -298,7 +325,8 @@ export class AiDriver {
       return;
     }
     if (game.phase === 'guiding') {
-      if (this.timer >= (this.plan?.delay ?? 0)) game.pressFire();
+      if (game.flyer) this.steerFlyer(game);
+      else if (this.timer >= (this.plan?.delay ?? 0)) game.pressFire();
       return;
     }
     if (game.phase !== 'aiming') return;
