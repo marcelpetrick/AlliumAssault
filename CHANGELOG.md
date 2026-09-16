@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.18.3] — 2026-09-16
+
+### Changed
+- Louder sound: master volume doubled (0.55 → 1.1) behind a compressor that keeps big explosions
+  from clipping; footsteps, sheep hops, the timer tick, flight sounds and the crate teleport
+  shimmer are noticeably louder.
+
 ## [1.18.2] — 2026-09-16
 
 ### Changed

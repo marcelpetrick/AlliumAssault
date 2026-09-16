@@ -36,7 +36,7 @@ Status: ☐ open · ☑ done
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
 | T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly | ☑ | 1.18.0 |
-| T28 | Louder sound effects | ☐ | |
+| T28 | Louder sound effects | ☑ | 1.18.3 |
 | T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon | ☐ | |
 | T30 | More sceneries: Candy Shop and Frosty Peaks | ☐ | |
 | T31 | Comic tombstones where buddies die | ☐ | |
@@ -210,7 +210,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - The AI presses arrow keys too: it cruises above the highest ground towards its target (↑ + →
   climbs at 45°) and dives in the last 6 units.
 
-### T28 — Louder sounds ☐
+### T28 — Louder sounds ☑
 - Raise the master volume and the quieter effects (footsteps, bounces, flight voices) so the game
   is clearly audible at normal system volume, without clipping on big explosions (compressor on
   the master bus).

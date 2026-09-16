@@ -88,7 +88,7 @@ progress.
 | T27 | Flying sheep steerable with the arrow keys until it explodes | Screen-relative steering with all four arrows, slower flight, longer fuse, AI uses the keys | ✅ 1.18.0 |
 | T37 | Play link at the top of the README | GitHub Pages link above the fold | ✅ 1.18.1 |
 | T36 | Banana bomb only throws a short distance | Reproduce in the core and in Chrome with real keys; compare with the grenade; fix the cause | 🔍 not reproduced (both fly 63 units at full charge); waiting for details |
-| T28 | Sounds louder | Master gain up behind a compressor so big blasts do not clip; raise quiet effects | ☐ |
+| T28 | Sounds louder | Master gain up behind a compressor so big blasts do not clip; raise quiet effects | ✅ 1.18.3 |
 | T29 | Arsenal option "Infinite supplies" | Third arsenal value: every weapon unlimited; setup option; tests | ☐ |
 | T35 | Crate drops noticeable | Teleport sound on spawn (exists, make it louder) plus a short camera pan to the crate at the turn start | ☐ |
 | T31 | Comic tombstones for dead buddies | Physics tombstone per death (not drowning), knocked by blasts, sinks; RIP model with name and team ribbon | ☐ |

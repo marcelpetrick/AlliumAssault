@@ -46,6 +46,8 @@ interface Voice {
 }
 
 const MAX_FLIGHT_VOICES = 6;
+/** Master gain before the limiter (was 0.55). */
+const MASTER_VOLUME = 1.1;
 
 const MUTE_KEY = 'allium.muted';
 
@@ -77,8 +79,16 @@ export class Audio {
       const ctx = new AudioContext();
       this.ctx = ctx;
       this.master = ctx.createGain();
-      this.master.gain.value = this.muted ? 0 : 0.55;
-      this.master.connect(ctx.destination);
+      this.master.gain.value = this.muted ? 0 : MASTER_VOLUME;
+      // Everything is louder than before; a compressor keeps big explosions from clipping.
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -10;
+      limiter.knee.value = 6;
+      limiter.ratio.value = 8;
+      limiter.attack.value = 0.003;
+      limiter.release.value = 0.2;
+      this.master.connect(limiter);
+      limiter.connect(ctx.destination);
       const length = ctx.sampleRate;
       this.noiseBuffer = ctx.createBuffer(1, length, ctx.sampleRate);
       const data = this.noiseBuffer.getChannelData(0);
@@ -89,7 +99,7 @@ export class Audio {
 
   toggleMute(): boolean {
     this.muted = !this.muted;
-    if (this.master) this.master.gain.value = this.muted ? 0 : 0.55;
+    if (this.master) this.master.gain.value = this.muted ? 0 : MASTER_VOLUME;
     if (this.muted) this.silence();
     try {
       localStorage.setItem(MUTE_KEY, this.muted ? '1' : '0');
@@ -162,8 +172,8 @@ export class Audio {
         break;
       case 'step':
         // Soft papery patter of a garlic clove's feet.
-        this.noise(0.05, 'bandpass', 1500 * pitch, 700, 0.14);
-        this.tone('sine', 210 * pitch, 150, 0.05, 0.05);
+        this.noise(0.05, 'bandpass', 1500 * pitch, 700, 0.22);
+        this.tone('sine', 210 * pitch, 150, 0.05, 0.09);
         break;
       case 'bounce':
         // A clunk you can hear: thud body plus a metallic tick, both scaled by the impact.
@@ -195,7 +205,7 @@ export class Audio {
         this.tone('triangle', 880, 1320, 0.08, 0.1, 0.04);
         break;
       case 'tick':
-        this.tone('square', 1500, 1500, 0.035, 0.07);
+        this.tone('square', 1500, 1500, 0.035, 0.12);
         break;
       case 'baa':
         this.bleat(pitch);
@@ -204,8 +214,10 @@ export class Audio {
         this.planeFlyby();
         break;
       case 'teleport':
-        [880, 1320, 1760, 2640].forEach((f, k) => this.tone('sine', f, f * 1.5, 0.12, 0.07, k * 0.05));
-        this.noise(0.35, 'highpass', 3000, 7000, 0.06);
+        // Bright shimmering sweep, loud enough to notice a crate arriving anywhere on the map.
+        [880, 1320, 1760, 2640, 3520].forEach((f, k) => this.tone('sine', f, f * 1.5, 0.16, 0.16, k * 0.05));
+        this.tone('triangle', 220, 880, 0.35, 0.18);
+        this.noise(0.45, 'highpass', 2500, 7000, 0.14);
         break;
       case 'pickup':
         [523, 784, 1047].forEach((f, k) => this.tone('square', f, f, 0.09, 0.06, k * 0.07));
@@ -214,7 +226,7 @@ export class Audio {
         [392, 523, 659, 784].forEach((f, k) => this.tone('triangle', f, f * 1.02, 0.3, 0.12, k * 0.08));
         break;
       case 'hop':
-        this.tone('sine', 260 * pitch, 520 * pitch, 0.07, 0.05);
+        this.tone('sine', 260 * pitch, 520 * pitch, 0.07, 0.1);
         break;
     }
   }
@@ -272,10 +284,10 @@ export class Audio {
           // Whistle drops in pitch while falling, like a cartoon bomb.
           v.osc!.frequency.setTargetAtTime(Math.max(380, 1100 + f.vy * 22), t, 0.05);
           v.filter!.frequency.setTargetAtTime(900 + speed * 45, t, 0.05);
-          v.gain.gain.setTargetAtTime(0.05 + Math.min(speed, 40) * 0.004, t, 0.05);
+          v.gain.gain.setTargetAtTime(0.08 + Math.min(speed, 40) * 0.006, t, 0.05);
         } else {
           v.filter!.frequency.setTargetAtTime(250 + speed * 40, t, 0.05);
-          v.gain.gain.setTargetAtTime(Math.min(speed, 30) * 0.006, t, 0.05);
+          v.gain.gain.setTargetAtTime(Math.min(speed, 30) * 0.009, t, 0.05);
         }
       }
     }
