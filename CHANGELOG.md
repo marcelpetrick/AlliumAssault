@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.3.2] — 2026-09-16
+
+### Fixed
+- E2E: the charge-sound check waits for the next frame instead of racing the key-up that fires.
+
 ## [1.3.1] — 2026-09-16
 
 ### Added

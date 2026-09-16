@@ -121,9 +121,8 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
   await info.attach('charging', { body: await page.screenshot(), contentType: 'image/png' });
   await page.keyboard.up('Space');
   await waitFor(page, (s) => s.phase === 'retreat' || s.phase === 'settling', 20_000);
-  const afterFire = await state(page);
-  expect(afterFire.sound.charge).toBe(false);
-  if (afterFire.projectiles > 0) expect(afterFire.sound.flights).toBeGreaterThan(0);
+  // Firing on key-up happens between frames; sounds follow on the next frame.
+  await waitFor(page, (s) => !s.sound.charge && (s.projectiles === 0 || s.sound.flights > 0), 10_000);
   expect(errors).toEqual([]);
 });
 
