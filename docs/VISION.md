@@ -29,14 +29,33 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 | Wind | New random wind each turn, shown in HUD; affects projectiles per weapon |
 | Victory | Last team with living buddies wins; draw if none survive |
 
-## Weapons (MVP)
+## Weapons
+
+Fifteen weapons. *Special* weapons can be restricted to crates with the arsenal setting.
 
 | Weapon | Ammo | Behaviour |
 |---|---|---|
 | Bazooka | ∞ | Charged shot, ballistic, strong wind influence, explodes on contact |
 | Grenade | ∞ | Charged throw, bounces, 3 s fuse, light wind influence |
-| Garlic Punch | ∞ | Melee uppercut: damage + launch, no charge |
 | Shotgun | 2 | Two instant shots per turn along the aim line, small craters |
+| Garlic Punch | ∞ | Melee uppercut: 45 damage + launch, no charge |
+| Cluster Bomb (special) | 3 | Red grenade; bursts into five bomblets of 10 damage |
+| Sheep (special) | 1 | Hops forward on its own; Space detonates |
+| Air Strike (special) | 1 | Click a target: a plane drops five bombs |
+| Baseball Bat | 2 | Melee: 25 damage, knocks the victim far |
+| Blowtorch | 2 | Walks forward 3 s burning a level tunnel; obeys gravity |
+| Self-Destruct (special) | 1 | Buddy explodes: damage = health, radius = health ÷ 10 |
+| Minigun (special) | 1 | 14-bullet burst that shoves the victim far |
+| Holy Garlic Grenade (special) | 1 | Explodes 1.6 s after coming to rest, huge blast |
+| Banana Bomb (special) | 1 | Bursts into five bouncing bananas that explode in turn |
+| Flying Sheep (special) | 1 | Steerable with ← →, Space detonates |
+| Concrete Mule (special) | 1 | Click a target: falls from the sky and smashes down six times |
+
+## Crates
+
+From the second turn on a crate may teleport onto free land at a turn start (Off / Normal / Lots,
+at most four on the map). Health crates heal the collecting buddy by 25 HP; weapon crates add one
+more of a special weapon to its team. Crates explode when caught in a blast.
 
 ## Controls
 
@@ -48,9 +67,11 @@ Following the last control decision made in the 2D prototype:
 | Enter | Jump forward |
 | Backspace | Back-flip (high jump) |
 | ↑ / ↓ | Aim |
-| Space (hold/release) | Charge and fire (punch/shotgun fire instantly) |
-| 1–4 / Tab | Select weapon |
-| Mouse wheel / right-drag | Zoom / pan camera |
+| Space (hold/release) | Charge and fire; instant weapons fire on press; Space again detonates sheep |
+| 1–9, 0, Shift+1–5 / Tab | Select weapon (or click the weapon bar) |
+| Click on the map | Call the air strike or concrete mule |
+| ← / → while a flying sheep flies | Steer it |
+| Mouse wheel / drag | Zoom / pan camera |
 | Esc | Pause menu |
 
 ## Look & feel
@@ -82,4 +103,4 @@ general-purpose physics engines cannot do arbitrarily destructible Worms terrain
 
 ## Out of scope (for now)
 
-Online multiplayer, ninja rope, jetpack, crates, mines, sudden death, persistent statistics.
+Online multiplayer, ninja rope, jetpack, mines, sudden death, persistent statistics.

@@ -96,7 +96,11 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── game.ts      match state machine, turns, weapons, damage
+│   ├── weapons.ts   weapon table (15 weapons by kind), hotkey mapping
+│   ├── game.ts      match state machine, turns, weapon execution, damage, crates
+│   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep
+│   ├── strike.ts    air strike and concrete mule drop planning
+│   ├── crates.ts    seeded crate contents and spots
 │   └── ai.ts        trajectory-search AI driving the same commands as players
 ├── render/   Babylon.js presentation: terrain mesh, buddies, environment, effects, camera
 ├── ui/       HTML/CSS overlay: title, match setup, HUD, pause, victory
@@ -118,7 +122,7 @@ research session is archived in [`docs/archive/`](docs/archive/).
 ```bash
 npm run typecheck    # TypeScript strict
 npm test             # Vitest: terrain, contour, physics, match rules, AI (incl. full AI match)
-npm run e2e          # Playwright in Google Chrome: menus, a human turn, AI match to victory
+npm run e2e          # Playwright in Google Chrome: menus, human turns, every weapon, crates, sounds
 npm run verify       # all of the above plus production build
 ```
 

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.17.5] — 2026-09-16
+
+### Changed
+- Docs: README architecture and testing sections, `docs/VISION.md` (all fifteen weapons, crates,
+  controls), `docs/ARCHITECTURE.md` (new core modules, weapon phases, AI flow, E2E coverage, Pages
+  deployment) and `AGENTS.md` (layout, controls, how to add a weapon) describe the current game.
+
 ## [1.17.4] — 2026-09-16
 
 ### Fixed

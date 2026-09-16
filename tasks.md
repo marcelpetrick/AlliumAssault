@@ -36,9 +36,9 @@ Status: ☐ open · ☑ done
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☑ | 1.17.1 |
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☑ | 1.17.3 |
 | T8 | GitHub Pages deployment | ☑ | 1.17.2 |
-| T9 | Docs: README, VISION, ARCHITECTURE | ☐ | |
+| T9 | Docs: README, VISION, ARCHITECTURE | ☑ | 1.17.5 |
 | T12 | Self-review of all changes, fix findings | ☑ | 1.17.4 |
-| T13 | Push to GitHub and publish a public release | ☐ | |
+| T13 | Push to GitHub and publish a public release | ☑ | v1.17.5 |
 
 ## Answered questions
 
@@ -198,7 +198,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 - Repository Pages source set to GitHub Actions; game served at
   <https://marcelpetrick.github.io/AlliumAssault/>.
 
-### T9 — Docs ☐
+### T9 — Docs ☑
 README (features, controls, weapons, Pages link), `docs/VISION.md`, `docs/ARCHITECTURE.md`.
 
 ### T12 — Self-review ☑
@@ -206,7 +206,7 @@ Review the full diff since v1.1.11 for bugs and cleanups, fix findings, re-run `
 Findings and their resolution are in `review.md`; #3 (in-turn action state as one union) stays
 open as design debt.
 
-### T13 — Push and public release ☐
+### T13 — Push and public release ☑
 Push `master`, tag the release version, push the tag (the release workflow publishes the GitHub
 release with the zipped web build), confirm the Pages deployment.
 

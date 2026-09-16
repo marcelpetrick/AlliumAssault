@@ -91,13 +91,17 @@ C4Component
     Component(terrain, "Terrain", "terrain.ts", "Density field, seeded generation, carve, spawn search, dirty chunks")
     Component(contour, "contourRegion", "contour.ts", "Marching squares: fill triangles and oriented edges")
     Component(physics, "Physics", "physics.ts", "stepBody for buddies, stepProjectile for shells")
-    Component(weapons, "Weapon table", "weapons.ts", "Bazooka, grenade, shotgun, punch definitions")
+    Component(weapons, "Weapon table", "weapons.ts", "Fifteen weapon definitions by kind, fragments, hotkey mapping")
+    Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts", "Hopping sheep, steerable flyer, strike drop planning")
+    Component(crates, "Crates", "crates.ts", "Seeded crate contents and free land spots")
     Component(support, "rng, math, constants", "rng.ts, math.ts, constants.ts", "Seeded streams, helpers, tuning values")
   }
 
   Rel(game, terrain, "Generates, carves, queries")
   Rel(game, physics, "Steps bodies and projectiles")
   Rel(game, weapons, "Reads definitions")
+  Rel(game, actors, "Steps sheep and flyers, plans strikes")
+  Rel(game, crates, "Rolls crates at turn starts")
   Rel(game, ai, "update() during AI turns")
   Rel(ai, game, "selectWeapon, face, pressFire, releaseFire")
   Rel(ai, physics, "Simulates candidate shots")
@@ -187,7 +191,13 @@ test hook swaps the real-time loop for exact frames, which is how the README GIF
 stateDiagram-v2
   [*] --> turnStart: beginTurn()
   turnStart --> aiming: after 1.2 s
-  aiming --> retreat: last shot of the weapon fired
+  aiming --> retreat: last shot of the weapon fired, strike called, self-destruct settles
+  aiming --> guiding: sheep or flying sheep released
+  guiding --> retreat: Space, impact, fuse or turn time detonates it
+  aiming --> torching: blowtorch lit
+  torching --> retreat: after 3 s
+  aiming --> firing: minigun burst
+  firing --> retreat: last bullet
   aiming --> settling: timer runs out, active buddy hurt or drowned, skipTurn()
   retreat --> settling: retreat timer ends or active buddy hurt
   settling --> deaths: everything at rest for 0.6 s (15 s cap)
@@ -200,6 +210,9 @@ stateDiagram-v2
 Rules enforced here:
 
 - ammo is consumed on a weapon's first shot,
+- in `guiding`, `torching` and `firing` the buddy cannot move; the turn timer keeps running in
+  `guiding` and `torching`,
+- crates teleport in at turn starts from a seeded stream, so maps replay identically,
 - the turn only ends once the world has settled,
 - death explosions are queued one at a time, so chain reactions resolve deterministically.
 
@@ -222,8 +235,10 @@ flowchart LR
 ```mermaid
 flowchart TD
   think["AiDriver: think delay"] --> plan["planAttack()"]
-  plan --> sample["For bazooka and grenade, both facings:<br/>sample aim × power, simulateShot()"]
-  plan --> melee["Punch if adjacent, shotgun if line of sight"]
+  plan --> sample["Every projectile weapon, both facings:<br/>sample aim × power, simulateShot()<br/>(coarser grid for limited ammo)"]
+  plan --> special["Replay sheep hops, check flying sheep launch,<br/>score strike targets, torch through walls, self-destruct"]
+  plan --> melee["Punch or bat if adjacent (simulated knock-outs),<br/>shotgun or minigun in line of sight"]
+  special --> score
   sample --> score["scoreBlast(): enemy damage + kill bonus<br/>− weighted friendly and self damage"]
   melee --> score
   score --> noise["Add aim and power error by difficulty"]
@@ -233,7 +248,9 @@ flowchart TD
   more -- no --> retreat["Walk away during retreat"]
 ```
 
-Planning takes roughly 8–11 ms per turn on a desktop CPU, so it runs on the main thread.
+Planning runs on the main thread. With the full arsenal a hard AI decision takes about 35–50 ms
+in the Node benchmark, a short hitch once per AI turn (see `review.md`, finding 1). The AI can
+also detour to a nearby crate when it has no good shot, and steers flying sheep while guiding.
 
 ## 9. Deployment and delivery
 
@@ -241,9 +258,12 @@ Planning takes roughly 8–11 ms per turn on a desktop CPU, so it runs on the ma
 flowchart LR
   dev["Developer"] -- "push master / pull request" --> ci["CI workflow<br/>lint, typecheck, Vitest, build,<br/>Playwright in Google Chrome"]
   dev -- "push tag vX.Y.Z" --> rel["Release workflow<br/>verify, build, zip + SHA-256,<br/>notes from CHANGELOG"]
+  dev -- "push tag vX.Y.Z" --> pages["Pages workflow<br/>build, deploy dist/"]
+  pages --> site[("GitHub Pages<br/>marcelpetrick.github.io/AlliumAssault")]
   rel --> release[("GitHub Release")]
   release --> host["Any static web server"]
   host --> browser["Player's browser"]
+  site --> browser
 ```
 
 Every commit on `master` carries its own SemVer version in `package.json` and a `CHANGELOG.md`
@@ -265,6 +285,6 @@ entry; only releases get a `vX.Y.Z` tag. See the Versioning section of the READM
 | Level | Tooling | Covers |
 |---|---|---|
 | Unit | Vitest (`tests/`) | RNG, terrain generation, craters, contouring, body and projectile physics, turns, weapons, deaths, AI plans, a full AI-vs-AI match |
-| End-to-end | Playwright + Google Chrome (`e2e/`) | Title demo, a human turn with real keys, AI match to victory, custom setup, pause menu |
+| End-to-end | Playwright + Google Chrome (`e2e/`) | Title demo, a human turn with real keys, AI match to victory, custom setup, pause menu; every weapon with real keys and clicks (`weapons.spec.ts`); crates, audio cues, movement sounds and weapon bar (`features.spec.ts`) — sounds are checked through the synthesizer's play counters |
 | Static | ESLint, TypeScript strict | Whole codebase |
-| Pipeline | `npm run verify`, GitHub Actions | All of the above on every push; releases on tags |
+| Pipeline | `npm run verify`, GitHub Actions | All of the above on every push; releases and GitHub Pages deployment on tags |

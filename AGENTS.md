@@ -16,15 +16,16 @@ entirely in the browser as a static site: local hot-seat and human-vs-AI.
 
 | Path | Contents | Rule |
 |---|---|---|
-| `src/core/` | Game rules: terrain field, marching squares, physics, weapons, sheep, match state machine, AI | Pure TypeScript — no Babylon, no DOM. Unit tested. |
+| `src/core/` | Game rules: terrain field, marching squares, physics, weapon table, sheep/flyer/strike actors, crates, match state machine, AI | Pure TypeScript — no Babylon, no DOM. Unit tested. |
 | `src/render/` | Babylon.js scene, terrain mesh, buddies, effects, camera | Reads core state and events, never changes rules |
 | `src/ui/` | HTML/CSS overlay: menus, setup, HUD | |
 | `src/audio.ts` | Web Audio synthesizer; every sound is generated, no asset files | |
 | `src/app.ts` | Frame loop, input, event dispatch, `window.__allium` test hook | |
 | `tests/` | Vitest core tests | |
-| `e2e/` | Playwright tests in Google Chrome | |
+| `e2e/` | Playwright tests in Google Chrome: `game.spec.ts` (flows), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, sounds, HUD), helpers in `support.ts` | Every new weapon or feature gets an E2E test |
 | `docs/` | `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `archive/` | |
-| `tasks.md` | Current task list with status | Tick tasks off in the commit that completes them |
+| `tasks.md` | Every request with status and version | Update in every commit: add new requests, tick off finished ones |
+| `review.md` | Latest code and architecture review with resolutions | |
 
 Core emits `GameEvent`s; renderer, HUD and audio consume them. Continuous state (charge level,
 projectiles in flight) is read from the game every frame instead.
@@ -43,8 +44,13 @@ npm run verify     # all of the above plus production build
 
 ## Working rules
 
-- **Controls:** Enter = jump, Backspace = back-flip, Space hold/release = charge and fire, arrows
-  walk and aim, 1–9 / Tab select weapons.
+- **Controls:** Enter = jump, Backspace = back-flip, Space hold/release = charge and fire (Space
+  again detonates sheep), arrows walk, aim and steer the flying sheep, 1–9, 0 and Shift+1–5 /
+  Tab select weapons, a click on the map calls strikes.
+- **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`), behaviour in
+  `Game` for new kinds, held model in `buddyView.ts`, projectile model in `effects.ts`, sounds in
+  `app.ts`/`audio.ts`, README and VISION tables, unit test and E2E test. The AI picks up
+  projectile, strike and melee weapons from their kind.
 - **Verification:** `npm run verify` must be green before every commit. Add or update unit tests
   for rule changes and E2E checks for user-visible flows.
 - **E2E in headless Chrome** renders with SwiftShader at about 2 fps: drive tests through
