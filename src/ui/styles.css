@@ -756,20 +756,47 @@ kbd {
 
 .weapons {
   display: flex;
-  gap: 6px;
-  padding: 8px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px 8px;
   pointer-events: auto;
+  max-width: min(820px, calc(100vw - 32px));
+}
+
+.weapon-caption {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 0 4px;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.weapon-blurb {
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
 }
 
 .slot {
   position: relative;
-  width: 86px;
-  padding: 8px 4px 6px;
-  border-radius: 14px;
+  width: 48px;
+  height: 52px;
+  padding: 4px 2px 2px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -785,23 +812,19 @@ kbd {
 
 .slot-key {
   position: absolute;
-  top: 4px;
-  left: 8px;
-  font-size: 11px;
+  top: 2px;
+  left: 5px;
+  font-size: 9px;
   opacity: 0.6;
 }
 
 .slot-icon {
-  font-size: 26px;
-}
-
-.slot-name {
-  font-size: 11px;
-  white-space: nowrap;
+  font-size: 22px;
+  line-height: 1.1;
 }
 
 .slot-ammo {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--accent-2);
 }
 
@@ -810,7 +833,7 @@ kbd {
   padding: 10px 14px;
   font-size: 13px;
   color: var(--muted);
-  max-width: 360px;
+  max-width: 260px;
   text-align: right;
 }
 
@@ -895,11 +918,18 @@ kbd {
 }
 
 @media (max-width: 900px) {
-  .hint {
+  .hint,
+  .weapon-blurb {
     display: none;
   }
   .hud-bottom {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
+  }
+  .team-bars {
+    min-width: 200px;
+  }
+  .weapons {
+    justify-self: center;
   }
   .help-grid,
   .themes {

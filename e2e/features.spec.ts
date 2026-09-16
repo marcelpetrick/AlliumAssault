@@ -43,7 +43,7 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
   const errors = await boot(page);
   await startDuel(page);
 
-  await select(page, 2, 'grenade');
+  await select(page, '2', 'grenade');
   await waitFor(page, (s) => (s.sound.played as Record<string, number>).select >= 1, 10_000);
 
   // Wind the turn clock down to the last seconds and let real frames run.
@@ -55,7 +55,7 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
 
   await page.keyboard.press('KeyM');
   const muted = await state(page);
-  await select(page, 1, 'bazooka');
+  await select(page, '1', 'bazooka');
   expect(played(await state(page), 'select')).toBe(played(muted, 'select'));
   await page.keyboard.press('KeyM');
   expect(errors).toEqual([]);
@@ -88,10 +88,19 @@ test('HUD: weapon bar lists every weapon with ammo and follows the selection', a
   expect(selectable.length).toBeGreaterThanOrEqual(8);
   for (const id of selectable) expect(ids).toContain(id);
   await expect(page.locator('.slot[data-weapon="cluster"]')).toContainText('×3');
+  await expect(page.locator('.weapon-name')).toContainText('Bazooka');
   const sheep = page.locator('.slot[data-weapon="sheep"]');
   await sheep.click();
   await waitFor(page, (s) => s.weapon === 'sheep', 10_000);
   await expect(sheep).toHaveClass(/on/);
   await expect(page.locator('.hint')).toContainText('release the sheep');
+  await expect(page.locator('.weapon-name')).toContainText('Sheep ×1');
+
+  // All slots fit on one row at 1280 px, and the bar never overflows the viewport.
+  const box = (await page.locator('.weapons').boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(1280);
+  const tops = await slots.evaluateAll((els) => new Set(els.map((el) => Math.round(el.getBoundingClientRect().top))).size);
+  expect(tops).toBe(1);
   expect(errors).toEqual([]);
 });

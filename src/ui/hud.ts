@@ -1,5 +1,5 @@
 import type { Game, GameEvent, Phase } from '../core/game';
-import { WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
+import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import type { World } from '../render/world';
 
 interface Floater {
@@ -45,7 +45,10 @@ export class Hud {
       <div class="hud-bottom">
         <div class="team-bars glass-card"></div>
         <div class="weapons glass-card">
-          ${WEAPON_ORDER.map((id, k) => `<button class="slot" data-weapon="${id}"><span class="slot-key">${k + 1}</span><span class="slot-icon">${WEAPONS[id].icon}</span><span class="slot-name">${WEAPONS[id].name}</span><span class="slot-ammo"></span></button>`).join('')}
+          <div class="weapon-caption"><b class="weapon-name"></b><span class="weapon-blurb"></span></div>
+          <div class="slots">
+            ${WEAPON_ORDER.map((id, k) => `<button class="slot" data-weapon="${id}" title="${WEAPONS[id].name} (${hotkeyLabel(k)})" aria-label="${WEAPONS[id].name}"><span class="slot-key">${hotkeyLabel(k)}</span><span class="slot-icon">${WEAPONS[id].icon}</span><span class="slot-ammo"></span></button>`).join('')}
+          </div>
         </div>
         <div class="hint glass-card"></div>
       </div>`;
@@ -163,6 +166,9 @@ export class Hud {
       bar.classList.toggle('out', hp <= 0);
     });
     const def = WEAPONS[g.weapon];
+    const ammo = team?.ammo[g.weapon] ?? 0;
+    this.text('.weapon-name', `${def.icon} ${def.name}${ammo === Infinity ? '' : ` ×${ammo}`}`);
+    this.text('.weapon-blurb', def.blurb);
     this.text(
       '.hint',
       g.phase === 'gameOver'
@@ -181,7 +187,7 @@ export class Hud {
             : 'Space to blow up the sheep! 🐑'
         : retreat
           ? 'Run! ← → walk · Enter jump · Backspace back-flip'
-          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–${WEAPON_ORDER.length} weapons · Esc menu`,
+          : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`,
     );
 
     // Name tags follow buddies; HP counts down Worms-style.

@@ -451,3 +451,19 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
 export const WEAPON_ORDER: readonly WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'sheep', 'airstrike', 'bat', 'torch', 'selfdestruct', 'minigun', 'holy', 'banana', 'flysheep', 'mule'];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
+
+/**
+ * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 the next ones.
+ * Returns the weapon for a digit key, or null when that key is unused.
+ */
+export function weaponForKey(digit: number, shift: boolean): WeaponId | null {
+  const index = shift ? (digit === 0 ? -1 : 9 + digit) : digit === 0 ? 9 : digit - 1;
+  return WEAPON_ORDER[index] ?? null;
+}
+
+/** Label of the hotkey for the weapon at `index` in WEAPON_ORDER. */
+export function hotkeyLabel(index: number): string {
+  if (index < 9) return String(index + 1);
+  if (index === 9) return '0';
+  return `⇧${index - 9}`;
+}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { planAttack } from '../src/core/ai';
 import { Game, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
+import { hotkeyLabel, WEAPON_ORDER, weaponForKey } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { config, flatGame, onlyWeapon, runUntil, team } from './helpers';
 
@@ -460,6 +461,22 @@ describe('match flow', () => {
     g.pressFire();
     g.simulate(0.5);
     expect(g.buddies[0].body.x).toBeCloseTo(x, 3);
+  });
+});
+
+describe('weapon hotkeys', () => {
+  it('map 1–9 and 0 to the first ten weapons and Shift+digits to the rest', () => {
+    expect(weaponForKey(1, false)).toBe(WEAPON_ORDER[0]);
+    expect(weaponForKey(9, false)).toBe(WEAPON_ORDER[8]);
+    expect(weaponForKey(0, false)).toBe(WEAPON_ORDER[9]);
+    expect(weaponForKey(1, true)).toBe(WEAPON_ORDER[10]);
+    expect(weaponForKey(0, true)).toBeNull();
+    expect(weaponForKey(9, true)).toBeNull();
+    WEAPON_ORDER.forEach((id, k) => {
+      const label = hotkeyLabel(k);
+      const shift = label.startsWith('⇧');
+      expect(weaponForKey(Number(label.replace('⇧', '')), shift)).toBe(id);
+    });
   });
 });
 

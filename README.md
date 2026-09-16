@@ -60,7 +60,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | Backspace | Back-flip (high jump) |
 | ↑ ↓ | Aim |
 | Space | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9 / Tab | Choose weapon |
+| 1–9, 0, Shift+1–5 / Tab | Choose weapon (or click it in the weapon bar) |
 | Mouse wheel / drag | Zoom / pan camera |
 | Click | Call the air strike or drop the concrete mule onto that spot |
 | M / Esc | Mute / pause menu |

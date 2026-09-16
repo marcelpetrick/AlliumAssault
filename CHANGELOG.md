@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.16.0] — 2026-09-16
+
+### Changed
+- Compact weapon bar for all 15 weapons: icon slots with hotkey and ammo badges, a caption with the
+  selected weapon's name, ammo and description, and a layout that wraps and stacks on narrow
+  screens.
+- Hotkeys: 1–9 and 0 select the first ten weapons, Shift+1–5 the other five; the help screen and
+  HUD hint list them.
+- E2E tests select every weapon with its real hotkey and check the bar fits the screen.
+
 ## [1.15.0] — 2026-09-16
 
 ### Added

@@ -3,7 +3,7 @@ import pkg from '../package.json';
 import { Audio, type FlightSound } from './audio';
 import { FLYER_SPEED } from './core/flyer';
 import { Game, type GameEvent, type MatchConfig } from './core/game';
-import { WEAPON_ORDER, WEAPONS } from './core/weapons';
+import { weaponForKey, WEAPONS } from './core/weapons';
 import { THEMES } from './render/themes';
 import { World, type Quality } from './render/world';
 import { Hud } from './ui/hud';
@@ -311,8 +311,8 @@ export class App {
           game.cycleWeapon();
           break;
         default:
-          if (/^Digit[1-9]$/.test(e.code)) {
-            const id = WEAPON_ORDER[Number(e.code.slice(5)) - 1];
+          if (/^Digit[0-9]$/.test(e.code)) {
+            const id = weaponForKey(Number(e.code.slice(5)), e.shiftKey);
             if (id) game.selectWeapon(id);
           }
       }

@@ -85,9 +85,9 @@ export const aim = (page: Page, angle: number, facing: 1 | -1 = 1) =>
     [angle, facing] as const,
   );
 
-/** Select a weapon with its number key and wait until the game switched. */
-export async function select(page: Page, key: number, weapon: string): Promise<void> {
-  await page.keyboard.press(`Digit${key}`);
+/** Select a weapon with its hotkey (`'1'`…`'0'`, `'Shift+1'`…) and wait until the game switched. */
+export async function select(page: Page, key: string, weapon: string): Promise<void> {
+  await page.keyboard.press(key.replace(/(\d)$/, 'Digit$1'));
   await page.waitForFunction((w) => window.__allium.state().weapon === w, weapon, { timeout: 10_000 });
 }
 

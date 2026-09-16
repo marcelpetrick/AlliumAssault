@@ -32,7 +32,7 @@ Status: ☐ open · ☑ done
 | T21 | Flying Sheep: steer the sheep through the air, detonate on demand | ☑ | 1.14.0 |
 | T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly | ☑ | 1.15.0 |
 | T23 | Minigun: long rapid-fire burst that shoves buddies across the map | ☑ | 1.11.0 |
-| T24 | Compact weapon bar and hotkeys for 15 weapons | ☐ | |
+| T24 | Compact weapon bar and hotkeys for 15 weapons | ☑ | 1.16.0 |
 | T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify | ☐ | |
 | T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md` | ☐ | |
 | T8 | GitHub Pages deployment | ☐ | |
@@ -173,7 +173,7 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
   team.
 - Core: `burst` on hitscan weapons, a locked `firing` phase while it rattles; rapid-fire sound.
 
-### T24 — Compact weapon bar ☐
+### T24 — Compact weapon bar ☑
 - Icon slots with ammo badges and the selected weapon's name in the hint; fits 15 weapons at
   1280 px and wraps on narrow screens. Hotkeys 1–9 and 0 for the first ten, Shift+1–5 for the
   rest, Tab cycles, clicks work for all.
