@@ -65,6 +65,11 @@ export interface MatchConfig {
    * crates; 'infinite': unlimited ammo for every weapon.
    */
   arsenal?: Arsenal;
+  /**
+   * Turn on which Sudden Death strikes and halves every living buddy's health; 0 or missing turns
+   * it off. Counted in buddy turns, the same unit the victory screen reports.
+   */
+  suddenDeath?: number;
   theme: string;
 }
 
@@ -158,6 +163,7 @@ export type GameEvent =
   | { type: 'crateSpawn'; crate: number; x: number; y: number }
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
+  | { type: 'suddenDeath'; turn: number }
   | { type: 'gameOver'; winner: number | null };
 
 export interface InputState {
@@ -918,6 +924,21 @@ export class Game {
     }
   }
 
+  /**
+   * Sudden Death: on the configured turn every living buddy loses half its health (never below 1),
+   * so a match that has settled into trench warfare turns lethal. It strikes once per match.
+   * Returns true when it struck, so the turn can announce it after the usual turn banner.
+   */
+  private checkSuddenDeath(): boolean {
+    const at = this.config.suddenDeath ?? 0;
+    if (at <= 0 || this.turn !== at) return false;
+    for (const b of this.buddies) {
+      if (!b.alive) continue;
+      b.hp = Math.max(1, Math.ceil(b.hp / 2));
+    }
+    return true;
+  }
+
   private beginTurn(): void {
     const count = this.teams.length;
     for (let k = 1; k <= count; k++) {
@@ -936,6 +957,7 @@ export class Game {
       break;
     }
     this.turn++;
+    const suddenDeath = this.checkSuddenDeath();
     this.introTime = this.maybeDropCrate() ? INTRO_TIME + CRATE_INTRO_TIME : INTRO_TIME;
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
@@ -950,6 +972,8 @@ export class Game {
     this.ai.get(this.activeTeam)?.reset();
     this.setPhase('turnStart');
     this.emit({ type: 'turnStart', team: this.activeTeam, buddy: defined(this.activeBuddy, 'active buddy').id });
+    // Announced after the turn banner so its own banner is the one that stays on screen.
+    if (suddenDeath) this.emit({ type: 'suddenDeath', turn: this.turn });
   }
 
   private fire(power: number): void {

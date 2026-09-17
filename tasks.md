@@ -62,7 +62,7 @@ Status: ☐ open · ☑ done
 | T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☑      | 1.29.0        |
 | T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☑      | 1.30.0        |
 | T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☑      | 1.31.0        |
-| T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☐      |               |
+| T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☑      | 1.32.0        |
 | T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☐      |               |
 | T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☐      |               |
 
@@ -353,7 +353,7 @@ The cluster bomb stops being crate-only and keeps a small starting stock.
 Escape already pauses and the pause screen already links the help, but nothing on screen says so.
 A HUD button opens the pause menu, and How to Play is reachable from there during a match.
 
-### T50 — Sudden Death ☐
+### T50 — Sudden Death ☑
 
 After a configurable number of turns (default 10) every living buddy's health is halved (minimum
 

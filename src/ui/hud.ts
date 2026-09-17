@@ -121,6 +121,9 @@ export class Hud {
           this.banner(team.name, `${buddy?.name ?? ''} is up${team.controller === 'ai' ? ' · 🤖' : ''}`, team.color);
           break;
         }
+        case 'suddenDeath':
+          this.banner('Sudden Death!', 'Every buddy is down to half health', '#ff5a3c');
+          break;
         case 'damage':
           if (buddy) this.float(`−${e.amount}`, buddy.body.x, buddy.body.y + 1.6, g.teams[buddy.team].config.color);
           break;

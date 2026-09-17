@@ -43,6 +43,13 @@ export const ARSENAL_OPTIONS: { label: string; value: Arsenal }[] = [
   { label: 'Find in crates', value: 'crates' },
   { label: 'Infinite supplies', value: 'infinite' },
 ];
+/** Turn on which Sudden Death halves everybody's health; 0 is off. */
+export const SUDDEN_DEATH_OPTIONS = [
+  { label: 'Off', value: 0 },
+  { label: 'Turn 10', value: 10 },
+  { label: 'Turn 20', value: 20 },
+  { label: 'Turn 30', value: 30 },
+];
 export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },
   { label: 'Normal', value: DEFAULT_CRATE_CHANCE },
@@ -82,6 +89,7 @@ export function quickMatch(): MatchConfig {
     windMax: 0.7,
     crates: 0.35,
     arsenal: 'all',
+    suddenDeath: 10,
     theme: 'meadow',
   };
 }
@@ -95,6 +103,7 @@ export function demoMatch(): MatchConfig {
     retreatTime: 2,
     windMax: 0.5,
     crates: 0.35,
+    suddenDeath: 10,
     theme: THEME_IDS[Math.floor(Math.random() * THEME_IDS.length)],
   };
 }

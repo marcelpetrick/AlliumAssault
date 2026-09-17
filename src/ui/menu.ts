@@ -5,7 +5,18 @@ import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
-import { ARSENAL_OPTIONS, CRATE_OPTIONS, makeTeam, quickMatch, randomSeed, setBuddyCount, TEAM_COLORS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
+import {
+  ARSENAL_OPTIONS,
+  CRATE_OPTIONS,
+  makeTeam,
+  quickMatch,
+  randomSeed,
+  setBuddyCount,
+  SUDDEN_DEATH_OPTIONS,
+  TEAM_COLORS,
+  TURN_OPTIONS,
+  WIND_OPTIONS,
+} from './presets';
 import { applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
 
 export type Screen = 'title' | 'setup' | 'help' | 'about' | 'pause' | 'victory';
@@ -46,7 +57,7 @@ export const CONTROLS_HTML = `
     <tr><td><kbd>1</kbd>–<kbd>0</kbd> <kbd>⇧1</kbd>–<kbd>⇧${WEAPON_ORDER.length - 10}</kbd> <kbd>Tab</kbd></td><td>Choose weapon</td></tr>
     <tr><td>Wheel · Drag</td><td>Zoom · Pan camera</td></tr>
     <tr><td>Click</td><td>Call the air strike or concrete mule</td></tr>
-    <tr><td><kbd>M</kbd> <kbd>Esc</kbd></td><td>Mute · Pause</td></tr>
+    <tr><td><kbd>M</kbd> <kbd>Esc</kbd></td><td>Mute · Pause (also the HUD's Help and Pause buttons)</td></tr>
   </table>`;
 
 export class Menu {
@@ -170,6 +181,10 @@ export class Menu {
             <div><label class="field-label">Arsenal</label>${seg(
               ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })),
               'arsenal',
+            )}</div>
+            <div><label class="field-label">Sudden Death</label>${seg(
+              SUDDEN_DEATH_OPTIONS.map((o) => ({ label: o.label, value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
+              'sudden-death',
             )}</div>
             <div><label class="field-label">Map seed</label>
               <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
@@ -399,6 +414,9 @@ export class Menu {
         break;
       case 'crates':
         d.crates = Number(value);
+        break;
+      case 'sudden-death':
+        d.suddenDeath = Number(value);
         break;
       case 'arsenal':
         d.arsenal = value as Arsenal;

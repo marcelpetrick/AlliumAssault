@@ -17,19 +17,20 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 
 ## Game rules
 
-| Topic    | Rule                                                                                    |
-| -------- | --------------------------------------------------------------------------------------- |
-| Modes    | Local hot-seat and human-vs-AI, freely mixed                                            |
-| Teams    | 2–4 teams, 1–4 buddies each                                                             |
-| Turn     | 45 s (configurable), rotating team order, rotating buddy within a team                  |
-| Retreat  | 5 s after an attack; movement only                                                      |
-| Settling | Turn ends only after all bodies and projectiles came to rest                            |
-| Health   | 100 HP; ≤ 0 HP → death explosion at end of turn, leaving a tombstone (not when drowned) |
-| Hazards  | Water at the bottom = instant death; fall damage above a speed threshold                |
-| Wind     | New random wind each turn, shown in HUD; affects projectiles per weapon                 |
-| Victory  | Last team with living buddies wins; draw if none survive                                |
-| Crates   | Optional random health and weapon crates (see below)                                    |
-| Arsenal  | All weapons, special weapons from crates only, or infinite supplies                     |
+| Topic        | Rule                                                                                    |
+| ------------ | --------------------------------------------------------------------------------------- |
+| Modes        | Local hot-seat and human-vs-AI, freely mixed                                            |
+| Teams        | 2–4 teams, 1–4 buddies each                                                             |
+| Turn         | 45 s (configurable), rotating team order, rotating buddy within a team                  |
+| Retreat      | 5 s after an attack; movement only                                                      |
+| Settling     | Turn ends only after all bodies and projectiles came to rest                            |
+| Health       | 100 HP; ≤ 0 HP → death explosion at end of turn, leaving a tombstone (not when drowned) |
+| Hazards      | Water at the bottom = instant death; fall damage above a speed threshold                |
+| Wind         | New random wind each turn, shown in HUD; affects projectiles per weapon                 |
+| Victory      | Last team with living buddies wins; draw if none survive                                |
+| Crates       | Optional random health and weapon crates (see below)                                    |
+| Arsenal      | All weapons, special weapons from crates only, or infinite supplies                     |
+| Sudden Death | Off, or turn 10 / 20 / 30: every living buddy drops to half health (never below 1)      |
 
 ## Weapons
 

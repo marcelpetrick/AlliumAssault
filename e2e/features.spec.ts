@@ -173,3 +173,24 @@ test('HUD: weapon bar lists every weapon with ammo and follows the selection', a
   expect(tops).toBe(1);
   expect(errors).toEqual([]);
 });
+
+test('sudden death: on the configured turn every buddy drops to half health, with siren and banner', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page, { suddenDeath: 4, turnTime: 1 });
+  expect((await state(page)).buddies.every((b) => b.hp === 100)).toBe(true);
+
+  // Skip ahead turn by turn; the strike lands when turn 4 begins.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    for (let k = 0; k < 600 && g.turn < 4; k++) {
+      if (g.phase === 'aiming') g.skipTurn();
+      window.__allium.app.fastForward(1 / 60);
+    }
+  });
+  await waitFor(page, (s) => s.turn >= 4, 30_000);
+  await waitForSound(page, 'alarm');
+  await expect(page.locator('.banner-title')).toHaveText('Sudden Death!');
+  await info.attach('sudden-death', { body: await page.screenshot(), contentType: 'image/png' });
+  expect((await state(page)).buddies.every((b) => b.alive && b.hp === 50)).toBe(true);
+  expect(errors).toEqual([]);
+});

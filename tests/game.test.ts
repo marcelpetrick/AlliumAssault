@@ -708,6 +708,42 @@ describe('weapon table', () => {
   });
 });
 
+describe('sudden death', () => {
+  const toTurn = (g: Game, turn: number) => {
+    for (let k = 0; k < turn * 2; k++) {
+      runUntil(g, () => g.phase === 'aiming', 20);
+      if (g.turn >= turn) return;
+      g.skipTurn();
+      runUntil(g, () => g.phase === 'turnStart', 20);
+    }
+  };
+
+  it('halves every living buddy on the configured turn, once, and never below 1 HP', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 4, turnTime: 1 });
+    const struck: number[] = [];
+    g.buddies[1].hp = 1;
+    toTurn(g, 3);
+    expect(g.buddies[0].hp).toBe(100);
+    toTurn(g, 4);
+    for (const e of g.drainEvents()) if (e.type === 'suddenDeath') struck.push(e.turn);
+    expect(struck).toEqual([4]);
+    expect(g.buddies[0].hp).toBe(50);
+    // Halving never finishes anyone off.
+    expect(g.buddies[1].hp).toBe(1);
+    expect(g.buddies[1].alive).toBe(true);
+
+    toTurn(g, 6);
+    expect(g.buddies[0].hp).toBe(50);
+  });
+
+  it('stays out of the way when it is switched off', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 0, turnTime: 1 });
+    toTurn(g, 6);
+    expect(g.buddies[0].hp).toBe(100);
+    expect(g.buddies[1].hp).toBe(100);
+  });
+});
+
 describe('starting arsenal', () => {
   const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill'];
 

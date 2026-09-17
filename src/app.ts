@@ -257,6 +257,9 @@ export class App {
           if (fireSound) this.audio.play(fireSound);
           break;
         }
+        case 'suddenDeath':
+          this.audio.play('alarm');
+          break;
         case 'ignite':
           this.audio.play('ignite');
           break;

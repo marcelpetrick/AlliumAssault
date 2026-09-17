@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.32.0] — 2026-09-17
+
+### Added
+
+- Sudden Death: a setup option (Off / turn 10 / 20 / 30, default turn 10) that halves every living
+  buddy's health when that turn begins — never below 1 HP, so it wounds rather than kills. A siren
+  and a banner announce it, and the setting is persisted with the rest of the match setup.
+
 ## [1.31.0] — 2026-09-17
 
 ### Added
