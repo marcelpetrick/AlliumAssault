@@ -15,6 +15,18 @@ import { demoMatch, randomSeed } from './ui/presets';
 
 const STEP = 1 / 60;
 const MAX_STEPS_PER_FRAME = 8;
+/**
+ * Frames per second the render loop draws. The simulation always runs at a fixed 60 Hz, so drawing
+ * faster than this on a 120 or 144 Hz display costs two to three times the GPU work for frames that
+ * show the same state. While a menu is open nothing moves at all, so the scene is redrawn rarely.
+ */
+const TARGET_FPS = 60;
+const PAUSED_FPS = 20;
+/**
+ * Ceiling on the drawing buffer. A maximised window on a HiDPI screen would otherwise be rendered
+ * at several times this many pixels — far past the point where more of them are visible.
+ */
+const MAX_RENDER_PIXELS = 4_000_000;
 /** Pointer travel in pixels below which a press counts as a click rather than a drag. */
 const CLICK_SLOP = 6;
 /** Distance walked between two footstep sounds. */
@@ -46,6 +58,8 @@ export class App {
   /** Where the walking buddy last made a footstep sound. */
   private lastStep: { buddy: number; x: number } | null = null;
   private readonly quality: Quality;
+  /** performance.now() of the last drawn frame, for the frame-rate cap. */
+  private lastFrame = 0;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -53,7 +67,7 @@ export class App {
   ) {
     this.quality = new URLSearchParams(location.search).get('quality') === 'low' ? 'low' : 'high';
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, antialias: true, powerPreference: 'high-performance' }, true);
-    this.engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 1.5));
+    this.applyRenderScale();
 
     this.hud = new Hud(
       uiRoot,
@@ -95,6 +109,7 @@ export class App {
     this.bindInput();
     window.addEventListener('resize', () => {
       this.engine.resize();
+      this.applyRenderScale();
     });
     this.showTitle();
     this.engine.runRenderLoop(() => {
@@ -158,8 +173,28 @@ export class App {
     for (let k = 0; k < count; k++) this.advance(dt);
   }
 
+  /**
+   * Pixel density for the drawing buffer: up to 1.5 device pixels per CSS pixel, but never more
+   * than MAX_RENDER_PIXELS in total, so a big window costs a big window's worth of work and no more.
+   */
+  private applyRenderScale(): void {
+    const density = Math.min(window.devicePixelRatio || 1, 1.5);
+    const width = this.canvas.clientWidth || window.innerWidth;
+    const height = this.canvas.clientHeight || window.innerHeight;
+    const pixels = width * height * density * density;
+    const shrink = pixels > MAX_RENDER_PIXELS ? Math.sqrt(pixels / MAX_RENDER_PIXELS) : 1;
+    this.engine.setHardwareScalingLevel(shrink / density);
+  }
+
   private frame(): void {
-    if (!this.manual) this.advance(Math.min(this.engine.getDeltaTime() / 1000, 0.1));
+    if (this.manual) return;
+    const now = performance.now();
+    const elapsed = now - this.lastFrame;
+    // A millisecond of slack, so jitter on a display running at exactly the target rate does not
+    // drop every other frame and halve the rate.
+    if (elapsed < 1000 / (this.paused ? PAUSED_FPS : TARGET_FPS) - 1) return;
+    this.lastFrame = now;
+    this.advance(Math.min(elapsed / 1000, 0.1));
   }
 
   private advance(dt: number): void {

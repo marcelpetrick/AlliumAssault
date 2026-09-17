@@ -152,7 +152,8 @@ export class World {
     pipeline.imageProcessing.vignetteEnabled = true;
     pipeline.imageProcessing.vignetteWeight = 1.4;
     pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 0);
-    if (quality === 'high') pipeline.samples = 4;
+    // No MSAA on top of FXAA: multisampling the whole scene target measured at over a third of the
+    // frame cost while FXAA already smooths the same edges.
   }
 
   handleEvents(events: GameEvent[]): void {

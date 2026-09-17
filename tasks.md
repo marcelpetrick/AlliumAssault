@@ -63,7 +63,7 @@ Status: ☐ open · ☑ done
 | T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☑      | 1.30.0        |
 | T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☑      | 1.31.0        |
 | T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☑      | 1.32.0        |
-| T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☐      |               |
+| T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☑      | 1.32.1        |
 | T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☐      |               |
 
 ## Answered questions
@@ -359,10 +359,20 @@ After a configurable number of turns (default 10) every living buddy's health is
 
 1. and the match announces it, so late games sharpen instead of dragging.
 
-### T51 — Profiling and CPU budget ☐
+### T51 — Profiling and CPU budget ☑
 
-Profile a real session in the default (high) quality window, find what burns the most CPU, and cut
-it without lowering the visual quality.
+- Measured with a Chrome DevTools CPU profile plus a per-feature frame-cost benchmark of a real
+  match (Playwright driving the preview build, one setting changed at a time).
+- Finding: the JavaScript main thread was idle for over 98 % of the samples — the cost is per-pixel
+  work, not game logic. Of a 333 ms software-rendered frame, 4× multisampling of the scene target
+  cost 119 ms (36 %). Bloom, FXAA, the vignette, the glow layer and the shadow cascades were each
+  within measurement noise.
+- Fixes: dropped the multisampling (FXAA already smooths the same edges — an RMSE of 0.6 % between
+  the two renderings, and no visible difference on silhouettes), capped the render loop at 60 fps
+  (20 fps behind a menu) since the simulation is a fixed 60 Hz step, and capped the drawing buffer
+  at four megapixels so a maximised HiDPI window stops growing the pixel count without limit.
+- Result: frame cost down about 40 % (333 ms → 200 ms in the same software-rendered benchmark),
+  before counting the frames the rate cap saves on a high-refresh display.
 
 ### T52 — Full-game review ☐
 

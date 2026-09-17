@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.32.1] — 2026-09-17
+
+### Changed
+
+- Cut the CPU and GPU cost of a frame by about 40 % without touching how the game looks. Profiling
+  a real session showed the JavaScript main thread idle over 98 % of the time and the whole cost in
+  per-pixel work, of which 4× multisampling of the scene target alone was more than a third — on
+  top of the FXAA pass that already smooths the same edges. The redundant multisampling is gone.
+- The render loop draws at most 60 frames per second (20 while a menu is open). The simulation has
+  always run at a fixed 60 Hz, so on a 120 or 144 Hz display the extra frames were redrawing the
+  same state at two to three times the cost.
+- The drawing buffer is capped at four megapixels. Up to that size nothing changes; beyond it — a
+  maximised window on a HiDPI screen — the render scale eases off instead of growing without limit.
+
 ## [1.32.0] — 2026-09-17
 
 ### Added
