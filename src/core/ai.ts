@@ -185,12 +185,13 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
 
   if (allowed('torch')) {
     // Burn towards an enemy on about the same level behind a wall, if the tunnel can reach it.
+    // The torch cuts along the aim line, so a level tunnel needs a level aim.
     const def = WEAPONS.torch;
     for (const enemy of enemies) {
       const dx = enemy.body.x - me.body.x;
       if (Math.abs(enemy.body.y - me.body.y) > 1 || Math.abs(dx) > TORCH_SPEED * def.fuse + def.range || lineOfSight(game, me, enemy)) continue;
       const score = def.damage + (enemy.hp <= def.damage ? 40 : 0) - 6;
-      if (score > best.score) best = { weapon: 'torch', facing: dx < 0 ? -1 : 1, aim: me.aim, power: 1, score };
+      if (score > best.score) best = { weapon: 'torch', facing: dx < 0 ? -1 : 1, aim: 0, power: 1, score };
     }
   }
 

@@ -3,9 +3,9 @@
 
 import './ui/styles.css';
 import { App } from './app';
-import { query } from './ui/dom';
+import { query, queryAs } from './ui/dom';
 
-const canvas = document.getElementById('stage') as HTMLCanvasElement;
+const canvas = queryAs(document, '#stage', HTMLCanvasElement);
 const app = new App(canvas, query(document, '#ui'));
 
 const hook = {

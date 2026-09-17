@@ -64,7 +64,7 @@ Status: ☐ open · ☑ done
 | T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☑      | 1.31.0        |
 | T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☑      | 1.32.0        |
 | T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☑      | 1.32.1        |
-| T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☐      |               |
+| T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☑      | 1.32.2        |
 
 ## Answered questions
 
@@ -374,10 +374,14 @@ After a configurable number of turns (default 10) every living buddy's health is
 - Result: frame cost down about 40 % (333 ms → 200 ms in the same software-rendered benchmark),
   before counting the frames the rate cap saves on a high-refresh display.
 
-### T52 — Full-game review ☐
+### T52 — Full-game review ☑
 
-Run the `/reviewBranch` skill over the whole game, record the ten worst code and architecture
-findings in `review.md` and fix them.
+Reviewed the whole game with the `/reviewBranch` skill (`master` is the only branch, so there is no
+merge-base to diff against). Four findings survived verification — padding the list to ten would
+have meant inventing them — and four further suspicions were measured and dropped. #1 (the AI
+aiming the now-directional blowtorch off target), #3 and #4 are fixed; #2 (Game's public mutable
+state) is recorded in `review.md` as accepted debt, since closing it properly needs read-only view
+types through the renderer, HUD, AI and the test helpers.
 
 ## Defaults chosen (change on request)
 

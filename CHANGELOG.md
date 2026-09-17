@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.32.2] — 2026-09-17
+
+### Fixed
+
+- The AI aimed the blowtorch wherever its buddy happened to be aiming while planning a level tunnel
+  to an enemy behind a wall, so since the torch became directional it dug up over its target. It
+  now aims level for that plan.
+- The map pointer was picked with a full ray cast on every mouse move, including on the title
+  screen and behind open menus, although only the strike cursor uses it. It is picked only while a
+  human is aiming a strike weapon.
+- `main.ts` cast the canvas lookup instead of checking it, the one place in `src/` that broke the
+  project's own no-non-null-assertion invariant.
+
 ## [1.32.1] — 2026-09-17
 
 ### Changed

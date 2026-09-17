@@ -989,6 +989,20 @@ describe('AI', () => {
     expect(enemy.hp).toBeLessThan(100);
   });
 
+  it('aims the blowtorch level, so the tunnel reaches the enemy it was planned for', () => {
+    const g = flatGame([40, 45], [team('A', 1, 'ai'), team('B', 1)]);
+    onlyWeapon(g, 0, 'torch');
+    runUntil(g, () => g.phase === 'aiming', 5);
+    // A wall between them: the torch is only chosen when there is no line of sight.
+    for (let y = 20; y <= 30; y += 0.5) g.terrain.addDisc(42.5, y, 1);
+    const me = g.buddies[0];
+    // A raised aim left over from an earlier turn must not tilt the tunnel.
+    me.aim = 0.9;
+    const plan = planAttack(g, me, 'hard', mulberry32(3));
+    expect(plan.weapon).toBe('torch');
+    expect(Math.abs(plan.aim)).toBeLessThan(0.05);
+  });
+
   it('aims a napalm strike upwind so the wind carries it onto the enemy', () => {
     const land = (wind: number) => {
       const g = flatGame([30, 80], [team('A', 1, 'ai'), team('B', 1)], { windMax: 1 });

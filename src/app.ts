@@ -411,7 +411,9 @@ export class App {
     });
     window.addEventListener('pointermove', (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      this.world?.setPointer(e.clientX - rect.left, e.clientY - rect.top);
+      // Only the strike cursor uses the picked point, and picking builds a full ray per event.
+      if (this.targetingStrike()) this.world?.setPointer(e.clientX - rect.left, e.clientY - rect.top);
+      else this.world?.setPointer(null);
       if (!this.drag || !this.world) return;
       this.world.pan(e.clientX - this.drag.x, e.clientY - this.drag.y);
       this.drag = { x: e.clientX, y: e.clientY, moved: this.drag.moved + Math.hypot(e.clientX - this.drag.x, e.clientY - this.drag.y) };
@@ -436,6 +438,13 @@ export class App {
       },
       { passive: false },
     );
+  }
+
+  /** A human player is aiming a strike weapon, so the map cursor is live. */
+  private targetingStrike(): boolean {
+    const game = this.game;
+    if (!game || this.demo || this.paused || this.menu.screen) return false;
+    return game.isHumanTurn && game.phase === 'aiming' && WEAPONS[game.weapon].kind === 'strike';
   }
 
   /** Handle a click on the map at CSS pixels relative to the canvas. */
