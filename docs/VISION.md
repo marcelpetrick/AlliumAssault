@@ -35,25 +35,25 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 
 Seventeen weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
 
-| Weapon                        | Ammo | Behaviour                                                                                                        |
-| ----------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------- |
-| Bazooka                       | ∞    | Charged shot, ballistic, strong wind influence, explodes on contact                                              |
-| Grenade                       | ∞    | Charged throw, bounces, 3 s fuse, light wind influence                                                           |
-| Shotgun                       | 2    | Two instant shots per turn along the aim line, small craters                                                     |
-| Garlic Punch                  | ∞    | Melee uppercut: 45 damage + launch, no charge                                                                    |
-| Cluster Bomb (special)        | 3    | Red grenade; bursts into five bomblets of 10 damage                                                              |
-| Sheep (special)               | 1    | Hops forward on its own; Space detonates                                                                         |
-| Air Strike (special)          | 1    | Click a target: a plane drops five bombs                                                                         |
-| Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far                                                                          |
-| Blowtorch                     | 2    | Walks forward 3 s burning a level tunnel; obeys gravity                                                          |
-| Self-Destruct (special)       | 1    | Buddy explodes: damage = health, radius = health ÷ 10                                                            |
-| Minigun (special)             | 1    | 14-bullet burst that shoves the victim far                                                                       |
-| Holy Garlic Grenade (special) | 1    | Explodes 1.6 s after coming to rest, huge blast                                                                  |
-| Banana Bomb (special)         | 1    | Bursts into five bouncing bananas that explode in turn                                                           |
-| Flying Sheep (special)        | 1    | Steered with the arrow keys for the whole flight, Space detonates                                                |
-| Concrete Mule (special)       | 1    | Click a target: falls from the sky and smashes down six times                                                    |
-| Drill                         | 2    | Drills straight down 3 s, obeys gravity, no fall damage while drilling                                           |
-| Napalm Strike (special)       | 1    | Click a target: wind-blown napalm sets the ground aflame for 1–2 s; flames make buddies hop, water puts them out |
+| Weapon                        | Ammo | Behaviour                                                                                                            |
+| ----------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
+| Bazooka                       | ∞    | Charged shot, ballistic, strong wind influence, explodes on contact                                                  |
+| Grenade                       | ∞    | Charged throw, bounces, 3 s fuse, light wind influence                                                               |
+| Shotgun                       | 2    | Two instant shots per turn along the aim line, small craters                                                         |
+| Garlic Punch                  | ∞    | Melee uppercut: 45 damage + launch, no charge                                                                        |
+| Cluster Bomb (special)        | 3    | Red grenade; bursts into five bomblets of 10 damage                                                                  |
+| Sheep (special)               | 1    | Hops forward on its own; Space detonates                                                                             |
+| Air Strike (special)          | 1    | Click a target: a plane drops five bombs                                                                             |
+| Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far                                                                              |
+| Blowtorch                     | 2    | Walks forward 3 s burning a level tunnel; obeys gravity                                                              |
+| Self-Destruct (special)       | 1    | Buddy explodes: damage = health, radius = health ÷ 10                                                                |
+| Minigun (special)             | 1    | 14-bullet burst that shoves the victim far                                                                           |
+| Holy Garlic Grenade (special) | 1    | Explodes 1.6 s after coming to rest, huge blast                                                                      |
+| Banana Bomb (special)         | 1    | Bursts into five bouncing bananas that explode in turn                                                               |
+| Flying Sheep (special)        | 1    | Steered with the arrow keys for the whole flight, Space detonates                                                    |
+| Concrete Mule (special)       | 1    | Click a target: falls from the sky and smashes down six times                                                        |
+| Drill                         | 2    | Drills straight down 3 s, obeys gravity, no fall damage while drilling                                               |
+| Napalm Strike (special)       | 1    | Click a target: wind-blown napalm sets the ground aflame for about 5 s; flames make buddies hop, water puts them out |
 
 ## Crates
 

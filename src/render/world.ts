@@ -193,7 +193,9 @@ export class World {
           break;
         }
         case 'ignite':
-          this.hold = { x: e.x, y: e.y, until: this.time + 1.5 };
+          this.effects.ignite(e.x, e.y);
+          this.decorations.clearAround(e.x, e.y, 2);
+          this.hold = { x: e.x, y: e.y + 1, until: this.time + 2.5 };
           break;
         case 'scorch':
           this.buddyViews.get(e.buddy)?.onHurt();

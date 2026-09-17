@@ -332,7 +332,7 @@ test('napalm strike: Shift+7 and a click, flames crackle on the ground, then bur
   await waitForSound(page, 'ignite');
   await waitFor(page, (s) => s.sound.fire, 10_000);
   await info.attach('napalm', { body: await page.screenshot(), contentType: 'image/png' });
-  await fastForward(page, 3);
+  await fastForward(page, 7);
   await waitFor(page, (s) => !s.sound.fire, 10_000);
   expect(await page.evaluate(() => window.__allium.app.game!.flames.length)).toBe(0);
   expect(errors).toEqual([]);

@@ -446,7 +446,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     special: true,
     name: 'Napalm Strike',
     icon: '🌋',
-    blurb: 'Click on the map: a plane drops napalm that the wind carries far; burning ground makes buddies hop.',
+    blurb: 'Click on the map: a plane drops napalm that the wind carries far; the ground burns for about five seconds and makes buddies hop.',
     kind: 'strike',
     ammo: 1,
     charge: false,
@@ -485,7 +485,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     damage: 5,
     force: 3,
     range: 0,
-    napalm: { flames: 8, duration: 1.8 },
+    napalm: { flames: 10, duration: 5 },
   },
   airbomb: {
     id: 'airbomb',

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.28.0] — 2026-09-17
+
+### Changed
+
+- Napalm now reads as fire. A bursting canister throws a rolling fireball with smoke and embers,
+  in the spirit of the concrete mule's impact, and the ground keeps burning for about five seconds
+  instead of under two.
+- The flames themselves are tall, bright tongues with drifting smoke and a much stronger flicker
+  light, so a burning patch is visible from across the map instead of a faint shimmer.
+
 ## [1.27.0] — 2026-09-17
 
 ### Fixed

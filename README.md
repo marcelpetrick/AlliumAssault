@@ -101,25 +101,25 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 
 ## Weapons
 
-| Weapon                 | Ammo | Behaviour                                                                                                                               |
-| ---------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| 🚀 Bazooka             | ∞    | Charged shot, strong wind drift, explodes on contact (50 dmg)                                                                           |
-| 💣 Grenade             | ∞    | Charged throw, bounces, 3 s fuse, little wind drift (50 dmg)                                                                            |
-| 🔫 Shotgun             | 2    | Two instant shots along the aim line (22 dmg each)                                                                                      |
-| 👊 Garlic Punch        | ∞    | Close-range uppercut that launches the victim (45 dmg)                                                                                  |
-| 🧨 Cluster Bomb        | 3    | Red grenade, 3 s fuse (25 dmg), bursts into five bomblets of 10 dmg each                                                                |
-| 🐑 Sheep               | 1    | Space releases it, it hops forward in small 45° leaps; Space again detonates it (75 dmg), at the latest after 10 s                      |
-| ✈️ Air Strike          | 1    | Click on the map: a plane drops five bombs around that spot (25 dmg each)                                                               |
-| 🏏 Baseball Bat        | 2    | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards)                                                       |
-| 🔥 Blowtorch           | 2    | Walks forward for 3 s burning a level tunnel through rock; falls into gaps, never climbs (15 dmg)                                       |
-| 💥 Self-Destruct       | 1    | The buddy blows itself up: damage equals its health, blast radius health ÷ 10                                                           |
-| 🔩 Minigun             | 1    | Burst of 14 bullets (5 dmg each) whose kicks shove the victim far across the map                                                        |
-| ✨ Holy Garlic Grenade | 1    | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later (100 dmg, radius 7)                                                          |
-| 🍌 Banana Bomb         | 1    | 3 s fuse (40 dmg), then five bouncing bananas explode one after another (30 dmg each)                                                   |
-| 🦸 Flying Sheep        | 1    | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates (75 dmg); explodes on impact or after 15 s           |
-| 🫏 Concrete Mule       | 1    | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each)                         |
-| ⛏️ Drill               | 2    | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way)                                              |
-| 🌋 Napalm Strike       | 1    | Click on the map: a plane drops napalm that the wind carries far; burning ground (1–2 s) makes buddies hop for 3 dmg, water puts it out |
+| Weapon                 | Ammo | Behaviour                                                                                                                                   |
+| ---------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🚀 Bazooka             | ∞    | Charged shot, strong wind drift, explodes on contact (50 dmg)                                                                               |
+| 💣 Grenade             | ∞    | Charged throw, bounces, 3 s fuse, little wind drift (50 dmg)                                                                                |
+| 🔫 Shotgun             | 2    | Two instant shots along the aim line (22 dmg each)                                                                                          |
+| 👊 Garlic Punch        | ∞    | Close-range uppercut that launches the victim (45 dmg)                                                                                      |
+| 🧨 Cluster Bomb        | 3    | Red grenade, 3 s fuse (25 dmg), bursts into five bomblets of 10 dmg each                                                                    |
+| 🐑 Sheep               | 1    | Space releases it, it hops forward in small 45° leaps; Space again detonates it (75 dmg), at the latest after 10 s                          |
+| ✈️ Air Strike          | 1    | Click on the map: a plane drops five bombs around that spot (25 dmg each)                                                                   |
+| 🏏 Baseball Bat        | 2    | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards)                                                           |
+| 🔥 Blowtorch           | 2    | Walks forward for 3 s burning a level tunnel through rock; falls into gaps, never climbs (15 dmg)                                           |
+| 💥 Self-Destruct       | 1    | The buddy blows itself up: damage equals its health, blast radius health ÷ 10                                                               |
+| 🔩 Minigun             | 1    | Burst of 14 bullets (5 dmg each) whose kicks shove the victim far across the map                                                            |
+| ✨ Holy Garlic Grenade | 1    | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later (100 dmg, radius 7)                                                              |
+| 🍌 Banana Bomb         | 1    | 3 s fuse (40 dmg), then five bouncing bananas explode one after another (30 dmg each)                                                       |
+| 🦸 Flying Sheep        | 1    | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates (75 dmg); explodes on impact or after 15 s               |
+| 🫏 Concrete Mule       | 1    | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each)                             |
+| ⛏️ Drill               | 2    | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way)                                                  |
+| 🌋 Napalm Strike       | 1    | Click on the map: a plane drops napalm that the wind carries far; burning ground (about 5 s) makes buddies hop for 3 dmg, water puts it out |
 
 ## Architecture
 

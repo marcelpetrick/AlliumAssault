@@ -58,7 +58,7 @@ Status: ☐ open · ☑ done
 | T12 | Self-review of all changes, fix findings                                                                  | ☑      | 1.17.4        |
 | T13 | Push to GitHub and publish a public release                                                               | ☑      | v1.17.5       |
 | T45 | Napalm bombs detonate on first contact — ground, crates and buddies — with a real impact                  | ☑      | 1.27.0        |
-| T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☐      |               |
+| T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☑      | 1.28.0        |
 | T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☐      |               |
 | T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☐      |               |
 | T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☐      |               |
@@ -330,7 +330,7 @@ release with the zipped web build), confirm the Pages deployment.
 - A napalm canister's blast (radius 1) fell below the explosion sound threshold and drew a tiny
   puff, so an impact read as "the bomb vanished". The canister gets a visible, audible burst.
 
-### T46 — Napalm fire made visible ☐
+### T46 — Napalm fire made visible ☑
 
 - The burn lasted 1.8 s with small, short-lived particles — over before the camera settled.
 - Longer burn, taller and brighter flames with smoke and embers, and an ignition fireball in the

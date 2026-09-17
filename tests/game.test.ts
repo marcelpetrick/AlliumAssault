@@ -572,7 +572,7 @@ describe('match flow', () => {
     expect(g.buddies[1].hp).toBeLessThan(65);
   });
 
-  it('napalm strike sets the ground around the target aflame for one to two seconds', () => {
+  it('napalm strike sets the ground around the target aflame for several seconds', () => {
     const g = flatGame([30, 100], [team('A', 1), team('B', 1)]);
     toAiming(g);
     g.selectWeapon('napalm');
@@ -588,9 +588,10 @@ describe('match flow', () => {
     }
     runUntil(g, () => g.drops.length === 0 && g.projectiles.length === 0, 8);
     const burning = g.time;
-    runUntil(g, () => g.flames.length === 0, 4);
+    runUntil(g, () => g.flames.length === 0, 8);
     expect(g.flames).toHaveLength(0);
-    expect(g.time - burning).toBeLessThanOrEqual(2.05);
+    expect(g.time - burning).toBeGreaterThan(3);
+    expect(g.time - burning).toBeLessThanOrEqual(5.05);
   });
 
   it('napalm is carried far by the wind', () => {

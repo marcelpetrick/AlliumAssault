@@ -89,6 +89,7 @@ export class Effects {
   private flame: ParticleSystem | null = null;
   private dust: ParticleSystem | null = null;
   private fire: ParticleSystem | null = null;
+  private fireSmoke: ParticleSystem | null = null;
   private fireLight: PointLight | null = null;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
@@ -365,49 +366,138 @@ export class Effects {
     this.flash.range = 6;
   }
 
-  /** One particle system for all burning napalm: each particle starts at a random flame. */
+  /**
+   * Napalm ignition: a rolling fireball and a column of smoke, the scale of a concrete mule impact
+   * but all flame, so the moment a canister bursts is unmistakable.
+   */
+  ignite(x: number, y: number): void {
+    const at = new Vector3(x, y + 0.3, -0.6);
+    this.burst(at, {
+      count: 110,
+      colors: [new Color4(1, 0.92, 0.5, 1), new Color4(1, 0.4, 0.06, 1), new Color4(0.4, 0.06, 0, 0)],
+      size: [0.9, 2.6],
+      life: [0.35, 0.85],
+      power: [3, 11],
+      radius: 0.5,
+      // Burning fuel is buoyant: the fireball rolls upwards instead of falling.
+      gravity: 5,
+      additive: true,
+      grow: 2.2,
+    });
+    this.burst(at, {
+      count: 55,
+      colors: [new Color4(0.3, 0.26, 0.24, 0.8), new Color4(0.18, 0.16, 0.16, 0.55), new Color4(0.1, 0.1, 0.1, 0)],
+      size: [1.4, 3.2],
+      life: [1.2, 2.4],
+      power: [1, 4],
+      radius: 1,
+      gravity: 3,
+      additive: false,
+      grow: 2.4,
+    });
+    this.burst(at, {
+      count: 40,
+      colors: [new Color4(1, 1, 0.75, 1), new Color4(1, 0.65, 0.15, 1), new Color4(1, 0.3, 0, 0)],
+      size: [0.08, 0.2],
+      life: [0.5, 1.2],
+      power: [8, 18],
+      radius: 0.3,
+      gravity: -14,
+      additive: true,
+    });
+    this.ring(x, y, 2.4);
+    this.flash.position.set(x, y + 0.8, -2.5);
+    this.flash.range = 22;
+    this.flashLevel = Math.max(this.flashLevel, 5);
+    this.shake(0.5);
+  }
+
+  /**
+   * Two particle systems for all burning napalm — tall flames and the smoke above them — each
+   * particle starting at a random flame.
+   */
   updateFlames(game: Game, time: number): void {
     const flames = game.flames;
     if (!flames.length) {
       this.fire?.stop();
+      this.fireSmoke?.stop();
       if (this.fireLight) this.fireLight.intensity = 0;
       return;
     }
+    const atRandomFlame = (position: Vector3, spread: number, lift: number): void => {
+      const f = game.flames[Math.floor(Math.random() * game.flames.length)] ?? { x: 0, y: -100 };
+      position.set(f.x + (Math.random() - 0.5) * spread, f.y + Math.random() * lift, -0.4 + (Math.random() - 0.5) * 0.8);
+    };
     if (!this.fire) {
-      const ps = new ParticleSystem('napalmFire', 900, this.scene);
+      const ps = new ParticleSystem('napalmFire', 1200, this.scene);
       ps.particleTexture = this.dot;
       ps.emitter = Vector3.Zero();
       ps.startPositionFunction = (_world, position) => {
-        const f = game.flames[Math.floor(Math.random() * game.flames.length)] ?? { x: 0, y: -100 };
-        position.set(f.x + (Math.random() - 0.5) * 0.7, f.y + Math.random() * 0.2, -0.4 + (Math.random() - 0.5) * 0.6);
+        atRandomFlame(position, 0.9, 0.25);
       };
-      ps.direction1.set(-0.3, 1.5, -0.2);
-      ps.direction2.set(0.3, 3, 0.2);
-      ps.minLifeTime = 0.2;
-      ps.maxLifeTime = 0.5;
-      ps.minSize = 0.25;
-      ps.maxSize = 0.7;
-      ps.minEmitPower = 0.8;
-      ps.maxEmitPower = 1.8;
-      ps.addColorGradient(0, new Color4(1, 0.95, 0.5, 1));
-      ps.addColorGradient(0.35, new Color4(1, 0.5, 0.1, 0.9));
-      ps.addColorGradient(1, new Color4(0.35, 0.1, 0.05, 0));
-      ps.addSizeGradient(0, 1);
-      ps.addSizeGradient(1, 0.3);
+      ps.direction1.set(-0.5, 2.2, -0.2);
+      ps.direction2.set(0.5, 4.5, 0.2);
+      ps.minLifeTime = 0.35;
+      ps.maxLifeTime = 0.85;
+      ps.minSize = 0.5;
+      ps.maxSize = 1.5;
+      ps.minEmitPower = 1;
+      ps.maxEmitPower = 2.4;
+      // Hot and bright at the base, fading through orange to a dark ember at the tip.
+      ps.addColorGradient(0, new Color4(1, 0.98, 0.7, 1));
+      ps.addColorGradient(0.3, new Color4(1, 0.6, 0.12, 1));
+      ps.addColorGradient(0.7, new Color4(0.9, 0.25, 0.04, 0.8));
+      ps.addColorGradient(1, new Color4(0.3, 0.06, 0.02, 0));
+      // Tongues of flame swell as they leave the ground, then taper away.
+      ps.addSizeGradient(0, 0.55);
+      ps.addSizeGradient(0.35, 1.1);
+      ps.addSizeGradient(1, 0.35);
+      ps.gravity = new Vector3(0, 3, 0);
       ps.blendMode = ParticleSystem.BLENDMODE_ADD;
       this.fire = ps;
+
+      const smoke = new ParticleSystem('napalmSmoke', 400, this.scene);
+      smoke.particleTexture = this.dot;
+      smoke.emitter = Vector3.Zero();
+      // Started above the flame tips, so the smoke trails off the fire instead of hiding it.
+      smoke.startPositionFunction = (_world, position) => {
+        atRandomFlame(position, 1.2, 0.6);
+        position.y += 1.4;
+      };
+      smoke.direction1.set(-0.4, 1, -0.2);
+      smoke.direction2.set(0.4, 2.2, 0.2);
+      smoke.minLifeTime = 1.2;
+      smoke.maxLifeTime = 2.6;
+      smoke.minSize = 0.8;
+      smoke.maxSize = 2;
+      smoke.minEmitPower = 0.6;
+      smoke.maxEmitPower = 1.6;
+      smoke.addColorGradient(0, new Color4(0.28, 0.25, 0.23, 0));
+      smoke.addColorGradient(0.25, new Color4(0.24, 0.22, 0.21, 0.32));
+      smoke.addColorGradient(1, new Color4(0.16, 0.15, 0.15, 0));
+      smoke.addSizeGradient(0, 0.8);
+      smoke.addSizeGradient(1, 2.4);
+      smoke.gravity = new Vector3(0, 1.5, 0);
+      smoke.minAngularSpeed = -1;
+      smoke.maxAngularSpeed = 1;
+      smoke.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+      this.fireSmoke = smoke;
+
       this.fireLight = new PointLight('napalmLight', Vector3.Zero(), this.scene);
       this.fireLight.diffuse = new Color3(1, 0.5, 0.15);
       this.fireLight.specular = Color3.Black();
     }
-    this.fire.emitRate = Math.min(60 * flames.length, 900);
+    const smoke = defined(this.fireSmoke, 'napalm smoke');
+    this.fire.emitRate = Math.min(110 * flames.length, 900);
+    smoke.emitRate = Math.min(9 * flames.length, 70);
     if (!this.fire.isStarted()) this.fire.start();
+    if (!smoke.isStarted()) smoke.start();
     const cx = flames.reduce((sum, f) => sum + f.x, 0) / flames.length;
     const cy = flames.reduce((sum, f) => sum + f.y, 0) / flames.length;
     const light = defined(this.fireLight, 'napalm light');
-    light.position.set(cx, cy + 0.8, -2);
-    light.range = 10;
-    light.intensity = 1.6 + Math.sin(time * 23) * 0.25 + Math.sin(time * 37) * 0.15;
+    light.position.set(cx, cy + 1.2, -2);
+    light.range = 16;
+    light.intensity = 2.6 + Math.sin(time * 23) * 0.4 + Math.sin(time * 37) * 0.25;
   }
 
   /** Dirt spraying up out of the shaft while the drill runs. */
