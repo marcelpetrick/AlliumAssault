@@ -59,7 +59,7 @@ Status: ☐ open · ☑ done
 | T13 | Push to GitHub and publish a public release                                                               | ☑      | v1.17.5       |
 | T45 | Napalm bombs detonate on first contact — ground, crates and buddies — with a real impact                  | ☑      | 1.27.0        |
 | T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☑      | 1.28.0        |
-| T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☐      |               |
+| T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☑      | 1.29.0        |
 | T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☐      |               |
 | T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☐      |               |
 | T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☐      |               |
@@ -336,7 +336,7 @@ release with the zipped web build), confirm the Pages deployment.
 - Longer burn, taller and brighter flames with smoke and embers, and an ignition fireball in the
   spirit of the Concrete Mule's impact blast.
 
-### T47 — Starting arsenal ☐
+### T47 — Starting arsenal ☑
 
 Bazooka, grenade, shotgun, punch, cluster bomb, baseball bat, blowtorch and drill are basic
 weapons: every team has them from turn one, also under the "special weapons from crates" arsenal.

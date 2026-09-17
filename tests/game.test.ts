@@ -6,7 +6,7 @@ import { planAttack } from '../src/core/ai';
 import { Game, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { CRATE_RADIUS, CRATE_WEAPONS } from '../src/core/crates';
-import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey } from '../src/core/weapons';
+import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { config, flatGame, onlyWeapon, runUntil, team } from './helpers';
 
@@ -680,6 +680,23 @@ describe('weapon table', () => {
       if (kind === 'melee') expect(look.hitSound, `${id} hit sound`).toBeDefined();
       if (kind === 'projectile' || kind === 'hitscan') expect(look.fireSound, `${id} fire sound`).toBeDefined();
     }
+  });
+});
+
+describe('starting arsenal', () => {
+  const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill'];
+
+  it('hands every team the basic weapons from turn one, under every arsenal setting', () => {
+    for (const arsenal of ['all', 'crates', 'infinite'] as const) {
+      const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { arsenal, crates: 1 });
+      // "Infinite supplies" hands out more, never less, than the weapon's own stock.
+      for (const id of BASIC) expect({ arsenal, id, stocked: g.teams[0].ammo[id] >= WEAPONS[id].ammo }).toEqual({ arsenal, id, stocked: true });
+    }
+  });
+
+  it('never locks a basic weapon away in crates', () => {
+    for (const id of BASIC) expect(WEAPONS[id].special).toBeUndefined();
+    for (const id of CRATE_WEAPONS) expect(BASIC).not.toContain(id);
   });
 });
 

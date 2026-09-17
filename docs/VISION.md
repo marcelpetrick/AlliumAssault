@@ -41,7 +41,7 @@ Seventeen weapons. _Special_ weapons can be restricted to crates with the arsena
 | Grenade                       | ∞    | Charged throw, bounces, 3 s fuse, light wind influence                                                               |
 | Shotgun                       | 2    | Two instant shots per turn along the aim line, small craters                                                         |
 | Garlic Punch                  | ∞    | Melee uppercut: 45 damage + launch, no charge                                                                        |
-| Cluster Bomb (special)        | 3    | Red grenade; bursts into five bomblets of 10 damage                                                                  |
+| Cluster Bomb                  | 3    | Red grenade; bursts into five bomblets of 10 damage                                                                  |
 | Sheep (special)               | 1    | Hops forward on its own; Space detonates                                                                             |
 | Air Strike (special)          | 1    | Click a target: a plane drops five bombs                                                                             |
 | Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far                                                                              |

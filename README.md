@@ -69,9 +69,11 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   wind, knockback, fall damage, drowning, death explosions, last team standing wins.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
   25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots in the setup.
-- **Arsenal setting** — start with every weapon, find the special weapons (cluster bomb, sheep,
-  air strike, self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule,
-  napalm strike) in crates only, or play with infinite supplies of everything.
+- **Arsenal setting** — start with every weapon, find the special weapons (sheep, air strike,
+  self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule, napalm strike)
+  in crates only, or play with infinite supplies of everything. The basic weapons — bazooka,
+  grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch and drill — are always in
+  the loadout from turn one.
 - **Tombstones** — fallen buddies leave a comic R.I.P. tombstone with their name that explosions
   knock around.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real

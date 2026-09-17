@@ -75,7 +75,11 @@ export interface WeaponDef {
   range: number;
   /** Melee: 'uppercut' launches victims skywards, 'swing' bats them away along the aim line. */
   knock?: 'uppercut' | 'swing';
-  /** Special weapons can be restricted to crates by the match's arsenal setting. */
+  /**
+   * Special weapons can be restricted to crates by the match's arsenal setting. The basic ones —
+   * bazooka, grenade, shotgun, punch, cluster bomb, baseball bat, blowtorch and drill — are never
+   * restricted: every team has them from turn one under every arsenal.
+   */
   special?: boolean;
   /** Hitscan bursts: bullets fired one after another, `interval` seconds apart, fanning by `spread` radians. */
   burst?: { count: number; interval: number; spread: number };
@@ -241,7 +245,6 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   cluster: {
     id: 'cluster',
     look: { projectile: 'redGrenade', flight: 'lob', fireSound: 'fire', muzzle: true },
-    special: true,
     name: 'Cluster Bomb',
     icon: '🧨',
     blurb: 'Red grenade with a 3 second fuse. Bursts into five bomblets of 10 damage each.',

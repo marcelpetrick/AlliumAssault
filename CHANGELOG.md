@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.29.0] — 2026-09-17
+
+### Changed
+
+- The cluster bomb is a basic weapon: every team starts with three of them under every arsenal
+  setting, instead of having to find them in crates. The basic loadout is now bazooka, grenade,
+  shotgun, garlic punch, cluster bomb, baseball bat, blowtorch and drill, always available from
+  turn one; crates hand out the remaining special weapons.
+
 ## [1.28.0] — 2026-09-17
 
 ### Changed
