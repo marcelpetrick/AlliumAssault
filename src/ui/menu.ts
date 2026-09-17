@@ -257,7 +257,7 @@ export class Menu {
           <div class="stack">
             <button class="primary" data-action="resume">Resume</button>
             <button class="glass" data-action="restart">Restart match</button>
-            <button class="glass" data-action="help-pause">Controls</button>
+            <button class="glass" data-action="help-pause">❔ How to Play</button>
             <button class="glass" data-action="mute">Sound: ${this.actions.isMuted() ? 'off' : 'on'}</button>
             <button class="ghost" data-action="quit">Quit to title</button>
           </div>

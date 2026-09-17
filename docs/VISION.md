@@ -76,7 +76,7 @@ Following the last control decision made in the 2D prototype:
 | Click on the map                      | Call the air strike, napalm strike or concrete mule                         |
 | Arrow keys while a flying sheep flies | Steer it towards that direction                                             |
 | Mouse wheel / drag                    | Zoom / pan camera                                                           |
-| Esc                                   | Pause menu                                                                  |
+| Esc · HUD Pause                       | Pause menu; the HUD's Help button pauses and opens How to Play              |
 
 ## Look & feel
 

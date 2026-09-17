@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.31.0] — 2026-09-17
+
+### Added
+
+- Help and Pause buttons in the HUD, under the wind gauge. Help pauses the match and opens How to
+  Play straight away; Pause opens the pause menu. Escape still does the same, and the turn timer
+  and the whole simulation stay frozen while a menu is open.
+
+### Changed
+
+- The pause menu's "Controls" button is now labelled "❔ How to Play", matching the title screen.
+
 ## [1.30.0] — 2026-09-17
 
 ### Changed

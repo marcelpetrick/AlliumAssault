@@ -35,6 +35,7 @@ export class Hud {
   constructor(
     uiRoot: HTMLElement,
     private readonly onWeapon: (id: WeaponId) => void,
+    private readonly onMenu: (screen: 'pause' | 'help') => void,
   ) {
     this.el = document.createElement('div');
     this.el.className = 'hud';
@@ -46,7 +47,13 @@ export class Hud {
           <svg viewBox="0 0 60 60"><circle class="track" cx="30" cy="30" r="26"/><circle class="progress" cx="30" cy="30" r="26" stroke-dasharray="${RING}"/></svg>
           <span class="timer-value"></span><span class="timer-caption"></span>
         </div>
-        <div class="wind glass-card"><div class="wind-label">Wind</div><div class="wind-bar"><span class="wind-mid"></span><div class="wind-fill"></div></div></div>
+        <div class="hud-right">
+          <div class="wind glass-card"><div class="wind-label">Wind</div><div class="wind-bar"><span class="wind-mid"></span><div class="wind-fill"></div></div></div>
+          <div class="hud-menu glass-card">
+            <button class="hud-button" data-menu="help" title="How to Play" aria-label="Help">❔ Help</button>
+            <button class="hud-button" data-menu="pause" title="Pause the match (Esc)" aria-label="Pause">⏸ Pause</button>
+          </div>
+        </div>
       </div>
       <div class="banner"><div class="banner-title"></div><div class="banner-sub"></div></div>
       <div class="hud-bottom">
@@ -65,6 +72,10 @@ export class Hud {
     query(this.el, '.weapons').addEventListener('click', (e) => {
       const slot = (e.target as HTMLElement).closest<HTMLElement>('.slot');
       if (slot?.dataset.weapon) this.onWeapon(slot.dataset.weapon as WeaponId);
+    });
+    query(this.el, '.hud-menu').addEventListener('click', (e) => {
+      const button = (e.target as HTMLElement).closest<HTMLElement>('.hud-button');
+      if (button?.dataset.menu) this.onMenu(button.dataset.menu as 'pause' | 'help');
     });
   }
 

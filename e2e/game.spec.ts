@@ -216,13 +216,36 @@ test('about screen: author, free to play on GitHub Pages, tech stack and license
   expect(errors).toEqual([]);
 });
 
+test('HUD buttons pause the match and open How to Play, and the turn timer stops', async ({ page }) => {
+  const errors = await boot(page);
+  await page.getByRole('button', { name: /Quick Match/ }).click();
+  await waitFor(page, (s) => !s.demo && s.phase !== null, 30_000);
+
+  await page.getByRole('button', { name: 'Help', exact: true }).click();
+  await waitFor(page, (s) => s.paused && s.screen === 'help', 10_000);
+  await expect(page.getByRole('heading', { name: 'How to Play' })).toBeVisible();
+  // The clock must not run down behind the menu.
+  const frozen = (await state(page)).turnTimeLeft;
+  await page.waitForTimeout(1200);
+  expect((await state(page)).turnTimeLeft).toBe(frozen);
+  await page.getByRole('button', { name: /Back/ }).click();
+  await page.getByRole('button', { name: 'Resume' }).click();
+  await waitFor(page, (s) => !s.paused && s.screen === null, 10_000);
+
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await waitFor(page, (s) => s.paused && s.screen === 'pause', 10_000);
+  await page.getByRole('button', { name: 'Resume' }).click();
+  await waitFor(page, (s) => !s.paused && s.screen === null, 10_000);
+  expect(errors).toEqual([]);
+});
+
 test('pause menu: controls, resume and quit to title', async ({ page }) => {
   const errors = await boot(page);
   await page.getByRole('button', { name: /Quick Match/ }).click();
   await waitFor(page, (s) => !s.demo && s.phase !== null, 30_000);
   await page.keyboard.press('Escape');
   await waitFor(page, (s) => s.paused && s.screen === 'pause', 10_000);
-  await page.getByRole('button', { name: 'Controls' }).click();
+  await page.getByRole('button', { name: /How to Play/ }).click();
   await expect(page.getByRole('heading', { name: 'How to Play' })).toBeVisible();
   await page.getByRole('button', { name: /Back/ }).click();
   await page.getByRole('button', { name: 'Resume' }).click();

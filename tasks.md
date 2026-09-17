@@ -61,7 +61,7 @@ Status: ☐ open · ☑ done
 | T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☑      | 1.28.0        |
 | T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☑      | 1.29.0        |
 | T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☑      | 1.30.0        |
-| T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☐      |               |
+| T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☑      | 1.31.0        |
 | T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☐      |               |
 | T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☐      |               |
 | T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☐      |               |
@@ -348,7 +348,7 @@ The cluster bomb stops being crate-only and keeps a small starting stock.
 - It now burns along the aim direction (clamped to a sensible cone) and the buddy glides along the
   tunnel it cuts, so aiming up digs upwards and aiming down digs downwards.
 
-### T49 — Pause and help at all times ☐
+### T49 — Pause and help at all times ☑
 
 Escape already pauses and the pause screen already links the help, but nothing on screen says so.
 A HUD button opens the pause menu, and How to Play is reachable from there during a match.

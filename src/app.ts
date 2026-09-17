@@ -55,10 +55,19 @@ export class App {
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, antialias: true, powerPreference: 'high-performance' }, true);
     this.engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 1.5));
 
-    this.hud = new Hud(uiRoot, (id) => {
-      if (this.game && !this.demo && !this.paused && this.game.isHumanTurn) this.game.selectWeapon(id);
-      this.canvas.focus();
-    });
+    this.hud = new Hud(
+      uiRoot,
+      (id) => {
+        if (this.game && !this.demo && !this.paused && this.game.isHumanTurn) this.game.selectWeapon(id);
+        this.canvas.focus();
+      },
+      (screen) => {
+        this.audio.unlock();
+        this.audio.play('click');
+        this.pause();
+        if (screen === 'help') this.menu.showHelp('pause');
+      },
+    );
     this.menu = new Menu(uiRoot, pkg.version, {
       start: (config) => {
         this.startMatch(config);
@@ -409,6 +418,7 @@ export class App {
       frames: this.frames,
       phase: g?.phase ?? null,
       turn: g?.turn ?? 0,
+      turnTimeLeft: g?.turnTimeLeft ?? 0,
       activeTeam: g?.activeTeam ?? -1,
       activeBuddy: g?.activeBuddy?.name ?? null,
       humanTurn: g?.isHumanTurn ?? false,
