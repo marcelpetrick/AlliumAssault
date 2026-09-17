@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { planAttack } from '../src/core/ai';
 import { Game, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
-import { CRATE_WEAPONS } from '../src/core/crates';
+import { CRATE_RADIUS, CRATE_WEAPONS } from '../src/core/crates';
 import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { config, flatGame, onlyWeapon, runUntil, team } from './helpers';
@@ -719,6 +719,25 @@ describe('crates', () => {
       expect(c.body.y).toBeCloseTo(20.45, 0);
       for (const b of g.buddies) expect(Math.abs(b.body.x - c.body.x)).toBeGreaterThan(2);
     }
+  });
+
+  it('a contact-fused projectile bursts on a crate instead of flying through it', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.crates.push({ id: 900, kind: 'health', weapon: null, body: createBody(60, 20.45, CRATE_RADIUS) });
+    g.projectiles.push({ id: 901, weapon: 'bazooka', x: 59, y: 20.45, vx: 20, vy: 0, radius: 0.15, bounces: 0, fuse: 0, age: 1, owner: -1 });
+    const craters: number[] = [];
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'explosion') craters.push(e.x);
+        return craters.length > 0;
+      },
+      3,
+    );
+    expect(craters[0]).toBeGreaterThan(59);
+    expect(craters[0]).toBeLessThan(61);
+    expect(g.crates).toHaveLength(0);
   });
 
   it('lengthen the turn intro when one teleports in, so players notice it', () => {

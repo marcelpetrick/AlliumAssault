@@ -582,10 +582,12 @@ export class Game {
       const def = WEAPONS[p.weapon];
       p.age += dt;
       const bounces = p.bounces;
+      // Contact fuses go off on the first thing they touch: a buddy or a supply crate, not just rock.
       const hitTest =
         def.restitution === null
           ? (x: number, y: number) =>
-              this.buddies.some((b) => b.alive && (b.id !== p.owner || p.age > 0.3) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + p.radius)
+              this.buddies.some((b) => b.alive && (b.id !== p.owner || p.age > 0.3) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + p.radius) ||
+              this.crates.some((c) => Math.hypot(c.body.x - x, c.body.y - y) < c.body.radius + p.radius)
           : undefined;
       const hit = stepProjectile(this.terrain, p, dt, this.wind * WIND_ACCEL * def.windInfluence, -GRAVITY * def.gravityScale, def.restitution, hitTest);
       if (p.bounces > bounces) this.emit({ type: 'bounce', x: p.x, y: p.y, speed: Math.hypot(p.vx, p.vy) });

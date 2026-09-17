@@ -57,6 +57,14 @@ Status: ☐ open · ☑ done
 | T9  | Docs: README, VISION, ARCHITECTURE                                                                        | ☑      | 1.17.5        |
 | T12 | Self-review of all changes, fix findings                                                                  | ☑      | 1.17.4        |
 | T13 | Push to GitHub and publish a public release                                                               | ☑      | v1.17.5       |
+| T45 | Napalm bombs detonate on first contact — ground, crates and buddies — with a real impact                  | ☑      | 1.27.0        |
+| T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☐      |               |
+| T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☐      |               |
+| T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☐      |               |
+| T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☐      |               |
+| T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☐      |               |
+| T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☐      |               |
+| T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☐      |               |
 
 ## Answered questions
 
@@ -313,6 +321,53 @@ release with the zipped web build), confirm the Pages deployment.
   and a `v*` tag rule on the `github-pages` environment.
 - CI on the release commit hit a timing-dependent E2E failure in the human-turn test; fixed in
   1.17.6 (skip ahead exactly to the next human turn).
+
+### T45 — Napalm bombs detonate on first contact ☑
+
+- Contact-fused projectiles (`restitution === null`) only tested terrain and buddies, so napalm
+  canisters, bazooka rockets and air-strike bombs flew straight through supply crates. Crates join
+  the contact test.
+- A napalm canister's blast (radius 1) fell below the explosion sound threshold and drew a tiny
+  puff, so an impact read as "the bomb vanished". The canister gets a visible, audible burst.
+
+### T46 — Napalm fire made visible ☐
+
+- The burn lasted 1.8 s with small, short-lived particles — over before the camera settled.
+- Longer burn, taller and brighter flames with smoke and embers, and an ignition fireball in the
+  spirit of the Concrete Mule's impact blast.
+
+### T47 — Starting arsenal ☐
+
+Bazooka, grenade, shotgun, punch, cluster bomb, baseball bat, blowtorch and drill are basic
+weapons: every team has them from turn one, also under the "special weapons from crates" arsenal.
+The cluster bomb stops being crate-only and keeps a small starting stock.
+
+### T48 — Directional blowtorch ☐
+
+- The blowtorch burned a strictly horizontal tunnel regardless of the aim.
+- It now burns along the aim direction (clamped to a sensible cone) and the buddy glides along the
+  tunnel it cuts, so aiming up digs upwards and aiming down digs downwards.
+
+### T49 — Pause and help at all times ☐
+
+Escape already pauses and the pause screen already links the help, but nothing on screen says so.
+A HUD button opens the pause menu, and How to Play is reachable from there during a match.
+
+### T50 — Sudden Death ☐
+
+After a configurable number of turns (default 10) every living buddy's health is halved (minimum
+
+1. and the match announces it, so late games sharpen instead of dragging.
+
+### T51 — Profiling and CPU budget ☐
+
+Profile a real session in the default (high) quality window, find what burns the most CPU, and cut
+it without lowering the visual quality.
+
+### T52 — Full-game review ☐
+
+Run the `/reviewBranch` skill over the whole game, record the ten worst code and architecture
+findings in `review.md` and fix them.
 
 ## Defaults chosen (change on request)
 

@@ -480,7 +480,8 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     gravityScale: 0.6,
     restitution: null,
     fuse: 0,
-    radius: 1,
+    // Big enough to be heard and seen bursting; the damage stays in the fire it leaves behind.
+    radius: 1.3,
     damage: 5,
     force: 3,
     range: 0,

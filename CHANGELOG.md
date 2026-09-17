@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.27.0] — 2026-09-17
+
+### Fixed
+
+- Contact-fused projectiles — bazooka rockets, bomblets, air-strike bombs and napalm canisters —
+  now burst on supply crates as well as on rock and buddies, instead of passing straight through
+  them.
+- A napalm canister's burst is big enough to see and hear (blast radius 1 → 1.3), so an impact no
+  longer looks like the bomb simply vanished.
+
 ## [1.26.18] — 2026-09-16
 
 ### Fixed
