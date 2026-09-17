@@ -29,7 +29,7 @@ import {
   WORLD_WIDTH,
 } from './constants';
 import { clamp, lerp, type Point } from './math';
-import { createBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
+import { createBody, glideBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
 import { CRATE_BLAST, CRATE_HEAL, DEFAULT_CRATE_CHANCE, MAX_CRATES, rollCrate, type Crate } from './crates';
 import { spreadFlames, type Flame } from './fire';
@@ -222,9 +222,12 @@ export function meleeLaunch(def: WeaponDef, facing: 1 | -1, dir: Point): Point {
   return { x: facing * def.force * 0.45, y: def.force };
 }
 
-/** Blowtorch in use: seconds left and buddies already burnt this use. */
+/** Blowtorch in use: the burn line, seconds left and buddies already burnt this use. */
 export interface TorchAction {
   kind: 'torch';
+  /** Unit vector along which the flame cuts; fixed when the torch is lit. */
+  dx: number;
+  dy: number;
   left: number;
   carveIn: number;
   burnt: number[];
@@ -561,17 +564,20 @@ export class Game {
     for (const b of this.buddies) {
       if (!b.alive) continue;
       let walk: number | null = null;
+      const torch = b === active ? this.torch : null;
+      // Rock ahead of the flame is what the torch pulls itself along; in open air it only walks.
+      const biting = torch !== null && this.torchBiting(b, torch);
       if (b === active && this.controllable && b.body.grounded && this.charge === null && this.input.left !== this.input.right) {
         b.facing = this.input.left ? -1 : 1;
         walk = b.facing * WALK_SPEED;
-      } else if (b === active && this.torch && b.body.grounded) {
-        // Only walks with ground underneath: the torch never lifts the buddy.
-        walk = b.facing * TORCH_SPEED;
+      } else if (torch && !biting && b.body.grounded) {
+        walk = torch.dx * TORCH_SPEED;
       }
-      b.walking = walk !== null;
-      stepBody(this.terrain, b.body, dt, walk);
+      b.walking = walk !== null || biting;
+      if (torch && biting) glideBody(this.terrain, b.body, dt, torch.dx * TORCH_SPEED, torch.dy * TORCH_SPEED);
+      else stepBody(this.terrain, b.body, dt, walk);
       if (b.body.impact > 4) this.emit({ type: 'land', buddy: b.id, speed: b.body.impact });
-      const cushioned = b === active && this.drill !== null;
+      const cushioned = (b === active && this.drill !== null) || biting;
       if (b.body.impact > SAFE_FALL_SPEED && !cushioned) this.damage(b, Math.round((b.body.impact - SAFE_FALL_SPEED) * FALL_DAMAGE_PER_SPEED));
       if (b.body.y < this.terrain.waterLevel - 0.4 || b.body.x < -30 || b.body.x > this.terrain.width + 30) this.drown(b);
     }
@@ -723,21 +729,33 @@ export class Game {
     }
   }
 
+  /** True while the flame still has rock just beyond its tip — there the torch carries the buddy. */
+  private torchBiting(b: Buddy, torch: TorchAction): boolean {
+    const def = WEAPONS.torch;
+    const reach = def.range + def.radius;
+    return this.terrain.isSolid(b.body.x + torch.dx * reach, b.body.y + torch.dy * reach);
+  }
+
   private stepTorch(torch: TorchAction, b: Buddy, dt: number): void {
     const def = WEAPONS.torch;
     torch.left -= dt;
     torch.carveIn -= dt;
     if (torch.carveIn <= 0) {
       torch.carveIn = TORCH_CARVE_INTERVAL;
-      // Burn a disc ahead whose bottom is level with the feet, so the tunnel stays horizontal.
-      this.terrain.carve(b.body.x + b.facing * (def.range - 0.35), b.body.y + (def.radius - b.body.radius), def.radius);
+      const ahead = def.range - 0.35;
+      // Centred on the burn line. While the buddy walks rather than rides the flame, the disc is
+      // lifted so the tunnel floor stays level with the feet instead of digging it into the ground.
+      const lift = this.torchBiting(b, torch) ? 0 : def.radius - b.body.radius;
+      this.terrain.carve(b.body.x + torch.dx * ahead, b.body.y + torch.dy * ahead + lift, def.radius);
     }
-    const fx = b.body.x + b.facing * def.range;
+    const fx = b.body.x + torch.dx * def.range;
+    const fy = b.body.y + torch.dy * def.range;
     for (const t of this.buddies) {
-      if (!t.alive || t === b || torch.burnt.includes(t.id) || Math.hypot(t.body.x - fx, t.body.y - b.body.y) > def.radius + t.body.radius) continue;
+      if (!t.alive || t === b || torch.burnt.includes(t.id) || Math.hypot(t.body.x - fx, t.body.y - fy) > def.radius + t.body.radius) continue;
       torch.burnt.push(t.id);
-      t.body.vx = b.facing * def.force;
-      t.body.vy = def.force * 0.5;
+      t.body.vx = torch.dx * def.force;
+      // Always a lofted shove, so a downward burn does not just press the victim into the ground.
+      t.body.vy = Math.max(torch.dy * def.force, def.force * 0.5);
       t.body.grounded = false;
       t.body.restTime = 0;
       this.damage(t, def.damage);
@@ -967,7 +985,7 @@ export class Game {
       this.setPhase('drilling');
       return;
     } else if (def.kind === 'torch') {
-      this.action = { kind: 'torch', left: def.fuse, carveIn: 0, burnt: [] };
+      this.action = { kind: 'torch', dx: dir.x, dy: dir.y, left: def.fuse, carveIn: 0, burnt: [] };
       this.setPhase('torching');
       return;
     } else if (def.kind === 'self') {

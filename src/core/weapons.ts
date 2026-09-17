@@ -538,7 +538,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     look: { fireSound: 'fire', muzzle: true },
     name: 'Blowtorch',
     icon: '🔥',
-    blurb: 'Walks forward for 3 seconds, burning a tunnel through the rock ahead. No climbing.',
+    blurb: 'Burns a tunnel along the aim line for 3 seconds and rides it — aim up to climb, down to dig in.',
     kind: 'torch',
     ammo: 2,
     charge: false,

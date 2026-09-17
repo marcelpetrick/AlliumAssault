@@ -45,7 +45,7 @@ Seventeen weapons. _Special_ weapons can be restricted to crates with the arsena
 | Sheep (special)               | 1    | Hops forward on its own; Space detonates                                                                             |
 | Air Strike (special)          | 1    | Click a target: a plane drops five bombs                                                                             |
 | Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far                                                                              |
-| Blowtorch                     | 2    | Walks forward 3 s burning a level tunnel; obeys gravity                                                              |
+| Blowtorch                     | 2    | Burns a 3 s tunnel along the aim line and rides it; falls where there is nothing left to cut                         |
 | Self-Destruct (special)       | 1    | Buddy explodes: damage = health, radius = health ÷ 10                                                                |
 | Minigun (special)             | 1    | 14-bullet burst that shoves the victim far                                                                           |
 | Holy Garlic Grenade (special) | 1    | Explodes 1.6 s after coming to rest, huge blast                                                                      |

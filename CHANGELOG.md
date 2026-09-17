@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.30.0] — 2026-09-17
+
+### Changed
+
+- The blowtorch burns along the aim line instead of always horizontally. Aim up and it cuts its
+  way up through a hillside, aim down and it digs in; the buddy rides the tunnel it cuts, with the
+  flame pointing the same way.
+- Where there is no rock left in front of the flame the buddy simply walks and gravity applies, so
+  the torch still cannot carry anyone across a gap.
+- A burnt victim is now shoved along the burn line, always with some lift, rather than straight
+  ahead of the buddy's facing.
+
 ## [1.29.0] — 2026-09-17
 
 ### Changed

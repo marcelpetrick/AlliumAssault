@@ -162,6 +162,27 @@ test('blowtorch: roaring flame walks the buddy forward through the rock', async 
   expect(errors).toEqual([]);
 });
 
+test('blowtorch aimed upwards cuts its way up through the rock', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, '9', 'torch');
+  // Put a block of rock up and ahead of the buddy, so the flame always has something to bite into.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const b = g.activeBuddy!;
+    for (let k = 0; k <= 30; k++) g.terrain.addDisc(b.body.x + 3, b.body.y + 2.5 + k * 0.5, 3);
+  });
+  const start = await me(page);
+  await aim(page, 0.9, 1);
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.phase === 'torching', 10_000);
+  await fastForward(page, 3.2);
+  const moved = (await state(page)).buddies.find((b) => b.name === start.name)!;
+  expect(moved.y).toBeGreaterThan(start.y + 1.5);
+  expect(moved.x).toBeGreaterThan(start.x + 0.5);
+  expect(errors).toEqual([]);
+});
+
 test('minigun: rattling burst of bullets that hurts and shoves the enemy', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

@@ -177,12 +177,13 @@ describe('match flow', () => {
     expect(blast(50, 48)).toBe(0);
   });
 
-  it('blowtorch walks forward for three seconds and burns a level tunnel through a wall', () => {
+  it('blowtorch burns a level tunnel through a wall when aimed level', () => {
     const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
     for (let y = 20; y <= 30; y += 1) g.terrain.addDisc(44, y, 1.5);
     toAiming(g);
     const me = g.buddies[0];
     me.facing = 1;
+    me.aim = 0;
     const startY = me.body.y;
     g.selectWeapon('torch');
     g.pressFire();
@@ -201,6 +202,30 @@ describe('match flow', () => {
     expect(highest - startY).toBeLessThan(0.3);
     expect(g.terrain.isSolid(44, 20.8)).toBe(false);
     expect(g.terrain.isSolid(44, 23)).toBe(true);
+  });
+
+  it('blowtorch burns along the aim line: up into a hillside, and down into the ground', () => {
+    const climb = (aim: number) => {
+      const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+      // A solid block of rock to cut through, so the flame always has something to bite into.
+      for (let y = 14; y <= 34; y += 0.5) g.terrain.addDisc(45, y, 6);
+      toAiming(g);
+      const me = g.buddies[0];
+      me.facing = 1;
+      me.aim = aim;
+      const start = { x: me.body.x, y: me.body.y };
+      g.selectWeapon('torch');
+      g.pressFire();
+      expect(g.phase).toBe('torching');
+      runUntil(g, () => g.phase !== 'torching', 4);
+      return { dx: me.body.x - start.x, dy: me.body.y - start.y };
+    };
+    const up = climb(0.9);
+    expect(up.dy).toBeGreaterThan(2);
+    expect(up.dx).toBeGreaterThan(0.5);
+    const down = climb(-0.9);
+    expect(down.dy).toBeLessThan(-2);
+    expect(down.dx).toBeGreaterThan(0.5);
   });
 
   it('drill digs straight down for three seconds without fall damage and hits a buddy below', () => {

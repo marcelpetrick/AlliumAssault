@@ -60,7 +60,7 @@ Status: ☐ open · ☑ done
 | T45 | Napalm bombs detonate on first contact — ground, crates and buddies — with a real impact                  | ☑      | 1.27.0        |
 | T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☑      | 1.28.0        |
 | T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☑      | 1.29.0        |
-| T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☐      |               |
+| T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☑      | 1.30.0        |
 | T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☐      |               |
 | T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☐      |               |
 | T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☐      |               |
@@ -342,7 +342,7 @@ Bazooka, grenade, shotgun, punch, cluster bomb, baseball bat, blowtorch and dril
 weapons: every team has them from turn one, also under the "special weapons from crates" arsenal.
 The cluster bomb stops being crate-only and keeps a small starting stock.
 
-### T48 — Directional blowtorch ☐
+### T48 — Directional blowtorch ☑
 
 - The blowtorch burned a strictly horizontal tunnel regardless of the aim.
 - It now burns along the aim direction (clamped to a sensible cone) and the buddy glides along the

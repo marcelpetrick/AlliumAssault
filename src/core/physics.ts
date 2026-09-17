@@ -75,6 +75,27 @@ export function stepBody(t: Terrain, b: Body, dt: number, walk: number | null): 
   b.restTime = Math.hypot(b.vx, b.vy) < 0.3 ? b.restTime + dt : 0;
 }
 
+/**
+ * Carry a body along a fixed velocity, ignoring gravity and footing but still resolving terrain
+ * contacts. Tools that cut their own path drag their buddy with them this way; the velocity is
+ * left on the body so it keeps that momentum once the tool stops.
+ */
+export function glideBody(t: Terrain, b: Body, dt: number, vx: number, vy: number): void {
+  b.impact = 0;
+  const travel = Math.hypot(vx, vy) * dt;
+  const steps = Math.max(1, Math.ceil(travel / (b.radius * 0.4)));
+  const h = dt / steps;
+  for (let s = 0; s < steps; s++) {
+    b.x += vx * h;
+    b.y += vy * h;
+    resolve(t, b);
+  }
+  b.vx = vx;
+  b.vy = vy;
+  b.grounded = touchingGround(t, b);
+  b.restTime = 0;
+}
+
 function resolve(t: Terrain, b: Body): void {
   for (let iter = 0; iter < 4; iter++) {
     const d = contactDistance(t, b.x, b.y);

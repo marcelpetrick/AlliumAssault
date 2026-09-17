@@ -330,10 +330,11 @@ export class Effects {
     }
   }
 
-  /** Blowtorch flame at the nozzle while the torch burns. */
+  /** Blowtorch flame at the nozzle, pointing along the burn line, while the torch burns. */
   updateTorch(game: Game): void {
     const b = game.activeBuddy;
-    if (!game.torch || !b) {
+    const torch = game.torch;
+    if (!torch || !b) {
       this.flame?.stop();
       return;
     }
@@ -357,9 +358,9 @@ export class Effects {
     }
     const ps = this.flame;
     const nozzle = ps.emitter as Vector3;
-    nozzle.set(b.body.x + b.facing * 0.75, b.body.y + 0.05, -0.5);
-    ps.direction1.set(b.facing * 0.8, -0.3, -0.3);
-    ps.direction2.set(b.facing * 1.6, 0.3, 0.3);
+    nozzle.set(b.body.x + torch.dx * 0.75, b.body.y + torch.dy * 0.75 + 0.05, -0.5);
+    ps.direction1.set(torch.dx * 0.8 - torch.dy * 0.2, torch.dy * 0.8 + torch.dx * 0.2 - 0.1, -0.3);
+    ps.direction2.set(torch.dx * 1.6 + torch.dy * 0.2, torch.dy * 1.6 - torch.dx * 0.2 + 0.1, 0.3);
     if (!ps.isStarted()) ps.start();
     this.flashLevel = Math.max(this.flashLevel, 1.2);
     this.flash.position.set(nozzle.x, nozzle.y, -1.5);
