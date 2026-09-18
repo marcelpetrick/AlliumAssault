@@ -718,22 +718,26 @@ describe('sudden death', () => {
     }
   };
 
-  it('halves every living buddy on the configured turn, once, and never below 1 HP', () => {
+  it('drops every living buddy to 1 HP on the configured turn, once, killing nobody', () => {
     const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 4, turnTime: 1 });
     const struck: number[] = [];
-    g.buddies[1].hp = 1;
+    g.buddies[1].hp = 37;
     toTurn(g, 3);
     expect(g.buddies[0].hp).toBe(100);
     toTurn(g, 4);
     for (const e of g.drainEvents()) if (e.type === 'suddenDeath') struck.push(e.turn);
     expect(struck).toEqual([4]);
-    expect(g.buddies[0].hp).toBe(50);
-    // Halving never finishes anyone off.
-    expect(g.buddies[1].hp).toBe(1);
-    expect(g.buddies[1].alive).toBe(true);
+    expect(g.buddies.map((b) => b.hp)).toEqual([1, 1]);
+    // The strike itself finishes nobody off: it leaves 1 HP, not 0.
+    expect(g.buddies.every((b) => b.alive)).toBe(true);
 
+    // It strikes once: later turns leave the 1 HP alone rather than striking again.
     toTurn(g, 6);
-    expect(g.buddies[0].hp).toBe(50);
+    expect(g.buddies.map((b) => b.hp)).toEqual([1, 1]);
+
+    // From here on the lightest scratch is lethal.
+    g.explode(g.buddies[1].body.x, g.buddies[1].body.y, 3, 10, 5);
+    expect(g.buddies[1].hp).toBe(0);
   });
 
   it('stays out of the way when it is switched off', () => {

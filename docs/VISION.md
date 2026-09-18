@@ -4,6 +4,9 @@ A turn-based artillery game in the spirit of **Worms Armageddon**, running entir
 browser, starring teams of cute **garlic buddies**. Version 2 replaces the abandoned 2D pixel
 prototypes with smooth, real-time **3D graphics** while keeping the classic 2D gameplay plane.
 
+**Status as of v1.33.0: almost feature complete.** Every pillar and rule below is implemented and
+covered by tests; what remains is polish, balance and optional extra weapons.
+
 ## Pillars
 
 1. **Looks good immediately.** Real 3D meshes, dynamic lighting, soft shadows, bloom,
@@ -30,7 +33,7 @@ prototypes with smooth, real-time **3D graphics** while keeping the classic 2D g
 | Victory      | Last team with living buddies wins; draw if none survive                                |
 | Crates       | Optional random health and weapon crates (see below)                                    |
 | Arsenal      | All weapons, special weapons from crates only, or infinite supplies                     |
-| Sudden Death | Off, or turn 10 / 20 / 30: every living buddy drops to half health (never below 1)      |
+| Sudden Death | Off, or turn 10 / 20 / 30: every living buddy drops to 1 HP, so the next hit decides it |
 
 ## Weapons
 

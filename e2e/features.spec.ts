@@ -174,7 +174,7 @@ test('HUD: weapon bar lists every weapon with ammo and follows the selection', a
   expect(errors).toEqual([]);
 });
 
-test('sudden death: on the configured turn every buddy drops to half health, with siren and banner', async ({ page }, info) => {
+test('sudden death: on the configured turn every buddy drops to 1 HP, with siren and banner', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page, { suddenDeath: 4, turnTime: 1 });
   expect((await state(page)).buddies.every((b) => b.hp === 100)).toBe(true);
@@ -191,6 +191,6 @@ test('sudden death: on the configured turn every buddy drops to half health, wit
   await waitForSound(page, 'alarm');
   await expect(page.locator('.banner-title')).toHaveText('Sudden Death!');
   await info.attach('sudden-death', { body: await page.screenshot(), contentType: 'image/png' });
-  expect((await state(page)).buddies.every((b) => b.alive && b.hp === 50)).toBe(true);
+  expect((await state(page)).buddies.every((b) => b.alive && b.hp === 1)).toBe(true);
   expect(errors).toEqual([]);
 });

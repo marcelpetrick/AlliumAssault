@@ -66,8 +66,8 @@ export interface MatchConfig {
    */
   arsenal?: Arsenal;
   /**
-   * Turn on which Sudden Death strikes and halves every living buddy's health; 0 or missing turns
-   * it off. Counted in buddy turns, the same unit the victory screen reports.
+   * Turn on which Sudden Death strikes and drops every living buddy to 1 HP; 0 or missing turns it
+   * off. Counted in buddy turns, the same unit the victory screen reports.
    */
   suddenDeath?: number;
   theme: string;
@@ -200,6 +200,9 @@ const SMASH_REBOUND = 6;
 /** Tombstone collision radius and the upward pop it appears with. */
 const GRAVE_RADIUS = 0.45;
 const GRAVE_POP = 6;
+
+/** Health every living buddy is left with when Sudden Death strikes. */
+const SUDDEN_DEATH_HP = 1;
 
 /** Napalm flames: reach from a flame to a buddy's feet, the hop they cause, its damage and cooldown. */
 const FLAME_REACH = 0.8;
@@ -925,16 +928,16 @@ export class Game {
   }
 
   /**
-   * Sudden Death: on the configured turn every living buddy loses half its health (never below 1),
-   * so a match that has settled into trench warfare turns lethal. It strikes once per match.
+   * Sudden Death: on the configured turn every living buddy drops to 1 HP, so from then on the
+   * next hit of any kind decides it. It strikes once per match, and 1 rather than 0 keeps it out
+   * of the death phase: nobody dies from the strike itself.
    * Returns true when it struck, so the turn can announce it after the usual turn banner.
    */
   private checkSuddenDeath(): boolean {
     const at = this.config.suddenDeath ?? 0;
     if (at <= 0 || this.turn !== at) return false;
     for (const b of this.buddies) {
-      if (!b.alive) continue;
-      b.hp = Math.max(1, Math.ceil(b.hp / 2));
+      if (b.alive) b.hp = SUDDEN_DEATH_HP;
     }
     return true;
   }

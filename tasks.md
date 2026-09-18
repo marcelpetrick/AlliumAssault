@@ -10,61 +10,62 @@ Status: ☐ open · ☑ done
 
 ## Overview
 
-| #   | Task                                                                                                      | Status | Version       |
-| --- | --------------------------------------------------------------------------------------------------------- | ------ | ------------- |
-| T0  | Task list in `tasks.md`, kept current with every commit                                                   | ☑      | 1.1.12, 1.4.1 |
-| T1  | Fix buddies floating after the ground below is blasted away                                               | ☑      | 1.1.13        |
-| T2  | Stronger Garlic Punch                                                                                     | ☑      | 1.1.14        |
-| T3  | Sound: charge whoosh, flight sounds, louder bounces                                                       | ☑      | 1.2.0, 1.3.2  |
-| T4  | Cluster bomb                                                                                              | ☑      | 1.3.0         |
-| T11 | Versioning: bump every commit, tag only releases; `AGENTS.md`                                             | ☑      | 1.3.1         |
-| T5  | Sheep                                                                                                     | ☑      | 1.4.0         |
-| T6  | Air strike                                                                                                | ☑      | 1.5.0         |
-| T7  | Random crates                                                                                             | ☑      | 1.6.0         |
-| T10 | End-to-end tests in Chrome for every weapon, crates and sounds                                            | ☑      | 1.6.1         |
-| T14 | Blowtorch: dig forward through rock for three seconds                                                     | ☑      | 1.10.0        |
-| T15 | Baseball bat: less damage than the punch, knocks enemies far away                                         | ☑      | 1.8.0         |
-| T16 | Sounds for walking and jumping buddies                                                                    | ☑      | 1.7.0         |
-| T17 | Self-destruct: the buddy blows up with a blast that grows with its health                                 | ☑      | 1.9.0         |
-| T18 | Arsenal setting: all weapons from the start, or special weapons only from crates                          | ☑      | 1.17.0        |
-| T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast                                       | ☑      | 1.12.0        |
-| T20 | Banana Bomb: bursts into bouncing explosive bananas                                                       | ☑      | 1.13.0        |
-| T21 | Flying Sheep: steer the sheep through the air, detonate on demand                                         | ☑      | 1.14.0        |
-| T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly                          | ☑      | 1.15.0        |
-| T23 | Minigun: long rapid-fire burst that shoves buddies across the map                                         | ☑      | 1.11.0        |
-| T24 | Compact weapon bar and hotkeys for 15 weapons                                                             | ☑      | 1.16.0        |
-| T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify                                | ☑      | 1.17.1        |
-| T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md`                    | ☑      | 1.17.3        |
-| T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly                                | ☑      | 1.18.0        |
-| T28 | Louder sound effects                                                                                      | ☑      | 1.18.3        |
-| T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon                                       | ☑      | 1.19.0        |
-| T30 | More sceneries: Candy Shop and Frosty Peaks                                                               | ☑      | 1.23.0        |
-| T31 | Comic tombstones where buddies die                                                                        | ☑      | 1.22.0        |
-| T37 | Play-in-browser link to GitHub Pages at the top of the README                                             | ☑      | 1.18.1        |
-| T32 | Review and update all documents and Markdown files, including the architecture                            | ☑      | 1.26.3        |
-| T33 | New screenshots and screen recordings for the README                                                      | ☑      | 1.26.2        |
-| T34 | More README badges, like Cullendula                                                                       | ☑      | 1.26.1        |
-| T35 | Crate drops: teleport sound and a short camera pan to the new crate                                       | ☑      | 1.18.5        |
-| T36 | Banana bomb throw range reported as tiny                                                                  | ☐      |               |
-| T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☑      | 1.21.0        |
-| T39 | Bigger font option, persisted settings restored for the next game, Reset all button                       | ☑      | 1.24.0        |
-| T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play                                | ☑      | 1.25.0        |
-| T41 | Drill: dig vertically downwards, no fall damage while drilling                                            | ☑      | 1.20.0        |
-| T42 | SPDX compatible project with check scripts                                                                | ☑      | 1.25.1        |
-| T43 | Linters (best practice for the stack), fix findings, run on every push                                    | ☑      | 1.26.0        |
-| T44 | New full-code `/reviewBranch`, fix the worst findings                                                     | ☑      | 1.26.14       |
-| T8  | GitHub Pages deployment                                                                                   | ☑      | 1.17.2        |
-| T9  | Docs: README, VISION, ARCHITECTURE                                                                        | ☑      | 1.17.5        |
-| T12 | Self-review of all changes, fix findings                                                                  | ☑      | 1.17.4        |
-| T13 | Push to GitHub and publish a public release                                                               | ☑      | v1.17.5       |
-| T45 | Napalm bombs detonate on first contact — ground, crates and buddies — with a real impact                  | ☑      | 1.27.0        |
-| T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☑      | 1.28.0        |
-| T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☑      | 1.29.0        |
-| T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☑      | 1.30.0        |
-| T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☑      | 1.31.0        |
-| T50 | Sudden Death: after a set number of turns every buddy's health is halved                                  | ☑      | 1.32.0        |
-| T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☑      | 1.32.1        |
-| T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☑      | 1.32.2        |
+| #   | Task                                                                                                      | Status | Version        |
+| --- | --------------------------------------------------------------------------------------------------------- | ------ | -------------- |
+| T0  | Task list in `tasks.md`, kept current with every commit                                                   | ☑      | 1.1.12, 1.4.1  |
+| T1  | Fix buddies floating after the ground below is blasted away                                               | ☑      | 1.1.13         |
+| T2  | Stronger Garlic Punch                                                                                     | ☑      | 1.1.14         |
+| T3  | Sound: charge whoosh, flight sounds, louder bounces                                                       | ☑      | 1.2.0, 1.3.2   |
+| T4  | Cluster bomb                                                                                              | ☑      | 1.3.0          |
+| T11 | Versioning: bump every commit, tag only releases; `AGENTS.md`                                             | ☑      | 1.3.1          |
+| T5  | Sheep                                                                                                     | ☑      | 1.4.0          |
+| T6  | Air strike                                                                                                | ☑      | 1.5.0          |
+| T7  | Random crates                                                                                             | ☑      | 1.6.0          |
+| T10 | End-to-end tests in Chrome for every weapon, crates and sounds                                            | ☑      | 1.6.1          |
+| T14 | Blowtorch: dig forward through rock for three seconds                                                     | ☑      | 1.10.0         |
+| T15 | Baseball bat: less damage than the punch, knocks enemies far away                                         | ☑      | 1.8.0          |
+| T16 | Sounds for walking and jumping buddies                                                                    | ☑      | 1.7.0          |
+| T17 | Self-destruct: the buddy blows up with a blast that grows with its health                                 | ☑      | 1.9.0          |
+| T18 | Arsenal setting: all weapons from the start, or special weapons only from crates                          | ☑      | 1.17.0         |
+| T19 | Holy Garlic Grenade: waits until it rests, sings, then a huge blast                                       | ☑      | 1.12.0         |
+| T20 | Banana Bomb: bursts into bouncing explosive bananas                                                       | ☑      | 1.13.0         |
+| T21 | Flying Sheep: steer the sheep through the air, detonate on demand                                         | ☑      | 1.14.0         |
+| T22 | Concrete Mule: falls from the sky and smashes down through the ground repeatedly                          | ☑      | 1.15.0         |
+| T23 | Minigun: long rapid-fire burst that shoves buddies across the map                                         | ☑      | 1.11.0         |
+| T24 | Compact weapon bar and hotkeys for 15 weapons                                                             | ☑      | 1.16.0         |
+| T25 | Update dependencies (`/updateDependencies`): pinned, latest stable, verify                                | ☑      | 1.17.1         |
+| T26 | Branch review (`/reviewBranch`): ten worst code and architecture issues in `review.md`                    | ☑      | 1.17.3         |
+| T27 | Flying Sheep: steer with the arrow keys the whole flight, not just briefly                                | ☑      | 1.18.0         |
+| T28 | Louder sound effects                                                                                      | ☑      | 1.18.3         |
+| T29 | Arsenal option "Infinite supplies": unlimited ammo for every weapon                                       | ☑      | 1.19.0         |
+| T30 | More sceneries: Candy Shop and Frosty Peaks                                                               | ☑      | 1.23.0         |
+| T31 | Comic tombstones where buddies die                                                                        | ☑      | 1.22.0         |
+| T37 | Play-in-browser link to GitHub Pages at the top of the README                                             | ☑      | 1.18.1         |
+| T32 | Review and update all documents and Markdown files, including the architecture                            | ☑      | 1.26.3         |
+| T33 | New screenshots and screen recordings for the README                                                      | ☑      | 1.26.2         |
+| T34 | More README badges, like Cullendula                                                                       | ☑      | 1.26.1         |
+| T35 | Crate drops: teleport sound and a short camera pan to the new crate                                       | ☑      | 1.18.5         |
+| T36 | Banana bomb throw range reported as tiny                                                                  | ☐      |                |
+| T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☑      | 1.21.0         |
+| T39 | Bigger font option, persisted settings restored for the next game, Reset all button                       | ☑      | 1.24.0         |
+| T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play                                | ☑      | 1.25.0         |
+| T41 | Drill: dig vertically downwards, no fall damage while drilling                                            | ☑      | 1.20.0         |
+| T42 | SPDX compatible project with check scripts                                                                | ☑      | 1.25.1         |
+| T43 | Linters (best practice for the stack), fix findings, run on every push                                    | ☑      | 1.26.0         |
+| T44 | New full-code `/reviewBranch`, fix the worst findings                                                     | ☑      | 1.26.14        |
+| T8  | GitHub Pages deployment                                                                                   | ☑      | 1.17.2         |
+| T9  | Docs: README, VISION, ARCHITECTURE                                                                        | ☑      | 1.17.5         |
+| T12 | Self-review of all changes, fix findings                                                                  | ☑      | 1.17.4         |
+| T13 | Push to GitHub and publish a public release                                                               | ☑      | v1.17.5        |
+| T45 | Napalm bombs detonate on first contact — ground, crates and buddies — with a real impact                  | ☑      | 1.27.0         |
+| T46 | Napalm fire made visible: a proper burning fire that lingers                                              | ☑      | 1.28.0         |
+| T47 | Starting arsenal: bazooka, grenade, cluster, bat, blowtorch and drill available from turn one             | ☑      | 1.29.0         |
+| T48 | Blowtorch burns along the aim direction, not only horizontally                                            | ☑      | 1.30.0         |
+| T49 | Pause and How to Play reachable at all times from the HUD                                                 | ☑      | 1.31.0         |
+| T50 | Sudden Death: after a set number of turns every buddy drops to 1 HP                                       | ☑      | 1.32.0, 1.33.0 |
+| T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☑      | 1.32.1         |
+| T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☑      | 1.32.2         |
+| T53 | Public release v1.33.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.33.0         |
 
 ## Answered questions
 
@@ -382,6 +383,18 @@ have meant inventing them — and four further suspicions were measured and drop
 aiming the now-directional blowtorch off target), #3 and #4 are fixed; #2 (Game's public mutable
 state) is recorded in `review.md` as accepted debt, since closing it properly needs read-only view
 types through the renderer, HUD, AI and the test helpers.
+
+### T53 — Public release v1.33.0 ☑
+
+Minor bump with the patch reset to 0, as requested, for the batch T45–T52 (napalm, arsenal,
+directional blowtorch, HUD pause and help, Sudden Death, the render-cost work and the full-game
+review) plus the Sudden Death change to a flat 1 HP.
+
+- Push `master`, tag `v1.33.0`, push the tag: the release workflow publishes the GitHub release
+  with the zipped web build, and the Pages workflow deploys the playable build.
+- README and `docs/VISION.md` now state the project is **almost feature complete**: everything on
+  the vision list is implemented and covered by tests, and what remains is polish, balance and
+  optional extra weapons.
 
 ## Defaults chosen (change on request)
 

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.33.0] — 2026-09-18
+
+### Changed
+
+- Sudden Death now drops every living buddy to 1 HP instead of halving their health, so from that
+  turn on the lightest scratch decides the match. It still leaves 1 rather than 0, so the strike
+  itself kills nobody.
+- README and vision marked "almost feature complete": everything on the vision list is in and
+  covered by tests, and what remains is polish, balance and optional extra weapons.
+
 ## [1.32.2] — 2026-09-17
 
 ### Fixed

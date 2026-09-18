@@ -35,8 +35,11 @@ browser and start a Quick Match.
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
 garlic buddies. Destructible islands, wind, seventeen weapons from bazookas and banana bombs to
-a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones and
-five sceneries — rendered with real-time 3D graphics in your browser.
+a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones,
+Sudden Death and five sceneries — rendered with real-time 3D graphics in your browser.
+
+**Status: almost feature complete.** Everything on the vision list is in and playable; what is
+left is polish, balance and the odd extra weapon.
 
 **Download:** grab the ready-to-host web build from the [latest release](https://github.com/marcelpetrick/AlliumAssault/releases/latest),
 unzip it and serve the folder with any static web server (e.g. `npx serve`).
@@ -75,7 +78,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch and drill — are always in
   the loadout from turn one.
 - **Sudden Death** — from the setup screen, pick the turn (10, 20 or 30, or off) on which every
-  living buddy drops to half health, so long matches end with a bang instead of a stalemate.
+  living buddy drops to 1 HP. Nobody dies from the strike itself, but from then on the next hit of
+  any kind decides it, so long matches end with a bang instead of a stalemate.
 - **Tombstones** — fallen buddies leave a comic R.I.P. tombstone with their name that explosions
   knock around.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real
