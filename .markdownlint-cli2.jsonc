@@ -9,5 +9,7 @@
     // The CHANGELOG repeats "Added"/"Changed"/"Fixed" headings under every version.
     "MD024": { "siblings_only": true },
   },
-  "ignores": ["node_modules", "dist", "test-results", "playwright-report", "docs/archive"],
+  // Post copy is pasted into LinkedIn verbatim: it needs bare URLs and #hashtags, and it opens
+  // with the hook rather than a heading.
+  "ignores": ["node_modules", "dist", "test-results", "playwright-report", "docs/archive", "linkedin/finalLI.md", "linkedin/post.md"],
 }
