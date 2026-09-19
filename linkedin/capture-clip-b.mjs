@@ -141,7 +141,7 @@ await clip.zoom(26);
 /** Three facts, one at a time, each one checkable in the repository. */
 const facts = [
   { icon: '⚡', text: '99 commits', sub: 'in five days' },
-  { icon: '✅', text: '84 unit tests', sub: 'plus an E2E test per weapon' },
+  { icon: '✅', text: '95% covered', sub: '82 unit tests · an E2E test per weapon' },
   { icon: '📖', text: 'Open source', sub: 'GPL-3.0 · REUSE compliant' },
 ];
 for (const [i, fact] of facts.entries()) {
