@@ -14,5 +14,15 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     environment: 'node',
     passWithNoTests: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'text', 'html', 'lcov'],
+      reportsDirectory: 'coverage',
+      // Only the game rules are unit tested. `src/render`, `src/ui`, `src/app.ts` and `src/audio.ts`
+      // need a GPU context or the DOM, so they are covered by the Playwright suite in `e2e/`
+      // instead; measuring them here would report a number that no unit test could ever move.
+      include: ['src/core/**/*.ts'],
+      thresholds: { statements: 90, branches: 85, functions: 90, lines: 90 },
+    },
   },
 });

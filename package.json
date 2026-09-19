@@ -1,6 +1,6 @@
 {
   "name": "allium-assault",
-  "version": "1.33.0",
+  "version": "1.33.1",
   "description": "Turn-based 3D artillery game with garlic buddies, in the spirit of Worms Armageddon. Runs in the browser.",
   "private": true,
   "type": "module",
@@ -13,6 +13,7 @@
     "lint": "eslint . && prettier --check . && stylelint \"src/**/*.css\" && markdownlint-cli2 \"**/*.md\" && npm run lint:spdx",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build && npm run e2e",
     "lint:spdx": "node scripts/spdx.mjs",
@@ -29,6 +30,7 @@
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
     "@types/node": "24.13.5",
+    "@vitest/coverage-v8": "5.0.1",
     "eslint": "10.10.0",
     "globals": "17.12.0",
     "markdownlint-cli2": "0.23.2",

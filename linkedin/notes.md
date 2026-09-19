@@ -71,5 +71,7 @@ timeline counts.
 ## Stats for the post
 
 - 99 commits in 5 days, from the four-weapon core to v1.33.1.
-- 17 weapons, about 10 600 lines of TypeScript, 84 unit tests and three E2E specs.
+- 17 weapons, about 10 600 lines of TypeScript, 82 unit tests and three E2E specs.
+- 95.9 % line and 94.7 % statement coverage of `src/core` (the game rules), measured with
+  `npm run coverage`; the render, UI and audio layers are covered by the Playwright suite instead.
 - GPL-3.0-or-later, playable at <https://marcelpetrick.github.io/AlliumAssault/>.

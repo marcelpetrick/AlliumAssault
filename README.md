@@ -166,6 +166,7 @@ npm run lint         # type-aware ESLint, Prettier, Stylelint, markdownlint, SPD
 npm run typecheck    # TypeScript strict
 npm test             # Vitest: terrain, physics, every weapon's rules, crates, settings, AI (incl. a full AI match)
 npm run e2e          # Playwright in Google Chrome: menus, settings, every weapon, crates, tombstones, sceneries, sounds
+npm run coverage     # Vitest with v8 coverage of the game rules in src/core; HTML report in coverage/
 npm run verify       # all of the above plus production build
 ```
 

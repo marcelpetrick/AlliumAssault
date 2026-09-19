@@ -45,6 +45,7 @@ npm run spdx:fix   # add SPDX headers to new files
 npm run lint:reuse # official REUSE check (needs uv)
 npm run typecheck
 npm test           # Vitest
+npm run coverage   # Vitest with v8 coverage of src/core (thresholds enforced), report in coverage/
 npm run e2e        # Playwright, Google Chrome, builds and serves on :4173
 npm run verify     # lint, typecheck, test, build, e2e
 npm run capture-media -- http://localhost:4173   # regenerate README media from a preview build
