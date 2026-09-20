@@ -32,7 +32,10 @@ export type Sfx =
   | 'step'
   | 'teleport'
   | 'pickup'
-  | 'heal';
+  | 'heal'
+  | 'clunk'
+  | 'armed'
+  | 'beep';
 
 /** Something in flight that should be heard for as long as it flies. */
 export interface FlightSound {
@@ -254,6 +257,21 @@ export class Audio {
         });
         this.tone('triangle', 220, 880, 0.35, 0.18);
         this.noise(0.45, 'highpass', 2500, 7000, 0.14);
+        break;
+      case 'clunk':
+        // Heavy metal disc set down on rock.
+        this.tone('sine', 150, 70, 0.14, 0.2);
+        this.noise(0.1, 'lowpass', 900, 300, 0.12);
+        break;
+      case 'armed':
+        // Two rising clicks: the mine is live now.
+        [1400, 2100].forEach((f, k) => {
+          this.tone('square', f, f, 0.04, 0.07, k * 0.09);
+        });
+        break;
+      case 'beep':
+        // The warning while a triggered mine counts down.
+        this.tone('square', 2600, 2600, 0.06, 0.09);
         break;
       case 'pickup':
         [523, 784, 1047].forEach((f, k) => {

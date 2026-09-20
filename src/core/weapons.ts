@@ -22,9 +22,10 @@ export type WeaponId =
   | 'mule'
   | 'mulebody'
   | 'drill'
+  | 'mine'
   | 'napalm'
   | 'napalmbomb';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine';
 
 /**
  * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and
@@ -36,7 +37,7 @@ export interface WeaponLook {
   /** Sound while in flight: rockets whistle, lobbed things whoosh. */
   flight?: 'rocket' | 'lob';
   /** Sound when the weapon is used. */
-  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm';
+  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk';
   /** Sound of each hitscan bullet. */
   shotSound?: 'bullet';
   /** Sound when a melee weapon connects. */
@@ -579,6 +580,28 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 7,
     range: 0,
   },
+  mine: {
+    id: 'mine',
+    look: { fireSound: 'clunk' },
+    special: true,
+    name: 'Proximity Mine',
+    icon: '🛞',
+    blurb: 'Space drops it at your feet. It arms while you run, then goes off for anyone who comes near — friend or foe.',
+    kind: 'mine',
+    ammo: 2,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 1,
+    restitution: null,
+    fuse: 0,
+    radius: 3,
+    damage: 40,
+    force: 12,
+    range: 0,
+  },
   selfdestruct: {
     id: 'selfdestruct',
     look: { fireSound: 'alarm' },
@@ -623,6 +646,7 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   'mule',
   'drill',
   'napalm',
+  'mine',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */

@@ -34,7 +34,7 @@ browser and start a Quick Match.
 </table>
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
-garlic buddies. Destructible islands, wind, seventeen weapons from bazookas and banana bombs to
+garlic buddies. Destructible islands, wind, eighteen weapons from bazookas and banana bombs to
 a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones,
 Sudden Death and five sceneries — rendered with real-time 3D graphics in your browser.
 
@@ -70,6 +70,9 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   get blown away.
 - **Worms-style rules** — 2–4 teams of 1–4 buddies, rotating turns, turn timer, 5 s retreat,
   wind, knockback, fall damage, drowning, death explosions, last team standing wins.
+- **Proximity mines** — laid at the buddy's feet, they arm while you run and then stay on the map
+  through every turn until somebody walks into them. Rock between a mine and a buddy shields it, and
+  a blast sets mines off in a chain.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
   25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots in the setup. A hopping
   sheep or a Super Sheep that runs over a crate collects it for the buddy that launched it, without
@@ -103,7 +106,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | Backspace                 | Back-flip (high jump)                                                                             |
 | ↑ ↓                       | Aim                                                                                               |
 | Space                     | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–7 / Tab   | Choose weapon (or click it in the weapon bar)                                                     |
+| 1–9, 0, Shift+1–8 / Tab   | Choose weapon (or click it in the weapon bar)                                                     |
 | Mouse wheel / drag        | Zoom / pan camera                                                                                 |
 | Click                     | Call the air strike or napalm strike, or drop the concrete mule, onto that spot                   |
 | ← → (air/napalm strike)   | Choose the side the plane flies in from; the buddy stays put while choosing                       |
@@ -131,6 +134,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🫏 Concrete Mule       | 1    | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each)                             |
 | ⛏️ Drill               | 2    | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way)                                                  |
 | 🌋 Napalm Strike       | 1    | Click on the map: a plane drops napalm that the wind carries far; burning ground (about 5 s) makes buddies hop for 3 dmg, water puts it out |
+| 🛞 Proximity Mine      | 2    | Space drops it at your feet; it arms after 1.5 s and blows up the first buddy within 2 units — friend, foe or the one who laid it (40 dmg)  |
 
 ## Architecture
 
@@ -140,11 +144,12 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── weapons.ts   weapon table (17 weapons by kind), arsenal flags, hotkey mapping
-│   ├── game.ts      match state machine, turns, weapon execution, damage, crates, flames, tombstones
+│   ├── weapons.ts   weapon table (18 weapons by kind), arsenal flags, hotkey mapping
+│   ├── game.ts      match state machine, turns, weapon execution, damage, crates, mines, flames, tombstones
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep
 │   ├── strike.ts    air strike, napalm and concrete mule drop planning
 │   ├── fire.ts      napalm flames on the ground · crates.ts seeded crate contents and spots
+│   ├── mines.ts     proximity mines: arming delay, line of sight, trigger fuse
 │   └── ai.ts        trajectory-search AI driving the same commands as players
 ├── render/   Babylon.js presentation: terrain mesh, buddies, sceneries, effects, camera
 ├── ui/       HTML/CSS overlay: title, setup, HUD, help, about, pause, victory; persisted settings

@@ -8,6 +8,7 @@ import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
 import { defined } from './assert';
 import { CRATE_BLAST, CRATE_HEAL, CRATE_WEAPONS, type Crate } from './crates';
+import { MINE_TRIGGER_RANGE } from './mines';
 import { FLYER_SPEED, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep } from './sheep';
 import { groundBelow, strikeWindShift } from './strike';
@@ -40,7 +41,10 @@ const LEVELS: Record<AiLevel, { angles: number; powers: number; aimError: number
  * when there is nothing better to do.
  */
 export interface AiKnowledge {
-  /** A crate caught in a blast explodes again, and a crate walked into is worth what is inside. */
+  /**
+   * The loose things lying on the map: what a blast sets off, what a crate is worth walking to,
+   * and which ground has a mine on it.
+   */
   crates: boolean;
   /** A blast can shove a buddy off the map or into the water, which finishes it. */
   knockback: boolean;
@@ -65,6 +69,10 @@ const SELF_WEIGHT = 2.5;
 const CRATE_LOSS = 4;
 /** Extra weight on an enemy team down to its last living buddy. */
 const LAST_BUDDY_BONUS = 0.35;
+/** Furthest an enemy can be for a mine laid here to be worth the ammo. */
+const MINE_BAIT_RANGE = 15;
+/** What spending a mine costs, against the damage it might one day do. */
+const MINE_COST = 18;
 /** A shove smaller than this never throws anybody anywhere. */
 const MIN_SHOVE = 2;
 
@@ -221,6 +229,12 @@ export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: Wea
       addBlast(game, me, tally, c.body.x, c.body.y, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force, know);
       tally.loss += CRATE_LOSS;
     }
+    // A mine in the blast goes off as well, and its blast is far bigger than a crate's.
+    const mine = WEAPONS.mine;
+    for (const m of game.mines) {
+      if (Math.hypot(m.body.x - x, m.body.y - y) >= def.radius + m.body.radius) continue;
+      addBlast(game, me, tally, m.body.x, m.body.y, mine.radius, mine.damage, mine.force, know);
+    }
   }
   return tally.gain > 0 ? tally.gain - tally.loss : -tally.loss * 5 - nearestEnemy;
 }
@@ -332,6 +346,19 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const score = (def.damage + (enemy.hp <= def.damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 6;
       if (score > best.score) best = { weapon: 'drill', facing: best.facing, aim: me.aim, power: 1, score };
     }
+  }
+
+  if (allowed('mine') && nearest) {
+    // A trap is worth laying while an enemy is close enough to wander into it, and never right
+    // next to one of ours: a mine does not care whose side walks past.
+    const def = WEAPONS.mine;
+    const reach = Math.hypot(nearest.body.x - me.body.x, nearest.body.y - me.body.y);
+    const friendClose = game.buddies.some(
+      (b) => b.alive && b !== me && b.team === me.team && Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) < MINE_TRIGGER_RANGE * 1.5,
+    );
+    const score = def.damage * Math.max(0, 1 - reach / MINE_BAIT_RANGE) * enemyWeight(game, me, nearest, know) - MINE_COST - (friendClose ? def.damage : 0);
+    const facing: 1 | -1 = nearest.body.x < me.body.x ? -1 : 1;
+    if (score > best.score) best = { weapon: 'mine', facing, aim: me.aim, power: 1, score };
   }
 
   if (allowed('selfdestruct')) {
@@ -477,6 +504,10 @@ function crateValue(game: Game, me: Buddy, crate: Crate, know: AiKnowledge): num
 function walkable(game: Game, fromX: number, toX: number, seconds: number): boolean {
   const t = game.terrain;
   if (Math.abs(toX - fromX) / WALK_SPEED > seconds) return false;
+  // Never walk into a mine on the way: they set off for their own side just as readily.
+  const low = Math.min(fromX, toX) - MINE_TRIGGER_RANGE;
+  const high = Math.max(fromX, toX) + MINE_TRIGGER_RANGE;
+  if (game.mines.some((m) => m.body.x > low && m.body.x < high)) return false;
   const step = toX > fromX ? SURFACE_STEP : -SURFACE_STEP;
   let y = surfaceAt(t, clamp(fromX, 0, t.width));
   for (let x = fromX + step; (toX - x) * step > 0; x += step) {

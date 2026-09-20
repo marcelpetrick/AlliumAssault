@@ -492,6 +492,63 @@ test('sheep: baa on release, hops away, Space blows it up', async ({ page }, inf
   expect(errors).toEqual([]);
 });
 
+test('proximity mine: Shift+8 drops it, it arms with a click and blows up whoever comes near', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  const before = await state(page);
+  await select(page, 'Shift+8', 'mine');
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.mines.length === 1, 10_000);
+  expect((await state(page)).ammo!.mine).toBe(1);
+  expect((await state(page)).mines[0].state).toBe('unarmed');
+
+  // Run for it: the mine arms during the retreat window and does not care whose side laid it.
+  // Held keys only reach the game on a rendered frame, and those come about twice a second here,
+  // so the walk is driven through the input state the key handler would set.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const away = g.activeBuddy!.body.x < g.mines[0].body.x ? 'left' : 'right';
+    g.input[away] = true;
+  });
+  await fastForward(page, 1.4);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.input.left = g.input.right = false;
+  });
+  await fastForward(page, 1);
+  await waitForSound(page, 'armed');
+  expect((await state(page)).mines[0].state).toBe('armed');
+  await page.evaluate(() => {
+    window.__allium.stepFrames(8, 1 / 30);
+  });
+  await info.attach('mine', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // Walk the enemy onto it: it beeps, counts down on screen and goes off.
+  const victim = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const mine = g.mines[0];
+    const enemy = g.buddies.find((b) => b.id !== mine.owner)!;
+    enemy.body.x = mine.body.x + 1;
+    enemy.body.y = mine.body.y + 0.4;
+    enemy.body.vx = enemy.body.vy = 0;
+    return { name: enemy.name, hp: enemy.hp };
+  });
+  await fastForward(page, 0.1);
+  await waitForSound(page, 'beep');
+  expect((await state(page)).mines[0].state).toBe('triggered');
+  await page.evaluate(() => {
+    window.__allium.stepFrames(2, 1 / 60);
+  });
+  await expect(page.locator('.fuse').first()).toHaveText('1');
+  await fastForward(page, 1.5);
+  const after = await state(page);
+  expect(after.mines).toHaveLength(0);
+  expect(after.buddies.find((b) => b.name === victim.name)!.hp).toBeLessThan(victim.hp);
+  expect(played(after, 'explosion')).toBeGreaterThan(played(before, 'explosion'));
+  expect(after.terrainRevision).toBeGreaterThan(before.terrainRevision);
+  expect(errors).toEqual([]);
+});
+
 test('air strike: the arrow keys pick the approach side and the buddy stays put', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

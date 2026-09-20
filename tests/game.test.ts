@@ -8,6 +8,7 @@ import { createBody } from '../src/core/physics';
 import { CRATE_RADIUS, CRATE_WEAPONS } from '../src/core/crates';
 import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
+import { MINE_ARM_TIME, MINE_FUSE, MINE_TRIGGER_RANGE, placeMine } from '../src/core/mines';
 import { config, flatGame, onlyWeapon, runUntil, slopeGame, team } from './helpers';
 
 const toAiming = (g: Game) => runUntil(g, () => g.phase === 'aiming', 5);
@@ -1139,6 +1140,163 @@ describe('crates', () => {
   });
 });
 
+describe('proximity mines', () => {
+  /** Lay a mine and walk everybody out of its reach, which is what the retreat window is for. */
+  const layMine = (g: Game, clear = true) => {
+    toAiming(g);
+    g.selectWeapon('mine');
+    g.face(1);
+    g.pressFire();
+    const mine = g.mines[0];
+    if (clear) {
+      for (const b of g.buddies) {
+        b.body.x = 100 + b.id;
+        b.body.y = 20.6;
+        b.body.vx = b.body.vy = 0;
+      }
+    }
+    return mine;
+  };
+
+  it("is laid at the buddy's feet, arms after a delay and costs one ammo", () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)], { retreatTime: 5 });
+    const before = g.teams[0].ammo.mine;
+    const where = g.buddies[0].body.x;
+    const mine = layMine(g);
+    const laidAt = Math.abs(mine.body.x - where);
+    expect(mine).toBeDefined();
+    const layer = g.buddies.find((b) => b.id === mine.owner)!;
+    expect(laidAt).toBeLessThan(1.5);
+    expect(g.teams[0].ammo.mine).toBe(before - 1);
+    expect(mine.state).toBe('unarmed');
+    expect(g.phase).toBe('retreat');
+    // Still harmless while the buddy that laid it runs clear.
+    g.simulate(MINE_ARM_TIME - 0.2);
+    expect(mine.state).toBe('unarmed');
+    expect(layer.hp).toBe(100);
+    g.simulate(0.4);
+    expect(mine.state).toBe('armed');
+  });
+
+  it('goes off for anyone who comes close, after its own short fuse', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)], { retreatTime: 5, turnTime: 40 });
+    const mine = layMine(g);
+    g.simulate(MINE_ARM_TIME + 0.2);
+    expect(mine.state).toBe('armed');
+    const victim = g.buddies[1];
+    victim.body.x = mine.body.x + MINE_TRIGGER_RANGE + 1;
+    victim.body.y = mine.body.y;
+    g.step();
+    expect(mine.state).toBe('armed');
+    victim.body.x = mine.body.x + 1;
+    g.step();
+    expect(mine.state).toBe('triggered');
+    // It goes off even when the victim runs away again.
+    victim.body.x = mine.body.x + 25;
+    g.simulate(MINE_FUSE - 0.2);
+    expect(g.mines).toHaveLength(1);
+    g.simulate(0.3);
+    expect(g.mines).toHaveLength(0);
+  });
+
+  it('hurts its own side just the same, and the buddy that laid it', () => {
+    for (const who of ['owner', 'team-mate'] as const) {
+      const g = flatGame([40, 44, 100], [team('A', 2), team('B', 1)], { retreatTime: 5, turnTime: 40 });
+      const mine = layMine(g);
+      expect(mine.state).toBe('unarmed');
+      g.simulate(MINE_ARM_TIME + 0.2);
+      const target = who === 'owner' ? g.buddies.find((b) => b.id === mine.owner)! : g.buddies.find((b) => b.team === 0 && b.id !== mine.owner)!;
+      for (const b of g.buddies) {
+        b.body.x = b === target ? mine.body.x + 0.6 : 110;
+        b.body.y = 20.6;
+      }
+      g.simulate(MINE_FUSE + 0.2);
+      expect(g.mines).toHaveLength(0);
+      expect(target.hp).toBeLessThan(100);
+    }
+  });
+
+  it('ignores corpses, crates and sheep, and rock between it and a buddy', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)], { retreatTime: 5, turnTime: 40 });
+    const mine = layMine(g);
+    g.simulate(MINE_ARM_TIME + 0.2);
+    // A crate right on top of it is not something a mine reacts to.
+    g.crates.push({ id: 995, kind: 'health', weapon: null, body: createBody(mine.body.x, mine.body.y + 0.5, CRATE_RADIUS) });
+    g.step();
+    expect(mine.state).toBe('armed');
+    // Neither is a dead buddy lying beside it.
+    const corpse = g.buddies[1];
+    corpse.alive = false;
+    corpse.hp = 0;
+    corpse.body.x = mine.body.x + 0.5;
+    corpse.body.y = mine.body.y;
+    g.step();
+    expect(mine.state).toBe('armed');
+    // A living buddy behind solid rock is shielded from it.
+    corpse.alive = true;
+    corpse.hp = 100;
+    corpse.body.x = mine.body.x + 1.4;
+    corpse.body.y = mine.body.y - 1.2;
+    for (let y = mine.body.y - 1.6; y <= mine.body.y + 0.4; y += 0.25) g.terrain.addDisc(mine.body.x + 0.7, y, 0.5);
+    g.step();
+    expect(mine.state).toBe('armed');
+  });
+
+  it('survives turn and round changes, and never holds up a turn while it lies there', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)], { retreatTime: 2, turnTime: 3 });
+    const mine = layMine(g);
+    const startTurn = g.turn;
+    for (let k = 0; k < 4; k++) {
+      runUntil(g, () => g.turn > startTurn + k, 25);
+      g.skipTurn();
+    }
+    expect(g.turn).toBeGreaterThan(startTurn + 3);
+    expect(g.mines).toHaveLength(1);
+    expect(g.mines[0].id).toBe(mine.id);
+    expect(mine.state).toBe('armed');
+  });
+
+  it('is set off by a blast and chains without hurting anything twice', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)], { retreatTime: 5, turnTime: 40 });
+    const mine = layMine(g);
+    g.simulate(MINE_ARM_TIME + 0.2);
+    // A second mine close enough for the first one's blast to reach.
+    g.mines.push(placeMine(9001, mine.owner, mine.team, mine.body.x + 2.2, mine.body.y));
+    g.simulate(0.2);
+    const victim = g.buddies[1];
+    victim.body.x = mine.body.x + 1.1;
+    victim.body.y = mine.body.y;
+    victim.body.vx = victim.body.vy = 0;
+    const hp = victim.hp;
+    g.drainEvents();
+    g.explode(mine.body.x - 2, mine.body.y, 2.8, 1, 0);
+    const blasts = g.drainEvents().filter((e) => e.type === 'explosion');
+    // The trigger blast plus one per mine: each mine goes off exactly once.
+    expect(blasts).toHaveLength(3);
+    expect(g.mines).toHaveLength(0);
+    expect(victim.hp).toBeLessThan(hp);
+  });
+
+  it('falls when the ground under it is blasted away, and drowns in the sea', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)], { retreatTime: 5, turnTime: 40 });
+    const mine = layMine(g);
+    g.simulate(MINE_ARM_TIME + 0.5);
+    const restingY = mine.body.y;
+    for (let x = mine.body.x - 3; x <= mine.body.x + 3; x += 1) g.terrain.carve(x, 11, 9);
+    g.simulate(3);
+    expect(g.mines).toHaveLength(0);
+    expect(restingY).toBeGreaterThan(g.terrain.waterLevel);
+  });
+
+  it('appears last in the weapon order, so no existing hotkey moved', () => {
+    expect(WEAPON_ORDER[WEAPON_ORDER.length - 1]).toBe('mine');
+    expect(weaponForKey(8, true)).toBe('mine');
+    expect(weaponForKey(7, true)).toBe('napalm');
+    expect(weaponForKey(1, false)).toBe('bazooka');
+    expect(SPECIAL_WEAPONS).toContain('mine');
+  });
+});
+
 describe('AI', () => {
   it('finds a damaging bazooka or grenade shot on open ground', () => {
     const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)]);
@@ -1427,6 +1585,42 @@ describe('AI', () => {
     expect(scoreBlast(inland, inland.buddies[0], 50.8, 20.6, WEAPONS.bazooka, { crates: false, knockback: true, focus: false })).toBe(
       scoreBlast(inland, inland.buddies[0], 50.8, 20.6, WEAPONS.bazooka, { crates: false, knockback: false, focus: false }),
     );
+  });
+
+  it('lays a mine when an enemy is close, and not with a team-mate standing next to it', () => {
+    const arena = (mate: boolean) => {
+      const g = flatGame([40, 48, 41.5], [team('A', mate ? 2 : 1, 'ai'), team('B', 1)]);
+      toAiming(g);
+      onlyWeapon(g, 0, 'mine');
+      const me = g.buddies.find((b) => b.team === 0)!;
+      const enemy = g.buddies.find((b) => b.team === 1)!;
+      const friend = g.buddies.find((b) => b.team === 0 && b !== me);
+      me.body.x = 40;
+      enemy.body.x = 48;
+      if (friend) friend.body.x = 41.5;
+      for (const b of g.buddies) b.body.y = 20.6;
+      return planAttack(g, me, 'hard', mulberry32(3));
+    };
+    expect(arena(false).weapon).toBe('mine');
+    // A mine does not care whose side walks past, so not with one of ours right there.
+    expect(arena(true).score).toBeLessThan(0);
+  });
+
+  it('will not walk to a crate past a mine', () => {
+    const run = (mined: boolean) => {
+      const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 40 });
+      toAiming(g);
+      onlyWeapon(g, 0, 'bazooka');
+      const me = g.buddies[0];
+      me.hp = 15;
+      const startX = me.body.x;
+      if (mined) g.mines.push(placeMine(9100, g.buddies[1].id, 1, startX + 5, 20.6));
+      g.crates.push({ id: 975, kind: 'health', weapon: null, body: createBody(startX + 9, 20.45, CRATE_RADIUS) });
+      runUntil(g, () => (g.phase !== 'aiming' && g.phase !== 'turnStart') || g.crates.length === 0, 15);
+      return g.crates.length;
+    };
+    expect(run(false)).toBe(0);
+    expect(run(true)).toBe(1);
   });
 
   it('every level plays an AI-vs-AI match to the end with crates on the map', () => {

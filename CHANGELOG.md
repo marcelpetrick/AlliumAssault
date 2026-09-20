@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.38.0] — 2026-09-20
+
+### Added
+
+- Proximity Mine (Shift+8, two per team): Space drops it at the buddy's feet, it arms while you run,
+  and then it stays on the map through every turn until a living buddy comes within two units — its
+  own team and the one who laid it included. Rock in between shields a buddy, a blast sets mines off
+  in a chain, and a mine falls when the ground beneath it is blasted away. The AI lays them and
+  keeps its own buddies away from them.
+
+### Changed
+
+- Weapon slots are slightly narrower, so all eighteen still sit on one row at 1280 px.
+
 ## [1.37.0] — 2026-09-20
 
 ### Changed

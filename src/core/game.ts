@@ -32,6 +32,7 @@ import { clamp, lerp, type Point } from './math';
 import { createBody, glideBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
 import { CRATE_BLAST, CRATE_HEAL, DEFAULT_CRATE_CHANCE, MAX_CRATES, rollCrate, type Crate } from './crates';
+import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './mines';
 import { spreadFlames, type Flame } from './fire';
 import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
@@ -160,6 +161,9 @@ export type GameEvent =
   | { type: 'hallelujah'; x: number; y: number }
   | { type: 'ignite'; x: number; y: number; flames: number }
   | { type: 'scorch'; buddy: number; x: number; y: number }
+  | { type: 'mineLaid'; mine: number; buddy: number; x: number; y: number }
+  | { type: 'mineArmed'; mine: number; x: number; y: number }
+  | { type: 'mineTriggered'; mine: number; x: number; y: number }
   | { type: 'crateSpawn'; crate: number; x: number; y: number }
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number; x: number; y: number }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
@@ -272,12 +276,19 @@ export class Game {
    */
   action: TurnAction | null = null;
   crates: Crate[] = [];
+  /**
+   * Mines lying on the map. They belong to the match, not to a turn: they survive every team and
+   * round change and are only ever removed by exploding, drowning or leaving the map.
+   */
+  mines: Mine[] = [];
   /** Tombstones left where buddies died. */
   graves: Grave[] = [];
   /** Burning napalm patches. */
   flames: Flame[] = [];
   /** Game time until which each buddy (by id) is immune to flames after being scorched. */
   private readonly scorchedUntil = new Map<number, number>();
+  /** Where each buddy stood before this step, so mine detection can sweep the path it took. */
+  private readonly lastBuddyPos = new Map<number, Point>();
   /** Air strike bombs waiting for the plane to reach their release point. */
   drops: { weapon: WeaponId; x: number; y: number; vx: number; at: number; owner: number }[] = [];
   readonly input: InputState = { left: false, right: false, up: false, down: false };
@@ -567,6 +578,7 @@ export class Game {
     this.stepProjectiles(dt);
     this.stepAction(dt);
     this.stepCrates(dt);
+    this.stepMines(dt);
     this.stepFlames(dt);
     this.stepGraves(dt);
     this.stepPhase(dt);
@@ -585,6 +597,8 @@ export class Game {
       this.flames.length === 0 &&
       this.drops.length === 0 &&
       this.crates.every((c) => c.body.restTime > 0.25) &&
+      // A mine counting down has to go off first; one lying dormant never holds up a turn.
+      this.mines.every((m) => m.state !== 'triggered' && m.body.restTime > 0.25) &&
       this.graves.every((g) => g.body.restTime > 0.25) &&
       this.buddies.every((b) => !b.alive || b.body.restTime > 0.25)
     );
@@ -594,6 +608,8 @@ export class Game {
     const active = this.activeBuddy;
     for (const b of this.buddies) {
       if (!b.alive) continue;
+      // Kept for the mine sweep: where this buddy was before it moved.
+      this.lastBuddyPos.set(b.id, { x: b.body.x, y: b.body.y });
       let walk: number | null = null;
       const torch = b === active ? this.torch : null;
       // Rock ahead of the flame is what the torch pulls itself along; in open air it only walks.
@@ -704,6 +720,48 @@ export class Game {
       if (!winner) return;
       this.collectCrate(crate, winner);
     }
+  }
+
+  /**
+   * Mines fall, arm and go off. An armed mine triggers on any living buddy with health left that
+   * comes within range and that it has a clear line to — its own team and the buddy that laid it
+   * included, once the arming delay is over. Corpses, crates, sheep and tombstones are ignored.
+   * Buddy movement is swept, so a fast fall past a mine cannot slip between two frames.
+   */
+  private stepMines(dt: number): void {
+    if (!this.mines.length) return;
+    for (const mine of [...this.mines]) {
+      if (!this.mines.includes(mine)) continue;
+      const triggering = mine.state === 'armed' && this.buddies.some((b) => b.alive && b.hp > 0 && this.nearMine(mine, b));
+      const result = stepMine(this.terrain, mine, dt, triggering);
+      if (result === 'armed') this.emit({ type: 'mineArmed', mine: mine.id, x: mine.body.x, y: mine.body.y });
+      else if (result === 'triggered') this.emit({ type: 'mineTriggered', mine: mine.id, x: mine.body.x, y: mine.body.y });
+      else if (result === 'water' || result === 'out') {
+        this.removeMine(mine);
+        if (result === 'water') this.emit({ type: 'splash', x: mine.body.x, y: this.terrain.waterLevel });
+      } else if (result === 'blast') {
+        const def = WEAPONS.mine;
+        // Out of the list before its own blast, so a chain can never come back round to it.
+        this.removeMine(mine);
+        this.explode(mine.body.x, mine.body.y, def.radius, def.damage, def.force);
+      }
+    }
+  }
+
+  /** Did this buddy come within trigger range of the mine during the step it just took? */
+  private nearMine(mine: Mine, b: Buddy): boolean {
+    const from = this.lastBuddyPos.get(b.id) ?? { x: b.body.x, y: b.body.y };
+    const dx = b.body.x - from.x;
+    const dy = b.body.y - from.y;
+    const lengthSq = dx * dx + dy * dy;
+    const t = lengthSq === 0 ? 0 : clamp(((mine.body.x - from.x) * dx + (mine.body.y - from.y) * dy) / lengthSq, 0, 1);
+    const x = from.x + dx * t;
+    const y = from.y + dy * t;
+    return Math.hypot(mine.body.x - x, mine.body.y - y) < MINE_TRIGGER_RANGE && mineSees(this.terrain, mine, x, y);
+  }
+
+  private removeMine(mine: Mine): void {
+    this.mines = this.mines.filter((m) => m !== mine);
   }
 
   private ignite(x: number, y: number, napalm: NonNullable<WeaponDef['napalm']>): void {
@@ -1085,6 +1143,12 @@ export class Game {
       this.action = { kind: 'torch', dx: dir.x, dy: dir.y, left: def.fuse, carveIn: 0, burnt: [] };
       this.setPhase('torching');
       return;
+    } else if (def.kind === 'mine') {
+      const mine = placeMine(this.nextId++, b.id, b.team, b.body.x + b.facing * 0.5, b.body.y);
+      this.mines.push(mine);
+      this.emit({ type: 'mineLaid', mine: mine.id, buddy: b.id, x: mine.body.x, y: mine.body.y });
+      this.startRetreat();
+      return;
     } else if (def.kind === 'self') {
       this.selfDestruct(b, def);
       return;
@@ -1218,6 +1282,13 @@ export class Game {
       if (!this.crates.includes(crate)) continue;
       this.removeCrate(crate);
       this.explode(crate.body.x, crate.body.y, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force);
+    }
+    // Mines go off the same way, in id order, each one out of the list before its own blast.
+    for (const mine of [...this.mines].sort((a, b) => a.id - b.id)) {
+      if (!this.mines.includes(mine) || Math.hypot(mine.body.x - x, mine.body.y - y) >= radius + mine.body.radius) continue;
+      const def = WEAPONS.mine;
+      this.removeMine(mine);
+      this.explode(mine.body.x, mine.body.y, def.radius, def.damage, def.force);
     }
     for (const p of this.projectiles) {
       const dist = Math.hypot(p.x - x, p.y - y);

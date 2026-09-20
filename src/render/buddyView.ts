@@ -269,6 +269,10 @@ export class BuddyView {
         [MeshBuilder.CreateCylinder('barrel', { height: 1.1, diameter: 0.1, tessellation: 10 }, scene), kit.metal, [0.5, 0.03, 0], true],
         [MeshBuilder.CreateBox('stock', { width: 0.45, height: 0.18, depth: 0.12 }, scene), kit.wood, [0.02, -0.03, 0], false],
       ]),
+      mine: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCylinder('mineDisc', { height: 0.14, diameter: 0.42, tessellation: 14 }, scene), kit.metal, [0.58, 0, 0], false],
+        [MeshBuilder.CreateCylinder('mineTrigger', { height: 0.12, diameter: 0.12, tessellation: 8 }, scene), kit.glove, [0.58, 0.12, 0], false],
+      ]),
       punch: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateSphere('glove', { diameter: 0.42, segments: 12 }, scene), kit.glove, [0.62, 0, 0], false],
         [MeshBuilder.CreateCylinder('cuff', { height: 0.16, diameter: 0.28, tessellation: 12 }, scene), kit.eyeWhite, [0.38, 0, 0], true],

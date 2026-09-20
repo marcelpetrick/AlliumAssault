@@ -37,7 +37,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 
 ## Weapons
 
-Seventeen weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
+Eighteen weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
 
 | Weapon                        | Ammo | Behaviour                                                                                                            |
 | ----------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
@@ -58,6 +58,17 @@ Seventeen weapons. _Special_ weapons can be restricted to crates with the arsena
 | Concrete Mule (special)       | 1    | Click a target: falls from the sky and smashes down six times                                                        |
 | Drill                         | 2    | Drills straight down 3 s, obeys gravity, no fall damage while drilling                                               |
 | Napalm Strike (special)       | 1    | Click a target: wind-blown napalm sets the ground aflame for about 5 s; flames make buddies hop, water puts them out |
+| Proximity Mine (special)      | 2    | Dropped at the buddy's feet; arms after 1.5 s, then goes off 1 s after any living buddy comes within 2 units         |
+
+## Mines
+
+A proximity mine is dropped at the buddy's feet and belongs to the match, not to the turn: it stays
+where it falls through every team and round change until something sets it off. It is inert for its
+first 1.5 seconds, which is the retreat window the buddy has to get clear, then arms. After that any
+living buddy with health left that comes within 2 world units — its own team and the buddy that laid
+it included — starts a one-second fuse, and the mine goes off whether or not that buddy runs away
+again. Rock between the mine and a buddy shields it. A blast sets mines off in a chain, each exactly
+once, and a mine falls when the ground beneath it is blasted away.
 
 ## Crates
 
@@ -78,7 +89,7 @@ Following the last control decision made in the 2D prototype:
 | Backspace                             | Back-flip (high jump)                                                       |
 | ↑ / ↓                                 | Aim                                                                         |
 | Space (hold/release)                  | Charge and fire; instant weapons fire on press; Space again detonates sheep |
-| 1–9, 0, Shift+1–7 / Tab               | Select weapon (or click the weapon bar)                                     |
+| 1–9, 0, Shift+1–8 / Tab               | Select weapon (or click the weapon bar)                                     |
 | ← / → while aiming a plane strike     | Choose the side the plane flies in from, without moving the buddy           |
 | Click on the map                      | Call the air strike, napalm strike or concrete mule                         |
 | Arrow keys while a flying sheep flies | Steer it towards that direction                                             |

@@ -2,7 +2,7 @@
 
 Requested on 2026-09-19; recorded in version 1.33.2, researched in 1.33.3 and planned in 1.33.4.
 Section 7 was added on 2026-09-20 from a separate request to review the AI opponents.
-Tasks 0, 1, 3, 5 and 6 are implemented; 2, 4 and 7 remain open. Progress is also tracked in
+Tasks 0, 1, 3, 4, 5, 6 and 7 are implemented; only 2 (the rope) remains open. Progress is also tracked in
 [tasks.md](tasks.md); the [planning handoff](#planning-handoff) lists proposed decisions and order.
 
 ## 0. Review text size everywhere, especially the weapon bar — done in 1.33.5
@@ -189,29 +189,64 @@ same target, the mule still walking) and a browser test that holds each arrow ke
 approach card and hint, checks the buddy has not moved, then clicks and verifies the plane entered
 from the left.
 
-## 4. Add proximity mines that persist across turns
+## 4. Add proximity mines that persist across turns — done in 1.38.0
 
-- [ ] Add a mine weapon that places a physical mine on the map and consumes ammo consistently
+- [x] Add a mine weapon that places a physical mine on the map and consumes ammo consistently
       with the selected arsenal mode.
-- [ ] Define placement, arming delay, proximity radius, triggered fuse, blast damage/radius,
+- [x] Define placement, arming delay, proximity radius, triggered fuse, blast damage/radius,
       knockback and retreat time. Allow the deploying buddy a chance to move away before arming.
-- [ ] Armed mines detect nearby living garlic buddies, including allies and the deployer after
+- [x] Armed mines detect nearby living garlic buddies, including allies and the deployer after
       arming. Define whether terrain blocks detection and what happens if a buddy leaves range
       after triggering. Exclude corpses, crates and sheep unless separately specified.
-- [ ] Store mines as persistent world entities with owner/team identity and explicit
+- [x] Store mines as persistent world entities with owner/team identity and explicit
       unarmed/armed/triggered states. Preserve them across all team and round changes; clear them
       on match restart. Do not store dormant mines only in the current turn's action.
-- [ ] Handle terrain removal, falling, water, map bounds, explosions and deterministic chain
+- [x] Handle terrain removal, falling, water, map bounds, explosions and deterministic chain
       reactions without duplicate damage or unbounded recursion.
-- [ ] Ensure dormant mines do not prevent `isSettled()` or turn completion. Resolve moving or
+- [x] Ensure dormant mines do not prevent `isSettled()` or turn completion. Resolve moving or
       triggered mines consistently with the phase machine and damage/death handling.
-- [ ] Integrate the weapon definition/order, inventory, model, sound, armed warning/countdown,
+- [x] Integrate the weapon definition/order, inventory, model, sound, armed warning/countdown,
       help, README and VISION. Teach the AI to place mines and account for mine hazards.
-- [ ] Unit-test range boundaries, arming/trigger timing, friendly proximity, persistence across
+- [x] Unit-test range boundaries, arming/trigger timing, friendly proximity, persistence across
       several turns, chain reactions, destroyed ground and cleanup. Add a weapon E2E test.
 
 Initial finding: there is no mine weapon or persistent mine collection. `Game` already owns
 persistent crates and graves; these offer lifecycle examples, but mines need their own rules.
+
+Implemented in 1.38.0. `src/core/mines.ts` holds the data and the state machine: a mine falls and
+settles like any loose body, is `unarmed` for `MINE_ARM_TIME` (1.5 s), then `armed`, and `triggered`
+for `MINE_FUSE` (1 s) before it goes off. There is no dud chance and no expiry. `Game.mines` is a
+match-level list, not part of a `TurnAction`, so mines outlive every team and round change; a restart
+builds a new `Game` and starts empty.
+
+Agreed behaviour: `Game.fire()` drops the mine at the buddy's feet and starts the retreat, so the
+1.5 s arming delay _is_ the window to get clear. Once armed it triggers on any living buddy with
+health left within `MINE_TRIGGER_RANGE` (2 units) that it has a clear line to — its own team and the
+buddy that laid it included. `mineSees()` walks the ray, so rock between them shields a buddy.
+Corpses, crates, sheep and tombstones are ignored. Once triggered it explodes whether or not the
+buddy runs away. Buddy movement is swept from the position recorded before `stepBuddies()`, so a
+fast fall past a mine cannot slip between two frames.
+
+Blast values: radius 3, damage 40, force 12, two per team, `special` so the arsenal setting can
+restrict it to crates. Appended to `WEAPON_ORDER` as Shift+8, leaving every existing hotkey alone.
+
+`Game.explode()` sets off mines inside the blast in id order, each removed from the list before its
+own blast, so a chain is deterministic and nothing is hurt twice. A mine falls when its ground is
+carved away and is removed with a splash in water or off the map. `isSettled()` waits for a
+_triggered_ mine but never for a dormant one, so a minefield does not hold up turns.
+
+Presentation: a held disc in `buddyView.ts`, a world model in `effects.ts` whose lamp is dark while
+arming, glows while armed and flashes while the fuse burns; `clunk`, `armed` and `beep` sounds; the
+HUD floats a warning and shows the fuse countdown with the existing grenade countdown.
+
+AI: `planAttack()` lays a mine when an enemy is close enough to wander into it, weighted by team
+focus, and refuses when one of its own is standing beside the spot. `scoreBlast()` counts a mine in
+the blast as a chained explosion, and `walkable()` refuses any path that passes near one.
+
+Ten core tests and one browser test cover placement and ammo, arming, triggering and the fuse
+running on after the victim leaves, friendly fire and the deployer, ignoring corpses/crates and rock
+in the way, surviving four turn changes without holding one up, chain blasts without double damage,
+falling and drowning, the hotkey order, and the AI laying and avoiding mines.
 
 ## 5. Let sheep and Super Sheep collect crates for their launcher — done in 1.36.0
 

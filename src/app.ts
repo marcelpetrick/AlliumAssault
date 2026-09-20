@@ -316,6 +316,12 @@ export class App {
           this.audio.play(e.plane ? 'plane' : 'bray');
           this.lastStrike = { dir: e.dir, target: e.target, startX: e.startX };
           break;
+        case 'mineArmed':
+          this.audio.play('armed');
+          break;
+        case 'mineTriggered':
+          this.audio.play('beep');
+          break;
         case 'crateSpawn':
           this.audio.play('teleport');
           break;
@@ -484,6 +490,7 @@ export class App {
       sheep: g?.sheep ? { x: g.sheep.body.x, y: g.sheep.body.y } : null,
       graves: (g?.graves ?? []).map((grave) => ({ name: grave.name, x: grave.body.x, y: grave.body.y })),
       crates: (g?.crates ?? []).map((c) => ({ id: c.id, kind: c.kind, weapon: c.weapon, x: c.body.x, y: c.body.y })),
+      mines: (g?.mines ?? []).map((m) => ({ id: m.id, owner: m.owner, team: m.team, state: m.state, x: m.body.x, y: m.body.y })),
       ammo: g?.activeTeamData ? { ...g.activeTeamData.ammo } : null,
       sound: this.audio.voices,
       camera: this.world?.focusPoint ?? null,

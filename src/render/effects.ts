@@ -66,6 +66,11 @@ interface CrateView {
   age: number;
 }
 
+interface MineView {
+  node: TransformNode;
+  light: Mesh;
+}
+
 interface SheepView {
   id: number;
   node: TransformNode;
@@ -84,6 +89,7 @@ export class Effects {
   private flyer: SheepView | null = null;
   private readonly planes: PlaneView[] = [];
   private readonly crates = new Map<number, CrateView>();
+  private readonly mines = new Map<number, MineView>();
   private readonly graves = new Map<number, GraveView>();
   private readonly strikeCursor: Mesh;
   private flame: ParticleSystem | null = null;
@@ -132,6 +138,8 @@ export class Effects {
       sheepFace: mat('fxSheepFace', '#2b2522'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
       tracer: mat('fxTracer', '#ffe27a', 1),
+      mineShell: mat('fxMineShell', '#4c5157', 0.05),
+      mineLight: mat('fxMineLight', '#ff2d2d', 1),
     };
 
     this.strikeCursor = MeshBuilder.CreateTorus('strikeCursor', { diameter: 1.2, thickness: 0.09, tessellation: 32 }, scene);
@@ -328,6 +336,45 @@ export class Effects {
       view.node.dispose();
       this.crates.delete(id);
     }
+  }
+
+  /**
+   * Create, move and retire mine models. The lamp on top is dark while the mine is still arming,
+   * glows once it is live, and flashes fast while its fuse burns down.
+   */
+  syncMines(game: Game, time: number): void {
+    const live = new Set<number>();
+    for (const m of game.mines) {
+      live.add(m.id);
+      let view = this.mines.get(m.id);
+      if (!view) {
+        view = this.createMine();
+        this.mines.set(m.id, view);
+      }
+      view.node.position.set(m.body.x, m.body.y, 0);
+      const blink = m.state === 'triggered' ? Math.sin(time * 34) > 0 : m.state === 'armed' ? Math.sin(time * 5) > -0.4 : false;
+      view.light.setEnabled(blink);
+    }
+    for (const [id, view] of this.mines) {
+      if (live.has(id)) continue;
+      view.node.dispose(false, true);
+      this.mines.delete(id);
+    }
+  }
+
+  private createMine(): MineView {
+    const node = new TransformNode('mine', this.scene);
+    const part = (mesh: Mesh, material: StandardMaterial, y: number) => {
+      mesh.material = material;
+      mesh.position.set(0, y, 0);
+      mesh.parent = node;
+      mesh.isPickable = false;
+      return mesh;
+    };
+    part(MeshBuilder.CreateCylinder('mineShell', { height: 0.22, diameter: 0.56, tessellation: 16 }, this.scene), this.materials.mineShell, 0);
+    part(MeshBuilder.CreateTorus('mineRim', { diameter: 0.56, thickness: 0.07, tessellation: 18 }, this.scene), this.materials.metal, 0.02);
+    const light = part(MeshBuilder.CreateSphere('mineLight', { diameter: 0.16, segments: 8 }, this.scene), this.materials.mineLight, 0.17);
+    return { node, light };
   }
 
   /** Blowtorch flame at the nozzle, pointing along the burn line, while the torch burns. */

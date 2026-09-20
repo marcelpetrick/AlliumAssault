@@ -71,7 +71,7 @@ Status: ☐ open · ☑ done
 | T56 | Add the text-size setting to the in-game pause menu                                                       | ☑      | 1.34.0         |
 | T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☐      | Planned        |
 | T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☑      | 1.35.0         |
-| T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
+| T59 | Add proximity mines that persist across turns                                                             | ☑      | 1.38.0         |
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☑      | 1.36.0         |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☑      | 1.34.1         |
 | T63 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
@@ -448,6 +448,16 @@ walks nor turns while choosing, the side resets to its facing at each turn start
 between the air strike and the napalm strike within a turn. The plane-less concrete mule is
 unaffected. The HUD gained an Approach card next to the wind gauge, and the AI sets its direction
 explicitly instead of inheriting the human's choice.
+
+### T59 — Persistent proximity mines ☑
+
+Implemented in 1.38.0. `src/core/mines.ts` owns the unarmed/armed/triggered state machine;
+`Game.mines` is a match-level list so mines outlive every turn and round. A mine is dropped at the
+buddy's feet and the retreat window doubles as its 1.5-second arming delay; once armed it goes off
+one second after any living buddy with health left comes within two units and it has a clear line to
+them — its own team and the buddy that laid it included. Blasts chain through mines in id order,
+each removed before its own blast. Dormant mines never hold up a turn. Shift+8; no existing hotkey
+moved.
 
 ### T60 — Sheep crate collection ☑
 

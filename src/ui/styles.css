@@ -857,12 +857,13 @@ kbd {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
 }
 
+/* Eighteen of these have to sit on one row at 1280 px without shrinking their text. */
 .slot {
   position: relative;
-  width: 46px;
+  width: 44px;
   height: 52px;
   padding: 4px 2px 2px;
   border-radius: 12px;

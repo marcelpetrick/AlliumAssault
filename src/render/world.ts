@@ -242,6 +242,7 @@ export class World {
     this.effects.syncSheep(g);
     this.effects.syncFlyer(g, this.time);
     this.effects.syncCrates(g, dt);
+    this.effects.syncMines(g, this.time);
     this.effects.syncGraves(g, dt);
     this.effects.updateTorch(g);
     this.effects.updateDrill(g, this.theme.dirt);
