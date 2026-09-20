@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.33.5] — 2026-09-20
+
+### Fixed
+
+- Large and Huge text no longer clip title controls or push the bottom weapon bar off-screen on
+  compact viewports; menu screens scroll and the scaled HUD switches layout before it overflows.
+- Weapon hotkeys and ammo, weapon captions/descriptions and the turn-timer caption use readable
+  base sizes. Browser coverage now checks all text sizes across menus and a live match.
+
 ## [1.33.4] — 2026-09-20
 
 ### Added

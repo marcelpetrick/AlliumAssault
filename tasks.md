@@ -67,7 +67,7 @@ Status: ☐ open · ☑ done
 | T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☑      | 1.32.2         |
 | T53 | Public release v1.33.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.33.0         |
 | T54 | Inspect requested areas and write the actionable backlog in `todo.md`                                     | ☑      | 1.33.2         |
-| T55 | Audit text size across menus, boxes and the in-game weapon bar                                            | ☐      | Planned        |
+| T55 | Audit text size across menus, boxes and the in-game weapon bar                                            | ☑      | 1.33.5         |
 | T56 | Add the text-size setting to the in-game pause menu                                                       | ☐      | Planned        |
 | T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☐      | Planned        |
 | T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☐      | Planned        |
@@ -424,6 +424,13 @@ Requested and recorded in 1.33.2; implementation versions are not assigned yet.
 - T59: [4. Persistent proximity mines](todo.md#4-add-proximity-mines-that-persist-across-turns).
 - T60: [5. Sheep crate collection for the launcher](todo.md#5-let-sheep-and-super-sheep-collect-crates-for-their-launcher).
 - T61: [6. Holy Garlic Grenade timing](todo.md#6-debug-and-fix-delayed-holy-garlic-grenade-countdowns).
+
+### T55 — Text-size coverage and layout ☑
+
+Implemented in 1.33.5. All menu screens are scrollable when scaled content exceeds the viewport;
+Large and Huge text select a compact HUD layout early enough to keep the weapon bar on-screen.
+The smallest weapon and timer text was raised, and an E2E regression covers all three sizes at
+960×600 across menus and a live match using actual rendered bounds and control reachability.
 
 ### T62 — Further backlog research ☑
 

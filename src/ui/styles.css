@@ -209,9 +209,10 @@ button.icon {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: safe center;
+  justify-content: safe center;
   padding: 20px;
+  overflow: auto;
 }
 
 .menu .screen.dim {
@@ -219,7 +220,7 @@ button.icon {
   pointer-events: auto;
 }
 
-.title-screen {
+.menu .title-screen {
   flex-direction: column;
   gap: 38px;
   background: radial-gradient(ellipse at center, rgb(0 0 0 / 0%) 30%, rgb(5 8 20 / 55%) 100%);
@@ -650,7 +651,7 @@ kbd {
 .timer-caption {
   position: absolute;
   bottom: 13px;
-  font-size: 8px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--muted);
@@ -823,14 +824,14 @@ kbd {
   gap: 10px;
   align-items: baseline;
   padding: 0 4px;
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
 }
 
 .weapon-blurb {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -869,7 +870,7 @@ kbd {
   position: absolute;
   top: 2px;
   left: 5px;
-  font-size: 9px;
+  font-size: 12px;
   opacity: 0.6;
 }
 
@@ -879,7 +880,7 @@ kbd {
 }
 
 .slot-ammo {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--accent-2);
 }
 
@@ -996,6 +997,37 @@ kbd {
   .help-grid,
   .themes {
     grid-template-columns: 1fr;
+  }
+}
+
+/* A scaled three-column HUD needs an earlier compact layout than Normal text. */
+@media (width <= 1100px) {
+  html[data-text-size='large'] .hint,
+  html[data-text-size='large'] .weapon-blurb {
+    display: none;
+  }
+
+  html[data-text-size='large'] .hud-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-text-size='large'] .weapons {
+    justify-self: center;
+  }
+}
+
+@media (width <= 1400px) {
+  html[data-text-size='huge'] .hint,
+  html[data-text-size='huge'] .weapon-blurb {
+    display: none;
+  }
+
+  html[data-text-size='huge'] .hud-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-text-size='huge'] .weapons {
+    justify-self: center;
   }
 }
 

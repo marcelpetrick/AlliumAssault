@@ -5,17 +5,17 @@ Requested on 2026-09-19; recorded in version 1.33.2, researched in 1.33.3 and pl
 when to begin.** All seven implementation tasks below remain open. Progress is also tracked in
 [tasks.md](tasks.md); the [planning handoff](#planning-handoff) lists proposed decisions and order.
 
-## 0. Review text size everywhere, especially the weapon bar
+## 0. Review text size everywhere, especially the weapon bar — done in 1.33.5
 
-- [ ] Audit Normal, Large and Huge across the title, setup, pause, help, about and victory
+- [x] Audit Normal, Large and Huge across the title, setup, pause, help, about and victory
       screens, all panels and boxes, and the in-game HUD.
-- [ ] Check the bottom weapon list first: weapon names, descriptions, hotkeys and ammo must be
+- [x] Check the bottom weapon list first: weapon names, descriptions, hotkeys and ammo must be
       readable. Increase small base sizes and adjust spacing/wrapping where necessary.
-- [ ] Check turn information, timer, wind, team health, hints, banners, buddy labels, health
+- [x] Check turn information, timer, wind, team health, hints, banners, buddy labels, health
       labels, grenade countdowns and floating damage numbers.
-- [ ] Verify that every control remains reachable at each size, including smaller viewports;
+- [x] Verify that every control remains reachable at each size, including smaller viewports;
       check clipping, overlaps, scrolling and keyboard focus.
-- [ ] Add browser checks for actual element sizes and layout, plus visual inspection at all
+- [x] Add browser checks for actual element sizes and layout, plus visual inspection at all
       three settings. Checking only the stored setting is insufficient.
 
 Initial finding: `src/ui/styles.css` already scales `.hud-bottom`, including the weapon bar,
@@ -49,6 +49,13 @@ Huge HUD at 1280×720 and 960×600 and the Huge title layout. No page errors occ
 Implementation direction: give the title a scrollable, height-aware layout, and make the HUD
 respond to available space at the chosen scale. Test just above the existing 900 px breakpoint
 as well as common desktop sizes. Raise the small weapon text sizes together with the layout fix.
+
+Implemented in 1.33.5: menu screens scroll when scaled content no longer fits, so every title and
+panel control remains reachable. Large and Huge switch to the compact bottom-HUD layout before
+their scaled weapon bars can overflow. Weapon hotkeys and ammo now start at 12 px, captions and
+descriptions are larger, and the timer caption is no longer 8 px. A browser regression exercises
+Normal, Large and Huge at 960×600 across title, setup, help, about, pause and a live match, checks
+rendered rectangles, scrolls to every title button, and asserts the weapon text sizes.
 
 ## 1. Add text size to the in-game menu
 

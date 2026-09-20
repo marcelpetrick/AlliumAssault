@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect, test } from '@playwright/test';
-import { boot, state, toHumanAiming, waitFor } from './support';
+import { boot, startDuel, state, toHumanAiming, waitFor } from './support';
 
 test('title screen runs a live 3D demo behind the menu', async ({ page }, info) => {
   const errors = await boot(page);
@@ -193,6 +193,83 @@ test('settings persist across reloads, text size scales the UI, Reset all restor
   await expect(page.locator('[data-action="text-size"][data-value="normal"]')).toHaveClass(/on/);
   expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('normal');
   expect(await page.evaluate(() => localStorage.getItem('allium.settings'))).toBeNull();
+  expect(errors).toEqual([]);
+});
+
+test('all text sizes keep menu controls and the in-game HUD reachable on a compact viewport', async ({ page }) => {
+  const errors = await boot(page);
+  await page.setViewportSize({ width: 960, height: 600 });
+  await page.addStyleTag({ content: '*, *::before, *::after { animation: none !important; transition: none !important; }' });
+
+  const expectInsideViewport = async (selector: string) => {
+    const boxes = await page.locator(selector).evaluateAll((els) =>
+      els
+        .filter((el) => getComputedStyle(el).display !== 'none')
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+        }),
+    );
+    for (const box of boxes) {
+      expect(box.left).toBeGreaterThanOrEqual(-1);
+      expect(box.top).toBeGreaterThanOrEqual(-1);
+      expect(box.right).toBeLessThanOrEqual(961);
+      expect(box.bottom).toBeLessThanOrEqual(601);
+    }
+  };
+
+  for (const size of ['normal', 'large', 'huge']) {
+    await page.evaluate(() => {
+      window.__allium.app.menu.showSetup();
+    });
+    await page.locator(`[data-action="text-size"][data-value="${size}"]`).click();
+    await expectInsideViewport('.panel');
+
+    await page.evaluate(() => {
+      window.__allium.app.menu.showTitle();
+    });
+    for (const button of await page.locator('.title-buttons button').all()) {
+      await button.scrollIntoViewIfNeeded();
+      await expect(button).toBeInViewport();
+    }
+
+    await startDuel(page);
+    await expectInsideViewport('.hud-top, .team-bars, .weapons, .hint');
+    await page.evaluate(() => {
+      window.__allium.app.menu.showHelp('pause');
+    });
+    await expectInsideViewport('.panel');
+    await page.evaluate(() => {
+      window.__allium.app.menu.showAbout();
+    });
+    await expectInsideViewport('.panel');
+    await page.evaluate(() => {
+      window.__allium.app.menu.showPause();
+    });
+    await expectInsideViewport('.panel');
+    await page.evaluate(() => {
+      window.__allium.app.menu.showVictory({ name: 'Red Roasters', color: '#ef4b3c' }, 12);
+    });
+    await expectInsideViewport('.panel');
+  }
+
+  await page.evaluate(() => {
+    window.__allium.app.menu.showSetup();
+  });
+  await page.locator('[data-action="text-size"][data-value="normal"]').click();
+  await startDuel(page);
+  expect(
+    await page
+      .locator('.slot-key')
+      .first()
+      .evaluate((el) => getComputedStyle(el).fontSize),
+  ).toBe('12px');
+  expect(
+    await page
+      .locator('.slot-ammo')
+      .first()
+      .evaluate((el) => getComputedStyle(el).fontSize),
+  ).toBe('12px');
   expect(errors).toEqual([]);
 });
 
