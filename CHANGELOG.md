@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.33.3] — 2026-09-20
+
+### Added
+
+- Further `todo.md` research confirms title-screen and weapon-bar clipping at larger text sizes,
+  and reproduces delayed Holy Grenade arming through ordinary throw commands on sloped terrain.
+- Documented the rope's conflict with the single timed-action state, sheep reward feedback and
+  deferred-death considerations, and the separate effect of low rendering rates on timers.
+
 ## [1.33.2] — 2026-09-20
 
 ### Added

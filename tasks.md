@@ -74,6 +74,7 @@ Status: ☐ open · ☑ done
 | T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☐      | Planned        |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☐      | Planned        |
+| T62 | Continue backlog research with browser layout checks and normal-throw grenade diagnostics                 | ☑      | 1.33.3         |
 
 ## Answered questions
 
@@ -422,6 +423,14 @@ Requested and recorded in 1.33.2; implementation versions are not assigned yet.
 - T59: [4. Persistent proximity mines](todo.md#4-add-proximity-mines-that-persist-across-turns).
 - T60: [5. Sheep crate collection for the launcher](todo.md#5-let-sheep-and-super-sheep-collect-crates-for-their-launcher).
 - T61: [6. Holy Garlic Grenade timing](todo.md#6-debug-and-fix-delayed-holy-garlic-grenade-countdowns).
+
+### T62 — Further backlog research ☑
+
+Recorded in 1.33.3. Checked three text sizes across four browser viewports and measured clipping
+of title buttons and the bottom weapon bar. A 216-case matrix using the normal throw commands
+reproduced the Holy Grenade's contact/rest mismatch, including on a modest slope without wind.
+Updated [todo.md](todo.md) with reproduction steps, evidence, remaining audit limits, and rope
+and sheep integration constraints. Implementation tasks T55–T61 remain open.
 
 ## Defaults chosen (change on request)
 

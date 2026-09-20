@@ -1,8 +1,8 @@
 # TODO
 
-Requested on 2026-09-19; recorded in version 1.33.2. All seven implementation tasks below are
-open. This commit records the requested work and initial code findings; it does not implement
-the features or fix the reported bugs. Progress is also tracked in [tasks.md](tasks.md).
+Requested on 2026-09-19; recorded in version 1.33.2, with further research in 1.33.3. All seven
+implementation tasks below remain open. This file records the requested work and code findings;
+the features and fixes are not implemented yet. Progress is also tracked in [tasks.md](tasks.md).
 
 ## 0. Review text size everywhere, especially the weapon bar
 
@@ -22,6 +22,32 @@ using `--ui-scale`. However, `.slot-key` starts at 9 px and `.slot-ammo` at 10 p
 scales these to 13.5 and 15 px. Weapon captions/descriptions start at 13/12 px. World-positioned
 labels use separate transforms in `src/ui/hud.ts`. The existing settings E2E checks persistence
 and the root scale, but does not establish readability or complete layout coverage.
+
+### Browser findings — 2026-09-20
+
+Checked Normal/Large/Huge at 1920×1080, 1280×720, 960×600 and 900×600 in headless Google Chrome
+with the current production build. Measurements used rendered element rectangles after loading
+fonts, with animations disabled for stable layout measurements. Inspected screenshots of the
+Huge HUD at 1280×720 and 960×600 and the Huge title layout. No page errors occurred.
+
+- **Confirmed:** the HUD scale is applied at 1, 1.25 and 1.5, including the weapon slots. The
+  small base text is a readability issue, rather than a missing scaling rule.
+- **Confirmed:** at 960×600/Huge the weapon panel extends from x=387 to about x=1033, beyond
+  the right edge at x=960. Some weapon controls are clipped; the hint is entirely off-screen.
+  At Large, the hint also extends beyond the viewport. The CSS switches to a single-column
+  bottom HUD only at viewport widths of 900 px or less, ignoring the space consumed by scaling.
+- **Confirmed:** at 1280×720/Huge the title's How to Play button spans about y=667–753 and
+  About spans y=771–834. About is entirely below the viewport. The Large title also overflows.
+  The centered title stack has no scrolling container; `html` and `body` hide overflow.
+- The 1280×720/Huge HUD fits within the viewport but squeezes its hint into a tall, narrow
+  column. Fixing overflow alone will not make this layout comfortable to read.
+- No outer-panel overflow was measured for setup, pause, help, about or victory in this matrix.
+  This does not establish full keyboard accessibility, every nested control, or countdown and
+  damage-label behavior; those acceptance checks remain open.
+
+Implementation direction: give the title a scrollable, height-aware layout, and make the HUD
+respond to available space at the chosen scale. Test just above the existing 900 px breakpoint
+as well as common desktop sizes. Raise the small weapon text sizes together with the layout fix.
 
 ## 1. Add text size to the in-game menu
 
@@ -92,6 +118,12 @@ confirm arrow-key swing/reeling, Space release/repeat firing and Enter weapon us
 The solver above is a proposed implementation for this repo; matching the original feel still
 requires playtesting.
 
+Further architecture finding: `TurnAction` explicitly permits only one timed weapon action.
+Putting the whole rope lifecycle in that union would conflict with firing another timed weapon
+while attached. Decide this before implementation: to support attached weapon use, separate
+the buddy's rope/movement state from the weapon action; otherwise document a deliberate
+detach-before-firing rule. Do not silently replace the rope when launching a sheep or burst.
+
 ## 3. Choose the direction of air attacks with Left/Right
 
 - [ ] While aiming a plane-based strike, let Left choose entry from the left, flying right,
@@ -154,6 +186,13 @@ buddies, and `collectCrate()` already awards health to a buddy or ammo to its te
 `cratePickup` event. The flying sheep has swept movement in `src/core/flyer.ts`; collection must
 fit that path instead of relying solely on its final position after a frame.
 
+Further integration finding: the existing HUD displays a `cratePickup` reward above the event's
+recipient buddy. That correctly identifies the launcher, but the camera may be following the
+sheep elsewhere. Add pickup-position feedback if needed without changing reward ownership.
+Also test the launcher at zero HP but still `alive`: deaths are deferred, so checking only
+`alive` can accidentally let a pickup rescue a buddy already awaiting death. Choose that rule
+explicitly rather than inheriting it by accident.
+
 ## 6. Debug and fix delayed Holy Garlic Grenade countdowns
 
 - [x] Inspect the weapon definition, rest detection, projectile physics and existing tests.
@@ -201,6 +240,44 @@ than merely shortening the fallback or accepting all slow airborne motion as res
 The existing Holy Grenade unit test uses flat ground; the browser test permits up to 12 seconds
 to find an armed projectile. Both can pass while this delay remains. The existing game/physics
 tests and temporary diagnostic passed during this review; that does not mean the bug is fixed.
+
+### Confirmed normal-throw reproduction — 2026-09-20
+
+The defect also occurs through `selectWeapon()`, `pressFire()` and `releaseFire()`, without
+inserting a projectile directly. A diagnostic matrix covered 216 throws: slopes
+`[-0.6, -0.3, 0, 0.3, 0.6, 1]`, winds `[-1, 0, 1]`, aim angles `[0, 0.6, 1.2]` radians and
+charge durations `[0.05, 0.3, 0.9, 1.4]` seconds, facing downhill (right on flat terrain).
+117 reached the 10-second fallback. This is a controlled test matrix, not a measured frequency
+in ordinary matches. All flat-ground cases armed before the fallback.
+
+Reproduce a modest slope with no wind using the existing test helpers:
+
+1. Create `Terrain(128, 64, 3)` and fill it with
+   `(28 - 0.3 * (x - 64) - y) / Math.hypot(1, 0.3)`.
+2. Create a `Game` with `config([team('A', 1), team('B', 1)])` from `tests/helpers.ts` and
+   override spawns to x=60 and x=68, with `y = 29 - 0.3 * (x - 64)`.
+3. Simulate 1.5 seconds, keep both buddies alive with 10000 HP, and set wind to 0.
+4. Select `holy`, set the active buddy's facing to 1 and aim to 0.6, press fire, simulate
+   0.3 seconds, then release fire.
+5. Step at 1/60 second and record projectile age, position, speed, rest, armed state and events.
+
+By projectile age 2 seconds it is stuck around `(71.0871, 26.0312)`. Subsequent whole-second
+samples through age 11 have the same position. Its stored speed converges to about 1.3789
+units/second, keeping `rest` at zero. It arms at age 10 and explodes at 11.6 seconds.
+
+This confirms the contact/rest mismatch: a rejected step into terrain can retain tangential
+velocity without moving tangentially. Gravity keeps feeding that velocity, while contact damping
+leaves a nonzero equilibrium above both the 0.8 physics stop threshold and 0.6 arming threshold.
+The earlier placed grenade at slope 0.6/no wind similarly stays fixed with stored speed about
+2.4662. Fix contact motion/rest consistently and test the thrown case, rather than only changing
+the timer. A displacement-only rest check also needs terrain-support checks to avoid treating
+an airborne apex or a blocked invalid position as a valid resting grenade.
+
+Separate timing concern from code inspection: `App.frame()` caps elapsed time passed into
+`advance()` at 0.1 seconds. Below 10 rendered frames/second, the simulation therefore runs
+slower than wall time; at a steady 2 fps it would advance roughly 0.2 simulation seconds per
+real second. This affects all timers and may amplify the perceived grenade delay. The diagnostic
+above uses fixed simulation steps and reproduces the arming bug independently of rendering.
 
 ## Completion requirements
 
