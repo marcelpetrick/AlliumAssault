@@ -148,6 +148,9 @@ export class App {
   pause(): void {
     if (this.demo || this.paused) return;
     this.paused = true;
+    this.keys.clear();
+    // Held keys must not survive the pause: a rope would keep reeling on resume.
+    if (this.game) Object.assign(this.game.input, { left: false, right: false, up: false, down: false });
     this.game?.cancelCharge();
     this.menu.showPause();
   }
@@ -316,6 +319,12 @@ export class App {
           this.audio.play(e.plane ? 'plane' : 'bray');
           this.lastStrike = { dir: e.dir, target: e.target, startX: e.startX };
           break;
+        case 'ropeShot':
+          this.audio.play('hookShot');
+          break;
+        case 'ropeBite':
+          this.audio.play('hookBite');
+          break;
         case 'mineArmed':
           this.audio.play('armed');
           break;
@@ -481,6 +490,7 @@ export class App {
       weapon: g?.weapon ?? null,
       charge: g?.charge ?? null,
       wind: g?.wind ?? 0,
+      rope: g?.rope ? { state: g.rope.state, length: g.rope.length, pivots: g.rope.pivots.length, x: g.rope.hook.x, y: g.rope.hook.y } : null,
       strikeDir: g?.strikeDir ?? 1,
       choosingApproach: g?.choosingApproach ?? false,
       lastStrike: this.lastStrike,

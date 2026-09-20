@@ -35,7 +35,10 @@ export type Sfx =
   | 'heal'
   | 'clunk'
   | 'armed'
-  | 'beep';
+  | 'beep'
+  | 'hookShot'
+  | 'hookBite'
+  | 'reel';
 
 /** Something in flight that should be heard for as long as it flies. */
 export interface FlightSound {
@@ -272,6 +275,19 @@ export class Audio {
       case 'beep':
         // The warning while a triggered mine counts down.
         this.tone('square', 2600, 2600, 0.06, 0.09);
+        break;
+      case 'hookShot':
+        // Compressed air, then the rope paying out.
+        this.noise(0.18, 'highpass', 1800, 700, 0.1);
+        this.tone('sawtooth', 320, 120, 0.16, 0.05);
+        break;
+      case 'hookBite':
+        // Metal biting rock.
+        this.tone('square', 900, 260, 0.08, 0.09);
+        this.noise(0.12, 'bandpass', 1400, 500, 0.1);
+        break;
+      case 'reel':
+        this.tone('square', 640, 720, 0.04, 0.04);
         break;
       case 'pickup':
         [523, 784, 1047].forEach((f, k) => {

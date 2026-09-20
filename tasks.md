@@ -69,7 +69,7 @@ Status: ☐ open · ☑ done
 | T54 | Inspect requested areas and write the actionable backlog in `todo.md`                                     | ☑      | 1.33.2         |
 | T55 | Audit text size across menus, boxes and the in-game weapon bar                                            | ☑      | 1.33.5         |
 | T56 | Add the text-size setting to the in-game pause menu                                                       | ☑      | 1.34.0         |
-| T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☐      | Planned        |
+| T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☑      | 1.39.0         |
 | T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☑      | 1.35.0         |
 | T59 | Add proximity mines that persist across turns                                                             | ☑      | 1.38.0         |
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☑      | 1.36.0         |
@@ -415,7 +415,7 @@ code findings, a rope physics/integration proposal, and acceptance checks for ev
 An initial Holy Grenade terrain/wind diagnostic reproduced a delay to the 10-second arming
 fallback despite very little movement. The implementation and regression fix remain open.
 
-### T55–T61 — Follow-up implementation ☐
+### T55–T64 — Follow-up implementation ☑
 
 Requested and recorded in 1.33.2; implementation versions are not assigned yet.
 
@@ -439,6 +439,17 @@ The smallest weapon and timer text was raised, and an E2E regression covers all 
 Implemented in 1.34.0. The pause menu now offers Normal, Large and Huge, applies changes while the
 match remains frozen, and persists them across reloads. The menu separately retains the last saved
 custom setup, preventing a text-size change during Quick Match from overwriting those settings.
+
+### T57 — Rope ☑
+
+Implemented in 1.39.0. `src/core/rope.ts` holds a swept hook, a length constraint around the last
+corner the rope bends over, and corner wrap/unwrap with hysteresis; `stepFree()` in `physics.ts`
+integrates a hanging buddy without walking, sticking or grounded damping. A `roping` phase and a
+`{ kind: 'rope' }` action keep the traversal on the turn clock while `stepBuddies()` leaves the buddy
+alone, so gravity is never doubled. Roping does not use the turn's shot: land, then fire. Firing while
+attached is deliberately not supported, and AI rope use is deferred with the reason recorded. Shift+9;
+no existing hotkey moved. Twelve core tests and one browser test, including determinism, a hands-off
+swing that never gains energy, and a buddy caught mid-fall.
 
 ### T58 — Air-strike approach direction ☑
 

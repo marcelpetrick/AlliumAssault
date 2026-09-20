@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.39.0] — 2026-09-20
+
+### Added
+
+- Rope (Shift+9, three per team): Space shoots a hook up to 24 units into rock, then Up and Down reel
+  the rope in and out, Left and Right build a swing, and Space lets go with every bit of momentum —
+  press it again in mid-air to hook on somewhere else, free for the rest of that traversal. A hook
+  that hits nothing costs nothing. The rope bends around corners it has to pass and gives them up
+  again on the way back, and it lets go if the rock it bit into is blasted away. Roping does not use
+  up the turn's shot: land first, then fire. Firing while attached is deliberately not supported, and
+  the AI does not use the rope yet.
+
+### Changed
+
+- Weapon slots are narrower again, so all nineteen still sit on one row at 1280 px.
+- Pausing now clears held keys, so a rope no longer keeps reeling when the match resumes.
+
 ## [1.38.0] — 2026-09-20
 
 ### Added

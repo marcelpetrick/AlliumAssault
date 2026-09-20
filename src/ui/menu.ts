@@ -64,6 +64,7 @@ export const CONTROLS_HTML = `
     <tr><td><kbd>1</kbd>–<kbd>0</kbd> <kbd>⇧1</kbd>–<kbd>⇧${WEAPON_ORDER.length - 10}</kbd> <kbd>Tab</kbd></td><td>Choose weapon</td></tr>
     <tr><td>Wheel · Drag</td><td>Zoom · Pan camera</td></tr>
     <tr><td><kbd>←</kbd><kbd>→</kbd> (air strike)</td><td>Choose which side the plane flies in from</td></tr>
+    <tr><td><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> (on the rope)</td><td>Reel in and out, swing left and right</td></tr>
     <tr><td>Click</td><td>Call the air strike or concrete mule</td></tr>
     <tr><td><kbd>M</kbd> <kbd>Esc</kbd></td><td>Mute · Pause (also the HUD's Help and Pause buttons)</td></tr>
   </table>`;

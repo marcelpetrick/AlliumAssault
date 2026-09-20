@@ -23,9 +23,10 @@ export type WeaponId =
   | 'mulebody'
   | 'drill'
   | 'mine'
+  | 'rope'
   | 'napalm'
   | 'napalmbomb';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine' | 'rope';
 
 /**
  * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and
@@ -37,7 +38,7 @@ export interface WeaponLook {
   /** Sound while in flight: rockets whistle, lobbed things whoosh. */
   flight?: 'rocket' | 'lob';
   /** Sound when the weapon is used. */
-  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk';
+  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk' | 'hookShot';
   /** Sound of each hitscan bullet. */
   shotSound?: 'bullet';
   /** Sound when a melee weapon connects. */
@@ -602,6 +603,28 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 12,
     range: 0,
   },
+  rope: {
+    id: 'rope',
+    look: { fireSound: 'hookShot' },
+    special: true,
+    name: 'Rope',
+    icon: '🪝',
+    blurb: 'Space shoots the hook; hang, ↑↓ reel, ←→ swing, Space lets go. Land, then fire a weapon.',
+    kind: 'rope',
+    ammo: 3,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 1,
+    restitution: null,
+    fuse: 0,
+    radius: 0,
+    damage: 0,
+    force: 0,
+    range: 24,
+  },
   selfdestruct: {
     id: 'selfdestruct',
     look: { fireSound: 'alarm' },
@@ -647,6 +670,7 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   'drill',
   'napalm',
   'mine',
+  'rope',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */

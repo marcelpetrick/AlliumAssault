@@ -102,6 +102,24 @@ export function glideBody(t: Terrain, b: Body, dt: number, vx: number, vy: numbe
   b.restTime = 0;
 }
 
+/**
+ * Move a body under a given acceleration, resolving terrain contacts but never walking, sticking or
+ * damping: what a buddy hanging on a rope does between constraint solves.
+ */
+export function stepFree(t: Terrain, b: Body, dt: number, ax: number, ay: number): void {
+  b.impact = 0;
+  b.vx += ax * dt;
+  b.vy += ay * dt;
+  const travel = Math.hypot(b.vx, b.vy) * dt;
+  const steps = Math.max(1, Math.ceil(travel / (b.radius * 0.4)));
+  const h = dt / steps;
+  for (let s = 0; s < steps; s++) {
+    b.x += b.vx * h;
+    b.y += b.vy * h;
+    resolve(t, b);
+  }
+}
+
 function resolve(t: Terrain, b: Body): void {
   for (let iter = 0; iter < 4; iter++) {
     const d = contactDistance(t, b.x, b.y);

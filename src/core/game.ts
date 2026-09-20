@@ -36,6 +36,7 @@ import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './
 import { spreadFlames, type Flame } from './fire';
 import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
+import { ropePath, shootRope, stepRope, type Rope } from './rope';
 import { PLANE_SPEED, planStrike } from './strike';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
 import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
@@ -85,12 +86,12 @@ export interface GameOverrides {
  * `drilling`: the active buddy drills straight down; no other input, no fall damage.
  * `firing`: a burst weapon is rattling off its bullets; no other input.
  */
-export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'drilling' | 'firing' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'drilling' | 'roping' | 'firing' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
 
 /** Phases in which the turn timer counts down. */
-const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling'];
+const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping'];
 /** Phases in which the active team is still playing its turn, so hurting its buddy ends it. */
-const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'firing', 'retreat'];
+const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping', 'firing', 'retreat'];
 
 export interface Buddy {
   id: number;
@@ -161,6 +162,9 @@ export type GameEvent =
   | { type: 'hallelujah'; x: number; y: number }
   | { type: 'ignite'; x: number; y: number; flames: number }
   | { type: 'scorch'; buddy: number; x: number; y: number }
+  | { type: 'ropeShot'; buddy: number; x: number; y: number }
+  | { type: 'ropeBite'; buddy: number; x: number; y: number }
+  | { type: 'ropeRelease'; buddy: number }
   | { type: 'mineLaid'; mine: number; buddy: number; x: number; y: number }
   | { type: 'mineArmed'; mine: number; x: number; y: number }
   | { type: 'mineTriggered'; mine: number; x: number; y: number }
@@ -263,7 +267,13 @@ export interface BurstAction {
 }
 
 /** What a used weapon is doing over time; the game runs at most one. */
-export type TurnAction = { kind: 'sheep'; sheep: Sheep } | { kind: 'flyer'; flyer: Flyer } | TorchAction | DrillAction | BurstAction;
+export type TurnAction =
+  | { kind: 'sheep'; sheep: Sheep }
+  | { kind: 'flyer'; flyer: Flyer }
+  | { kind: 'rope'; rope: Rope | null; paid: boolean }
+  | TorchAction
+  | DrillAction
+  | BurstAction;
 
 export class Game {
   readonly terrain: Terrain;
@@ -383,6 +393,18 @@ export class Game {
   }
 
   /** The flying sheep, while it flies. */
+  /** The rope in play, hook in flight or attached; null when the buddy is between hooks. */
+  get rope(): Rope | null {
+    return this.action?.kind === 'rope' ? this.action.rope : null;
+  }
+
+  /** The whole rope path, anchor first and the buddy last, for the renderer. */
+  ropeLine(): Point[] | null {
+    const rope = this.rope;
+    const b = this.activeBuddy;
+    return rope && b ? ropePath(rope, b.body) : null;
+  }
+
   get flyer(): Flyer | null {
     return this.action?.kind === 'flyer' ? this.action.flyer : null;
   }
@@ -416,7 +438,7 @@ export class Game {
 
   /** The active team still acts this turn: controlling its buddy or guiding its sheep. */
   get acting(): boolean {
-    return this.controllable || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'drilling';
+    return this.controllable || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'drilling' || this.phase === 'roping';
   }
 
   /**
@@ -501,6 +523,10 @@ export class Game {
   pressFire(): void {
     if (this.phase === 'guiding') {
       this.detonateGuided();
+      return;
+    }
+    if (this.phase === 'roping') {
+      this.ropeFire();
       return;
     }
     const team = this.activeTeamData;
@@ -610,6 +636,8 @@ export class Game {
       if (!b.alive) continue;
       // Kept for the mine sweep: where this buddy was before it moved.
       this.lastBuddyPos.set(b.id, { x: b.body.x, y: b.body.y });
+      // The rope moves its buddy itself, so the ordinary step would apply gravity a second time.
+      if (b === active && this.action?.kind === 'rope' && this.phase === 'roping') continue;
       let walk: number | null = null;
       const torch = b === active ? this.torch : null;
       // Rock ahead of the flame is what the torch pulls itself along; in open air it only walks.
@@ -851,6 +879,10 @@ export class Game {
         if (b?.alive && this.phase === 'drilling') this.stepDrill(action, b, dt);
         else this.action = null;
         return;
+      case 'rope':
+        if (b?.alive && this.phase === 'roping') this.stepRoping(action, b, dt);
+        else this.action = null;
+        return;
       case 'burst':
         if (b?.alive && this.phase === 'firing') this.stepBurst(action, b, dt);
         else this.action = null;
@@ -985,6 +1017,77 @@ export class Game {
     }
   }
 
+  /**
+   * Space while roping. Hanging on the rope it lets go, keeping every bit of momentum; between
+   * hooks it fires a fresh one along the aim, so a traversal can be strung together in mid-air.
+   */
+  private ropeFire(): void {
+    const action = this.action;
+    const b = this.activeBuddy;
+    if (action?.kind !== 'rope' || !b?.alive) return;
+    if (action.rope) {
+      action.rope = null;
+      this.emit({ type: 'ropeRelease', buddy: b.id });
+      return;
+    }
+    const dir = this.aimDirection(b);
+    const m = this.muzzle(b);
+    action.rope = shootRope(b.id, m.x, m.y, dir.x, dir.y, action.paid);
+    this.emit({ type: 'ropeShot', buddy: b.id, x: m.x, y: m.y });
+  }
+
+  /**
+   * One frame of rope traversal. While a hook flies or bites, the rope moves the buddy and the
+   * ordinary buddy step leaves it alone, so gravity is never applied twice. Between hooks the buddy
+   * simply falls; once it lands the traversal is over and the turn goes back to aiming, with the
+   * timer still running, so the player can still take a shot.
+   */
+  private stepRoping(action: { kind: 'rope'; rope: Rope | null; paid: boolean }, b: Buddy, dt: number): void {
+    const rope = action.rope;
+    if (!rope) {
+      stepBody(this.terrain, b.body, dt, null);
+      if (b.body.grounded && b.body.restTime > 0.2) this.endRoping();
+      this.checkRopeBounds(b);
+      return;
+    }
+    const i = this.input;
+    const reel = Number(i.down) - Number(i.up);
+    const swing = Number(i.right) - Number(i.left);
+    const before = rope.state;
+    const result = stepRope(this.terrain, rope, b.body, dt, reel, swing);
+    if (result === 'attached' && before === 'flying') {
+      this.emit({ type: 'ropeBite', buddy: b.id, x: rope.hook.x, y: rope.hook.y });
+      // The use is spent now, not when the hook was fired: a miss costs nothing.
+      if (!action.paid) {
+        action.paid = true;
+        rope.paid = true;
+        const team = this.activeTeamData;
+        if (team) team.ammo.rope = Math.max(0, team.ammo.rope - 1);
+      }
+    } else if (result === 'missed' || result === 'detached') {
+      action.rope = null;
+      if (result === 'detached') this.emit({ type: 'ropeRelease', buddy: b.id });
+    }
+    this.checkRopeBounds(b);
+  }
+
+  /**
+   * The ordinary buddy step is skipped during a traversal, so the water and the map edges have to
+   * be checked here too — otherwise a buddy that let go over the sea would fall for ever.
+   */
+  private checkRopeBounds(b: Buddy): void {
+    if (b.body.y < this.terrain.waterLevel - 0.4 || b.body.x < -30 || b.body.x > this.terrain.width + 30) {
+      this.action = null;
+      this.drown(b);
+    }
+  }
+
+  /** Back to ordinary control after a rope traversal, with the turn timer still running. */
+  private endRoping(): void {
+    this.action = null;
+    if (this.phase === 'roping') this.setPhase('aiming');
+  }
+
   /** Blow up whatever is being guided: the hopping or the flying sheep. */
   private detonateGuided(): void {
     const guided = this.action;
@@ -1019,6 +1122,14 @@ export class Game {
       case 'drilling':
         this.turnTimeLeft -= dt;
         if (this.turnTimeLeft <= 0) this.endTurnEarly();
+        break;
+      case 'roping':
+        this.turnTimeLeft -= dt;
+        // Out of time: the rope lets go and the buddy falls where it is, like any other tool.
+        if (this.turnTimeLeft <= 0) {
+          this.action = null;
+          this.endTurnEarly();
+        }
         break;
       case 'retreat':
         this.retreatLeft -= dt;
@@ -1113,7 +1224,8 @@ export class Game {
     this.charge = null;
     if (!b || !team || this.phase !== 'aiming') return;
     const def = WEAPONS[this.weapon];
-    if (this.shotsLeft === def.shots) team.ammo[def.id] -= 1;
+    // A rope only costs a use once its hook actually bites, so a miss is free.
+    if (this.shotsLeft === def.shots && def.kind !== 'rope') team.ammo[def.id] -= 1;
     this.shotsLeft--;
 
     const dir = this.aimDirection(b);
@@ -1142,6 +1254,13 @@ export class Game {
     } else if (def.kind === 'torch') {
       this.action = { kind: 'torch', dx: dir.x, dy: dir.y, left: def.fuse, carveIn: 0, burnt: [] };
       this.setPhase('torching');
+      return;
+    } else if (def.kind === 'rope') {
+      // A utility, not the turn's shot: the buddy may still fire a weapon once it has landed.
+      this.shotsLeft = def.shots;
+      this.action = { kind: 'rope', rope: shootRope(b.id, m.x, m.y, dir.x, dir.y, false), paid: false };
+      this.emit({ type: 'ropeShot', buddy: b.id, x: m.x, y: m.y });
+      this.setPhase('roping');
       return;
     } else if (def.kind === 'mine') {
       const mine = placeMine(this.nextId++, b.id, b.team, b.body.x + b.facing * 0.5, b.body.y);

@@ -37,7 +37,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 
 ## Weapons
 
-Eighteen weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
+Nineteen weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
 
 | Weapon                        | Ammo | Behaviour                                                                                                            |
 | ----------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
@@ -59,6 +59,29 @@ Eighteen weapons. _Special_ weapons can be restricted to crates with the arsenal
 | Drill                         | 2    | Drills straight down 3 s, obeys gravity, no fall damage while drilling                                               |
 | Napalm Strike (special)       | 1    | Click a target: wind-blown napalm sets the ground aflame for about 5 s; flames make buddies hop, water puts them out |
 | Proximity Mine (special)      | 2    | Dropped at the buddy's feet; arms after 1.5 s, then goes off 1 s after any living buddy comes within 2 units         |
+| Rope (special)                | 3    | Hook into rock within 24 units, then hang, reel, swing and let go; a miss costs nothing                              |
+
+## Rope
+
+Space shoots a hook along the aim line. It sweeps to the first rock it meets within 24 world units
+and bites there; a hook that hits nothing costs no use, so only a successful attachment spends one of
+the three per team. While hanging, Up and Down reel the rope in and out between 1.2 and 24 units at
+6 units a second, and Left and Right add sideways acceleration to build a swing. Space lets go with
+every bit of momentum intact, and Space again shoots a fresh hook in mid-air — the rest of that
+traversal is free.
+
+The rope is modelled as a length constraint around the last corner it bends over. A slack rope pushes
+nothing; when taut, the buddy is held on the circle and only the radial speed it is not allowed to
+have is taken away, so a swing keeps its tangential momentum and reeling can still pull it in. The
+rope wraps a new corner when its straight run to the buddy is blocked and gives one up again when the
+run is clear with room to spare, so a corner cannot chatter. The total paid-out length is preserved
+when the path changes. If the rock the hook bit into is blasted away, or the path needs more corners
+than the solver will carry, the rope simply lets go.
+
+Roping is not the turn's shot: once the buddy lands, control returns to ordinary aiming with the turn
+timer still running, and a weapon can be fired from wherever the rope left it. Firing while attached
+is deliberately not supported — let go first. AI rope use is not part of this release; the AI never
+selects the rope.
 
 ## Mines
 
@@ -89,8 +112,9 @@ Following the last control decision made in the 2D prototype:
 | Backspace                             | Back-flip (high jump)                                                       |
 | ↑ / ↓                                 | Aim                                                                         |
 | Space (hold/release)                  | Charge and fire; instant weapons fire on press; Space again detonates sheep |
-| 1–9, 0, Shift+1–8 / Tab               | Select weapon (or click the weapon bar)                                     |
+| 1–9, 0, Shift+1–9 / Tab               | Select weapon (or click the weapon bar)                                     |
 | ← / → while aiming a plane strike     | Choose the side the plane flies in from, without moving the buddy           |
+| ↑ / ↓ / ← / → on the rope             | Reel the rope in and out, swing left and right                              |
 | Click on the map                      | Call the air strike, napalm strike or concrete mule                         |
 | Arrow keys while a flying sheep flies | Steer it towards that direction                                             |
 | Mouse wheel / drag                    | Zoom / pan camera                                                           |

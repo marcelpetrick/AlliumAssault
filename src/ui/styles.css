@@ -860,10 +860,10 @@ kbd {
   gap: 3px;
 }
 
-/* Eighteen of these have to sit on one row at 1280 px without shrinking their text. */
+/* Nineteen of these have to sit on one row at 1280 px without shrinking their text. */
 .slot {
   position: relative;
-  width: 44px;
+  width: 42px;
   height: 52px;
   padding: 4px 2px 2px;
   border-radius: 12px;

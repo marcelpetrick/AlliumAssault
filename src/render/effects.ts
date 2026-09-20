@@ -90,6 +90,7 @@ export class Effects {
   private readonly planes: PlaneView[] = [];
   private readonly crates = new Map<number, CrateView>();
   private readonly mines = new Map<number, MineView>();
+  private rope: Mesh | null = null;
   private readonly graves = new Map<number, GraveView>();
   private readonly strikeCursor: Mesh;
   private flame: ParticleSystem | null = null;
@@ -140,6 +141,7 @@ export class Effects {
       tracer: mat('fxTracer', '#ffe27a', 1),
       mineShell: mat('fxMineShell', '#4c5157', 0.05),
       mineLight: mat('fxMineLight', '#ff2d2d', 1),
+      rope: mat('fxRope', '#d8c08a', 0.1),
     };
 
     this.strikeCursor = MeshBuilder.CreateTorus('strikeCursor', { diameter: 1.2, thickness: 0.09, tessellation: 32 }, scene);
@@ -375,6 +377,20 @@ export class Effects {
     part(MeshBuilder.CreateTorus('mineRim', { diameter: 0.56, thickness: 0.07, tessellation: 18 }, this.scene), this.materials.metal, 0.02);
     const light = part(MeshBuilder.CreateSphere('mineLight', { diameter: 0.16, segments: 8 }, this.scene), this.materials.mineLight, 0.17);
     return { node, light };
+  }
+
+  /** The rope: a tube through the anchor, every corner it bends around, and the buddy. */
+  syncRope(game: Game): void {
+    const path = game.ropeLine();
+    if (!path || path.length < 2) {
+      this.rope?.setEnabled(false);
+      return;
+    }
+    const points = path.map((p) => new Vector3(p.x, p.y, 0));
+    this.rope = MeshBuilder.CreateTube('rope', { path: points, radius: 0.055, tessellation: 6, updatable: true, instance: this.rope ?? undefined }, this.scene);
+    this.rope.material = this.materials.rope;
+    this.rope.isPickable = false;
+    this.rope.setEnabled(true);
   }
 
   /** Blowtorch flame at the nozzle, pointing along the burn line, while the torch burns. */

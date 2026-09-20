@@ -242,6 +242,9 @@ export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: Wea
 /**
  * Choose the best attack for `me`. With `only` set, just that weapon is considered — used when a
  * multi-shot weapon is already in use and cannot be switched.
+ *
+ * The rope is deliberately absent: rope path planning is its own problem and is not part of this
+ * release. Nothing here can pick the `rope` kind up, so an AI never strands itself holding one.
  */
 export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only?: WeaponId): AttackPlan {
   const cfg = LEVELS[level];

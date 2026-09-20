@@ -2,7 +2,7 @@
 
 Requested on 2026-09-19; recorded in version 1.33.2, researched in 1.33.3 and planned in 1.33.4.
 Section 7 was added on 2026-09-20 from a separate request to review the AI opponents.
-Tasks 0, 1, 3, 4, 5, 6 and 7 are implemented; only 2 (the rope) remains open. Progress is also tracked in
+Every task in this file is implemented. Progress is also tracked in
 [tasks.md](tasks.md); the [planning handoff](#planning-handoff) lists proposed decisions and order.
 
 ## 0. Review text size everywhere, especially the weapon bar — done in 1.33.5
@@ -85,58 +85,124 @@ itself after an immediate change. `Menu` keeps the last persisted custom setup s
 session draft, so resizing a Quick Match cannot overwrite the custom setup. The browser regression
 checks the frozen timer, pause screen, immediate Huge HUD, stored values, resume and reload flow.
 
-## 2. Design and implement the rope, in the style of Worms 2
+## 2. Design and implement the rope, in the style of Worms 2 — done in 1.39.0
 
-- [ ] Add a selectable rope that shoots a hook into terrain, attaches within a maximum range,
+- [x] Add a selectable rope that shoots a hook into terrain, attaches within a maximum range,
       and lets the active garlic buddy hang, climb, descend and swing.
-- [ ] Use Space to shoot, detach and shoot again; Up/Down to shorten/lengthen the rope within
+- [x] Use Space to shoot, detach and shoot again; Up/Down to shorten/lengthen the rope within
       minimum/maximum length; Left/Right to build swing. Preserve momentum on release.
-- [ ] Define and document hook speed/range, rope length limits, reel speed, swing acceleration,
+- [x] Define and document hook speed/range, rope length limits, reel speed, swing acceleration,
       damping, ammo rules and turn behavior before balancing. These are proposed game parameters,
       not verified numerical values from Worms 2.
-- [ ] Support repeated attachment while airborne. Decide how weapon selection and firing from
+- [x] Support repeated attachment while airborne. Decide how weapon selection and firing from
       the rope work: the original uses Enter to fire a selected weapon while attached, which
       needs explicit context handling alongside this game's Enter-to-jump control.
 
 ### Physics and terrain constraints
 
-- [ ] Keep the simulation in pure TypeScript under `src/core/`, using the existing gameplay
+- [x] Keep the simulation in pure TypeScript under `src/core/`, using the existing gameplay
       plane and fixed 60 Hz stepping. Render the hook and rope as real 3D geometry.
-- [ ] Sweep the hook path to the first valid terrain contact; prevent tunneling through thin
+- [x] Sweep the hook path to the first valid terrain contact; prevent tunneling through thin
       rock, attachment beyond range, or attachment to water, empty space or decorative meshes.
-- [ ] Model an anchored rope as a length constraint. A slack rope must not push the buddy away
+- [x] Model an anchored rope as a length constraint. A slack rope must not push the buddy away
       from its anchor. When taut, constrain distance and the outward radial velocity while
       retaining tangential momentum; account for changing length during reeling.
-- [ ] Combine gravity, controlled swing forces and collision response with substeps and bounded
+- [x] Combine gravity, controlled swing forces and collision response with substeps and bounded
       constraint iterations. Avoid artificial energy gains, explosive velocities, NaNs and
       teleporting when the rope becomes taut or reaches minimum length.
-- [ ] Resolve buddy contacts with floors, walls, ceilings and ledges together with the rope
+- [x] Resolve buddy contacts with floors, walls, ceilings and ledges together with the rope
       constraint. Reeling must stop safely when terrain blocks the buddy.
-- [ ] Handle rope contact with terrain corners using wrap/unwrap pivots and total path length.
+- [x] Handle rope contact with terrain corners using wrap/unwrap pivots and total path length.
       Prevent the rope from passing through rock; use stable tolerances to avoid corner jitter.
-- [ ] Revalidate anchors and pivots after terrain destruction. Release or update invalid
+- [x] Revalidate anchors and pivots after terrain destruction. Release or update invalid
       attachments deterministically, preserving motion without trapping the buddy in rock.
-- [ ] Define fall and impact damage while attached and after release, drowning, map bounds,
+- [x] Define fall and impact damage while attached and after release, drowning, map bounds,
       explosions/knockback, owner death, turn expiry, pause/resume and match cleanup.
 
 ### Integration and acceptance
 
-- [ ] Integrate attachment/flight state with `TurnAction`, `stepAction()` and the relevant phase
+- [x] Integrate attachment/flight state with `TurnAction`, `stepAction()` and the relevant phase
       sets. Ensure the ordinary buddy step does not also apply conflicting movement or gravity.
       Keep rope traversal on the turn timer and restore normal control after detaching.
-- [ ] Append the weapon to `WEAPON_ORDER` without shifting existing hotkeys; extend weapon kind,
+- [x] Append the weapon to `WEAPON_ORDER` without shifting existing hotkeys; extend weapon kind,
       ammo and presentation data, held model, rendering, sound, HUD/help, README and VISION.
-- [ ] Define AI behavior explicitly; existing projectile/strike/melee planning does not provide
+- [x] Define AI behavior explicitly; existing projectile/strike/melee planning does not provide
       rope navigation automatically.
-- [ ] Unit-test hook hits/misses, length limits, slack/taut transitions, reeling, swing/release
+- [x] Unit-test hook hits/misses, length limits, slack/taut transitions, reeling, swing/release
       momentum, corners, high speeds, destroyed anchors, damage and turn transitions.
-- [ ] Add E2E coverage for shooting, climbing, descending to maximum length, swinging,
+- [x] Add E2E coverage for shooting, climbing, descending to maximum length, swinging,
       detaching/re-attaching and returning to ordinary play. Compare the feel with Worms 2.
 
 Reference: the [archived Team17 Worms 2 controls](https://w2.worms2d.info/main.html?area=cont&page=abou)
 confirm arrow-key swing/reeling, Space release/repeat firing and Enter weapon use while attached.
 The solver above is a proposed implementation for this repo; matching the original feel still
 requires playtesting.
+
+### Implemented in 1.39.0
+
+`src/core/rope.ts` is pure TypeScript with no Babylon or DOM. Agreed parameters, all proposals for
+this game rather than measured Worms 2 values: hook speed 40, maximum range and paid-out length 24,
+minimum length 1.2, reel speed 6, swing acceleration 26, a gentle 0.25/s drag, four constraint
+substeps a frame, at most eight corners.
+
+**Hook.** `stepHook()` sweeps in 0.12-unit steps, so it cannot tunnel through thin rock, and bites at
+the first solid sample. It gives up beyond 24 units from the buddy, in water, off the map or after
+its flight time, and a miss costs no use. The team pays one of its three uses only when the hook
+actually bites, so `Game.fire()` skips the usual ammo decrement for the rope kind.
+
+**Constraint.** The rope is a length constraint around the last pivot. `S` is the pinned length from
+the anchor through the earlier corners, and the allowance is `max(ROPE_MIN, L - S)`. Slack pushes
+nothing. When taut the buddy is placed on the circle and only the radial speed above the current
+pay-out rate is removed, so tangential momentum survives and reeling still pulls it in; at the
+minimum the sign is reversed so it cannot pass through its own anchor. `stepFree()` in `physics.ts`
+integrates and resolves terrain contacts without walking, sticking or grounded damping, which is why
+floors, walls, ceilings and ledges all still stop the buddy.
+
+**Corners.** `updatePivots()` adds a corner when the straight run from the last pivot to the buddy is
+blocked, placing it at the last clear sample pushed `PIVOT_CLEARANCE` out along the terrain normal,
+and drops one again when the previous pivot has a clear run with `UNWRAP_MARGIN` to spare — the
+hysteresis is what stops a corner chattering. `L` is untouched when the path changes, so the total
+paid-out length is preserved and the allowance grows and shrinks with `S`.
+
+**Failure behaviour.** If the rock the hook bit into is no longer solid, or the path would need more
+than eight corners, the rope lets go rather than solving badly or dragging the buddy through rock.
+Every outcome is deterministic: a test runs the same traversal twice and compares positions,
+velocities and corner counts exactly.
+
+**Turn integration.** A `{ kind: 'rope', rope, paid }` `TurnAction` and a `roping` phase, in both
+`COUNTDOWN_PHASES` and `ACTION_PHASES`, so the turn clock runs and hurting the buddy still ends the
+turn. `stepBuddies()` skips the buddy the rope is moving, so gravity is never applied twice, and
+`stepRoping()` drives it instead. Between hooks the buddy simply falls; once it lands the traversal
+ends and the phase returns to `aiming` with the timer still running. Roping is not the turn's shot —
+`fire()` restores `shotsLeft` — so the player lands and then fires a weapon. `checkRopeBounds()` is
+applied in both branches: without it a buddy that let go over the sea fell for ever, which is what
+the drowning test caught. Running out of time drops the rope and ends the turn; `pause()` now clears
+held keys and the game's input so a rope does not keep reeling on resume.
+
+**Decided: no firing while attached.** The original uses Enter for that, which collides with
+Enter-to-jump here, and `TurnAction` carries one timed action at a time. Let go, land, then fire. This
+is a deliberate rule, not an oversight.
+
+**AI: deferred.** `planAttack()` has no rope branch and says so in its own comment, so an AI can
+never select one and never strands itself holding a utility it cannot use. Rope path planning is its
+own problem and is not part of this release.
+
+**Presentation.** A held gun and coil in `buddyView.ts`; the rope itself is an updatable Babylon tube
+through the anchor, every corner and the buddy, rebuilt each frame from `Game.ropeLine()`;
+`hookShot`, `hookBite` and `reel` sounds; a HUD hint that changes between hanging and between hooks.
+Weapon slots are two pixels narrower again so all nineteen still fit one row at 1280 px.
+
+**Coverage.** `tests/rope.test.ts` has twelve cases: biting within range and paying out what it flew,
+a free miss, reeling at the measured speed and both length limits, a swing that builds and then never
+gains energy over six cycles hands-off, letting go with the exact velocity and a free second hook,
+wrapping and unwrapping around a pillar with the buddy never inside rock, a blasted anchor, landing
+back into aiming and firing a bazooka afterwards, turn expiry mid-swing resolving the turn, drowning
+out at sea, byte-identical determinism, and catching a buddy already falling at 34 units a second
+without a teleport or a NaN. The browser test hooks a slab overhead, reels, swings, reads the hint,
+lets go, lands and fires.
+
+**Still empirical.** The numbers above are a starting point, not a match for Worms 2's feel; that
+needs playtesting. Corner wrapping is this repo's own design, not a reproduction of the original's.
 
 Further architecture finding: `TurnAction` explicitly permits only one timed weapon action.
 Putting the whole rope lifecycle in that union would conflict with firing another timed weapon

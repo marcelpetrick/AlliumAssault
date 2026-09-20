@@ -492,6 +492,75 @@ test('sheep: baa on release, hops away, Space blows it up', async ({ page }, inf
   expect(errors).toEqual([]);
 });
 
+test('rope: Shift+9 hooks the rock overhead, then reel, swing and let go', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  const before = await state(page);
+  // Give the buddy something to hook: a slab of rock well above its head.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const me = g.activeBuddy!;
+    for (let x = me.body.x - 10; x <= me.body.x + 10; x += 0.8) g.terrain.addDisc(x, me.body.y + 14, 1.6);
+  });
+  await select(page, 'Shift+9', 'rope');
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.activeBuddy!.aim = Math.PI / 2 - 0.01;
+    g.face(1);
+  });
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.phase === 'roping', 10_000);
+  await waitForSound(page, 'hookShot');
+  await fastForward(page, 0.5);
+  await waitForSound(page, 'hookBite');
+  const hooked = await state(page);
+  expect(hooked.rope!.state).toBe('attached');
+  expect(hooked.rope!.pivots).toBe(1);
+  // One use spent, and only once the hook actually bit.
+  expect(hooked.ammo!.rope).toBe(before.ammo!.rope - 1);
+
+  // Reel up, then swing sideways. Held keys only reach the game on a rendered frame, and those come
+  // about twice a second here, so the traversal is driven through the input the key handler sets.
+  const startY = (await me(page)).y;
+  await page.evaluate(() => {
+    window.__allium.app.game!.input.up = true;
+  });
+  await fastForward(page, 1.2);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.input.up = false;
+    g.input.right = true;
+  });
+  await fastForward(page, 1.5);
+  await page.evaluate(() => {
+    window.__allium.app.game!.input.right = false;
+  });
+  const swung = await me(page);
+  expect(swung.y).toBeGreaterThan(startY + 3);
+  await page.evaluate(() => {
+    window.__allium.stepFrames(10, 1 / 30);
+  });
+  await info.attach('rope', { body: await page.screenshot(), contentType: 'image/png' });
+  await expect(page.locator('.hint')).toContainText('reel');
+
+  // Space lets go and keeps the momentum; landing hands control back with the turn still running.
+  const hanging = await me(page);
+  await page.keyboard.press('Space');
+  const loose = await state(page);
+  expect(loose.rope).toBeNull();
+  expect(loose.phase).toBe('roping');
+  await fastForward(page, 4);
+  const landed = await state(page);
+  expect(landed.phase).toBe('aiming');
+  expect(landed.turnTimeLeft).toBeGreaterThan(0);
+  expect(Math.abs(landed.buddies.find((b) => b.name === hanging.name)!.x - hanging.x)).toBeGreaterThan(0.5);
+  // And a weapon still fires afterwards: the rope is a way of getting about, not the turn's shot.
+  await select(page, '1', 'bazooka');
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.projectiles > 0 || s.phase === 'retreat', 15_000);
+  expect(errors).toEqual([]);
+});
+
 test('proximity mine: Shift+8 drops it, it arms with a click and blows up whoever comes near', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

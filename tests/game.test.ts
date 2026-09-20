@@ -870,7 +870,8 @@ describe('weapon hotkeys', () => {
     expect(weaponForKey(0, false)).toBe(WEAPON_ORDER[9]);
     expect(weaponForKey(1, true)).toBe(WEAPON_ORDER[10]);
     expect(weaponForKey(0, true)).toBeNull();
-    expect(weaponForKey(9, true)).toBeNull();
+    // Shift+9 is the last shifted slot there is; nothing beyond it can be bound.
+    expect(weaponForKey(9, true)).toBe(WEAPON_ORDER[18]);
     WEAPON_ORDER.forEach((id, k) => {
       const label = hotkeyLabel(k);
       const shift = label.startsWith('⇧');
@@ -1288,8 +1289,7 @@ describe('proximity mines', () => {
     expect(restingY).toBeGreaterThan(g.terrain.waterLevel);
   });
 
-  it('appears last in the weapon order, so no existing hotkey moved', () => {
-    expect(WEAPON_ORDER[WEAPON_ORDER.length - 1]).toBe('mine');
+  it('is bound to Shift+8, so no existing hotkey moved', () => {
     expect(weaponForKey(8, true)).toBe('mine');
     expect(weaponForKey(7, true)).toBe('napalm');
     expect(weaponForKey(1, false)).toBe('bazooka');

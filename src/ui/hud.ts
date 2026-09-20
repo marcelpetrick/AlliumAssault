@@ -3,7 +3,7 @@
 
 import type { Game, GameEvent, Phase } from '../core/game';
 import { query, queryAs } from './dom';
-import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
+import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from '../core/weapons';
 import type { World } from '../render/world';
 
 interface Floater {
@@ -209,28 +209,7 @@ export class Hud {
     const ammo = team?.ammo[g.weapon] ?? 0;
     this.text('.weapon-name', `${def.icon} ${def.name}${ammo === Infinity ? '' : ` ×${ammo}`}`);
     this.text('.weapon-blurb', def.blurb);
-    this.text(
-      '.hint',
-      g.phase === 'gameOver'
-        ? 'Match over'
-        : !human
-          ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
-          : def.kind === 'strike' && g.phase === 'aiming'
-            ? `Click on the map to drop the ${def.name.toLowerCase()}${g.choosingApproach ? ` · ← → plane comes in from the ${g.strikeDir > 0 ? 'left' : 'right'}` : ''} · Esc menu`
-            : g.phase === 'firing'
-              ? 'Rat-a-tat-tat! 🔩'
-              : g.phase === 'drilling'
-                ? 'Drilling down… ⛏️'
-                : g.phase === 'torching'
-                  ? 'Burning through the rock… 🔥'
-                  : g.phase === 'guiding'
-                    ? g.flyer
-                      ? 'Arrow keys steer the flying sheep · Space to blow it up! 🦸'
-                      : 'Space to blow up the sheep! 🐑'
-                    : retreat
-                      ? 'Run! ← → walk · Enter jump · Backspace back-flip'
-                      : `${def.charge ? 'Hold Space to charge, release to fire' : def.kind === 'walker' ? 'Space to release the sheep' : def.kind === 'torch' ? 'Space to light the blowtorch' : def.kind === 'drill' ? 'Space to start drilling' : 'Space to strike'} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`,
-    );
+    this.text('.hint', this.hint(g, def, team?.config.name, human, retreat));
 
     // Name tags follow buddies; HP counts down Worms-style.
     for (const b of g.buddies) {
@@ -290,6 +269,38 @@ export class Hud {
 
     this.bannerTime -= dt;
     this.bannerEl.classList.toggle('show', this.bannerTime > 0);
+  }
+
+  /** One line of help for whatever the player can do right now. */
+  private hint(g: Game, def: WeaponDef, teamName: string | undefined, human: boolean, retreat: boolean): string {
+    if (g.phase === 'gameOver') return 'Match over';
+    if (!human) return `🤖 ${teamName ?? 'AI'} is plotting…`;
+    if (def.kind === 'strike' && g.phase === 'aiming') {
+      const side = g.choosingApproach ? ` · ← → plane comes in from the ${g.strikeDir > 0 ? 'left' : 'right'}` : '';
+      return `Click on the map to drop the ${def.name.toLowerCase()}${side} · Esc menu`;
+    }
+    if (g.phase === 'firing') return 'Rat-a-tat-tat! 🔩';
+    if (g.phase === 'drilling') return 'Drilling down… ⛏️';
+    if (g.phase === 'torching') return 'Burning through the rock… 🔥';
+    if (g.phase === 'roping') return g.rope ? '↑↓ reel · ←→ swing · Space to let go 🪝' : 'Space to shoot the hook again 🪝';
+    if (g.phase === 'guiding') {
+      return g.flyer ? 'Arrow keys steer the flying sheep · Space to blow it up! 🦸' : 'Space to blow up the sheep! 🐑';
+    }
+    if (retreat) return 'Run! ← → walk · Enter jump · Backspace back-flip';
+    const use = def.charge
+      ? 'Hold Space to charge, release to fire'
+      : def.kind === 'walker'
+        ? 'Space to release the sheep'
+        : def.kind === 'torch'
+          ? 'Space to light the blowtorch'
+          : def.kind === 'drill'
+            ? 'Space to start drilling'
+            : def.kind === 'rope'
+              ? 'Space to shoot the hook'
+              : def.kind === 'mine'
+                ? 'Space to drop the mine, then run'
+                : 'Space to strike';
+    return `${use} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`;
   }
 
   private banner(title: string, sub: string, color: string): void {
