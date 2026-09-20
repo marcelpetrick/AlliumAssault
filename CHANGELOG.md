@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.34.2] — 2026-09-20
+
+### Changed
+
+- Documented a review of the AI opponents in `todo.md`: what the three levels already do, why they
+  ignore crate contents, chained crate explosions and which enemy team is ahead, and a ranked
+  backlog for improving them.
+
 ## [1.34.1] — 2026-09-20
 
 ### Fixed

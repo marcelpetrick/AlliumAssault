@@ -74,6 +74,8 @@ Status: ☐ open · ☑ done
 | T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☐      | Planned        |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☑      | 1.34.1         |
+| T63 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
+| T64 | Implement the reviewed AI improvements                                                                    | ☐      | Planned        |
 | T62 | Continue backlog research with browser layout checks and normal-throw grenade diagnostics                 | ☑      | 1.33.3         |
 | T63 | Finish planning research and prepare the backlog for an implementation decision                           | ☑      | 1.33.4         |
 
@@ -448,6 +450,16 @@ surface with whatever velocity survives, and Coulomb friction bounded by the one
 load lets a slope actually hold it while leaving genuine bounces to skitter as before. In the
 documented 216-throw matrix the fallback cases dropped from 117 to 4, and those four are a grenade
 genuinely rolling down a 45° slope with a tailwind, which the fallback exists for.
+
+### T63/T64 — AI opponent review ☑/☐
+
+Reviewed in 1.34.2 and written up in [7. Review and strengthen the AI opponents](todo.md#7-review-and-strengthen-the-ai-opponents).
+The three levels already differ in search resolution and aim noise, and the AI does fetch crates,
+but it never reads a crate's contents or its own health when deciding to, never scores the chained
+crate explosion that `Game.explode()` actually produces, and treats every enemy team alike. The
+review also found that `simulateShot()` omits the crate `hitTest` the real game applies to contact
+fuses, that blast knockback is only scored for melee and minigun, and that the AI never repositions.
+T64 tracks implementing the proposed changes.
 
 ### T62 — Further backlog research ☑
 

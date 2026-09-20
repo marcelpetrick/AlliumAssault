@@ -1,8 +1,8 @@
 # TODO
 
 Requested on 2026-09-19; recorded in version 1.33.2, researched in 1.33.3 and planned in 1.33.4.
-**Planning research is complete. Implementation is explicitly deferred until the user decides
-when to begin.** All seven implementation tasks below remain open. Progress is also tracked in
+Section 7 was added on 2026-09-20 from a separate request to review the AI opponents.
+Tasks 0, 1 and 6 are implemented; 2, 3, 4, 5 and 7 remain open. Progress is also tracked in
 [tasks.md](tasks.md); the [planning handoff](#planning-handoff) lists proposed decisions and order.
 
 ## 0. Review text size everywhere, especially the weapon bar — done in 1.33.5
@@ -335,6 +335,108 @@ generated map, measures the arming age in the browser and asserts the on-screen 
 The separate frame-rate concern below 10 fps is untouched: `App.frame()` still caps `advance()` at
 0.1 seconds, so the simulation runs slower than wall time on very slow machines. That is a
 rendering/timing change with its own tests, not part of this fix.
+
+## 7. Review and strengthen the AI opponents
+
+Requested on 2026-09-20. This section is a **review with a proposed backlog**; no AI behaviour has
+been changed yet. Findings below were read out of `src/core/ai.ts`, `src/core/game.ts` and
+`src/core/crates.ts` as they stand in 1.34.1.
+
+### What the AI already does
+
+- Three levels differ only in search resolution and hand shake: `LEVELS` gives easy 10 angles,
+  5 powers and 0.12 rad aim error; normal 18/8/0.045; hard 28/11/0.012, plus thinking times of
+  1.2/0.9/0.6 seconds. So the harder levels genuinely aim better, and easy genuinely misses more.
+- It brute-forces every projectile weapon over the angle/power grid with `simulateShot()`, which
+  uses the real `stepProjectile()` including wind, gravity scale, restitution and fuses.
+- It scores walking sheep by replaying their hops, air strikes by summing the blast of every bomb
+  in the pattern (with wind drift compensation), flying sheep, torch, drill, self-destruct, melee
+  and hitscan weapons, and it checks line of sight for minigun and shotgun.
+- `knockedOut()` already recognises that a melee or minigun shove can drown a buddy or throw it off
+  the map, and counts that as lethal.
+- Limited ammo costs a handicap (12 points for projectiles, 15 for sheep and flying sheep) so the
+  AI does not burn a Holy Grenade on a shot a bazooka would also make.
+- It does collect crates: `nearbyCrate()` plus the `fetch` stage walks to one and jumps when stuck.
+
+### Answers to the three questions asked
+
+- **Do they collect crates they could reach?** Partly. `nearbyCrate()` only accepts a crate within
+  12 world units horizontally, within 3 units vertically and already grounded, and the `fetch` stage
+  only starts when the best attack scores below `CRATE_WORTH = 15`, at most twice per turn, with more
+  than 12 seconds left. Walking is a blind "hold left or right and jump when stuck" — there is no
+  path check, so a crate behind a wall or across a gap is attempted and abandoned after 6 seconds.
+- **Do they tell health from ammunition?** No. `nearbyCrate()` never reads `crate.kind`, and the
+  decision never reads `me.hp`. A buddy on 8 HP standing next to a health crate will still take a
+  mediocre shot if that shot happens to score 15 or more, and a full-health buddy will walk to a
+  health crate it barely benefits from just as eagerly as to a weapon crate.
+- **Do they shoot crates for extra damage?** No. `Game.explode()` detonates any crate inside the
+  blast with `CRATE_BLAST` (radius 1.8, 10 damage, force 6) and chains, but `scoreBlast()` in the AI
+  iterates only over buddies. The AI therefore never sees a crate next to an enemy as a free second
+  explosion, never notices that its own shot will blow up the crate it was about to fetch, and never
+  notices a crate next to itself turning a near miss into self-damage.
+- **Do they prefer the stronger enemy team?** No. `scoreBlast()` treats every buddy whose `team`
+  differs from its own identically: raw damage plus a flat 40-point bonus when the hit would be
+  lethal. With three or four teams there is no notion of which team is ahead on total health, no
+  focus fire on a nearly eliminated team, and no reluctance to help the leader by weakening a rival.
+
+### Further defects and opportunities found while reviewing
+
+- **Prediction mismatch:** `Game.stepProjectiles()` gives contact-fused weapons a `hitTest` that
+  matches buddies _and crates_, but `simulateShot()` in the AI builds the same test from buddies
+  only. The AI can therefore plan a rocket straight through a crate that will in fact stop it short.
+- **Knockback is only scored for melee and minigun.** A bazooka or grenade that would shove an
+  enemy into the water scores as plain damage, so the AI misses the cheapest kills on this map type.
+- **No repositioning.** Apart from fetching a crate, the AI never walks, jumps or back-flips to
+  improve a shot, break line of sight, or step out of a blast it is standing in. If every shot from
+  where it stands is bad, it takes the least bad one.
+- **No terrain reasoning about the ground it stands on.** It will happily blast the rock under its
+  own feet, and never considers digging an enemy's support away to drop them into the water.
+- **No memory across turns.** `AiDriver.reset()` clears everything each turn, so the AI cannot
+  learn a wind-corrected aim from its previous miss or finish a crate run it began last turn.
+- **Retreat is minimal:** it scurries for one second, only after a contact-fused weapon, and only
+  directly away from its own facing, regardless of where the blast or the enemies actually are.
+- **Sudden death and the turn clock** are only consulted for the sheep budget and the crate-fetch
+  gate; the AI does not play more aggressively when health drops to `SUDDEN_DEATH_HP`.
+- **Level differentiation is purely mechanical.** Easy and hard evaluate the same tactics with the
+  same knowledge; only the grid and the noise differ. Crate awareness, target selection and
+  knockback reasoning would be more convincing as knowledge the higher levels have and easy lacks.
+
+### Proposed work, roughly in order of value per risk
+
+- [ ] Teach `scoreBlast()` about crates: add the chained `CRATE_BLAST` of every crate inside the
+      radius, credited to whoever it would hit, so shooting a crate beside an enemy is rewarded and
+      one beside a friend is penalised. Keep the chain bounded and deterministic.
+- [ ] Give `simulateShot()` the same crate `hitTest` the game uses, so contact fuses are predicted
+      correctly.
+- [ ] Make crate fetching need-aware: read `crate.kind`, weigh a health crate by the missing health
+      of the buddy (and by `CRATE_HEAL`), weigh a weapon crate by what the team is short of, and let
+      a badly hurt buddy prefer healing over a mediocre attack instead of using one fixed threshold.
+- [ ] Replace the blind walk with a reachability check along the surface, so the AI only commits to
+      a crate it can actually walk to within the remaining turn time, and give up earlier otherwise.
+- [ ] Score knockback for blasts as well: reuse `knockedOut()` with the explosion's force vector for
+      enemies near the blast, and subtract the same for friends and for itself.
+- [ ] Add team-level target selection: weight each enemy by its team's remaining total health so the
+      AI presses the leading team, and prefer finishing a team that is one buddy from elimination.
+      Decide the exact rule and make it visible in the scoring, not hidden in tie-breaks.
+- [ ] Consider a short repositioning step before aiming at hard level: sample a few reachable
+      standing spots and re-plan from the best one, bounded by turn time.
+- [ ] Gate the new knowledge by level, so easy stays cheerfully bad: crate contents and team
+      targeting for normal and hard, knockback and repositioning for hard only.
+- [ ] Unit-test each rule in isolation with deterministic terrain and seeds: a crate beside an enemy
+      raises the score, a crate beside a friend lowers it, a hurt buddy fetches the health crate, a
+      healthy buddy does not, the leading team is preferred, and every level still finishes a turn.
+- [ ] Add E2E coverage that an AI match plays to a finish at every level without stalling, and that
+      an AI buddy visibly picks up a health crate when badly hurt.
+
+### Risks
+
+- The AI runs inside the turn loop; `planAttack()` already brute-forces up to 28 x 11 x 2 shots per
+  projectile weapon. Crate chains, knockback simulation and repositioning all multiply that. Measure
+  the per-turn cost and keep the added work behind the level gates.
+- Scoring changes shift balance for every existing AI test. Expect to re-baseline `tests/game.test.ts`
+  AI expectations and to check that easy still misses often enough to be fun.
+- Blast chains must not recurse: `Game.explode()` removes a crate before detonating it, and any AI
+  estimate must use the same rule rather than a second, divergent model.
 
 ## Planning handoff
 
