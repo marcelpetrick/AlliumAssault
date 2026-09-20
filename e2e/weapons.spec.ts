@@ -496,11 +496,13 @@ test('rope: Shift+9 hooks the rock overhead, then reel, swing and let go', async
   const errors = await boot(page);
   await startDuel(page);
   const before = await state(page);
-  // Give the buddy something to hook: a slab of rock well above its head.
+  // Give the buddy something to hook: a slab of rock well above its head, with a stub hanging off
+  // it to the right so the swing has a corner to wrap the rope around.
   await page.evaluate(() => {
     const g = window.__allium.app.game!;
     const me = g.activeBuddy!;
-    for (let x = me.body.x - 10; x <= me.body.x + 10; x += 0.8) g.terrain.addDisc(x, me.body.y + 14, 1.6);
+    for (let x = me.body.x - 12; x <= me.body.x + 12; x += 0.8) g.terrain.addDisc(x, me.body.y + 13.3, 1.6);
+    for (let y = me.body.y + 5.3; y <= me.body.y + 13.3; y += 0.6) g.terrain.addDisc(me.body.x + 4, y, 1.1);
   });
   await select(page, 'Shift+9', 'rope');
   await page.evaluate(() => {
@@ -525,18 +527,20 @@ test('rope: Shift+9 hooks the rock overhead, then reel, swing and let go', async
   await page.evaluate(() => {
     window.__allium.app.game!.input.up = true;
   });
-  await fastForward(page, 1.2);
+  await fastForward(page, 0.5);
   await page.evaluate(() => {
     const g = window.__allium.app.game!;
     g.input.up = false;
     g.input.right = true;
   });
-  await fastForward(page, 1.5);
+  await fastForward(page, 3);
   await page.evaluate(() => {
     window.__allium.app.game!.input.right = false;
   });
   const swung = await me(page);
-  expect(swung.y).toBeGreaterThan(startY + 3);
+  expect(swung.y).toBeGreaterThan(startY + 1.5);
+  // Swinging past the stub bends the rope around it, which rebuilds the tube with an extra point.
+  expect((await state(page)).rope!.pivots).toBeGreaterThan(1);
   await page.evaluate(() => {
     window.__allium.stepFrames(10, 1 / 30);
   });

@@ -90,7 +90,7 @@ export class Effects {
   private readonly planes: PlaneView[] = [];
   private readonly crates = new Map<number, CrateView>();
   private readonly mines = new Map<number, MineView>();
-  private rope: Mesh | null = null;
+  private rope: { mesh: Mesh; points: number } | null = null;
   private readonly graves = new Map<number, GraveView>();
   private readonly strikeCursor: Mesh;
   private flame: ParticleSystem | null = null;
@@ -383,14 +383,21 @@ export class Effects {
   syncRope(game: Game): void {
     const path = game.ropeLine();
     if (!path || path.length < 2) {
-      this.rope?.setEnabled(false);
+      this.rope?.mesh.setEnabled(false);
       return;
     }
     const points = path.map((p) => new Vector3(p.x, p.y, 0));
-    this.rope = MeshBuilder.CreateTube('rope', { path: points, radius: 0.055, tessellation: 6, updatable: true, instance: this.rope ?? undefined }, this.scene);
-    this.rope.material = this.materials.rope;
-    this.rope.isPickable = false;
-    this.rope.setEnabled(true);
+    // A tube can only be updated in place while it keeps the same number of points, and the rope
+    // gains and loses one every time it wraps or unwraps a corner. Then it has to be rebuilt.
+    if (this.rope && this.rope.points !== points.length) {
+      this.rope.mesh.dispose();
+      this.rope = null;
+    }
+    const mesh = MeshBuilder.CreateTube('rope', { path: points, radius: 0.055, tessellation: 6, updatable: true, instance: this.rope?.mesh }, this.scene);
+    mesh.material = this.materials.rope;
+    mesh.isPickable = false;
+    mesh.setEnabled(true);
+    this.rope = { mesh, points: points.length };
   }
 
   /** Blowtorch flame at the nozzle, pointing along the burn line, while the torch burns. */

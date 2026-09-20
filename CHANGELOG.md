@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.39.2] — 2026-09-20
+
+### Fixed
+
+- The rope no longer crashes the renderer the moment it wraps or unwraps a corner. A Babylon tube
+  can only be updated in place while it keeps the same number of points, and the rope gains one
+  every time it bends around rock, so it is now rebuilt when that count changes.
+
 ## [1.39.1] — 2026-09-20
 
 ### Changed
