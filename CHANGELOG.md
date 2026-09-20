@@ -2,6 +2,46 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.40.0] — 2026-09-20
+
+Public release. Everything below has been in the changelog since 1.33.5; this is the summary that
+ships with the release.
+
+### Added
+
+- **Rope** (Shift+9, three per team). Space shoots a hook up to 24 units into rock; Up and Down reel
+  the rope in and out, Left and Right build a swing, and Space lets go with every bit of momentum —
+  press it again in mid-air to hook on somewhere else, free for the rest of that traversal. A hook
+  that hits nothing costs nothing. The rope bends around corners and gives them up again, and lets
+  go if the rock it bit into is blasted away. Roping is not the turn's shot: land, then fire.
+- **Proximity Mine** (Shift+8, two per team). Dropped at the buddy's feet, it arms while you run and
+  then stays on the map through every turn until a living buddy comes within two units — its own
+  team and the one who laid it included. Rock in between shields a buddy, and a blast sets mines off
+  in a chain.
+- **Air-strike approach side.** Left and Right now choose which side the plane flies in from while a
+  strike is being aimed. The buddy stays put and keeps its facing, and the HUD shows the choice.
+- **Sheep collect crates.** A Sheep or Super Sheep that runs over a crate collects it for the buddy
+  that launched it, without going off. Collection follows the path the sheep really travelled, so a
+  Super Sheep at full speed cannot skip one.
+- **Text size in the pause menu.** Normal, Large and Huge without leaving a running match.
+
+### Changed
+
+- **Smarter AI, by level.** Normal and Hard see that a crate caught in a blast explodes again, weigh
+  a crate by what is in it and by how hurt the buddy is, only walk to crates they can reach, and
+  press the enemy team holding the most health while finishing one down to its last buddy. Hard also
+  sees when a blast would shove an enemy into the water or off the map. Easy plays exactly as before.
+
+### Fixed
+
+- **The Holy Garlic Grenade arms promptly on a slope.** A projectile blocked by terrain used to
+  stand still while still carrying speed, so the countdown only started on the ten-second emergency
+  fuse. Contacts now slide along the surface and friction lets a hillside hold them.
+- The AI no longer plans contact-fused shots through a supply crate that would stop them.
+- Menus and the HUD stay readable and reachable at every text size.
+- The AI-vs-AI browser test no longer depends on how many frames slip between its own calls, which
+  made it fail about one run in ten.
+
 ## [1.39.2] — 2026-09-20
 
 ### Fixed

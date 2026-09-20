@@ -78,6 +78,7 @@ Status: ☐ open · ☑ done
 | T63 | Finish planning research and prepare the backlog for an implementation decision                           | ☑      | 1.33.4         |
 | T65 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
 | T66 | Implement the reviewed AI improvements                                                                    | ☑      | 1.37.0         |
+| T67 | Public release v1.40.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.40.0         |
 
 ## Answered questions
 
@@ -491,6 +492,13 @@ surface with whatever velocity survives, and Coulomb friction bounded by the one
 load lets a slope actually hold it while leaving genuine bounces to skitter as before. In the
 documented 216-throw matrix the fallback cases dropped from 117 to 4, and those four are a grenade
 genuinely rolling down a 45° slope with a tailwind, which the fallback exists for.
+
+### T67 — Public release v1.40.0 ☑
+
+Requested on 2026-09-20 once the whole backlog was implemented and reviewed. Pushed `master`, then
+pushed the single tag `v1.40.0`, which runs `.github/workflows/release.yml`: verify, zip the static
+build with its checksum, and publish a GitHub release whose notes come from the 1.40.0 changelog
+section. Pages deploys from the same push.
 
 ### T65/T66 — AI opponent review and improvements ☑
 

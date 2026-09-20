@@ -107,15 +107,27 @@ test('AI vs AI match reaches the victory screen and offers a rematch', async ({ 
       theme: 'night',
     });
   });
+  // Hold the render loop so the match advances only by the amounts this test asks for: otherwise
+  // the frames that slip between these calls decide how much was simulated, and the run varies.
+  await page.evaluate(() => {
+    window.__allium.setManual(true);
+  });
   for (let round = 0; round < 60 && (await state(page)).phase !== 'gameOver'; round++) {
     await page.evaluate(() => {
       window.__allium.fastForward(15);
     });
   }
   expect((await state(page)).phase).toBe('gameOver');
+  // Frames again, so the two-second pause after the last blast can run and the victory screen open.
+  await page.evaluate(() => {
+    window.__allium.stepFrames(30, 1 / 10);
+  });
   await expect(page.getByText(/wins!|Draw!/)).toBeVisible({ timeout: 90_000 });
   await info.attach('victory', { body: await page.screenshot(), contentType: 'image/png' });
   await page.getByRole('button', { name: /Rematch/ }).click();
+  await page.evaluate(() => {
+    window.__allium.setManual(false);
+  });
   const s = await state(page);
   expect(s.phase).not.toBe('gameOver');
   expect(s.screen).toBeNull();
