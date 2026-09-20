@@ -73,7 +73,7 @@ Status: ☐ open · ☑ done
 | T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☐      | Planned        |
 | T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☐      | Planned        |
-| T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☐      | Planned        |
+| T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☑      | 1.34.1         |
 | T62 | Continue backlog research with browser layout checks and normal-throw grenade diagnostics                 | ☑      | 1.33.3         |
 | T63 | Finish planning research and prepare the backlog for an implementation decision                           | ☑      | 1.33.4         |
 
@@ -437,6 +437,17 @@ The smallest weapon and timer text was raised, and an E2E regression covers all 
 Implemented in 1.34.0. The pause menu now offers Normal, Large and Huge, applies changes while the
 match remains frozen, and persists them across reloads. The menu separately retains the last saved
 custom setup, preventing a text-size change during Quick Match from overwriting those settings.
+
+### T61 — Holy Garlic Grenade arming delay ☑
+
+Fixed in 1.34.1. A projectile whose swept step ran into rock kept the tangential part of its
+velocity but was never moved, so on a slope gravity refilled that velocity every step and the
+grenade sat motionless while reporting 1.4–3.4 units/s — far above the 0.6 arming threshold. It
+therefore only armed on the 10-second emergency fuse. Contacts now slide the projectile along the
+surface with whatever velocity survives, and Coulomb friction bounded by the one-substep contact
+load lets a slope actually hold it while leaving genuine bounces to skitter as before. In the
+documented 216-throw matrix the fallback cases dropped from 117 to 4, and those four are a grenade
+genuinely rolling down a 45° slope with a tailwind, which the fallback exists for.
 
 ### T62 — Further backlog research ☑
 

@@ -36,6 +36,18 @@ export function flatGame(xs: number[], teams: TeamConfig[], overrides: Partial<M
   });
 }
 
+/** A game on a constant slope, with buddies standing on it at the given x positions. */
+export function slopeGame(slope: number, xs: number[], teams: TeamConfig[], overrides: Partial<MatchConfig> = {}): Game {
+  const t = new Terrain(WORLD_WIDTH, WORLD_HEIGHT, WATER_LEVEL);
+  const mid = WORLD_WIDTH / 2;
+  const height = (x: number) => 28 + slope * (x - mid);
+  t.fill((x, y) => (height(x) - y) / Math.hypot(1, slope));
+  return new Game(config(teams, overrides), {
+    terrain: t,
+    spawns: xs.map((x) => ({ x, y: height(x) + 1 })),
+  });
+}
+
 /** Leave a team with only one weapon, so AI tests do not depend on the rest of the arsenal. */
 export function onlyWeapon(game: Game, team: number, weapon: WeaponId): void {
   const ammo = game.teams[team].ammo;

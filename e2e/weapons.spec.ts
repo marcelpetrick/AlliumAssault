@@ -223,6 +223,68 @@ test('holy garlic grenade: comes to rest, sings, then an enormous blast', async 
   expect(errors).toEqual([]);
 });
 
+test('holy garlic grenade on a hillside arms from rest and shows its countdown', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  // Put the buddy on real sloped ground: a contact that rejected its own step used to freeze the
+  // grenade there with metres per second of stored speed, so it only armed on the 10-second fuse.
+  const slope = await page.evaluate(() => {
+    const t = window.__allium.app.game!.terrain;
+    const surface = (x: number) => {
+      let y = t.height - 1;
+      while (y > 1 && !t.isSolid(x, y)) y -= 0.25;
+      return y;
+    };
+    const mid = t.width / 2;
+    for (let d = 0; d < mid - 16; d += 0.5) {
+      for (const x of [mid - d, mid + d]) {
+        const y = surface(x);
+        const tilt = Math.abs(t.normal(x, y).x / t.normal(x, y).y);
+        const room = [-4, -2, 2, 4].every((o) => surface(x + o) > t.waterLevel + 6);
+        if (y > t.waterLevel + 6 && room && tilt > 0.45 && tilt < 0.95) return { x, y, tilt };
+      }
+    }
+    return null;
+  });
+  expect(slope).not.toBeNull();
+  await page.evaluate((spot) => {
+    const b = window.__allium.app.game!.activeBuddy!;
+    b.body.x = spot!.x;
+    b.body.y = spot!.y + 1;
+    b.body.vx = b.body.vy = 0;
+  }, slope);
+  await fastForward(page, 1);
+  await select(page, 'Shift+2', 'holy');
+  await aim(page, 1.2, 1);
+  await chargeAndRelease(page, 0.15);
+  const armed = await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 9; k++) {
+      app.fastForward(1 / 60);
+      const shot = app.game!.projectiles.find((p) => p.weapon === 'holy');
+      if (!shot) return null;
+      if (shot.armed) return { age: shot.age, speed: Math.hypot(shot.vx, shot.vy) };
+    }
+    return { age: Infinity, speed: Infinity };
+  });
+  expect(armed).not.toBeNull();
+  expect(armed!.age).toBeLessThan(6);
+  expect(armed!.speed).toBeLessThan(0.6);
+
+  // The countdown is on screen and running down from the 1.6-second rest fuse.
+  await page.evaluate(() => {
+    window.__allium.stepFrames(2, 1 / 60);
+  });
+  const fuse = page.locator('.fuse').first();
+  await expect(fuse).toHaveText('2');
+  await page.evaluate(() => {
+    window.__allium.app.fastForward(0.8);
+    window.__allium.stepFrames(2, 1 / 60);
+  });
+  await expect(fuse).toHaveText('1');
+  expect(errors).toEqual([]);
+});
+
 test('banana bomb: five bananas scatter and explode one after another', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

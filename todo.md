@@ -218,18 +218,18 @@ Also test the launcher at zero HP but still `alive`: deaths are deferred, so che
 `alive` can accidentally let a pickup rescue a buddy already awaiting death. Choose that rule
 explicitly rather than inheriting it by accident.
 
-## 6. Debug and fix delayed Holy Garlic Grenade countdowns
+## 6. Debug and fix delayed Holy Garlic Grenade countdowns — done in 1.34.1
 
 - [x] Inspect the weapon definition, rest detection, projectile physics and existing tests.
 - [x] Run an initial deterministic terrain/wind diagnostic; reproduce a delayed arming case.
-- [ ] Preserve the reproduction as a regression test before changing physics.
-- [ ] Fix the underlying contact/rest detection so an apparently settled grenade starts its
+- [x] Preserve the reproduction as a regression test before changing physics.
+- [x] Fix the underlying contact/rest detection so an apparently settled grenade starts its
       countdown promptly. Keep legitimate flight/bouncing distinct from rest.
-- [ ] Check slopes, crater edges, repeated bounces, wind in both directions, moving terrain
+- [x] Check slopes, crater edges, repeated bounces, wind in both directions, moving terrain
       support, water/out-of-bounds removal and the maximum-wait fallback.
-- [ ] Assert one Hallelujah event, one explosion and the intended countdown duration; verify
+- [x] Assert one Hallelujah event, one explosion and the intended countdown duration; verify
       that motion after arming does not reset the fuse and other bouncing weapons still work.
-- [ ] Extend E2E checks to assert arming latency and displayed countdown, not just eventual
+- [x] Extend E2E checks to assert arming latency and displayed countdown, not just eventual
       explosion. Separately check elapsed simulation time versus wall time at low frame rates.
 
 ### Initial findings and reproduction
@@ -303,6 +303,38 @@ Separate timing concern from code inspection: `App.frame()` caps elapsed time pa
 slower than wall time; at a steady 2 fps it would advance roughly 0.2 simulation seconds per
 real second. This affects all timers and may amplify the perceived grenade delay. The diagnostic
 above uses fixed simulation steps and reproduces the arming bug independently of rendering.
+
+### Implemented in 1.34.1
+
+`stepProjectile()` rejected a swept step that ended inside rock: it reflected the velocity but left
+the projectile where it was. On a slope, gravity then refilled the tangential velocity every step,
+so the grenade stood still while reporting 1.4–3.4 units/s — above both the 0.8 physics stop and
+the 0.6 arming threshold — and only armed on the 10-second fallback.
+
+A blocked contact now slides the projectile along the surface with whatever velocity survived the
+response, and zeroes that velocity when the surface blocks the response too, so a stored speed
+always corresponds to real motion. Coulomb friction (`FRICTION = 0.9`) rubs off the sliding part,
+but the friction impulse is capped at the load the surface carries in a single substep. A resting
+projectile feels its whole weight and stops; a hard bounce is over too quickly for friction to bite,
+so grenades, cluster bomblets and bananas still skitter. A slope holds a resting projectile while
+`tan(angle) <= FRICTION * (1 + restitution)`.
+
+Re-running the documented 216-throw matrix drops the fallback cases from 117 to 4. Those four are a
+grenade rolling steadily down a 45° slope with a tailwind: it moves about 1.8 units per second and
+its stored speed matches that displacement, so it is genuinely in motion and the fallback is doing
+its intended job. The rest threshold, the 1.6-second fuse and the 10-second fallback are unchanged.
+
+Regressions: `tests/physics.test.ts` asserts that a projectile settling on slopes 0.1–0.8 ends
+below the arming threshold _and_ stays put, that a 68° slope makes it roll with speed matching its
+displacement, and that a shallow bounce still skitters along flat ground; `tests/game.test.ts`
+throws a Holy Grenade on four slopes through `selectWeapon`/`pressFire`/`releaseFire` and requires
+arming from rest within 6 seconds; `e2e/weapons.spec.ts` stands a buddy on a real hillside of the
+generated map, measures the arming age in the browser and asserts the on-screen countdown runs
+2 → 1. All four fail on the unfixed physics.
+
+The separate frame-rate concern below 10 fps is untouched: `App.frame()` still caps `advance()` at
+0.1 seconds, so the simulation runs slower than wall time on very slow machines. That is a
+rendering/timing change with its own tests, not part of this fix.
 
 ## Planning handoff
 

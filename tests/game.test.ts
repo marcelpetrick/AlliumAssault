@@ -3,12 +3,12 @@
 
 import { describe, expect, it } from 'vitest';
 import { planAttack } from '../src/core/ai';
-import { Game, type GameEvent } from '../src/core/game';
+import { Game, REST_SPEED, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { CRATE_RADIUS, CRATE_WEAPONS } from '../src/core/crates';
 import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
-import { config, flatGame, onlyWeapon, runUntil, team } from './helpers';
+import { config, flatGame, onlyWeapon, runUntil, slopeGame, team } from './helpers';
 
 const toAiming = (g: Game) => runUntil(g, () => g.phase === 'aiming', 5);
 
@@ -99,6 +99,27 @@ describe('match flow', () => {
     g.simulate(0.3);
     expect(g.projectiles).toHaveLength(0);
     expect(g.terrain.isSolid(song.x, song.y - 5.5)).toBe(false);
+  });
+
+  it('holy garlic grenade on a slope arms from rest, long before the emergency fuse', () => {
+    for (const slope of [-0.6, -0.3, 0.3, 0.6]) {
+      const g = slopeGame(slope, [60, 68], [team('A', 1), team('B', 1)]);
+      toAiming(g);
+      // A contact that rejected its own step used to leave the grenade standing on a hillside with
+      // metres per second of stored speed, so it only ever armed on the 10-second fallback.
+      g.selectWeapon('holy');
+      g.buddies[0].facing = 1;
+      g.buddies[0].aim = 0.6;
+      g.pressFire();
+      g.simulate(0.3);
+      g.releaseFire();
+      const shot = g.projectiles[0];
+      expect(shot).toBeDefined();
+      runUntil(g, () => !!shot.armed, 9);
+      expect(shot.armed).toBe(true);
+      expect(shot.age).toBeLessThan(6);
+      expect(Math.hypot(shot.vx, shot.vy)).toBeLessThan(REST_SPEED);
+    }
   });
 
   it('shotgun fires twice and consumes one ammo', () => {

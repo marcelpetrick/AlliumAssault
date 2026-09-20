@@ -110,6 +110,47 @@ describe('projectiles', () => {
     expect(p.y).toBeGreaterThan(19.8);
   });
 
+  it('settles on a slope instead of standing still with speed left over', () => {
+    for (const slope of [0.1, 0.3, 0.6, 0.8]) {
+      const t = new Terrain(128, 64, 3);
+      t.fill((x, y) => (28 + slope * (x - 64) - y) / Math.hypot(1, slope));
+      const p = { x: 64, y: 28 + 0.15 * Math.hypot(1, slope), vx: 0, vy: 0, radius: 0.15, bounces: 0 };
+      run(3, () => stepProjectile(t, p, 1 / 60, 0, -25, 0.25));
+      // The stored speed used to settle at a nonzero value while the position never moved, which
+      // kept every rest-fused weapon from ever arming on a hillside.
+      expect(Math.hypot(p.vx, p.vy)).toBeLessThan(0.6);
+      const before = { x: p.x, y: p.y };
+      run(1, () => stepProjectile(t, p, 1 / 60, 0, -25, 0.25));
+      // Settled means it stays where it is: a slow creep is allowed, sitting still while carrying
+      // metres per second of speed is not.
+      expect(Math.hypot(p.x - before.x, p.y - before.y)).toBeLessThan(0.1);
+    }
+  });
+
+  it('rolls down a slope it cannot hold on to, and its speed matches how far it travels', () => {
+    const t = new Terrain(128, 64, 3);
+    t.fill((x, y) => (28 + 2.5 * (x - 64) - y) / Math.hypot(1, 2.5));
+    const p = { x: 64, y: 28 + 0.15 * Math.hypot(1, 2.5), vx: 0, vy: 0, radius: 0.15, bounces: 0 };
+    run(2, () => stepProjectile(t, p, 1 / 60, 0, -25, 0.25));
+    const before = { x: p.x, y: p.y };
+    let speed = 0;
+    run(1, () => {
+      stepProjectile(t, p, 1 / 60, 0, -25, 0.25);
+      speed = Math.hypot(p.vx, p.vy);
+    });
+    const travelled = Math.hypot(p.x - before.x, p.y - before.y);
+    expect(p.x).toBeLessThan(before.x);
+    expect(travelled).toBeGreaterThan(0.5);
+    expect(travelled).toBeCloseTo(speed, 0);
+  });
+
+  it('keeps skittering along flat ground after a shallow bounce', () => {
+    const t = flatTerrain(20);
+    const p = { x: 30, y: 21, vx: 18, vy: -4, radius: 0.15, bounces: 0 };
+    run(1, () => stepProjectile(t, p, 1 / 60, 0, -25, 0.45));
+    expect(p.x).toBeGreaterThan(40);
+  });
+
   it('is pushed by wind', () => {
     const t = flatTerrain(5);
     const calm = { x: 50, y: 40, vx: 0, vy: 0, radius: 0.15, bounces: 0 };

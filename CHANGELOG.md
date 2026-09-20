@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.34.1] — 2026-09-20
+
+### Fixed
+
+- The Holy Garlic Grenade no longer takes ten seconds to start singing when it lands on a slope. A
+  projectile blocked by terrain now slides along the surface instead of standing still while still
+  carrying speed, and contact friction lets a hillside hold it. Bouncing weapons keep skittering.
+
 ## [1.34.0] — 2026-09-20
 
 ### Added

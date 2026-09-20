@@ -6,6 +6,12 @@ import type { Terrain } from './terrain';
 export const GRAVITY = 25;
 /** A contact counts as ground when its normal points at least this much upwards. */
 const GROUND_NORMAL_Y = 0.5;
+/**
+ * Coulomb friction between a bouncing projectile and the rock it slides on. A slope holds a
+ * resting projectile while `tan(angle) <= FRICTION * (1 + restitution)`, which at 0.6 covers
+ * every hillside a normal-strength normal still points upwards on.
+ */
+const FRICTION = 0.9;
 
 export interface Body {
   x: number;
@@ -163,6 +169,8 @@ export function stepProjectile(
   const travel = (Math.hypot(p.vx, p.vy) + Math.hypot(ax, ay) * dt) * dt;
   const steps = Math.max(1, Math.ceil(travel / maxStep));
   const h = dt / steps;
+  /** Speed gravity and wind press into a resting surface during one substep. */
+  const load = Math.hypot(ax, ay) * h;
   for (let s = 0; s < steps; s++) {
     p.vx += ax * h;
     p.vy += ay * h;
@@ -183,8 +191,32 @@ export function stepProjectile(
       const vn = p.vx * n.x + p.vy * n.y;
       if (vn < 0) {
         if (-vn > 2.5) p.bounces++;
-        p.vx = (p.vx - (1 + restitution) * vn * n.x) * 0.92;
-        p.vy = (p.vy - (1 + restitution) * vn * n.y) * 0.92;
+        // Split the contact into a damped bounce along the normal and sliding along the surface,
+        // then let friction eat into the sliding part. Without that friction, gravity keeps
+        // refilling the tangential speed on a slope and the projectile never counts as resting.
+        const tx = p.vx - vn * n.x;
+        const ty = p.vy - vn * n.y;
+        const tangent = Math.hypot(tx, ty);
+        // Only the load the surface actually carries for one substep can rub speed off. A hard
+        // bounce is over in an instant, so it keeps skittering; a body merely lying there feels
+        // its whole weight and stops.
+        const bite = FRICTION * (1 + restitution) * Math.min(-vn, load);
+        const grip = tangent > 0 ? Math.max(0, tangent - bite) / tangent : 0;
+        const out = -vn * restitution;
+        p.vx = (tx * grip + n.x * out) * 0.92;
+        p.vy = (ty * grip + n.y * out) * 0.92;
+      }
+      // Slide on with whatever survived the contact: a blocked step used to leave the projectile
+      // standing still while still carrying that velocity, which looks settled but never rests.
+      const sx = p.x + p.vx * h;
+      const sy = p.y + p.vy * h;
+      if (t.sample(sx, sy) <= -p.radius) {
+        p.x = sx;
+        p.y = sy;
+      } else {
+        // Wedged: the surface blocks the response too, so that velocity cannot be real.
+        p.vx = 0;
+        p.vy = 0;
       }
       if (t.sample(p.x, p.y) > -p.radius) {
         p.x += n.x * 0.05;
