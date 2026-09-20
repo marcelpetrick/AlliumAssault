@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.39.1] — 2026-09-20
+
+### Changed
+
+- Tidied `tasks.md`: the AI review and implementation were numbered T63/T64, which collided with the
+  existing T63, and are now T65/T66. Statements left over from when the backlog was still unbuilt
+  now say what was actually done.
+
 ## [1.39.0] — 2026-09-20
 
 ### Added

@@ -74,10 +74,10 @@ Status: ☐ open · ☑ done
 | T59 | Add proximity mines that persist across turns                                                             | ☑      | 1.38.0         |
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☑      | 1.36.0         |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☑      | 1.34.1         |
-| T63 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
-| T64 | Implement the reviewed AI improvements                                                                    | ☑      | 1.37.0         |
 | T62 | Continue backlog research with browser layout checks and normal-throw grenade diagnostics                 | ☑      | 1.33.3         |
 | T63 | Finish planning research and prepare the backlog for an implementation decision                           | ☑      | 1.33.4         |
+| T65 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
+| T66 | Implement the reviewed AI improvements                                                                    | ☑      | 1.37.0         |
 
 ## Answered questions
 
@@ -413,11 +413,11 @@ review) plus the Sudden Death change to a flat 1 HP.
 Recorded in 1.33.2. [todo.md](todo.md) preserves the user's numbering 0–6 and includes initial
 code findings, a rope physics/integration proposal, and acceptance checks for every task.
 An initial Holy Grenade terrain/wind diagnostic reproduced a delay to the 10-second arming
-fallback despite very little movement. The implementation and regression fix remain open.
+fallback despite very little movement; T61 fixed it in 1.34.1.
 
-### T55–T64 — Follow-up implementation ☑
+### T55–T66 — Follow-up implementation ☑
 
-Requested and recorded in 1.33.2; implementation versions are not assigned yet.
+Requested and recorded in 1.33.2; every one of them is implemented, in 1.33.5 through 1.39.0.
 
 - T55: [0. Text-size coverage and weapon-bar readability](todo.md#0-review-text-size-everywhere-especially-the-weapon-bar).
 - T56: [1. Text-size setting in the pause menu](todo.md#1-add-text-size-to-the-in-game-menu).
@@ -426,6 +426,7 @@ Requested and recorded in 1.33.2; implementation versions are not assigned yet.
 - T59: [4. Persistent proximity mines](todo.md#4-add-proximity-mines-that-persist-across-turns).
 - T60: [5. Sheep crate collection for the launcher](todo.md#5-let-sheep-and-super-sheep-collect-crates-for-their-launcher).
 - T61: [6. Holy Garlic Grenade timing](todo.md#6-debug-and-fix-delayed-holy-garlic-grenade-countdowns).
+- T65/T66: [7. AI opponent review and improvements](todo.md#7-review-and-strengthen-the-ai-opponents).
 
 ### T55 — Text-size coverage and layout ☑
 
@@ -491,9 +492,9 @@ load lets a slope actually hold it while leaving genuine bounces to skitter as b
 documented 216-throw matrix the fallback cases dropped from 117 to 4, and those four are a grenade
 genuinely rolling down a 45° slope with a tailwind, which the fallback exists for.
 
-### T63/T64 — AI opponent review ☑/☐
+### T65/T66 — AI opponent review and improvements ☑
 
-Reviewed in 1.34.2 and written up in [7. Review and strengthen the AI opponents](todo.md#7-review-and-strengthen-the-ai-opponents).
+Requested separately on 2026-09-20. Reviewed in 1.34.2 and written up in [7. Review and strengthen the AI opponents](todo.md#7-review-and-strengthen-the-ai-opponents).
 The three levels already differ in search resolution and aim noise, and the AI does fetch crates,
 but it never reads a crate's contents or its own health when deciding to, never scores the chained
 crate explosion that `Game.explode()` actually produces, and treats every enemy team alike. The
@@ -513,7 +514,7 @@ Recorded in 1.33.3. Checked three text sizes across four browser viewports and m
 of title buttons and the bottom weapon bar. A 216-case matrix using the normal throw commands
 reproduced the Holy Grenade's contact/rest mismatch, including on a modest slope without wind.
 Updated [todo.md](todo.md) with reproduction steps, evidence, remaining audit limits, and rope
-and sheep integration constraints. Implementation tasks T55–T61 remain open.
+and sheep integration constraints. Implementation tasks T55–T61 were carried out afterwards.
 
 ### T63 — Planning handoff complete; implementation deferred ☑
 
@@ -521,7 +522,8 @@ Recorded in 1.33.4. The user requested completed research and planning, committe
 with no implementation until they decide when to begin. [todo.md](todo.md#planning-handoff)
 now includes suggested order, affected files, proposed tuning and behavior, the rope solver
 approach, cross-feature constraints and acceptance risks. Proposed defaults are not approvals.
-Tasks T55–T61 remain open; no gameplay code was changed for the planning work.
+No gameplay code was changed for the planning work; the user gave the go-ahead afterwards and
+T55–T61 were implemented in 1.33.5 through 1.39.0.
 
 ## Defaults chosen (change on request)
 
