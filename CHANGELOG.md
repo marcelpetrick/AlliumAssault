@@ -9,6 +9,9 @@ All notable changes to this project are documented here. Versions follow SemVer.
 - The rope no longer crashes the renderer the moment it wraps or unwraps a corner. A Babylon tube
   can only be updated in place while it keeps the same number of points, and the rope gains one
   every time it bends around rock, so it is now rebuilt when that count changes.
+- A buddy that let go of the rope and hit the ground took no fall damage, because the ordinary buddy
+  step is skipped during a traversal. Hanging on the rope still costs nothing; the fall after the
+  release now hurts like any other.
 
 ## [1.39.1] — 2026-09-20
 

@@ -241,6 +241,21 @@ describe('rope', () => {
     expect(me.body.x).toBeGreaterThan(46);
   });
 
+  it('takes fall damage for a bad landing after letting go, but not while hanging', () => {
+    const g = cave();
+    toAiming(g);
+    const me = shoot(g);
+    hold(g, 2, { up: true });
+    const full = me.hp;
+    // Swinging hard into rock while attached is the rope's problem, not the buddy's.
+    hold(g, 2.5, { right: true });
+    expect(me.hp).toBe(full);
+    // Let go from up here and it hits the ground hard.
+    g.pressFire();
+    runUntil(g, () => me.body.grounded && me.body.restTime > 0.25, 8);
+    expect(me.hp).toBeLessThan(full);
+  });
+
   it('is deterministic: the same inputs give the same swing every time', () => {
     const run = () => {
       const g = cave();

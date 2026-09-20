@@ -179,6 +179,10 @@ applied in both branches: without it a buddy that let go over the sea fell for e
 the drowning test caught. Running out of time drops the rope and ends the turn; `pause()` now clears
 held keys and the game's input so a rope does not keep reeling on resume.
 
+**Damage.** The rope takes the shock while the buddy hangs from it, so swinging into rock costs
+nothing; after letting go the fall is an ordinary one and lands with the usual fall damage, which
+`Game.landing()` now applies from both the ordinary buddy step and the rope step.
+
 **Decided: no firing while attached.** The original uses Enter for that, which collides with
 Enter-to-jump here, and `TurnAction` carries one timed action at a time. Let go, land, then fire. This
 is a deliberate rule, not an oversight.

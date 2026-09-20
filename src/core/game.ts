@@ -651,11 +651,16 @@ export class Game {
       b.walking = walk !== null || biting;
       if (torch && biting) glideBody(this.terrain, b.body, dt, torch.dx * TORCH_SPEED, torch.dy * TORCH_SPEED);
       else stepBody(this.terrain, b.body, dt, walk);
-      if (b.body.impact > 4) this.emit({ type: 'land', buddy: b.id, speed: b.body.impact });
       const cushioned = (b === active && this.drill !== null) || biting;
-      if (b.body.impact > SAFE_FALL_SPEED && !cushioned) this.damage(b, Math.round((b.body.impact - SAFE_FALL_SPEED) * FALL_DAMAGE_PER_SPEED));
+      this.landing(b, cushioned);
       if (b.body.y < this.terrain.waterLevel - 0.4 || b.body.x < -30 || b.body.x > this.terrain.width + 30) this.drown(b);
     }
+  }
+
+  /** Announce a hard landing and hurt the buddy for it, unless whatever it was doing cushions it. */
+  private landing(b: Buddy, cushioned: boolean): void {
+    if (b.body.impact > 4) this.emit({ type: 'land', buddy: b.id, speed: b.body.impact });
+    if (b.body.impact > SAFE_FALL_SPEED && !cushioned) this.damage(b, Math.round((b.body.impact - SAFE_FALL_SPEED) * FALL_DAMAGE_PER_SPEED));
   }
 
   private stepProjectiles(dt: number): void {
@@ -1045,7 +1050,10 @@ export class Game {
   private stepRoping(action: { kind: 'rope'; rope: Rope | null; paid: boolean }, b: Buddy, dt: number): void {
     const rope = action.rope;
     if (!rope) {
+      // Let go: an ordinary fall, fall damage and all. The rope itself takes the shock while it is
+      // attached, so only what happens after the release hurts.
       stepBody(this.terrain, b.body, dt, null);
+      this.landing(b, false);
       if (b.body.grounded && b.body.restTime > 0.2) this.endRoping();
       this.checkRopeBounds(b);
       return;

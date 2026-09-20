@@ -78,8 +78,10 @@ run is clear with room to spare, so a corner cannot chatter. The total paid-out 
 when the path changes. If the rock the hook bit into is blasted away, or the path needs more corners
 than the solver will carry, the rope simply lets go.
 
-Roping is not the turn's shot: once the buddy lands, control returns to ordinary aiming with the turn
-timer still running, and a weapon can be fired from wherever the rope left it. Firing while attached
+The rope takes the shock while the buddy is attached, so swinging into rock never hurts; once it lets
+go the fall is an ordinary one and lands with ordinary fall damage. Roping is not the turn's shot:
+once the buddy lands, control returns to ordinary aiming with the turn timer still running, and a
+weapon can be fired from wherever the rope left it. Firing while attached
 is deliberately not supported — let go first. AI rope use is not part of this release; the AI never
 selects the rope.
 
