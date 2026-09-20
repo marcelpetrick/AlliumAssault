@@ -75,6 +75,7 @@ Status: ☐ open · ☑ done
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☐      | Planned        |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☐      | Planned        |
 | T62 | Continue backlog research with browser layout checks and normal-throw grenade diagnostics                 | ☑      | 1.33.3         |
+| T63 | Finish planning research and prepare the backlog for an implementation decision                           | ☑      | 1.33.4         |
 
 ## Answered questions
 
@@ -431,6 +432,14 @@ of title buttons and the bottom weapon bar. A 216-case matrix using the normal t
 reproduced the Holy Grenade's contact/rest mismatch, including on a modest slope without wind.
 Updated [todo.md](todo.md) with reproduction steps, evidence, remaining audit limits, and rope
 and sheep integration constraints. Implementation tasks T55–T61 remain open.
+
+### T63 — Planning handoff complete; implementation deferred ☑
+
+Recorded in 1.33.4. The user requested completed research and planning, committed and pushed,
+with no implementation until they decide when to begin. [todo.md](todo.md#planning-handoff)
+now includes suggested order, affected files, proposed tuning and behavior, the rope solver
+approach, cross-feature constraints and acceptance risks. Proposed defaults are not approvals.
+Tasks T55–T61 remain open; no gameplay code was changed for the planning work.
 
 ## Defaults chosen (change on request)
 

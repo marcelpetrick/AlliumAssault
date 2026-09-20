@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.33.4] — 2026-09-20
+
+### Added
+
+- Completed the planning handoff in `todo.md`: suggested implementation order, affected files,
+  proposed behavior/tuning, rope solver constraints and remaining validation risks.
+- Recorded the pause-menu persistence pitfall and available hotkey slots. All gameplay changes
+  remain explicitly deferred until the user decides when to start implementation.
+
 ## [1.33.3] — 2026-09-20
 
 ### Added
