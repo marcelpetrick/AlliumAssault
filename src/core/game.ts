@@ -294,6 +294,12 @@ export class Game {
   activeTeam = -1;
   activeBuddy: Buddy | null = null;
   weapon: WeaponId = 'bazooka';
+  /**
+   * Side the next air-strike plane comes in from: 1 enters on the left and flies right, -1 enters
+   * on the right and flies left. Set from the buddy's facing at the start of every turn and then
+   * chosen with Left/Right while a plane-based strike is selected.
+   */
+  strikeDir: 1 | -1 = 1;
   /** Charge level 0..1 while Space is held, otherwise null. */
   charge: number | null = null;
   shotsLeft = 0;
@@ -402,6 +408,15 @@ export class Game {
     return this.controllable || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'drilling';
   }
 
+  /**
+   * The player is lining up a plane-based air strike, so Left and Right choose the approach side
+   * instead of walking the buddy.
+   */
+  get choosingApproach(): boolean {
+    const def = WEAPONS[this.weapon];
+    return this.phase === 'aiming' && !!this.activeBuddy?.alive && def.kind === 'strike' && !!def.strike?.plane;
+  }
+
   /** The turn timer is running. */
   get countingDown(): boolean {
     return COUNTDOWN_PHASES.includes(this.phase);
@@ -441,6 +456,11 @@ export class Game {
 
   face(dir: 1 | -1): void {
     if (this.activeBuddy && this.controllable) this.activeBuddy.facing = dir;
+  }
+
+  /** Choose which side the strike plane flies in from; ignored unless one is being aimed. */
+  setStrikeDir(dir: 1 | -1): void {
+    if (this.choosingApproach) this.strikeDir = dir;
   }
 
   selectWeapon(id: WeaponId): void {
@@ -502,7 +522,7 @@ export class Game {
     team.ammo[def.id] -= 1;
     this.shotsLeft = 0;
     const payload = defined(def.strike, `${def.id} strike payload`);
-    const plan = planStrike(this.terrain, def, target, b.facing, this.wind);
+    const plan = planStrike(this.terrain, def, target, payload.plane ? this.strikeDir : b.facing, this.wind);
     for (const d of plan.drops) this.drops.push({ weapon: payload.weapon, x: d.x, y: plan.altitude, vx: plan.bombVx, at: this.time + d.delay, owner: b.id });
     this.emit({
       type: 'airstrike',
@@ -534,6 +554,8 @@ export class Game {
     if (active && this.phase === 'aiming' && this.charge === null) {
       const dir = Number(this.input.up) - Number(this.input.down);
       active.aim = clamp(active.aim + dir * AIM_SPEED * dt, AIM_MIN, AIM_MAX);
+      // Holding both keys leaves the chosen side alone, like holding both walk keys stands still.
+      if (this.choosingApproach && this.input.left !== this.input.right) this.strikeDir = this.input.left ? 1 : -1;
     }
     if (this.charge !== null) {
       this.charge = Math.min(1, this.charge + dt / CHARGE_TIME);
@@ -576,7 +598,7 @@ export class Game {
       const torch = b === active ? this.torch : null;
       // Rock ahead of the flame is what the torch pulls itself along; in open air it only walks.
       const biting = torch !== null && this.torchBiting(b, torch);
-      if (b === active && this.controllable && b.body.grounded && this.charge === null && this.input.left !== this.input.right) {
+      if (b === active && this.controllable && !this.choosingApproach && b.body.grounded && this.charge === null && this.input.left !== this.input.right) {
         b.facing = this.input.left ? -1 : 1;
         walk = b.facing * WALK_SPEED;
       } else if (torch && !biting && b.body.grounded) {
@@ -971,6 +993,7 @@ export class Game {
     const team = defined(this.activeTeamData, 'active team');
     this.weapon = team.ammo[team.weapon] > 0 ? team.weapon : 'bazooka';
     this.shotsLeft = WEAPONS[this.weapon].shots;
+    this.strikeDir = defined(this.activeBuddy, 'active buddy').facing;
     Object.assign(this.input, { left: false, right: false, up: false, down: false });
     this.ai.get(this.activeTeam)?.reset();
     this.setPhase('turnStart');

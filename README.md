@@ -104,6 +104,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 1–9, 0, Shift+1–7 / Tab   | Choose weapon (or click it in the weapon bar)                                                     |
 | Mouse wheel / drag        | Zoom / pan camera                                                                                 |
 | Click                     | Call the air strike or napalm strike, or drop the concrete mule, onto that spot                   |
+| ← → (air/napalm strike)   | Choose the side the plane flies in from; the buddy stays put while choosing                       |
 | Arrow keys (flying sheep) | Steer the flying sheep towards that direction                                                     |
 | M / Esc                   | Mute / pause menu (Esc also closes help and about); the HUD's Help and Pause buttons do the same  |
 

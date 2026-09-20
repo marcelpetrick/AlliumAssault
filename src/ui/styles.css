@@ -713,6 +713,19 @@ kbd {
   outline-offset: 2px;
 }
 
+/* Only on screen while a plane-based air strike is being aimed. */
+.approach {
+  padding: 10px 16px;
+  width: 220px;
+}
+
+.approach-arrow {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
 .wind-label {
   font-size: 12px;
   text-transform: uppercase;

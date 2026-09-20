@@ -23,6 +23,8 @@ export interface AttackPlan {
   delay?: number;
   /** Air strikes: world x to bomb. */
   target?: number;
+  /** Air strikes: side the plane comes in from, chosen deliberately rather than inherited. */
+  strikeDir?: 1 | -1;
 }
 
 const LEVELS: Record<AiLevel, { angles: number; powers: number; aimError: number; powerError: number; think: number }> = {
@@ -167,8 +169,10 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
           const x = landing + (k - (count - 1) / 2) * spacing;
           score += scoreBlast(game, me, x, groundBelow(game.terrain, x), bomb) * hitsPerBomb;
         }
+        // Fly in from our own side of the target, as before, but say so explicitly: the human
+        // selector must not decide where an AI plane comes from.
         const facing: 1 | -1 = target < me.body.x ? -1 : 1;
-        if (score > best.score) best = { weapon: strike, facing, aim: me.aim, power: 1, score, target };
+        if (score > best.score) best = { weapon: strike, facing, aim: me.aim, power: 1, score, target, strikeDir: facing };
       }
     }
   }
@@ -451,8 +455,10 @@ export class AiDriver {
         }
         me.aim = plan.aim;
         if (this.timer < 0.35) return;
-        if (plan.target !== undefined) game.strike(plan.target);
-        else game.pressFire();
+        if (plan.target !== undefined) {
+          game.setStrikeDir(plan.strikeDir ?? plan.facing);
+          game.strike(plan.target);
+        } else game.pressFire();
         this.stage = WEAPONS[plan.weapon].charge ? 'fire' : 'wait';
         this.timer = 0;
         return;

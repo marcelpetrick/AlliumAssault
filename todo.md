@@ -2,7 +2,7 @@
 
 Requested on 2026-09-19; recorded in version 1.33.2, researched in 1.33.3 and planned in 1.33.4.
 Section 7 was added on 2026-09-20 from a separate request to review the AI opponents.
-Tasks 0, 1 and 6 are implemented; 2, 3, 4, 5 and 7 remain open. Progress is also tracked in
+Tasks 0, 1, 3 and 6 are implemented; 2, 4, 5 and 7 remain open. Progress is also tracked in
 [tasks.md](tasks.md); the [planning handoff](#planning-handoff) lists proposed decisions and order.
 
 ## 0. Review text size everywhere, especially the weapon bar — done in 1.33.5
@@ -149,23 +149,45 @@ segments, and `Terrain.revision` changes after carving. Use those segments or sw
 queries for attachments and wrapping; do not read the Babylon mesh or consume the renderer's
 dirty-chunk set. A separate core cache must invalidate on terrain revision changes.
 
-## 3. Choose the direction of air attacks with Left/Right
+## 3. Choose the direction of air attacks with Left/Right — done in 1.35.0
 
-- [ ] While aiming a plane-based strike, let Left choose entry from the left, flying right,
+- [x] While aiming a plane-based strike, let Left choose entry from the left, flying right,
       and Right choose entry from the right, flying left. Show an unambiguous approach arrow
       and help text before the player clicks the target.
-- [ ] Keep direction selection separate from walking and buddy facing. Holding a direction
+- [x] Keep direction selection separate from walking and buddy facing. Holding a direction
       key must not move the buddy while choosing the plane's entry side.
-- [ ] Apply the choice to both air strike and napalm strike. Keep plane-less drops unaffected.
-- [ ] Pass the selected direction through the strike plan, bomb release order/velocity and
+- [x] Apply the choice to both air strike and napalm strike. Keep plane-less drops unaffected.
+- [x] Pass the selected direction through the strike plan, bomb release order/velocity and
       plane rendering; preserve existing wind compensation and napalm drift behavior.
-- [ ] Define a predictable default/reset policy and preserve deliberate AI strike direction.
-- [ ] Add core tests for both directions and payloads, plus E2E tests for arrow keys, the
+- [x] Define a predictable default/reset policy and preserve deliberate AI strike direction.
+- [x] Add core tests for both directions and payloads, plus E2E tests for arrow keys, the
       preview, stationary buddy position and the resulting plane approach.
 
 Initial finding: `planStrike()` in `src/core/strike.ts` already accepts `dir: 1 | -1` and handles
 both directions. `Game.strike()` currently supplies the buddy's facing. Arrow keys currently
 walk/turn that buddy, so direction is only indirectly selectable and changes player position.
+
+Implemented in 1.35.0: `Game.strikeDir` holds the side the next plane comes in from, 1 for entry on
+the left flying right and -1 for entry on the right flying left, exactly the convention
+`planStrike()` already used. `Game.choosingApproach` is true while a plane-based strike is selected
+during `aiming`; `step()` then reads Left/Right into `strikeDir` and `stepBuddies()` skips walking,
+so the buddy holds its ground and its facing is untouched. Holding both keys leaves the choice
+alone, like holding both walk keys. `beginTurn()` resets the side to the active buddy's facing, so a
+player who never touches an arrow key gets the previous behaviour; within a turn the choice carries
+over between the air strike and the napalm strike. The concrete mule has no plane, so it keeps
+walking on Left/Right and ignores the setting.
+
+The HUD shows an `Approach` card beside the wind gauge with `✈️ ⟶ from the left` or
+`from the right ⟵ ✈️`, and the strike hint names the side; both disappear once the strike is called.
+The AI now states its direction in `AttackPlan.strikeDir` and applies it with `setStrikeDir()` before
+`strike()`, so it still flies in from its own side of the target rather than inheriting whatever the
+human last chose. Wind compensation and the napalm drift are untouched: `planStrike()` already
+folded `dir` into the release points, bomb carry velocity and start position.
+
+Covered by three core tests (arrow keys for both strike weapons, mirrored approach landing on the
+same target, the mule still walking) and a browser test that holds each arrow key, reads the
+approach card and hint, checks the buddy has not moved, then clicks and verifies the plane entered
+from the left.
 
 ## 4. Add proximity mines that persist across turns
 

@@ -53,6 +53,8 @@ export class App {
   private config: MatchConfig | null = null;
   private drag: { x: number; y: number; moved: number } | null = null;
   private afterGameOver = -1;
+  /** The last air strike called, so tests can check which way the plane came in. */
+  private lastStrike: { dir: 1 | -1; target: number; startX: number } | null = null;
   /** Last whole second announced by the turn-timer tick. */
   private lastTick = 0;
   /** Where the walking buddy last made a footstep sound. */
@@ -312,6 +314,7 @@ export class App {
           break;
         case 'airstrike':
           this.audio.play(e.plane ? 'plane' : 'bray');
+          this.lastStrike = { dir: e.dir, target: e.target, startX: e.startX };
           break;
         case 'crateSpawn':
           this.audio.play('teleport');
@@ -472,6 +475,9 @@ export class App {
       weapon: g?.weapon ?? null,
       charge: g?.charge ?? null,
       wind: g?.wind ?? 0,
+      strikeDir: g?.strikeDir ?? 1,
+      choosingApproach: g?.choosingApproach ?? false,
+      lastStrike: this.lastStrike,
       winner: g?.winner ?? null,
       terrainRevision: g?.terrain.revision ?? 0,
       projectiles: g?.projectiles.length ?? 0,

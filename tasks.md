@@ -70,7 +70,7 @@ Status: ☐ open · ☑ done
 | T55 | Audit text size across menus, boxes and the in-game weapon bar                                            | ☑      | 1.33.5         |
 | T56 | Add the text-size setting to the in-game pause menu                                                       | ☑      | 1.34.0         |
 | T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☐      | Planned        |
-| T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☐      | Planned        |
+| T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☑      | 1.35.0         |
 | T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☐      | Planned        |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☑      | 1.34.1         |
@@ -439,6 +439,15 @@ The smallest weapon and timer text was raised, and an E2E regression covers all 
 Implemented in 1.34.0. The pause menu now offers Normal, Large and Huge, applies changes while the
 match remains frozen, and persists them across reloads. The menu separately retains the last saved
 custom setup, preventing a text-size change during Quick Match from overwriting those settings.
+
+### T58 — Air-strike approach direction ☑
+
+Implemented in 1.35.0. `Game.strikeDir` chooses the side the plane enters from while a plane-based
+strike is selected; Left means entry on the left flying right, Right the mirror. The buddy neither
+walks nor turns while choosing, the side resets to its facing at each turn start and carries over
+between the air strike and the napalm strike within a turn. The plane-less concrete mule is
+unaffected. The HUD gained an Approach card next to the wind gauge, and the AI sets its direction
+explicitly instead of inheriting the human's choice.
 
 ### T61 — Holy Garlic Grenade arming delay ☑
 

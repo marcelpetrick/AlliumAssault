@@ -596,6 +596,82 @@ describe('match flow', () => {
     expect(g.buddies[0].hp).toBe(100);
   });
 
+  it('arrow keys choose the side an air strike plane flies in from, without walking the buddy', () => {
+    for (const weapon of ['airstrike', 'napalm'] as const) {
+      const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
+      toAiming(g);
+      g.selectWeapon(weapon);
+      expect(g.choosingApproach).toBe(true);
+      // The default is the side the buddy already faces, so a click alone behaves as before.
+      expect(g.strikeDir).toBe(g.buddies[0].facing);
+
+      const startX = g.buddies[0].body.x;
+      g.input.right = true;
+      g.simulate(0.5);
+      expect(g.strikeDir).toBe(-1);
+      g.input.left = true;
+      g.simulate(0.3);
+      expect(g.strikeDir).toBe(-1); // both held: leave the choice alone
+      g.input.right = false;
+      g.simulate(0.5);
+      expect(g.strikeDir).toBe(1);
+      g.input.left = false;
+      expect(g.buddies[0].body.x).toBeCloseTo(startX, 5);
+
+      const events: GameEvent[] = [];
+      g.strike(50);
+      for (const e of g.drainEvents()) events.push(e);
+      const called = events.find((e) => e.type === 'airstrike');
+      expect(called).toBeDefined();
+      if (called?.type !== 'airstrike') throw new Error('no strike event');
+      expect(called.dir).toBe(1);
+      // dir 1 means the plane enters on the left, so it starts well left of where it bombs.
+      expect(called.startX).toBeLessThan(called.target - 20);
+    }
+  });
+
+  it('an air strike called from the right mirrors the approach and still lands on the target', () => {
+    const craters: Record<string, number[]> = {};
+    for (const dir of [1, -1] as const) {
+      const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
+      toAiming(g);
+      g.selectWeapon('airstrike');
+      g.setStrikeDir(dir);
+      g.strike(70);
+      const hits: number[] = [];
+      runUntil(
+        g,
+        () => {
+          for (const e of g.drainEvents()) if (e.type === 'explosion') hits.push(e.x);
+          return hits.length >= 5;
+        },
+        8,
+      );
+      craters[dir] = hits;
+      expect(hits).toHaveLength(5);
+      const center = hits.reduce((a, b) => a + b, 0) / hits.length;
+      expect(Math.abs(center - 70)).toBeLessThan(1.5);
+    }
+    // Same pattern either way, only the order the bombs fall in is mirrored.
+    const left = [...craters[1]].sort((a, b) => a - b);
+    const right = [...craters[-1]].sort((a, b) => a - b);
+    for (let k = 0; k < 5; k++) expect(Math.abs(left[k] - right[k])).toBeLessThan(1.5);
+    expect(craters[1][0]).toBeLessThan(craters[1][4]);
+    expect(craters[-1][0]).toBeGreaterThan(craters[-1][4]);
+  });
+
+  it('the concrete mule ignores the approach side, because it has no plane', () => {
+    const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('mule');
+    expect(g.choosingApproach).toBe(false);
+    const startX = g.buddies[0].body.x;
+    g.input.right = true;
+    g.simulate(0.5);
+    // Left and Right still walk while a plane-less strike is selected.
+    expect(g.buddies[0].body.x).toBeGreaterThan(startX);
+  });
+
   it('concrete mule drops onto the target and smashes down through the ground several times', () => {
     const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
     toAiming(g);

@@ -49,6 +49,7 @@ export class Hud {
         </div>
         <div class="hud-right">
           <div class="wind glass-card"><div class="wind-label">Wind</div><div class="wind-bar"><span class="wind-mid"></span><div class="wind-fill"></div></div></div>
+          <div class="approach glass-card" hidden><div class="wind-label">Approach</div><div class="approach-arrow"></div></div>
           <div class="hud-menu glass-card">
             <button class="hud-button" data-menu="help" title="How to Play" aria-label="Help">❔ Help</button>
             <button class="hud-button" data-menu="pause" title="Pause the match (Esc)" aria-label="Pause">⏸ Pause</button>
@@ -191,6 +192,13 @@ export class Hud {
       bar.classList.toggle('active', k === g.activeTeam);
       bar.classList.toggle('out', hp <= 0);
     });
+    // Which side the strike plane comes in from, shown while the player is still picking a target.
+    const approach = this.el.querySelector<HTMLElement>('.approach');
+    if (approach) {
+      approach.hidden = !g.choosingApproach;
+      query(approach, '.approach-arrow').textContent = g.strikeDir > 0 ? '✈️ ⟶ from the left' : 'from the right ⟵ ✈️';
+    }
+
     const def = WEAPONS[g.weapon];
     const ammo = team?.ammo[g.weapon] ?? 0;
     this.text('.weapon-name', `${def.icon} ${def.name}${ammo === Infinity ? '' : ` ×${ammo}`}`);
@@ -202,7 +210,7 @@ export class Hud {
         : !human
           ? `🤖 ${team?.config.name ?? 'AI'} is plotting…`
           : def.kind === 'strike' && g.phase === 'aiming'
-            ? `Click on the map to drop the ${def.name.toLowerCase()} · Enter jump · Esc menu`
+            ? `Click on the map to drop the ${def.name.toLowerCase()}${g.choosingApproach ? ` · ← → plane comes in from the ${g.strikeDir > 0 ? 'left' : 'right'}` : ''} · Esc menu`
             : g.phase === 'firing'
               ? 'Rat-a-tat-tat! 🔩'
               : g.phase === 'drilling'

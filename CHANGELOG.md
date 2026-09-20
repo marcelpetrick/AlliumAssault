@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.35.0] — 2026-09-20
+
+### Added
+
+- Left and Right now choose which side the plane flies in from while an air strike or napalm strike
+  is being aimed. The buddy stays put and keeps its facing, the HUD shows an Approach card next to
+  the wind gauge, and the side resets to the buddy's facing at the start of each turn. The
+  plane-less concrete mule is unaffected, and the AI picks its own approach side deliberately.
+
 ## [1.34.2] — 2026-09-20
 
 ### Changed

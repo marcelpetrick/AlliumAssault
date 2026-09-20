@@ -492,6 +492,46 @@ test('sheep: baa on release, hops away, Space blows it up', async ({ page }, inf
   expect(errors).toEqual([]);
 });
 
+test('air strike: the arrow keys pick the approach side and the buddy stays put', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, '7', 'airstrike');
+  const before = await me(page);
+  expect((await state(page)).choosingApproach).toBe(true);
+
+  await page.keyboard.down('ArrowRight');
+  await waitFor(page, (s) => s.strikeDir === -1, 10_000);
+  await page.keyboard.up('ArrowRight');
+  await expect(page.locator('.approach')).toBeVisible();
+  await expect(page.locator('.approach-arrow')).toContainText('from the right');
+  await expect(page.locator('.hint')).toContainText('plane comes in from the right');
+
+  await page.keyboard.down('ArrowLeft');
+  await waitFor(page, (s) => s.strikeDir === 1, 10_000);
+  await page.keyboard.up('ArrowLeft');
+  await expect(page.locator('.approach-arrow')).toContainText('from the left');
+
+  // Choosing a side must not walk the buddy off its spot.
+  const after = await me(page);
+  expect(Math.abs(after.x - before.x)).toBeLessThan(0.05);
+
+  const canvas = (await page.locator('#stage').boundingBox())!;
+  const target = (await page.evaluate(([x, y]) => window.__allium.project(x, y), [before.x + 6, before.y] as const))!;
+  await page.mouse.click(canvas.x + target.x, canvas.y + target.y);
+  await waitForSound(page, 'plane');
+  // dir 1: the plane enters on the left of its target and flies right.
+  const plane = (await state(page)).lastStrike;
+  expect(plane).not.toBeNull();
+  expect(plane!.dir).toBe(1);
+  expect(plane!.startX).toBeLessThan(plane!.target - 20);
+  await page.evaluate(() => {
+    window.__allium.stepFrames(30, 1 / 30);
+  });
+  await info.attach('approach', { body: await page.screenshot(), contentType: 'image/png' });
+  await expect(page.locator('.approach')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
 test('air strike: a drag pans the camera, a click calls the plane and five bombs', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
