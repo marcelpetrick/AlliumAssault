@@ -66,6 +66,14 @@ Status: ☐ open · ☑ done
 | T51 | Profile the running game and cut CPU use without losing visual quality                                    | ☑      | 1.32.1         |
 | T52 | `/reviewBranch` over the whole game: ten worst flaws, fix the findings                                    | ☑      | 1.32.2         |
 | T53 | Public release v1.33.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.33.0         |
+| T54 | Inspect requested areas and write the actionable backlog in `todo.md`                                     | ☑      | 1.33.2         |
+| T55 | Audit text size across menus, boxes and the in-game weapon bar                                            | ☐      | Planned        |
+| T56 | Add the text-size setting to the in-game pause menu                                                       | ☐      | Planned        |
+| T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☐      | Planned        |
+| T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☐      | Planned        |
+| T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
+| T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☐      | Planned        |
+| T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☐      | Planned        |
 
 ## Answered questions
 
@@ -395,6 +403,25 @@ review) plus the Sudden Death change to a flat 1 HP.
 - README and `docs/VISION.md` now state the project is **almost feature complete**: everything on
   the vision list is implemented and covered by tests, and what remains is polish, balance and
   optional extra weapons.
+
+### T54 — Requested code inspection and TODO backlog ☑
+
+Recorded in 1.33.2. [todo.md](todo.md) preserves the user's numbering 0–6 and includes initial
+code findings, a rope physics/integration proposal, and acceptance checks for every task.
+An initial Holy Grenade terrain/wind diagnostic reproduced a delay to the 10-second arming
+fallback despite very little movement. The implementation and regression fix remain open.
+
+### T55–T61 — Follow-up implementation ☐
+
+Requested and recorded in 1.33.2; implementation versions are not assigned yet.
+
+- T55: [0. Text-size coverage and weapon-bar readability](todo.md#0-review-text-size-everywhere-especially-the-weapon-bar).
+- T56: [1. Text-size setting in the pause menu](todo.md#1-add-text-size-to-the-in-game-menu).
+- T57: [2. Rope design and implementation](todo.md#2-design-and-implement-the-rope-in-the-style-of-worms-2).
+- T58: [3. Air-attack approach direction](todo.md#3-choose-the-direction-of-air-attacks-with-leftright).
+- T59: [4. Persistent proximity mines](todo.md#4-add-proximity-mines-that-persist-across-turns).
+- T60: [5. Sheep crate collection for the launcher](todo.md#5-let-sheep-and-super-sheep-collect-crates-for-their-launcher).
+- T61: [6. Holy Garlic Grenade timing](todo.md#6-debug-and-fix-delayed-holy-garlic-grenade-countdowns).
 
 ## Defaults chosen (change on request)
 

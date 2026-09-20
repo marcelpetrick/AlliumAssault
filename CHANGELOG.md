@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.33.2] — 2026-09-20
+
+### Added
+
+- `todo.md` records seven requested follow-ups with code findings and acceptance checks: text
+  readability, in-game text-size controls, a Worms 2-style rope, air-attack direction, persistent
+  proximity mines, sheep crate collection and Holy Garlic Grenade timing.
+- Initial Holy Grenade diagnostics reproduce delayed arming on slopes; the backlog records the
+  reproduction and suspected contact/rest detection cause. Gameplay changes remain pending.
+
 ## [1.33.0] — 2026-09-18
 
 ### Changed
