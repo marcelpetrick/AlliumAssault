@@ -33,7 +33,7 @@ import { createBody, glideBody, GRAVITY, stepBody, stepProjectile, type Body } f
 import { rngFor, type Rng } from './rng';
 import { CRATE_BLAST, CRATE_HEAL, DEFAULT_CRATE_CHANCE, MAX_CRATES, rollCrate, type Crate } from './crates';
 import { spreadFlames, type Flame } from './fire';
-import { stepFlyer, type Flyer } from './flyer';
+import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { PLANE_SPEED, planStrike } from './strike';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
@@ -161,7 +161,7 @@ export type GameEvent =
   | { type: 'ignite'; x: number; y: number; flames: number }
   | { type: 'scorch'; buddy: number; x: number; y: number }
   | { type: 'crateSpawn'; crate: number; x: number; y: number }
-  | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number }
+  | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number; x: number; y: number }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'suddenDeath'; turn: number }
   | { type: 'gameOver'; winner: number | null };
@@ -670,6 +670,42 @@ export class Game {
     }
   }
 
+  /**
+   * A buddy that may still be rewarded: it must exist, be alive and have health left. Deaths are
+   * deferred to the death phase, so a buddy already on 0 HP must not be healed back into the match.
+   */
+  private rewardee(owner: number): Buddy | null {
+    return this.buddies.find((b) => b.id === owner && b.alive && b.hp > 0) ?? null;
+  }
+
+  /**
+   * Collect every crate a sheep swept over on its way from `from` to `to`, in travel order, and
+   * credit them to the buddy that launched it. The whole segment is tested rather than the end
+   * position alone, so a fast flying sheep cannot cross a crate without touching it. Crates past
+   * the point where the sheep stopped are not on the segment, so an earlier terrain hit shields them.
+   */
+  private sweepCrates(owner: number, from: Point, to: Point, radius: number): void {
+    if (!this.crates.length) return;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const lengthSq = dx * dx + dy * dy;
+    const along = (c: Crate) => (lengthSq === 0 ? 0 : clamp(((c.body.x - from.x) * dx + (c.body.y - from.y) * dy) / lengthSq, 0, 1));
+    const touched = this.crates
+      .filter((c) => {
+        const t = along(c);
+        return Math.hypot(from.x + dx * t - c.body.x, from.y + dy * t - c.body.y) < radius + c.body.radius;
+      })
+      // Travel order, with the crate id breaking ties so the result never depends on array order.
+      .sort((a, b) => along(a) - along(b) || a.id - b.id);
+    for (const crate of touched) {
+      // Re-check: an earlier pickup in this sweep cannot have taken it, but a chain blast can.
+      if (!this.crates.includes(crate)) continue;
+      const winner = this.rewardee(owner);
+      if (!winner) return;
+      this.collectCrate(crate, winner);
+    }
+  }
+
   private ignite(x: number, y: number, napalm: NonNullable<WeaponDef['napalm']>): void {
     const flames = spreadFlames(this.terrain, x, y, napalm.flames, napalm.duration, () => this.nextId++);
     this.flames.push(...flames);
@@ -701,6 +737,10 @@ export class Game {
     }
   }
 
+  /**
+   * Hand a crate to `b`. The recipient is whoever earned it — a buddy that walked into it, or the
+   * buddy that launched the sheep which ran over it, never whichever buddy happens to be active.
+   */
   private collectCrate(crate: Crate, b: Buddy): void {
     this.removeCrate(crate);
     let amount = 1;
@@ -710,7 +750,7 @@ export class Game {
     } else if (crate.weapon) {
       this.teams[b.team].ammo[crate.weapon] += amount;
     }
-    this.emit({ type: 'cratePickup', crate: crate.id, buddy: b.id, kind: crate.kind, weapon: crate.weapon, amount });
+    this.emit({ type: 'cratePickup', crate: crate.id, buddy: b.id, kind: crate.kind, weapon: crate.weapon, amount, x: crate.body.x, y: crate.body.y });
   }
 
   private removeCrate(crate: Crate): void {
@@ -853,7 +893,10 @@ export class Game {
   }
 
   private stepSheep(s: Sheep, dt: number): void {
+    const from = { x: s.body.x, y: s.body.y };
     const result = stepSheep(this.terrain, s, dt);
+    // Crates on the way are picked up for the launcher; touching one never sets the sheep off.
+    this.sweepCrates(s.owner, from, { x: s.body.x, y: s.body.y }, s.body.radius);
     if (result === 'hop') this.emit({ type: 'sheepHop', x: s.body.x, y: s.body.y });
     if (result === 'water' || result === 'out') {
       this.action = null;
@@ -868,9 +911,13 @@ export class Game {
     // The arrow keys point where the sheep should fly, relative to the screen.
     const i = this.input;
     const steer = this.phase === 'guiding' ? { x: Number(i.right) - Number(i.left), y: Number(i.up) - Number(i.down) } : { x: 0, y: 0 };
+    const from = { x: f.x, y: f.y };
     const result = stepFlyer(this.terrain, f, dt, steer, (x, y) =>
-      this.buddies.some((b) => b.alive && (b.id !== f.owner || f.age > 0.4) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + 0.3),
+      this.buddies.some((b) => b.alive && (b.id !== f.owner || f.age > 0.4) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + FLYER_RADIUS),
     );
+    // Along the path it really flew, so a crate it crossed at full speed still counts, and one
+    // behind the rock it crashed into does not. A crate never triggers the sheep.
+    this.sweepCrates(f.owner, from, { x: f.x, y: f.y }, FLYER_RADIUS);
     if (result === 'water' || result === 'out') {
       this.action = null;
       if (result === 'water') this.emit({ type: 'splash', x: f.x, y: this.terrain.waterLevel });

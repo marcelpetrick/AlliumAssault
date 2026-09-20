@@ -128,12 +128,15 @@ export class Hud {
         case 'damage':
           if (buddy) this.float(`−${e.amount}`, buddy.body.x, buddy.body.y + 1.6, g.teams[buddy.team].config.color);
           break;
-        case 'cratePickup':
-          if (buddy) {
-            const text = e.kind === 'health' || !e.weapon ? `+${e.amount} HP` : `+${e.amount} ${WEAPONS[e.weapon].icon} ${WEAPONS[e.weapon].name}`;
-            this.float(text, buddy.body.x, buddy.body.y + 1.6, e.kind === 'health' ? '#5ee27a' : '#ffd166');
-          }
+        case 'cratePickup': {
+          const text = e.kind === 'health' || !e.weapon ? `+${e.amount} HP` : `+${e.amount} ${WEAPONS[e.weapon].icon} ${WEAPONS[e.weapon].name}`;
+          const colour = e.kind === 'health' ? '#5ee27a' : '#ffd166';
+          // Where it was picked up, so a sheep scooping up a crate across the map is visible too.
+          this.float(text, e.x, e.y + 1.2, colour);
+          // And over the buddy that was rewarded, when that is somewhere else entirely.
+          if (buddy && Math.hypot(buddy.body.x - e.x, buddy.body.y - e.y) > 2) this.float(text, buddy.body.x, buddy.body.y + 1.6, colour);
           break;
+        }
         case 'drown':
           if (buddy) this.banner('Splash!', `${buddy.name} went for a swim`, '#4fc3f7');
           break;

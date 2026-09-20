@@ -7,6 +7,8 @@ import type { Terrain } from './terrain';
 export const FLYER_SPEED = 9;
 /** Steering rate, radians per second. */
 export const FLYER_TURN_RATE = 3.2;
+/** How wide the flying sheep counts as, for what it can hit and what it can scoop up. */
+export const FLYER_RADIUS = 0.3;
 /** Distance covered per collision sub-step. */
 const SUB_STEP = 0.1;
 

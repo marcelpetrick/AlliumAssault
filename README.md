@@ -71,7 +71,9 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 - **Worms-style rules** — 2–4 teams of 1–4 buddies, rotating turns, turn timer, 5 s retreat,
   wind, knockback, fall damage, drowning, death explosions, last team standing wins.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
-  25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots in the setup.
+  25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots in the setup. A hopping
+  sheep or a Super Sheep that runs over a crate collects it for the buddy that launched it, without
+  going off.
 - **Arsenal setting** — start with every weapon, find the special weapons (sheep, air strike,
   self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule, napalm strike)
   in crates only, or play with infinite supplies of everything. The basic weapons — bazooka,

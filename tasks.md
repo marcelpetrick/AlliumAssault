@@ -72,7 +72,7 @@ Status: ☐ open · ☑ done
 | T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☐      | Planned        |
 | T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☑      | 1.35.0         |
 | T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
-| T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☐      | Planned        |
+| T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☑      | 1.36.0         |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☑      | 1.34.1         |
 | T63 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
 | T64 | Implement the reviewed AI improvements                                                                    | ☐      | Planned        |
@@ -448,6 +448,16 @@ walks nor turns while choosing, the side resets to its facing at each turn start
 between the air strike and the napalm strike within a turn. The plane-less concrete mule is
 unaffected. The HUD gained an Approach card next to the wind gauge, and the AI sets its direction
 explicitly instead of inheriting the human's choice.
+
+### T60 — Sheep crate collection ☑
+
+Implemented in 1.36.0. `Game.sweepCrates()` collects crates along the segment a sheep really
+travelled in a step, in travel order, and hands them to the existing `collectCrate()` path, so a
+Super Sheep at full speed cannot skip one and the reward, sounds and HUD behave as for a walking
+buddy. The recipient is the launcher, resolved through `Game.rewardee()`, which requires it to be
+alive with health left so a deferred death is never undone; otherwise the crate stays on the map.
+Touching a crate never detonates the sheep. The `cratePickup` event now carries the pickup position
+so the HUD can show the reward where it happened as well as over its owner.
 
 ### T61 — Holy Garlic Grenade arming delay ☑
 

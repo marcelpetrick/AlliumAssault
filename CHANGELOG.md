@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.36.0] — 2026-09-20
+
+### Added
+
+- Sheep and Super Sheep now collect crates they run over, crediting the health or ammo to the buddy
+  that launched them. Collection follows the path the sheep really travelled, so a Super Sheep at
+  full speed cannot skip a crate, and touching one never sets the sheep off. A launcher that is dead
+  or already out of health collects nothing and the crate stays on the map.
+- Crate rewards now also float above the spot where the crate was collected, so a sheep picking one
+  up across the map is visible.
+
 ## [1.35.0] — 2026-09-20
 
 ### Added

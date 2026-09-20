@@ -56,6 +56,48 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
   expect(errors).toEqual([]);
 });
 
+test('crates: a flying sheep collects one for the buddy that launched it, across the map', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page, { crates: 0 });
+  const start = await state(page);
+  const launcher = start.buddies.find((b) => b.name === start.activeBuddy)!;
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.activeBuddy!.hp = 40;
+    g.selectWeapon('flysheep');
+    g.activeBuddy!.aim = 0.9;
+    g.face(1);
+    g.pressFire();
+  });
+  await waitFor(page, (s) => s.phase === 'guiding', 10_000);
+  // Let it climb clear of the ground first, so the pickup happens far from the launcher.
+  await fastForward(page, 0.8);
+  const flown = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const f = g.action?.kind === 'flyer' ? g.action.flyer : null;
+    if (!f) return null;
+    // Just ahead on the flight line: close enough that the crate barely falls before it arrives.
+    const x = f.x + Math.cos(f.angle) * 1.2;
+    const y = f.y + Math.sin(f.angle) * 1.2;
+    g.crates.push({ id: 990, kind: 'health', weapon: null, body: { x, y, vx: 0, vy: 0, radius: 0.45, grounded: false, impact: 0, restTime: 0 } });
+    return { x, y, fromLauncher: Math.hypot(f.x - g.activeBuddy!.body.x, f.y - g.activeBuddy!.body.y) };
+  });
+  expect(flown).not.toBeNull();
+  expect(flown!.fromLauncher).toBeGreaterThan(4);
+  expect((await state(page)).crates).toHaveLength(1);
+  await fastForward(page, 0.35);
+  await page.evaluate(() => {
+    window.__allium.stepFrames(10, 1 / 30);
+  });
+  await info.attach('sheep-crate', { body: await page.screenshot(), contentType: 'image/png' });
+  const after = await state(page);
+  expect(after.crates).toHaveLength(0);
+  // The health went to the launcher, not to whoever else is on the map, and the heal sound played.
+  expect(after.buddies.find((b) => b.name === launcher.name)!.hp).toBe(65);
+  expect(played(after, 'heal')).toBe(1);
+  expect(errors).toEqual([]);
+});
+
 test('tombstones: a buddy that dies leaves a comic tombstone with its name', async ({ page }, info) => {
   const errors = await boot(page);
   const start = await startDuel(page, {

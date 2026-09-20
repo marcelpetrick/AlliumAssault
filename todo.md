@@ -2,7 +2,7 @@
 
 Requested on 2026-09-19; recorded in version 1.33.2, researched in 1.33.3 and planned in 1.33.4.
 Section 7 was added on 2026-09-20 from a separate request to review the AI opponents.
-Tasks 0, 1, 3 and 6 are implemented; 2, 4, 5 and 7 remain open. Progress is also tracked in
+Tasks 0, 1, 3, 5 and 6 are implemented; 2, 4 and 7 remain open. Progress is also tracked in
 [tasks.md](tasks.md); the [planning handoff](#planning-handoff) lists proposed decisions and order.
 
 ## 0. Review text size everywhere, especially the weapon bar — done in 1.33.5
@@ -213,19 +213,19 @@ from the left.
 Initial finding: there is no mine weapon or persistent mine collection. `Game` already owns
 persistent crates and graves; these offer lifecycle examples, but mines need their own rules.
 
-## 5. Let sheep and Super Sheep collect crates for their launcher
+## 5. Let sheep and Super Sheep collect crates for their launcher — done in 1.36.0
 
-- [ ] Allow the walking Sheep and flying Super Sheep (`flysheep`) to collect health and weapon
+- [x] Allow the walking Sheep and flying Super Sheep (`flysheep`) to collect health and weapon
       crates on contact without detonating merely because they touched a crate.
-- [ ] Award health to the exact buddy who launched the sheep, and weapon ammo to that buddy's
+- [x] Award health to the exact buddy who launched the sheep, and weapon ammo to that buddy's
       team. Use the actor's stored owner ID, not whichever buddy is currently active.
-- [ ] Share the existing reward/event path so HUD, sound and inventory update once. Preserve
+- [x] Share the existing reward/event path so HUD, sound and inventory update once. Preserve
       the current health reward rules, including healing above starting health.
-- [ ] Detect collection along movement paths/substeps, particularly for flying sheep, so a
+- [x] Detect collection along movement paths/substeps, particularly for flying sheep, so a
       fast crossing cannot skip a crate. Define deterministic ordering for pickup versus a
       same-step collision, explosion or ordinary buddy pickup.
-- [ ] Define dead/missing-owner behavior without resurrection or rewards to another buddy.
-- [ ] Test both sheep types and both crate kinds, multiple pickups, competing collectors,
+- [x] Define dead/missing-owner behavior without resurrection or rewards to another buddy.
+- [x] Test both sheep types and both crate kinds, multiple pickups, competing collectors,
       launcher attribution, invalid owners and pickup followed by detonation. Add E2E coverage.
 
 Initial finding: both actors already carry `owner`. `Game.stepCrates()` only checks living
@@ -239,6 +239,32 @@ sheep elsewhere. Add pickup-position feedback if needed without changing reward 
 Also test the launcher at zero HP but still `alive`: deaths are deferred, so checking only
 `alive` can accidentally let a pickup rescue a buddy already awaiting death. Choose that rule
 explicitly rather than inheriting it by accident.
+
+Implemented in 1.36.0: `Game.sweepCrates(owner, from, to, radius)` collects every crate whose centre
+lies within reach of the segment the sheep actually travelled during the step, in travel order with
+the crate id breaking ties, and hands each one to `collectCrate()` — the same path a walking buddy
+uses, so ammo, health, HUD floaters and sounds all behave identically and fire once. Both
+`Game.stepSheep()` and `Game.stepFlyer()` record their position before stepping and sweep afterwards,
+so a Super Sheep crossing a crate at 9 units a second cannot skip it, and a crate behind the rock it
+crashed into is not on the travelled segment and stays put. The sweep runs before the step's result is
+acted on, so a sheep that picks a crate up and detonates in the same step does both, in that order.
+
+The recipient is resolved through `Game.rewardee(owner)`, which requires the launcher to exist, be
+`alive` **and** have health left. Deaths are deferred to the death phase, so a buddy sitting on 0 HP
+is still `alive`; healing it would pull it back out of a death it has already earned. When there is no
+valid recipient the crate is left on the map rather than given to anyone else. Each crate is
+re-checked against `this.crates` before the reward, so a chain blast during the same step cannot hand
+out a crate twice, and a crate a buddy walked into first is simply gone by the time the sheep arrives.
+
+The `cratePickup` event now carries the pickup position. The HUD floats the reward there, and
+additionally over the rewarded buddy when that is more than two units away, so a sheep collecting a
+crate across the map is visible without moving the reward off its owner.
+
+Five core tests cover a hopping sheep taking two crates of different kinds in order for its launcher
+(and not for its team-mate), a flying sheep sweeping one up mid-flight and still detonating later, a
+launcher that is dead or awaiting death collecting nothing, and a crate a buddy already took not
+being handed out twice. A browser test flies a Super Sheep clear of its launcher, drops a health crate
+on its flight line and checks the launcher is healed and the heal sound plays.
 
 ## 6. Debug and fix delayed Holy Garlic Grenade countdowns — done in 1.34.1
 

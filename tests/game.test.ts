@@ -1013,6 +1013,121 @@ describe('crates', () => {
     expect(g.teams[0].ammo.airstrike).toBe(Infinity);
   });
 
+  it('a hopping sheep scoops up crates for the buddy that launched it', () => {
+    const g = flatGame([20, 100], [team('A', 2), team('B', 1)], { crates: 0, turnTime: 30 });
+    toAiming(g);
+    const launcher = g.buddies[0];
+    const mate = g.buddies.find((b) => b.team === launcher.team && b !== launcher)!;
+    launcher.hp = 40;
+    mate.hp = 40;
+    g.selectWeapon('sheep');
+    g.face(1);
+    g.crates.push({ id: 910, kind: 'health', weapon: null, body: createBody(launcher.body.x + 4, 20.45, CRATE_RADIUS) });
+    g.crates.push({ id: 911, kind: 'weapon', weapon: 'airstrike', body: createBody(launcher.body.x + 7, 20.45, CRATE_RADIUS) });
+    const ammoBefore = g.teams[0].ammo.airstrike;
+    g.pressFire();
+    const picks: { buddy: number; kind: string; x: number }[] = [];
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'cratePickup') picks.push({ buddy: e.buddy, kind: e.kind, x: e.x });
+        return picks.length >= 2;
+      },
+      8,
+    );
+    // Both crates go to the launcher, in the order the sheep reached them, and the sheep lives on.
+    expect(picks.map((p) => p.kind)).toEqual(['health', 'weapon']);
+    expect(picks.every((p) => p.buddy === launcher.id)).toBe(true);
+    expect(picks[0].x).toBeLessThan(picks[1].x);
+    expect(launcher.hp).toBe(65);
+    expect(mate.hp).toBe(40);
+    expect(g.teams[0].ammo.airstrike).toBe(ammoBefore + 1);
+    expect(g.crates).toHaveLength(0);
+    // Touching a crate must not have set the sheep off.
+    expect(g.action?.kind).toBe('sheep');
+  });
+
+  it('a flying sheep sweeps up a crate it crosses at full speed, then still detonates', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { crates: 0, turnTime: 30 });
+    toAiming(g);
+    const launcher = g.buddies[0];
+    launcher.hp = 10;
+    g.selectWeapon('flysheep');
+    g.face(1);
+    launcher.aim = 0;
+    g.pressFire();
+    const flyer = g.action?.kind === 'flyer' ? g.action.flyer : null;
+    expect(flyer).not.toBeNull();
+    // Straight ahead of a sheep flying 9 units a second: one frame covers 0.15 units, the crate
+    // is 0.75 wide, so an endpoint check would find it too — the sweep is what makes it certain.
+    g.crates.push({ id: 912, kind: 'health', weapon: null, body: createBody(flyer!.x + 3, flyer!.y, CRATE_RADIUS) });
+    const picks: { buddy: number; x: number }[] = [];
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'cratePickup') picks.push({ buddy: e.buddy, x: e.x });
+        return picks.length >= 1;
+      },
+      5,
+    );
+    expect(picks).toHaveLength(1);
+    expect(picks[0].buddy).toBe(launcher.id);
+    expect(launcher.hp).toBe(35);
+    expect(g.crates).toHaveLength(0);
+    // It flew on and blew up later, rather than exploding on the crate.
+    expect(g.action?.kind).toBe('flyer');
+    runUntil(g, () => g.action === null, 12);
+    expect(g.action).toBeNull();
+  });
+
+  it('a sheep whose launcher is already out leaves the crate on the map', () => {
+    for (const state of ['dead', 'awaiting death'] as const) {
+      const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { crates: 0, turnTime: 30 });
+      toAiming(g);
+      const launcher = g.buddies[0];
+      g.selectWeapon('sheep');
+      g.face(1);
+      g.crates.push({ id: 913, kind: 'health', weapon: null, body: createBody(launcher.body.x + 4, 20.45, CRATE_RADIUS) });
+      g.pressFire();
+      // Deaths are deferred, so a buddy on 0 HP is still `alive`; healing it would undo that.
+      launcher.hp = 0;
+      if (state === 'dead') launcher.alive = false;
+      const picks = runUntil(
+        g,
+        () => {
+          return g.drainEvents().some((e) => e.type === 'cratePickup');
+        },
+        6,
+      );
+      expect(picks).toBe(false);
+      expect(g.crates).toHaveLength(1);
+      expect(launcher.hp).toBe(0);
+    }
+  });
+
+  it('a crate already taken by a buddy is not handed out twice by a passing sheep', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { crates: 0, turnTime: 30 });
+    toAiming(g);
+    const launcher = g.buddies[0];
+    launcher.hp = 50;
+    g.selectWeapon('sheep');
+    g.face(1);
+    // Right where the sheep is released, so the launcher and the sheep race for the same crate.
+    g.crates.push({ id: 914, kind: 'health', weapon: null, body: createBody(launcher.body.x + 0.8, launcher.body.y, CRATE_RADIUS) });
+    g.pressFire();
+    const picks: number[] = [];
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'cratePickup') picks.push(e.crate);
+        return g.crates.length === 0;
+      },
+      6,
+    );
+    expect(picks).toEqual([914]);
+    expect(launcher.hp).toBe(75);
+  });
+
   it('blow up when caught in an explosion', () => {
     const g = crateGame(0);
     toAiming(g);

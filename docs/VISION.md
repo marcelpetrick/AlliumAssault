@@ -63,7 +63,9 @@ Seventeen weapons. _Special_ weapons can be restricted to crates with the arsena
 
 From the second turn on a crate may teleport onto free land at a turn start (Off / Normal / Lots,
 at most four on the map). Health crates heal the collecting buddy by 25 HP; weapon crates add one
-more of a special weapon to its team. Crates explode when caught in a blast.
+more of a special weapon to its team. Crates explode when caught in a blast. A sheep or Super Sheep
+sweeping over a crate collects it for the buddy that launched it — touching a crate never detonates
+the sheep, and a launcher that is dead or already out of health collects nothing.
 
 ## Controls
 
