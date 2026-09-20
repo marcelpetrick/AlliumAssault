@@ -75,7 +75,7 @@ Status: ☐ open · ☑ done
 | T60 | Collect crates with Sheep and Super Sheep for their launcher                                              | ☑      | 1.36.0         |
 | T61 | Debug and fix delayed Holy Garlic Grenade arming                                                          | ☑      | 1.34.1         |
 | T63 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
-| T64 | Implement the reviewed AI improvements                                                                    | ☐      | Planned        |
+| T64 | Implement the reviewed AI improvements                                                                    | ☑      | 1.37.0         |
 | T62 | Continue backlog research with browser layout checks and normal-throw grenade diagnostics                 | ☑      | 1.33.3         |
 | T63 | Finish planning research and prepare the backlog for an implementation decision                           | ☑      | 1.33.4         |
 
@@ -478,7 +478,13 @@ but it never reads a crate's contents or its own health when deciding to, never 
 crate explosion that `Game.explode()` actually produces, and treats every enemy team alike. The
 review also found that `simulateShot()` omits the crate `hitTest` the real game applies to contact
 fuses, that blast knockback is only scored for melee and minigun, and that the AI never repositions.
-T64 tracks implementing the proposed changes.
+Implemented in 1.37.0, except the proposed repositioning step, which is deferred with its reason
+recorded: an `AiKnowledge` record gates the new understanding by level, so Easy plays exactly as
+before while Normal gains crate awareness and team targeting and Hard adds knockback. `scoreBlast()`
+counts the chained crate explosion, `simulateShot()` stops contact fuses at crates, crate fetching
+weighs the kind against the buddy's health and the team's stock and checks the crate is reachable,
+and `enemyWeight()` presses the enemy team holding the most health while finishing one down to its
+last buddy.
 
 ### T62 — Further backlog research ☑
 

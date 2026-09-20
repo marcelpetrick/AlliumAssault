@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, TORCH_SPEED, WIND_ACCEL } from './constants';
+import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, START_HP, TORCH_SPEED, WALK_SPEED, WIND_ACCEL } from './constants';
 import { meleeLaunch, REST_SPEED, REST_TIME, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { gaussian, type Rng } from './rng';
 import { defined } from './assert';
-import type { Crate } from './crates';
+import { CRATE_BLAST, CRATE_HEAL, CRATE_WEAPONS, type Crate } from './crates';
 import { FLYER_SPEED, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep } from './sheep';
 import { groundBelow, strikeWindShift } from './strike';
+import type { Terrain } from './terrain';
 import { WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export interface AttackPlan {
@@ -33,6 +34,40 @@ const LEVELS: Record<AiLevel, { angles: number; powers: number; aimError: number
   hard: { angles: 28, powers: 11, aimError: 0.012, powerError: 0.012, think: 0.6 },
 };
 
+/**
+ * What a level understands about the board, on top of how finely it searches and how much its hand
+ * shakes. Easy plays the simple game it always did: shoot at whatever is closest and grab a crate
+ * when there is nothing better to do.
+ */
+export interface AiKnowledge {
+  /** A crate caught in a blast explodes again, and a crate walked into is worth what is inside. */
+  crates: boolean;
+  /** A blast can shove a buddy off the map or into the water, which finishes it. */
+  knockback: boolean;
+  /** Which enemy team is ahead, and which is one buddy away from being wiped out. */
+  focus: boolean;
+}
+
+export const NO_KNOWLEDGE: AiKnowledge = { crates: false, knockback: false, focus: false };
+
+const KNOWLEDGE: Record<AiLevel, AiKnowledge> = {
+  easy: NO_KNOWLEDGE,
+  normal: { crates: true, knockback: false, focus: true },
+  hard: { crates: true, knockback: true, focus: true },
+};
+
+/** Finishing a buddy is worth more than the damage it took. */
+const KILL_BONUS = 40;
+/** Hurting a team-mate, and hurting itself, counts against a shot this much. */
+const FRIEND_WEIGHT = 1.5;
+const SELF_WEIGHT = 2.5;
+/** Supply thrown away when a blast destroys a crate nobody has collected yet. */
+const CRATE_LOSS = 4;
+/** Extra weight on an enemy team down to its last living buddy. */
+const LAST_BUDDY_BONUS = 0.35;
+/** A shove smaller than this never throws anybody anywhere. */
+const MIN_SHOVE = 2;
+
 /** Simulate a shot without touching game state; returns where it detonates. */
 export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 | -1, aim: number, power: number): { x: number; y: number } | null {
   const def = WEAPONS[weapon];
@@ -40,9 +75,13 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
   const dy = Math.sin(aim);
   const speed = lerp(def.minSpeed, def.maxSpeed, power);
   const p = { x: me.body.x + dx * MUZZLE_OFFSET, y: me.body.y + dy * MUZZLE_OFFSET, vx: dx * speed, vy: dy * speed, radius: 0.15, bounces: 0 };
+  // Contact fuses go off on the first thing they touch. Game.stepProjectiles() counts crates as
+  // well as buddies, so leaving them out here planned rockets straight through them.
   const hitTest =
     def.restitution === null
-      ? (x: number, y: number) => game.buddies.some((b) => b.alive && b !== me && Math.hypot(b.body.x - x, b.body.y - y) < BUDDY_RADIUS + 0.15)
+      ? (x: number, y: number) =>
+          game.buddies.some((b) => b.alive && b !== me && Math.hypot(b.body.x - x, b.body.y - y) < BUDDY_RADIUS + 0.15) ||
+          game.crates.some((c) => Math.hypot(c.body.x - x, c.body.y - y) < c.body.radius + 0.15)
       : undefined;
   const dt = 1 / 20;
   const ax = game.wind * WIND_ACCEL * def.windInfluence;
@@ -59,7 +98,7 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
 }
 
 /** Replay a sheep's hops without touching game state; returns the best moment to detonate. */
-export function simulateSheep(game: Game, me: Buddy, facing: 1 | -1, maxTime: number): { score: number; time: number } {
+export function simulateSheep(game: Game, me: Buddy, facing: 1 | -1, maxTime: number, know: AiKnowledge = NO_KNOWLEDGE): { score: number; time: number } {
   const def = WEAPONS.sheep;
   const sheep = releaseSheep(0, me.id, me.body.x, me.body.y, facing);
   const dt = 1 / 60;
@@ -68,38 +107,122 @@ export function simulateSheep(game: Game, me: Buddy, facing: 1 | -1, maxTime: nu
     const result = stepSheep(game.terrain, sheep, dt);
     if (result === 'water' || result === 'out') break;
     if (step % 6) continue;
-    const score = scoreBlast(game, me, sheep.body.x, sheep.body.y, def);
+    const score = scoreBlast(game, me, sheep.body.x, sheep.body.y, def, know);
     if (score > best.score) best = { score, time: step * dt };
   }
   return best;
 }
 
 /** Blast score plus a rough estimate for cluster fragments raining down around the impact. */
-export function scoreWeapon(game: Game, me: Buddy, x: number, y: number, def: WeaponDef): number {
-  let score = scoreBlast(game, me, x, y, def);
+export function scoreWeapon(game: Game, me: Buddy, x: number, y: number, def: WeaponDef, know: AiKnowledge = NO_KNOWLEDGE): number {
+  let score = scoreBlast(game, me, x, y, def, know);
   if (def.cluster) {
     const fragment = WEAPONS[def.cluster.weapon];
     const spread = { ...fragment, radius: 4.5, damage: fragment.damage * def.cluster.count * 0.4 };
-    score += Math.max(scoreBlast(game, me, x, y + 1, spread), -spread.damage * 3);
+    score += Math.max(scoreBlast(game, me, x, y + 1, spread, know), -spread.damage * 3);
   }
   return score;
 }
 
-/** Expected value of a blast at (x, y): enemy damage minus weighted friendly/self damage. */
-export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: WeaponDef): number {
-  let gain = 0;
-  let loss = 0;
-  let nearestEnemy = Infinity;
+/**
+ * How much a hit on this enemy is worth next to a hit on any other. Without `focus` every enemy
+ * counts the same, as before. With it, the team holding the most health is the one worth pressing,
+ * and a team down to its last buddy is worth finishing off. Only meaningful with several opponents.
+ */
+function enemyWeight(game: Game, me: Buddy, enemy: Buddy, know: AiKnowledge): number {
+  if (!know.focus) return 1;
+  const rivals = game.teams.filter((t) => t.index !== me.team && t.buddies.some((b) => b.alive));
+  if (rivals.length < 2) return 1;
+  const health = (team: (typeof rivals)[number]) => team.buddies.reduce((sum, b) => sum + (b.alive ? Math.max(0, b.hp) : 0), 0);
+  const total = rivals.reduce((sum, t) => sum + health(t), 0) || 1;
+  const mine = game.teams[enemy.team];
+  const lastOne = mine.buddies.filter((b) => b.alive).length === 1;
+  return 1 + (health(mine) / total - 1 / rivals.length) + (lastOne ? LAST_BUDDY_BONUS : 0);
+}
+
+/**
+ * `groundBelow()` scans a whole column of the field, and the inner search asks about the same few
+ * positions thousands of times, so remember them until the terrain changes. Half a world unit of
+ * precision is plenty for these heuristics.
+ */
+const surfaceCache = new Map<number, number>();
+let surfaceRevision = -1;
+
+function surfaceAt(t: Terrain, x: number): number {
+  if (t.revision !== surfaceRevision) {
+    surfaceCache.clear();
+    surfaceRevision = t.revision;
+  }
+  const key = Math.round(x * 2);
+  const known = surfaceCache.get(key);
+  if (known !== undefined) return known;
+  const y = groundBelow(t, key / 2);
+  surfaceCache.set(key, y);
+  return y;
+}
+
+/**
+ * Rough ballistic answer to "would this shove put them in the water or off the map?". It ignores
+ * the rock in between, so it can be optimistic, but it costs nothing — unlike `knockedOut()`,
+ * which simulates the whole fall and is far too slow for the inner angle/power search.
+ */
+function shovedOut(game: Game, target: Buddy, vx: number, vy: number): boolean {
+  if (Math.abs(vx) < MIN_SHOVE) return false;
+  const t = game.terrain;
+  // Time to come down a metre below where it started, which is where the ground normally is.
+  const flight = (vy + Math.sqrt(Math.max(0, vy * vy + 2 * GRAVITY))) / GRAVITY;
+  const land = target.body.x + vx * flight;
+  if (land < 0 || land > t.width) return true;
+  return surfaceAt(t, land) <= t.waterLevel + 0.2;
+}
+
+/** Running total of what a blast is worth: damage dealt to enemies against damage taken by us. */
+interface Tally {
+  gain: number;
+  loss: number;
+}
+
+/** Add one blast of `radius`/`damage`/`force` centred at (x, y) to the tally. */
+function addBlast(game: Game, me: Buddy, tally: Tally, x: number, y: number, radius: number, damage: number, force: number, know: AiKnowledge): void {
   for (const b of game.buddies) {
     if (!b.alive) continue;
-    const reach = Math.max(0, Math.hypot(b.body.x - x, b.body.y - y) - BUDDY_RADIUS * 0.5);
-    if (b.team !== me.team) nearestEnemy = Math.min(nearestEnemy, reach);
-    if (reach >= def.radius) continue;
-    const dmg = def.damage * (1 - reach / def.radius);
-    if (b.team === me.team) loss += dmg * (b === me ? 2.5 : 1.5);
-    else gain += dmg + (dmg >= b.hp ? 40 : 0);
+    const dx = b.body.x - x;
+    const dy = b.body.y - y;
+    const dist = Math.hypot(dx, dy);
+    const reach = Math.max(0, dist - b.body.radius * 0.5);
+    if (reach >= radius) continue;
+    const falloff = 1 - reach / radius;
+    let value = damage * falloff;
+    // The same shove Game.explode() applies: if it throws them out, the whole buddy is the prize.
+    if (know.knockback && value < b.hp) {
+      const nx = dist > 1e-3 ? dx / dist : 0;
+      const ny = dist > 1e-3 ? dy / dist : 1;
+      if (shovedOut(game, b, nx * force * falloff, ny * force * falloff + force * 0.35 * falloff)) value = b.hp;
+    }
+    if (b.team === me.team) tally.loss += value * (b === me ? SELF_WEIGHT : FRIEND_WEIGHT);
+    else tally.gain += (value + (value >= b.hp ? KILL_BONUS : 0)) * enemyWeight(game, me, b, know);
   }
-  return gain > 0 ? gain - loss : -loss * 5 - nearestEnemy;
+}
+
+/** Expected value of a blast at (x, y): enemy damage minus weighted friendly/self damage. */
+export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: WeaponDef, know: AiKnowledge = NO_KNOWLEDGE): number {
+  const tally: Tally = { gain: 0, loss: 0 };
+  let nearestEnemy = Infinity;
+  for (const b of game.buddies) {
+    if (!b.alive || b.team === me.team) continue;
+    nearestEnemy = Math.min(nearestEnemy, Math.max(0, Math.hypot(b.body.x - x, b.body.y - y) - BUDDY_RADIUS * 0.5));
+  }
+  addBlast(game, me, tally, x, y, def.radius, def.damage, def.force, know);
+  if (know.crates) {
+    // Game.explode() sets off every crate it catches, so a crate beside an enemy is a second blast
+    // and one beside a friend is a hazard. Only the first link of the chain is estimated.
+    for (const c of game.crates) {
+      if (Math.hypot(c.body.x - x, c.body.y - y) >= def.radius + c.body.radius) continue;
+      addBlast(game, me, tally, c.body.x, c.body.y, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force, know);
+      tally.loss += CRATE_LOSS;
+    }
+  }
+  return tally.gain > 0 ? tally.gain - tally.loss : -tally.loss * 5 - nearestEnemy;
 }
 
 /**
@@ -108,6 +231,7 @@ export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: Wea
  */
 export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only?: WeaponId): AttackPlan {
   const cfg = LEVELS[level];
+  const know = KNOWLEDGE[level];
   const team = game.teams[me.team];
   const allowed = (weapon: WeaponId) => (only ? weapon === only : team.ammo[weapon] > 0);
   const enemies = game.buddies.filter((b) => b.alive && b.team !== me.team);
@@ -135,7 +259,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
           const power = lerp(0.3, 1, s / (cfg.powers - 1));
           const impact = simulateShot(game, me, weapon, facing, aim, power);
           if (!impact) continue;
-          const score = scoreWeapon(game, me, impact.x, impact.y, WEAPONS[weapon]) - cost;
+          const score = scoreWeapon(game, me, impact.x, impact.y, WEAPONS[weapon], know) - cost;
           if (score > best.score) best = { weapon, facing, aim, power, score };
         }
       }
@@ -146,7 +270,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     // Keep a margin so the sheep still detonates in time with think and aim delays.
     const budget = game.turnTimeLeft - cfg.think - 1.5;
     for (const facing of [1, -1] as const) {
-      const run = simulateSheep(game, me, facing, budget);
+      const run = simulateSheep(game, me, facing, budget, know);
       const score = run.score - 15;
       if (score > best.score) best = { weapon: 'sheep', facing, aim: me.aim, power: 1, score, delay: run.time };
     }
@@ -167,7 +291,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
         let score = -20;
         for (let k = 0; k < count; k++) {
           const x = landing + (k - (count - 1) / 2) * spacing;
-          score += scoreBlast(game, me, x, groundBelow(game.terrain, x), bomb) * hitsPerBomb;
+          score += scoreBlast(game, me, x, groundBelow(game.terrain, x), bomb, know) * hitsPerBomb;
         }
         // Fly in from our own side of the target, as before, but say so explicitly: the human
         // selector must not decide where an AI plane comes from.
@@ -180,7 +304,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
   if (allowed('flysheep') && nearest) {
     // Hard to predict exactly; valued as a likely, heavy hit that costs a rare weapon.
     const def = WEAPONS.flysheep;
-    const score = def.damage * 0.55 + (nearest.hp <= def.damage * 0.55 ? 40 : 0) - 15;
+    const score = (def.damage * 0.55 + (nearest.hp <= def.damage * 0.55 ? KILL_BONUS : 0)) * enemyWeight(game, me, nearest, know) - 15;
     const facing: 1 | -1 = nearest.body.x < me.body.x ? -1 : 1;
     // Only launch along a clear path: a sheep hitting rock right away explodes next to us.
     const aim = [0.8, 1.2, 0.4, 1.45].find((a) => flyerLaunchClear(game, me, facing, a));
@@ -194,7 +318,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     for (const enemy of enemies) {
       const dx = enemy.body.x - me.body.x;
       if (Math.abs(enemy.body.y - me.body.y) > 1 || Math.abs(dx) > TORCH_SPEED * def.fuse + def.range || lineOfSight(game, me, enemy)) continue;
-      const score = def.damage + (enemy.hp <= def.damage ? 40 : 0) - 6;
+      const score = (def.damage + (enemy.hp <= def.damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 6;
       if (score > best.score) best = { weapon: 'torch', facing: dx < 0 ? -1 : 1, aim: 0, power: 1, score };
     }
   }
@@ -205,7 +329,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     for (const enemy of enemies) {
       const below = me.body.y - enemy.body.y;
       if (Math.abs(enemy.body.x - me.body.x) > def.radius + BUDDY_RADIUS || below < 1 || below > DRILL_REACH || lineOfSight(game, me, enemy)) continue;
-      const score = def.damage + (enemy.hp <= def.damage ? 40 : 0) - 6;
+      const score = (def.damage + (enemy.hp <= def.damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 6;
       if (score > best.score) best = { weapon: 'drill', facing: best.facing, aim: me.aim, power: 1, score };
     }
   }
@@ -219,7 +343,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const reach = Math.max(0, Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) - BUDDY_RADIUS * 0.5);
       if (reach >= blast.radius) continue;
       const dmg = blast.damage * (1 - reach / blast.radius);
-      score += b.team === me.team ? -dmg * 1.5 : dmg + (dmg >= b.hp ? 40 : 0);
+      score += b.team === me.team ? -dmg * FRIEND_WEIGHT : (dmg + (dmg >= b.hp ? KILL_BONUS : 0)) * enemyWeight(game, me, b, know);
     }
     if (score > best.score) best = { weapon: 'selfdestruct', facing: best.facing, aim: me.aim, power: 1, score };
   }
@@ -235,7 +359,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const aim = directAim(enemy);
       const launch = meleeLaunch(def, facing, { x: Math.cos(aim) * facing, y: Math.sin(aim) });
       const lethal = enemy.hp <= def.damage || knockedOut(game, enemy, launch.x, launch.y);
-      const score = def.damage + (lethal ? enemy.hp + 40 : 0) + 5 - (team.ammo[weapon] === Infinity ? 0 : 8);
+      const score = (def.damage + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) + 5 - (team.ammo[weapon] === Infinity ? 0 : 8);
       if (score > best.score) best = { weapon, facing, aim, power: 1, score };
     }
     if (allowed('minigun') && dist < WEAPONS.minigun.range && lineOfSight(game, me, enemy)) {
@@ -246,12 +370,12 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const hits = count * 0.7;
       const shove = { x: Math.cos(aim) * facing * def.force * hits, y: Math.sin(aim) * def.force * hits + (def.lift ?? 0) * hits };
       const lethal = enemy.hp <= def.damage * hits || knockedOut(game, enemy, shove.x, shove.y);
-      const score = def.damage * hits + (lethal ? enemy.hp + 40 : 0) - 10;
+      const score = (def.damage * hits + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 10;
       if (score > best.score) best = { weapon: 'minigun', facing, aim, power: 1, score };
     }
     if (allowed('shotgun') && dist < WEAPONS.shotgun.range && lineOfSight(game, me, enemy)) {
       const damage = WEAPONS.shotgun.damage * 2;
-      const score = damage * 0.9 + (enemy.hp <= damage ? 40 : 0);
+      const score = (damage * 0.9 + (enemy.hp <= damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know);
       if (score > best.score) best = { weapon: 'shotgun', facing, aim: directAim(enemy), power: 1, score };
     }
   }
@@ -308,16 +432,71 @@ const FLYER_CLEARANCE = 3;
 /** Seconds of straight flight a launch must survive: about the blast radius plus a margin. */
 const FLYER_CLEARANCE_TIME = (WEAPONS.flysheep.radius + 2) / FLYER_SPEED;
 
-/** Attacks scoring below this are worth skipping for a crate within reach. */
+/** What a crate is worth to a level that does not look at what is in it. */
 const CRATE_WORTH = 15;
+/** A health crate for a buddy at full health: over-healing is still a buffer worth having. */
+const HEALTH_CRATE_FULL = 10;
+/** Extra weight when the heal might be what keeps this buddy in the match. */
+const SURVIVAL_BONUS = 25;
+/** A weapon crate, plus this much for every special weapon the team has none of. */
+const WEAPON_CRATE_BASE = 15;
+const WEAPON_CRATE_SHORTAGE = 1.2;
+/** Points shaved off per world unit of walking, so a closer crate wins a tie. */
+const CRATE_DISTANCE_COST = 0.4;
+/** Furthest a crate can be and still be considered. */
+const CRATE_REACH = 12;
+/** Sampling step and the biggest step up the buddy can walk, for the reachability check. */
+const SURFACE_STEP = 0.5;
+const MAX_CLIMB = 1;
+/** Seconds held back for aiming and firing after a walk. */
+const FETCH_MARGIN = 6;
 
-/** Closest crate the buddy can plausibly walk to this turn. */
-function nearbyCrate(game: Game, me: Buddy): Crate | null {
-  let best: Crate | null = null;
+/**
+ * What walking to this crate is worth. A level without `crates` knowledge treats every crate the
+ * same, as before. Otherwise the kind is visible on the map and counts: a health crate is worth
+ * most to a buddy that needs the health, and worth a little even at full health because over-healing
+ * is allowed. What is inside a weapon crate only shows once it is opened, so it is valued by how
+ * thin the team's stock of special weapons is.
+ */
+function crateValue(game: Game, me: Buddy, crate: Crate, know: AiKnowledge): number {
+  if (!know.crates) return CRATE_WORTH;
+  if (crate.kind === 'health') {
+    const missing = Math.max(0, START_HP - me.hp);
+    const heal = HEALTH_CRATE_FULL + (CRATE_HEAL - HEALTH_CRATE_FULL) * Math.min(1, missing / CRATE_HEAL);
+    return heal + (me.hp <= CRATE_HEAL ? SURVIVAL_BONUS : 0);
+  }
+  const stocked = CRATE_WEAPONS.filter((id) => game.teams[me.team].ammo[id] > 0).length;
+  return WEAPON_CRATE_BASE + (CRATE_WEAPONS.length - stocked) * WEAPON_CRATE_SHORTAGE;
+}
+
+/**
+ * Can the buddy walk along the surface from `fromX` to `toX` inside `seconds`? A rough check on the
+ * ground profile: no water or empty gap on the way, and no step up too tall to walk. It reads the
+ * first rock below the sky, so it does not understand caves; a mistake only costs a wasted walk.
+ */
+function walkable(game: Game, fromX: number, toX: number, seconds: number): boolean {
+  const t = game.terrain;
+  if (Math.abs(toX - fromX) / WALK_SPEED > seconds) return false;
+  const step = toX > fromX ? SURFACE_STEP : -SURFACE_STEP;
+  let y = surfaceAt(t, clamp(fromX, 0, t.width));
+  for (let x = fromX + step; (toX - x) * step > 0; x += step) {
+    const next = surfaceAt(t, clamp(x, 0, t.width));
+    if (next <= t.waterLevel + 0.2 || next - y > MAX_CLIMB) return false;
+    y = next;
+  }
+  return true;
+}
+
+/** The crate worth most to this buddy right now, with what walking to it is worth. */
+function crateGoal(game: Game, me: Buddy, know: AiKnowledge, seconds: number): { crate: Crate; value: number } | null {
+  let best: { crate: Crate; value: number } | null = null;
   for (const c of game.crates) {
     const dx = Math.abs(c.body.x - me.body.x);
-    if (dx > 12 || Math.abs(c.body.y - me.body.y) > 3 || !c.body.grounded) continue;
-    if (!best || dx < Math.abs(best.body.x - me.body.x)) best = c;
+    if (dx > CRATE_REACH || Math.abs(c.body.y - me.body.y) > 3 || !c.body.grounded) continue;
+    // Only the levels that think about crates check whether they can actually get there.
+    if (know.crates && !walkable(game, me.body.x, c.body.x, seconds)) continue;
+    const value = crateValue(game, me, c, know) - dx * CRATE_DISTANCE_COST;
+    if (!best || value > best.value) best = { crate: c, value };
   }
   return best;
 }
@@ -410,10 +589,10 @@ export class AiDriver {
         if (this.timer < LEVELS[this.level].think) return;
         const midUse = game.shotsLeft < WEAPONS[game.weapon].shots;
         const plan = planAttack(game, me, this.level, this.rng, midUse ? game.weapon : undefined);
-        const crate = midUse ? null : nearbyCrate(game, me);
-        if (crate && plan.score < CRATE_WORTH && this.fetches < 2 && game.turnTimeLeft > 12) {
+        const goal = midUse ? null : crateGoal(game, me, KNOWLEDGE[this.level], game.turnTimeLeft - FETCH_MARGIN);
+        if (goal && goal.value > plan.score && this.fetches < 2 && game.turnTimeLeft > 12) {
           this.fetches++;
-          this.fetch = { crate: crate.id, lastX: me.body.x, stuck: 0 };
+          this.fetch = { crate: goal.crate.id, lastX: me.body.x, stuck: 0 };
           this.stage = 'fetch';
           this.timer = 0;
           return;

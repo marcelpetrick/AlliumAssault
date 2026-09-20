@@ -384,7 +384,7 @@ The separate frame-rate concern below 10 fps is untouched: `App.frame()` still c
 0.1 seconds, so the simulation runs slower than wall time on very slow machines. That is a
 rendering/timing change with its own tests, not part of this fix.
 
-## 7. Review and strengthen the AI opponents
+## 7. Review and strengthen the AI opponents — implemented in 1.37.0, one item deferred
 
 Requested on 2026-09-20. This section is a **review with a proposed backlog**; no AI behaviour has
 been changed yet. Findings below were read out of `src/core/ai.ts`, `src/core/game.ts` and
@@ -451,30 +451,74 @@ been changed yet. Findings below were read out of `src/core/ai.ts`, `src/core/ga
 
 ### Proposed work, roughly in order of value per risk
 
-- [ ] Teach `scoreBlast()` about crates: add the chained `CRATE_BLAST` of every crate inside the
+- [x] Teach `scoreBlast()` about crates: add the chained `CRATE_BLAST` of every crate inside the
       radius, credited to whoever it would hit, so shooting a crate beside an enemy is rewarded and
       one beside a friend is penalised. Keep the chain bounded and deterministic.
-- [ ] Give `simulateShot()` the same crate `hitTest` the game uses, so contact fuses are predicted
+- [x] Give `simulateShot()` the same crate `hitTest` the game uses, so contact fuses are predicted
       correctly.
-- [ ] Make crate fetching need-aware: read `crate.kind`, weigh a health crate by the missing health
+- [x] Make crate fetching need-aware: read `crate.kind`, weigh a health crate by the missing health
       of the buddy (and by `CRATE_HEAL`), weigh a weapon crate by what the team is short of, and let
       a badly hurt buddy prefer healing over a mediocre attack instead of using one fixed threshold.
-- [ ] Replace the blind walk with a reachability check along the surface, so the AI only commits to
+- [x] Replace the blind walk with a reachability check along the surface, so the AI only commits to
       a crate it can actually walk to within the remaining turn time, and give up earlier otherwise.
-- [ ] Score knockback for blasts as well: reuse `knockedOut()` with the explosion's force vector for
+- [x] Score knockback for blasts as well: reuse `knockedOut()` with the explosion's force vector for
       enemies near the blast, and subtract the same for friends and for itself.
-- [ ] Add team-level target selection: weight each enemy by its team's remaining total health so the
+- [x] Add team-level target selection: weight each enemy by its team's remaining total health so the
       AI presses the leading team, and prefer finishing a team that is one buddy from elimination.
       Decide the exact rule and make it visible in the scoring, not hidden in tie-breaks.
-- [ ] Consider a short repositioning step before aiming at hard level: sample a few reachable
-      standing spots and re-plan from the best one, bounded by turn time.
-- [ ] Gate the new knowledge by level, so easy stays cheerfully bad: crate contents and team
+- [ ] **Deferred.** Consider a short repositioning step before aiming at hard level: sample a few
+      reachable standing spots and re-plan from the best one, bounded by turn time. Left out of
+      1.37.0: `planAttack()` already costs about 24 ms at hard level, and re-planning from several
+      positions multiplies that by the number of candidates inside the turn loop. It needs its own
+      budgeted search and its own measurements, not a bolt-on.
+- [x] Gate the new knowledge by level, so easy stays cheerfully bad: crate contents and team
       targeting for normal and hard, knockback and repositioning for hard only.
-- [ ] Unit-test each rule in isolation with deterministic terrain and seeds: a crate beside an enemy
+- [x] Unit-test each rule in isolation with deterministic terrain and seeds: a crate beside an enemy
       raises the score, a crate beside a friend lowers it, a hurt buddy fetches the health crate, a
       healthy buddy does not, the leading team is preferred, and every level still finishes a turn.
-- [ ] Add E2E coverage that an AI match plays to a finish at every level without stalling, and that
+- [x] Add E2E coverage that an AI match plays to a finish at every level without stalling, and that
       an AI buddy visibly picks up a health crate when badly hurt.
+
+### Implemented in 1.37.0
+
+An `AiKnowledge` record now says what each level understands, separately from how finely it searches
+and how much its hand shakes. Easy knows nothing extra and plays exactly as before; Normal gains
+crate awareness and team targeting; Hard adds knockback.
+
+- **Crate chains.** `scoreBlast()` adds the `CRATE_BLAST` of every crate inside the blast radius, run
+  through the same per-buddy tally as the blast itself, so a crate beside an enemy is a second
+  explosion worth having and one beside a team-mate is a hazard. Only the first link of the chain is
+  estimated, which keeps it bounded and order-independent; destroying a crate also costs a small
+  fixed supply penalty. `Game.explode()` remains the authority — the AI only estimates it.
+- **Contact fuses.** `simulateShot()` now uses the same crate `hitTest` as
+  `Game.stepProjectiles()`, so the AI no longer plans rockets through a crate that would stop them.
+- **Need-aware crates.** `crateValue()` reads the kind, which is visible on the map. A health crate
+  is worth 10 at full health (over-healing is still a buffer) rising to 25 when a full heal would be
+  used, plus 25 more when the buddy is hurt badly enough that the heal may keep it in the match. The
+  weapon inside a weapon crate is not visible, so it is valued by how many special weapons the team
+  has none of. Distance costs 0.4 a unit. The AI fetches whenever that beats its best attack, instead
+  of the old fixed threshold of 15.
+- **Reachability.** `walkable()` walks the surface profile in half-unit steps and rejects water, gaps
+  and steps too tall to climb, and checks the walk fits in the turn time. Easy skips the check and
+  keeps blundering towards crates it cannot reach.
+- **Knockback.** `shovedOut()` answers "would this shove put them in the water or off the map?" with
+  a one-line ballistic estimate rather than simulating the fall, because `knockedOut()` at 150 body
+  steps a call cannot run inside a 616-shot search. A blast that throws an enemy out is scored as the
+  whole buddy. It ignores rock in the way, so it can be optimistic; that is a heuristic, not a claim.
+- **Team targeting.** `enemyWeight()` weighs each enemy by its team's share of the health the
+  opposition has left, plus a bonus for a team down to its last buddy. With a single opponent it
+  returns 1, so duels are unchanged. The weight is applied everywhere an enemy is valued — blasts,
+  melee, minigun, shotgun, torch, drill, flying sheep and self-destruct — not hidden in a tie-break.
+
+Cost measured on a three-team flat arena with two crates: easy 7.0 → 8.1 ms, normal 11.3 → 12.7 ms,
+hard 21.1 → 23.6 ms per `planAttack()`. A surface-height cache keyed on `Terrain.revision` keeps
+`groundBelow()` from rescanning the same columns.
+
+Eight core tests cover the crate chain (and easy not seeing it), a crate beside a team-mate, the
+contact fuse stopping at a crate, a hurt buddy fetching where a healthy one shoots, a crate behind
+an unclimbable wall being left alone, leader-pressing and last-buddy focus, Hard seeing a cliff shove
+where Normal does not, and every level finishing an AI-vs-AI match with crates. Two browser tests run
+a match at each level to a finish and watch a nearly dead hard AI walk to a health crate and heal.
 
 ### Risks
 

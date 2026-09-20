@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.37.0] — 2026-09-20
+
+### Changed
+
+- The AI opponents now understand more of the board, gated by level. Normal and Hard see that a
+  crate caught in a blast explodes again, so they shoot crates beside enemies and keep clear of ones
+  beside team-mates; they also weigh a crate by what is in it and by how hurt the buddy is, and only
+  walk to crates they can actually reach. Hard additionally sees when a blast would shove an enemy
+  into the water or off the map. With three or four teams, Normal and Hard press the enemy team
+  holding the most health and finish a team down to its last buddy. Easy plays exactly as before.
+
+### Fixed
+
+- The AI no longer plans contact-fused shots straight through a supply crate that would stop them.
+
 ## [1.36.0] — 2026-09-20
 
 ### Added

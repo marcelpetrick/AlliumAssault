@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect, test } from '@playwright/test';
-import { boot, startDuel, state, toHumanAiming, waitFor } from './support';
+import { boot, fastForward, played, startDuel, state, toHumanAiming, waitFor } from './support';
 
 test('title screen runs a live 3D demo behind the menu', async ({ page }, info) => {
   const errors = await boot(page);
@@ -119,6 +119,104 @@ test('AI vs AI match reaches the victory screen and offers a rematch', async ({ 
   const s = await state(page);
   expect(s.phase).not.toBe('gameOver');
   expect(s.screen).toBeNull();
+  expect(errors).toEqual([]);
+});
+
+test('every AI level plays a match with crates to a finish without stalling', async ({ page }) => {
+  const errors = await boot(page);
+  for (const level of ['easy', 'normal', 'hard'] as const) {
+    await page.evaluate((aiLevel) => {
+      window.__allium.startMatch({
+        seed: `e2e-levels-${aiLevel}`,
+        teams: [
+          { name: 'Red Roasters', color: '#ef4b3c', controller: 'ai', aiLevel, buddyNames: ['Ruby', 'Rex'] },
+          { name: 'Blue Bulbs', color: '#3d8bfd', controller: 'ai', aiLevel, buddyNames: ['Blu', 'Bo'] },
+        ],
+        turnTime: 20,
+        retreatTime: 2,
+        windMax: 0.3,
+        crates: 1,
+        theme: 'meadow',
+      });
+    }, level);
+    for (let round = 0; round < 80 && (await state(page)).phase !== 'gameOver'; round++) {
+      await page.evaluate(() => {
+        window.__allium.fastForward(15);
+      });
+    }
+    const done = await state(page);
+    expect(done.phase, `${level} should finish`).toBe('gameOver');
+    expect(done.turn).toBeGreaterThan(2);
+  }
+  expect(errors).toEqual([]);
+});
+
+test('a badly hurt AI buddy walks to a health crate instead of taking its shot', async ({ page }, info) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    window.__allium.startMatch({
+      seed: 'e2e-duel',
+      teams: [
+        { name: 'Red Roasters', color: '#ef4b3c', controller: 'ai', aiLevel: 'hard', buddyNames: ['Ruby'] },
+        { name: 'Blue Bulbs', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Blu'] },
+      ],
+      turnTime: 40,
+      retreatTime: 2,
+      windMax: 0,
+      crates: 0,
+      theme: 'meadow',
+    });
+  });
+  await page.keyboard.press('Shift');
+  // Hold the frame loop so the AI cannot decide before the crate is on the map.
+  await page.evaluate(() => {
+    window.__allium.setManual(true);
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 30 && !(app.game!.phase === 'aiming' && !app.game!.isHumanTurn); k++) app.fastForward(1 / 60);
+  });
+  const s = await state(page);
+  expect(s.phase).toBe('aiming');
+  expect(s.humanTurn).toBe(false);
+
+  // Nearly dead, with a health crate a few steps along the ground it is already standing on.
+  const placed = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const me = g.activeBuddy!;
+    me.hp = 12;
+    const surface = (x: number) => {
+      let y = g.terrain.height - 1;
+      while (y > 1 && !g.terrain.isSolid(x, y)) y -= 0.25;
+      return y;
+    };
+    // Put the enemy at the far end of the map: no shot from here is worth more than surviving.
+    const enemy = g.buddies.find((b) => b !== me)!;
+    enemy.body.x = me.body.x > g.terrain.width / 2 ? 8 : g.terrain.width - 8;
+    enemy.body.y = surface(enemy.body.x) + 0.7;
+    enemy.body.vx = enemy.body.vy = 0;
+    for (const side of [1, -1]) {
+      const x = me.body.x + side * 5;
+      if (Math.abs(surface(x) - me.body.y) > 1.5) continue;
+      g.crates.push({
+        id: 980,
+        kind: 'health',
+        weapon: null,
+        body: { x, y: surface(x) + 0.45, vx: 0, vy: 0, radius: 0.45, grounded: true, impact: 0, restTime: 0 },
+      });
+      return { x, startX: me.body.x };
+    }
+    return null;
+  });
+  expect(placed, 'a level patch of ground beside the AI buddy').not.toBeNull();
+
+  // Headless Chrome renders at about 2 fps, so drive the simulation instead of waiting on the clock.
+  for (let k = 0; k < 12 && (await state(page)).crates.length > 0; k++) await fastForward(page, 1);
+  const after = await state(page);
+  await info.attach('ai-crate', { body: await page.screenshot(), contentType: 'image/png' });
+  // It walked over and healed itself, rather than shooting from where it stood.
+  expect(after.crates).toHaveLength(0);
+  expect(Math.abs(after.buddies.find((b) => b.name === 'Ruby')!.x - placed!.startX)).toBeGreaterThan(2);
+  expect(after.buddies.find((b) => b.name === 'Ruby')!.hp).toBe(37);
+  expect(played(after, 'heal')).toBe(1);
   expect(errors).toEqual([]);
 });
 

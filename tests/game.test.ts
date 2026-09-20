@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { planAttack } from '../src/core/ai';
+import { NO_KNOWLEDGE, planAttack, scoreBlast, simulateShot } from '../src/core/ai';
 import { Game, REST_SPEED, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { CRATE_RADIUS, CRATE_WEAPONS } from '../src/core/crates';
@@ -1290,6 +1290,153 @@ describe('AI', () => {
     expect(plan.weapon).toBe('shotgun');
     expect(plan.facing).toBe(1);
     expect(Math.abs(plan.aim)).toBeLessThan(0.1);
+  });
+
+  it('counts the chained blast of a crate beside its target, but only from Normal up', () => {
+    const arena = () => {
+      const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)]);
+      toAiming(g);
+      return g;
+    };
+    const plain = arena();
+    const crated = arena();
+    // Right beside the enemy: Game.explode() sets it off, for a second blast on the same buddy.
+    crated.crates.push({ id: 970, kind: 'weapon', weapon: 'sheep', body: createBody(59.2, 20.45, CRATE_RADIUS) });
+    const def = WEAPONS.bazooka;
+    const at = { x: 58, y: 20.6 };
+    expect(scoreBlast(crated, crated.buddies[0], at.x, at.y, def, { crates: true, knockback: false, focus: false })).toBeGreaterThan(
+      scoreBlast(plain, plain.buddies[0], at.x, at.y, def, { crates: true, knockback: false, focus: false }),
+    );
+    // Easy does not think about crates, so the crate changes nothing for it.
+    expect(scoreBlast(crated, crated.buddies[0], at.x, at.y, def, NO_KNOWLEDGE)).toBe(scoreBlast(plain, plain.buddies[0], at.x, at.y, def, NO_KNOWLEDGE));
+  });
+
+  it('fears a crate beside its own team-mate', () => {
+    const g = flatGame([40, 44, 100], [team('A', 2, 'ai'), team('B', 1)]);
+    toAiming(g);
+    const mate = g.buddies.find((b) => b.team === 0 && b !== g.buddies[0])!;
+    const know = { crates: true, knockback: false, focus: false };
+    const clean = scoreBlast(g, g.buddies[0], mate.body.x + 3.2, mate.body.y, WEAPONS.bazooka, know);
+    g.crates.push({ id: 971, kind: 'health', weapon: null, body: createBody(mate.body.x + 1, 20.45, CRATE_RADIUS) });
+    expect(scoreBlast(g, g.buddies[0], mate.body.x + 3.2, mate.body.y, WEAPONS.bazooka, know)).toBeLessThan(clean);
+  });
+
+  it('knows a contact fuse stops at a crate in the way', () => {
+    const g = flatGame([40, 90], [team('A', 1, 'ai'), team('B', 1)]);
+    toAiming(g);
+    const me = g.buddies[0];
+    const open = simulateShot(g, me, 'bazooka', 1, 0, 1);
+    expect(open).not.toBeNull();
+    g.crates.push({ id: 972, kind: 'health', weapon: null, body: createBody(me.body.x + 5, me.body.y, CRATE_RADIUS) });
+    const blocked = simulateShot(g, me, 'bazooka', 1, 0, 1);
+    expect(blocked).not.toBeNull();
+    expect(blocked!.x).toBeLessThan(open!.x);
+    expect(Math.abs(blocked!.x - (me.body.x + 5))).toBeLessThan(1.2);
+  });
+
+  it('a badly hurt buddy goes for the health crate even with a shot available', () => {
+    const fetches = (hp: number) => {
+      const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 40 });
+      toAiming(g);
+      onlyWeapon(g, 0, 'bazooka');
+      g.buddies[0].hp = hp;
+      g.crates.push({ id: 973, kind: 'health', weapon: null, body: createBody(g.buddies[0].body.x + 5, 20.45, CRATE_RADIUS) });
+      runUntil(g, () => g.crates.length === 0 || (g.phase !== 'aiming' && g.phase !== 'turnStart'), 12);
+      return g.crates.length === 0;
+    };
+    // A clean shot at an enemy 18 units away beats a crate when there is nothing to heal.
+    expect(fetches(100)).toBe(false);
+    expect(fetches(15)).toBe(true);
+  });
+
+  it('does not set off for a crate behind a wall it cannot climb', () => {
+    const run = (wall: boolean) => {
+      const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 40 });
+      toAiming(g);
+      onlyWeapon(g, 0, 'bazooka');
+      const me = g.buddies[0];
+      me.hp = 15;
+      const startX = me.body.x;
+      if (wall) for (let y = 20; y <= 32; y += 0.5) g.terrain.addDisc(startX + 4, y, 1);
+      g.crates.push({ id: 974, kind: 'health', weapon: null, body: createBody(startX + 9, 20.45, CRATE_RADIUS) });
+      runUntil(g, () => (g.phase !== 'aiming' && g.phase !== 'turnStart') || g.crates.length === 0, 15);
+      return { left: g.crates.length, walked: me.body.x - startX };
+    };
+    // Without the wall a hurt buddy walks over and takes it; with one it stays and shoots instead.
+    expect(run(false).left).toBe(0);
+    const blocked = run(true);
+    expect(blocked.left).toBe(1);
+    expect(Math.abs(blocked.walked)).toBeLessThan(3);
+  });
+
+  it('presses the enemy team holding the most health, and finishes a team down to one buddy', () => {
+    const know = { crates: false, knockback: false, focus: true };
+    const arena = () => {
+      const g = flatGame([40, 20, 25, 60, 65], [team('A', 1, 'ai'), team('B', 2), team('C', 2)]);
+      toAiming(g);
+      const me = g.buddies.find((b) => b.team === 0)!;
+      const [b1, b2] = g.buddies.filter((b) => b.team === 1);
+      const [c1, c2] = g.buddies.filter((b) => b.team === 2);
+      // Two targets of identical health, far apart, so each blast only ever catches one of them.
+      me.body.x = 40;
+      b1.body.x = 20;
+      b2.body.x = 24;
+      c1.body.x = 60;
+      c2.body.x = 64;
+      for (const b of [b1, b2, c1, c2]) b.hp = 100;
+      return { g, me, b1, b2, c1, c2 };
+    };
+
+    // Equal teams: no preference either way.
+    const even = arena();
+    const hitB = (a: ReturnType<typeof arena>) => scoreBlast(a.g, a.me, a.b1.body.x, a.b1.body.y, WEAPONS.bazooka, know);
+    const hitC = (a: ReturnType<typeof arena>) => scoreBlast(a.g, a.me, a.c1.body.x, a.c1.body.y, WEAPONS.bazooka, know);
+    expect(hitB(even)).toBeCloseTo(hitC(even), 5);
+
+    // Team B is battered, so team C now holds most of the health left: press C.
+    const lopsided = arena();
+    lopsided.b2.hp = 10;
+    expect(hitC(lopsided)).toBeGreaterThan(hitB(lopsided));
+
+    // Team B down to its last buddy: worth finishing, even though C holds more health.
+    const nearlyOut = arena();
+    nearlyOut.b2.alive = false;
+    nearlyOut.b2.hp = 0;
+    expect(hitB(nearlyOut)).toBeGreaterThan(hitC(nearlyOut));
+
+    // A single opponent leaves nothing to choose between, so focus changes nothing.
+    const duel = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)]);
+    toAiming(duel);
+    expect(scoreBlast(duel, duel.buddies[0], 58, 20.6, WEAPONS.bazooka, know)).toBe(scoreBlast(duel, duel.buddies[0], 58, 20.6, WEAPONS.bazooka, NO_KNOWLEDGE));
+  });
+
+  it('Hard sees that a blast can shove an enemy off the edge; Normal does not', () => {
+    const g = flatGame([40, 52], [team('A', 1, 'ai'), team('B', 1)]);
+    toAiming(g);
+    // The ground ends just past the enemy, so a blast from our side throws it into the water.
+    for (let x = 56; x <= 128; x += 3) g.terrain.carve(x, 10, 11);
+    const enemy = g.buddies[1];
+    enemy.hp = 100;
+    const at = { x: enemy.body.x - 1.2, y: enemy.body.y };
+    const hard = scoreBlast(g, g.buddies[0], at.x, at.y, WEAPONS.bazooka, { crates: false, knockback: true, focus: false });
+    const normal = scoreBlast(g, g.buddies[0], at.x, at.y, WEAPONS.bazooka, { crates: false, knockback: false, focus: false });
+    expect(hard).toBeGreaterThan(normal);
+    // Over solid ground in the middle of the map the shove changes nothing.
+    const inland = flatGame([40, 52], [team('A', 1, 'ai'), team('B', 1)]);
+    toAiming(inland);
+    expect(scoreBlast(inland, inland.buddies[0], 50.8, 20.6, WEAPONS.bazooka, { crates: false, knockback: true, focus: false })).toBe(
+      scoreBlast(inland, inland.buddies[0], 50.8, 20.6, WEAPONS.bazooka, { crates: false, knockback: false, focus: false }),
+    );
+  });
+
+  it('every level plays an AI-vs-AI match to the end with crates on the map', () => {
+    for (const level of ['easy', 'normal', 'hard'] as const) {
+      const teams = [team('A', 2, 'ai'), team('B', 2, 'ai')].map((t) => ({ ...t, aiLevel: level }));
+      const g = new Game(config(teams, { seed: `levels-${level}`, turnTime: 25, windMax: 0.3, crates: 1 }));
+      g.simulate(60 * 20);
+      expect(g.phase).toBe('gameOver');
+      expect(g.turn).toBeGreaterThan(2);
+    }
   });
 
   it('plays an AI-vs-AI match to the end on a generated map', () => {
