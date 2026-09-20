@@ -68,7 +68,7 @@ Status: ☐ open · ☑ done
 | T53 | Public release v1.33.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.33.0         |
 | T54 | Inspect requested areas and write the actionable backlog in `todo.md`                                     | ☑      | 1.33.2         |
 | T55 | Audit text size across menus, boxes and the in-game weapon bar                                            | ☑      | 1.33.5         |
-| T56 | Add the text-size setting to the in-game pause menu                                                       | ☐      | Planned        |
+| T56 | Add the text-size setting to the in-game pause menu                                                       | ☑      | 1.34.0         |
 | T57 | Design and implement a Worms 2-style rope with reeling and swinging                                       | ☐      | Planned        |
 | T58 | Select plane approach direction with Left/Right while aiming air attacks                                  | ☐      | Planned        |
 | T59 | Add proximity mines that persist across turns                                                             | ☐      | Planned        |
@@ -431,6 +431,12 @@ Implemented in 1.33.5. All menu screens are scrollable when scaled content excee
 Large and Huge text select a compact HUD layout early enough to keep the weapon bar on-screen.
 The smallest weapon and timer text was raised, and an E2E regression covers all three sizes at
 960×600 across menus and a live match using actual rendered bounds and control reachability.
+
+### T56 — Text size in the pause menu ☑
+
+Implemented in 1.34.0. The pause menu now offers Normal, Large and Huge, applies changes while the
+match remains frozen, and persists them across reloads. The menu separately retains the last saved
+custom setup, preventing a text-size change during Quick Match from overwriting those settings.
 
 ### T62 — Further backlog research ☑
 

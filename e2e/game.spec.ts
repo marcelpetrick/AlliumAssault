@@ -273,6 +273,44 @@ test('all text sizes keep menu controls and the in-game HUD reachable on a compa
   expect(errors).toEqual([]);
 });
 
+test('text size can change while paused without replacing the saved custom setup', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.getByRole('button', { name: '60s' }).click();
+  await page.getByRole('button', { name: 'Candy Shop' }).click();
+  await page.getByRole('button', { name: /Back/ }).click();
+  await page.getByRole('button', { name: /Quick Match/ }).click();
+  await waitFor(page, (s) => !s.demo && s.phase !== null, 30_000);
+
+  await page.keyboard.press('Escape');
+  await waitFor(page, (s) => s.paused && s.screen === 'pause', 10_000);
+  const frozen = (await state(page)).turnTimeLeft;
+  await page.locator('[data-action="text-size"][data-value="huge"]').click();
+  expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('huge');
+  await expect(page.locator('[data-action="text-size"][data-value="huge"]')).toHaveClass(/on/);
+  expect((await state(page)).turnTimeLeft).toBe(frozen);
+  expect((await state(page)).screen).toBe('pause');
+
+  const stored = await page.evaluate(
+    () => JSON.parse(localStorage.getItem('allium.settings') ?? '{}') as { textSize?: string; match?: { turnTime?: number; theme?: string } },
+  );
+  expect(stored.textSize).toBe('huge');
+  expect(stored.match?.turnTime).toBe(60);
+  expect(stored.match?.theme).toBe('candy');
+
+  await page.getByRole('button', { name: 'Resume' }).click();
+  await waitFor(page, (s) => !s.paused && s.screen === null, 10_000);
+  await boot(page);
+  expect(await page.evaluate(() => document.documentElement.dataset.textSize)).toBe('huge');
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await expect(page.getByRole('button', { name: '60s' })).toHaveClass(/on/);
+  await expect(page.getByRole('button', { name: 'Candy Shop' })).toHaveClass(/on/);
+  expect(errors).toEqual([]);
+});
+
 test('about screen: author, free to play on GitHub Pages, tech stack and licenses', async ({ page }) => {
   const errors = await boot(page);
   await page.getByRole('button', { name: /About/ }).click();

@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.34.0] — 2026-09-20
+
+### Added
+
+- The pause menu now includes the Normal, Large and Huge text-size options. Changes apply to the
+  open menu and HUD immediately, persist across reloads and leave the paused match untouched.
+
+### Fixed
+
+- Changing text size during a Quick Match no longer risks replacing the saved custom-match setup.
+
 ## [1.33.5] — 2026-09-20
 
 ### Fixed

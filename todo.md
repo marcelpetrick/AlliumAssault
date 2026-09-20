@@ -57,17 +57,17 @@ descriptions are larger, and the timer caption is no longer 8 px. A browser regr
 Normal, Large and Huge at 960×600 across title, setup, help, about, pause and a live match, checks
 rendered rectangles, scrolls to every title button, and asserts the weapon text sizes.
 
-## 1. Add text size to the in-game menu
+## 1. Add text size to the in-game menu — done in 1.34.0
 
-- [ ] Expose the same Normal / Large / Huge option in the pause menu, reachable via Escape
+- [x] Expose the same Normal / Large / Huge option in the pause menu, reachable via Escape
       and the HUD Pause button.
-- [ ] Reuse `TEXT_SIZES`, `applyTextSize()` and the persisted setting in `src/ui/settings.ts`.
+- [x] Reuse `TEXT_SIZES`, `applyTextSize()` and the persisted setting in `src/ui/settings.ts`.
       Apply changes immediately to the open menu and the game HUD.
-- [ ] Keep the match paused and preserve its state, selected weapon and remaining turn time.
+- [x] Keep the match paused and preserve its state, selected weapon and remaining turn time.
       Keep the user in the pause menu after changing the setting.
-- [ ] Verify that setup and pause show the same selection, it survives reloads, and Reset all
+- [x] Verify that setup and pause show the same selection, it survives reloads, and Reset all
       continues to restore the default.
-- [ ] Add E2E coverage for changing size during a match, resuming, and persistence.
+- [x] Add E2E coverage for changing size during a match, resuming, and persistence.
 
 Initial finding: the selector exists in `Menu.showSetup()` only. `showPause()` has no selector,
 and the current settings action handler finishes with `showSetup()`. Reusing the action requires
@@ -79,6 +79,11 @@ match configuration over the user's saved custom setup. Save the new text size t
 the previously persisted match settings instead. Add a regression flow: save a custom setup,
 start Quick Match, change text size while paused, reload, and verify that both the custom setup
 and new size survive. Preserve the current behavior when storage is unavailable.
+
+Implemented in 1.34.0: the pause menu exposes the shared segmented text-size control and rerenders
+itself after an immediate change. `Menu` keeps the last persisted custom setup separately from its
+session draft, so resizing a Quick Match cannot overwrite the custom setup. The browser regression
+checks the frozen timer, pause screen, immediate Huge HUD, stored values, resume and reload flow.
 
 ## 2. Design and implement the rope, in the style of Worms 2
 

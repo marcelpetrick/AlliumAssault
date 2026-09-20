@@ -45,6 +45,13 @@ const REPO_URL = 'https://github.com/marcelpetrick/AlliumAssault';
 const DEPENDENCY_VERSIONS: Record<string, string> = { ...pkg.dependencies, ...pkg.devDependencies };
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+const segmented = (items: { label: string; value: string | number; on: boolean }[], action: string, team?: number) =>
+  `<div class="seg">${items
+    .map(
+      (item) =>
+        `<button class="${item.on ? 'on' : ''}" data-action="${action}" data-value="${item.value}" ${team !== undefined ? `data-team="${team}"` : ''}>${item.label}</button>`,
+    )
+    .join('')}</div>`;
 
 export const CONTROLS_HTML = `
   <table class="keys">
@@ -64,6 +71,8 @@ export class Menu {
   screen: Screen | null = null;
   private readonly el: HTMLElement;
   private draft: MatchConfig;
+  /** Last custom setup saved by the player; a temporary Quick Match must not replace it. */
+  private savedMatch: MatchConfig;
   private textSize: TextSize;
   private helpReturn: Screen = 'title';
 
@@ -73,7 +82,8 @@ export class Menu {
     private readonly actions: MenuActions,
   ) {
     const settings = loadSettings();
-    this.draft = settings.match;
+    this.draft = structuredClone(settings.match);
+    this.savedMatch = structuredClone(settings.match);
     this.textSize = settings.textSize;
     applyTextSize(this.textSize);
     this.el = document.createElement('div');
@@ -114,13 +124,6 @@ export class Menu {
   showSetup(): void {
     this.screen = 'setup';
     const d = this.draft;
-    const seg = (items: { label: string; value: string | number; on: boolean }[], action: string, team?: number) =>
-      `<div class="seg">${items
-        .map(
-          (i) =>
-            `<button class="${i.on ? 'on' : ''}" data-action="${action}" data-value="${i.value}" ${team !== undefined ? `data-team="${team}"` : ''}>${i.label}</button>`,
-        )
-        .join('')}</div>`;
     this.el.innerHTML = `
       <div class="screen setup-screen">
         <div class="panel wide">
@@ -142,7 +145,7 @@ export class Menu {
                 </div>
                 <div class="swatches">${TEAM_COLORS.map((c) => `<button class="swatch ${c === t.color ? 'on' : ''}" style="--c:${c}" data-action="color" data-team="${i}" data-value="${c}"></button>`).join('')}</div>
                 <label class="field-label">Player</label>
-                ${seg(
+                ${segmented(
                   CONTROLLERS.map((c) => ({ label: c.label, value: c.id, on: c.id === ctrl })),
                   'controller',
                   i,
@@ -162,27 +165,27 @@ export class Menu {
             ${d.teams.length < 4 ? `<button class="team-card add" data-action="add-team">＋<span>Add team</span></button>` : ''}
           </section>
           <section class="options">
-            <div><label class="field-label">Turn time</label>${seg(
+            <div><label class="field-label">Turn time</label>${segmented(
               TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })),
               'turn',
             )}</div>
-            <div><label class="field-label">Wind</label>${seg(
+            <div><label class="field-label">Wind</label>${segmented(
               WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })),
               'wind',
             )}</div>
-            <div><label class="field-label">Crates</label>${seg(
+            <div><label class="field-label">Crates</label>${segmented(
               CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })),
               'crates',
             )}</div>
-            <div><label class="field-label">Text size</label>${seg(
+            <div><label class="field-label">Text size</label>${segmented(
               TEXT_SIZES.map((t) => ({ label: t.label, value: t.value, on: t.value === this.textSize })),
               'text-size',
             )}</div>
-            <div><label class="field-label">Arsenal</label>${seg(
+            <div><label class="field-label">Arsenal</label>${segmented(
               ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })),
               'arsenal',
             )}</div>
-            <div><label class="field-label">Sudden Death</label>${seg(
+            <div><label class="field-label">Sudden Death</label>${segmented(
               SUDDEN_DEATH_OPTIONS.map((o) => ({ label: o.label, value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
               'sudden-death',
             )}</div>
@@ -269,6 +272,13 @@ export class Menu {
       <div class="screen dim">
         <div class="panel narrow">
           <h2>Paused</h2>
+          <div class="pause-setting">
+            <label class="field-label">Text size</label>
+            ${segmented(
+              TEXT_SIZES.map((size) => ({ label: size.label, value: size.value, on: size.value === this.textSize })),
+              'text-size',
+            )}
+          </div>
           <div class="stack">
             <button class="primary" data-action="resume">Resume</button>
             <button class="glass" data-action="restart">Restart match</button>
@@ -320,6 +330,7 @@ export class Menu {
     if (!button?.dataset.action) return;
     this.actions.click();
     const d = this.draft;
+    const screen = this.screen;
     const team = d.teams[Number(button.dataset.team)];
     const value = button.dataset.value ?? '';
     switch (button.dataset.action) {
@@ -432,11 +443,17 @@ export class Menu {
       case 'text-size':
         this.textSize = value as TextSize;
         applyTextSize(this.textSize);
+        if (screen === 'pause') {
+          this.persistTextSize();
+          this.showPause();
+          return;
+        }
         break;
       case 'reset': {
         clearSettings();
         const defaults = defaultSettings();
-        this.draft = defaults.match;
+        this.draft = structuredClone(defaults.match);
+        this.savedMatch = structuredClone(defaults.match);
         this.textSize = defaults.textSize;
         applyTextSize(this.textSize);
         this.showSetup();
@@ -453,6 +470,11 @@ export class Menu {
   }
 
   private persist(): void {
-    saveSettings({ match: this.draft, textSize: this.textSize });
+    this.savedMatch = structuredClone(this.draft);
+    this.persistTextSize();
+  }
+
+  private persistTextSize(): void {
+    saveSettings({ match: this.savedMatch, textSize: this.textSize });
   }
 }
