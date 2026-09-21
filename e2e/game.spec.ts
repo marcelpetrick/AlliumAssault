@@ -511,7 +511,11 @@ test('the Graphics setting picks the renderer budget, persists, and yields to ?q
   expect((await state(page)).quality).toBe('low');
   await page.getByRole('button', { name: /Reset all/ }).click();
   await expect(page.locator('[data-action="quality"][data-value="high"]')).toHaveClass(/on/);
+  // The scene on screen keeps the budget it was built with; the new choice arrives with the next match.
+  expect((await state(page)).quality).toBe('low');
+  await startDuel(page);
   expect((await state(page)).quality).toBe('high');
+  expect((await state(page)).shadows).toBe(true);
 
   // The URL escape hatch forces Low even though the stored setting now says Full.
   await boot(page);
