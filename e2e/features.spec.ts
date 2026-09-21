@@ -298,6 +298,27 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
   expect(errors).toEqual([]);
 });
 
+test('sounds: a thrown grenade does not borrow the bazooka\u2019s launch roar', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, '2', 'grenade');
+  await page.keyboard.press('Space');
+  await waitForSound(page, 'throw');
+  const thrown = await state(page);
+  expect(played(thrown, 'throw')).toBe(1);
+  expect(played(thrown, 'fire')).toBe(0);
+
+  // A fresh match for the launcher: it roars, and throwing stays where it was.
+  await startDuel(page);
+  await select(page, '1', 'bazooka');
+  await page.keyboard.press('Space');
+  await waitForSound(page, 'fire');
+  const fired = await state(page);
+  expect(played(fired, 'fire')).toBe(1);
+  expect(played(fired, 'throw')).toBe(played(thrown, 'throw'));
+  expect(errors).toEqual([]);
+});
+
 test('movement sounds: footsteps while walking, a hup when jumping, a thud on landing', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
@@ -586,7 +607,7 @@ test('sudden death: 1 HP, siren, banner and rising visible water', async ({ page
     }
   });
   await waitFor(page, (s) => s.turn >= 4, 30_000);
-  await waitForSound(page, 'alarm');
+  await waitForSound(page, 'siren');
   await expect(page.locator('.banner-title')).toHaveText('Sudden Death!');
   await info.attach('sudden-death', { body: await page.screenshot(), contentType: 'image/png' });
   const struck = await state(page);

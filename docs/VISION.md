@@ -142,6 +142,8 @@ Following the last control decision made in the 2D prototype:
   remembered for the next game, Reset all), HUD (timer, wind, compact weapon bar, team health), help, about, pause and
   victory screens.
 - **Comedy:** comic R.I.P. tombstones, a hallelujah choir, bleating sheep, a braying mule.
+- **Sound:** every action has a voice of its own, all synthesized in the browser; the choices and
+  the reasoning are in [SOUND.md](SOUND.md).
 
 ## Technology
 

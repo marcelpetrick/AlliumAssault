@@ -106,7 +106,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 - **Comfortable setup** — text size Normal / Large / Huge, and the last match settings are
   remembered in the browser for the next game (Reset all restores the defaults).
 - **Synthesized sound** — every effect generated with Web Audio, no asset files: charge whoosh,
-  whistling rockets, bleating sheep, a propeller plane, crackling napalm, footsteps and more.
+  whistling rockets, bleating sheep, a propeller plane, crackling napalm, footsteps and more —
+  every action has its own voice, written down in [docs/SOUND.md](docs/SOUND.md).
 - **About screen** — author, tech stack with versions and open-source licenses.
 
 ## Controls

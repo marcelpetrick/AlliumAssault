@@ -1196,6 +1196,49 @@ describe('teleport', () => {
   });
 });
 
+describe('weapon voices', () => {
+  /** What each weapon should sound like when it is used; see docs/SOUND.md for the reasoning. */
+  const VOICES: Partial<Record<WeaponId, string | undefined>> = {
+    bazooka: 'fire',
+    grenade: 'throw',
+    cluster: 'throw',
+    holy: 'throw',
+    banana: 'throw',
+    shotgun: 'shot',
+    minigun: 'spinup',
+    torch: 'torchLight',
+    sheep: 'baa',
+    flysheep: 'baa',
+    selfdestruct: 'alarm',
+    mine: 'clunk',
+    rope: 'hookShot',
+    platform: 'build',
+    teleport: 'warp',
+    punch: undefined,
+    bat: undefined,
+    drill: undefined,
+    airstrike: undefined,
+    napalm: undefined,
+    mule: undefined,
+  };
+
+  it('gives every weapon the voice its action calls for', () => {
+    for (const [id, sound] of Object.entries(VOICES)) {
+      expect({ id, sound: WEAPONS[id as WeaponId].look.fireSound }).toEqual({ id, sound });
+    }
+  });
+
+  it('never has a thrown weapon borrow the launcher\u2019s roar, and covers every selectable weapon', () => {
+    const throwers = WEAPON_ORDER.filter((id) => WEAPONS[id].look.fireSound === 'throw');
+    expect(throwers.length).toBeGreaterThanOrEqual(4);
+    for (const id of throwers) expect(WEAPONS[id].look.flight).toBe('lob');
+    // Only the bazooka roars, and it is the only weapon that launches something under power.
+    expect(WEAPON_ORDER.filter((id) => WEAPONS[id].look.fireSound === 'fire')).toEqual(['bazooka']);
+    // Every selectable weapon is accounted for above: no new weapon slips in without a decision.
+    for (const id of WEAPON_ORDER) expect({ id, listed: id in VOICES }).toEqual({ id, listed: true });
+  });
+});
+
 describe('crates', () => {
   const crateGame = (crates: number) => flatGame([20, 100], [team('A', 1), team('B', 1)], { crates, turnTime: 1 });
   const nextTurn = (g: Game) => {

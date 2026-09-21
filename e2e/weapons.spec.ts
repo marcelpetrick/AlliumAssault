@@ -88,14 +88,15 @@ test('shotgun: two instant shots with sound, each carving the ground', async ({ 
   const before = await state(page);
 
   await page.keyboard.press('Space');
-  // Each shot plays a gunshot, and its small crater a second one.
-  await waitForSound(page, 'shot', 2);
+  // Each shot is one gunshot; the small crater it tears is a pop of its own.
+  await waitForSound(page, 'shot', 1);
+  await waitForSound(page, 'pop', 1);
   const first = await state(page);
   expect(first.phase).toBe('aiming');
   expect(first.terrainRevision).toBeGreaterThan(before.terrainRevision);
 
   await page.keyboard.press('Space');
-  await waitForSound(page, 'shot', 4);
+  await waitForSound(page, 'shot', 2);
   const second = await state(page);
   expect(['retreat', 'settling']).toContain(second.phase);
   expect(second.terrainRevision).toBeGreaterThan(first.terrainRevision);
@@ -616,7 +617,7 @@ test('teleport: T selects it, a click beams the buddy there and it falls from wh
   const box = await page.locator('canvas').boundingBox();
   expect(box).not.toBeNull();
   await page.mouse.click(box!.x + target!.screen.x, box!.y + target!.screen.y);
-  await waitForSound(page, 'teleport');
+  await waitForSound(page, 'warp');
   const arrived = await state(page);
   const moved = arrived.buddies.find((b) => b.name === start.name)!;
   expect(Math.abs(moved.x - target!.x)).toBeLessThan(2);
@@ -665,7 +666,7 @@ test('platform: Shift+0 previews a board, the wheel tilts it and a click sets it
   expect(await page.evaluate(() => window.__allium.app.world!.zoomDistance)).toBe(zoom);
   await page.mouse.click(box!.x + target!.x, box!.y + target!.y);
   await waitFor(page, (s) => s.platforms.length === 1, 10_000);
-  await waitForSound(page, 'clunk');
+  await waitForSound(page, 'build');
   const after = await state(page);
   expect(after.platforms[0].angle).toBeGreaterThan(0);
   expect(after.ammo!.platform).toBe(before.ammo!.platform - 1);

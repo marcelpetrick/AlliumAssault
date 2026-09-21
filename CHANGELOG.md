@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.52.0] — 2026-09-21
+
+### Changed
+
+- **Sound audit.** Thrown weapons (grenade, cluster, holy grenade, banana bomb) no longer play the
+  bazooka's launch roar but a throw of their own; the blowtorch lights its gas instead of roaring;
+  the platform knocks in wood; teleport has its own warp instead of the crate shimmer; small
+  explosions pop rather than sounding like a shotgun; and Sudden Death has a deeper siren of its
+  own. The choices are documented in `docs/SOUND.md`.
+
 ## [1.51.0] — 2026-09-21
 
 ### Added

@@ -97,17 +97,15 @@ Status: ☐ open · ☑ done
 | T83 | Sudden Death: show the rising water with the camera, and end a turn the moment the active buddy drowns    | ☑      | 1.48.0         |
 | T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☑      | 1.51.0         |
 | T85 | Napalm: flames burn longer and eat into the ground                                                        | ☑      | 1.49.0         |
-| T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☐      |                |
+| T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☑      | 1.52.0         |
 | T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☐      |                |
 
 ## Current implementation plan
 
-1. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
-   one, add teleport and platform sounds, and write the choices down (T86).
-2. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
+1. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
    translucent on-screen controls that are off by default — and write it up in
    `touchdisplay_support_ideation.md`. Ideation only, no implementation (T87).
-3. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
+2. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
    each versioned, local commit. Do not push or tag without being asked.
 
 ## Answered questions
@@ -465,6 +463,29 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T86 — Sound audit ☑
+
+Done in 1.52.0, and written up in [docs/SOUND.md](docs/SOUND.md), which now holds the principles,
+the full action-to-sound table and the reasoning for every change. The audit listed every action
+and weapon against what it actually played and found six borrowed voices:
+
+- the grenade, cluster bomb, holy grenade and banana bomb all played the bazooka's launch roar
+  although nothing about them is launched under power — the report that started this — and now
+  have a `throw`: a short whoosh with a grunt under it;
+- the blowtorch also roared like a rocket, and now lights its gas with a click and a rush
+  (`torchLight`) before the running-torch loop takes over;
+- the platform borrowed the mine's metal `clunk` and now knocks twice in wood (`build`);
+- the teleport borrowed the crate's arrival shimmer and now has its own fold-away-and-back (`warp`);
+- explosions under 1.2 radius played the shotgun blast and now use a small `pop`;
+- Sudden Death played the self-destruct countdown and now has a deeper, slower `siren`, because one
+  ends a turn and the other changes the match.
+
+Five new voices were synthesized for that (`throw`, `pop`, `build`, `warp`, `torchLight`, `siren`),
+and the noise helper learned a delay so a sound can be built from timed layers. Unit tests pin the
+expected voice of every selectable weapon — a new weapon cannot be added without deciding what it
+sounds like — and assert that only the bazooka roars and that every thrown weapon is a lobbed one;
+a browser test checks that a grenade plays `throw` and never `fire`.
 
 ### T84 — Teleport ☑
 

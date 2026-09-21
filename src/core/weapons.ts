@@ -41,7 +41,7 @@ export interface WeaponLook {
   /** Sound while in flight: rockets whistle, lobbed things whoosh. */
   flight?: 'rocket' | 'lob';
   /** Sound when the weapon is used. */
-  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk' | 'hookShot' | 'teleport';
+  fireSound?: 'fire' | 'throw' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk' | 'hookShot' | 'warp' | 'build' | 'torchLight';
   /** Sound of each hitscan bullet. */
   shotSound?: 'bullet';
   /** Sound when a melee weapon connects. */
@@ -137,7 +137,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   grenade: {
     id: 'grenade',
-    look: { projectile: 'grenade', flight: 'lob', fireSound: 'fire', muzzle: true },
+    look: { projectile: 'grenade', flight: 'lob', fireSound: 'throw' },
     name: 'Grenade',
     icon: '💣',
     blurb: 'Bouncy throw with a 3 second fuse. Barely cares about wind.',
@@ -249,7 +249,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   cluster: {
     id: 'cluster',
-    look: { projectile: 'redGrenade', flight: 'lob', fireSound: 'fire', muzzle: true },
+    look: { projectile: 'redGrenade', flight: 'lob', fireSound: 'throw' },
     name: 'Cluster Bomb',
     icon: '🧨',
     blurb: 'Red grenade with a 3 second fuse. Bursts into five bomblets of 10 damage each.',
@@ -271,7 +271,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   holy: {
     id: 'holy',
-    look: { projectile: 'holyGrenade', flight: 'lob', fireSound: 'fire', muzzle: true },
+    look: { projectile: 'holyGrenade', flight: 'lob', fireSound: 'throw' },
     special: true,
     name: 'Holy Garlic Grenade',
     icon: '✨',
@@ -294,7 +294,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   banana: {
     id: 'banana',
-    look: { projectile: 'banana', flight: 'lob', fireSound: 'fire', muzzle: true },
+    look: { projectile: 'banana', flight: 'lob', fireSound: 'throw' },
     special: true,
     name: 'Banana Bomb',
     icon: '🍌',
@@ -540,7 +540,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   torch: {
     id: 'torch',
-    look: { fireSound: 'fire', muzzle: true },
+    look: { fireSound: 'torchLight' },
     name: 'Blowtorch',
     icon: '🔥',
     blurb: 'Burns a tunnel along the aim line for 3 seconds and rides it — aim up to climb, down to dig in.',
@@ -652,7 +652,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   teleport: {
     id: 'teleport',
-    look: { fireSound: 'teleport' },
+    look: { fireSound: 'warp' },
     special: true,
     name: 'Teleport',
     icon: '🌀',
@@ -674,7 +674,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   platform: {
     id: 'platform',
-    look: { fireSound: 'clunk' },
+    look: { fireSound: 'build' },
     name: 'Platform',
     icon: '🪵',
     blurb: 'Move the mouse to place a five-unit board, wheel to tilt it, left-click to set it. No damage.',

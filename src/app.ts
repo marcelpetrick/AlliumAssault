@@ -285,7 +285,7 @@ export class App {
       switch (e.type) {
         case 'explosion':
           if (e.radius >= 1.2) this.audio.play('explosion', e.radius / 2.8);
-          else if (e.radius > 0.5) this.audio.play('shot', e.radius / 2.8);
+          else if (e.radius > 0.5) this.audio.play('pop', e.radius / 2.8);
           break;
         case 'shot': {
           const { shotSound } = WEAPONS[e.weapon].look;
@@ -298,7 +298,7 @@ export class App {
           break;
         }
         case 'suddenDeath':
-          this.audio.play('alarm');
+          this.audio.play('siren');
           break;
         case 'platformPlaced':
         case 'teleport': {

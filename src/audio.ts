@@ -38,7 +38,13 @@ export type Sfx =
   | 'beep'
   | 'hookShot'
   | 'hookBite'
-  | 'reel';
+  | 'reel'
+  | 'throw'
+  | 'pop'
+  | 'build'
+  | 'warp'
+  | 'torchLight'
+  | 'siren';
 
 /** Something in flight that should be heard for as long as it flies. */
 export interface FlightSound {
@@ -144,6 +150,43 @@ export class Audio {
       case 'shot':
         this.noise(0.2, 'highpass', 2500, 500, 0.55);
         this.tone('square', 130, 45, 0.12, 0.15);
+        break;
+      case 'throw':
+        // An arm swung hard: a short airy whoosh with a soft grunt under it, and no launch roar.
+        this.noise(0.22, 'bandpass', 500, 1700, 0.3);
+        this.tone('sine', 260 * pitch, 150 * pitch, 0.16, 0.14);
+        this.tone('triangle', 520 * pitch, 380 * pitch, 0.1, 0.05, 0.04);
+        break;
+      case 'pop':
+        // A small charge going off: the big explosion in miniature, not a shotgun blast.
+        this.noise(0.28 * i + 0.1, 'lowpass', 1800, 240, 0.5 * i);
+        this.tone('sine', 190 * pitch, 70, 0.18, 0.35 * i);
+        break;
+      case 'build':
+        // Planks dropped and knocked into place: two wooden knocks and a short ring.
+        this.tone('triangle', 240 * pitch, 150, 0.12, 0.28);
+        this.noise(0.08, 'bandpass', 1200, 500, 0.25);
+        this.tone('triangle', 300 * pitch, 190, 0.1, 0.22, 0.11);
+        this.tone('sine', 900 * pitch, 640, 0.14, 0.07, 0.12);
+        break;
+      case 'warp':
+        // A buddy folded away and unfolded elsewhere: a swoop down, a pop, a swoop back up.
+        this.tone('sine', 1200 * pitch, 180, 0.22, 0.16);
+        this.tone('sine', 220, 1500 * pitch, 0.26, 0.16, 0.2);
+        this.tone('square', 60, 40, 0.1, 0.06, 0.18);
+        this.noise(0.35, 'bandpass', 2200, 5200, 0.12, 0.16);
+        break;
+      case 'torchLight':
+        // Gas catching at the nozzle: a click, then a soft rush that the running torch takes over.
+        this.tone('square', 1400, 900, 0.03, 0.1);
+        this.noise(0.28, 'bandpass', 700, 2200, 0.22, 0.03);
+        break;
+      case 'siren':
+        // Sudden Death: a slow two-tone warning, deeper and longer than the self-destruct alarm.
+        [0, 0.55, 1.1].forEach((d) => {
+          this.tone('sawtooth', 320, 460, 0.28, 0.16, d);
+          this.tone('sawtooth', 460, 320, 0.26, 0.14, d + 0.27);
+        });
         break;
       case 'punch':
         this.noise(0.14, 'lowpass', 900, 150, 0.7);
@@ -588,17 +631,17 @@ export class Audio {
     osc.stop(t0 + duration + 0.05);
   }
 
-  private noise(duration: number, type: BiquadFilterType, from: number, to: number, gain: number): void {
+  private noise(duration: number, type: BiquadFilterType, from: number, to: number, gain: number, delay = 0): void {
     const { ctx } = this.engine;
     const src = ctx.createBufferSource();
     src.buffer = this.noiseBuffer;
     const filter = ctx.createBiquadFilter();
-    const t0 = ctx.currentTime;
+    const t0 = ctx.currentTime + delay;
     filter.type = type;
     filter.frequency.setValueAtTime(from, t0);
     filter.frequency.exponentialRampToValueAtTime(Math.max(to, 1), t0 + duration);
     src.connect(filter);
-    filter.connect(this.envelope(gain, duration, 0));
+    filter.connect(this.envelope(gain, duration, delay));
     src.start(t0, Math.random() * 0.5);
     src.stop(t0 + duration + 0.05);
   }
