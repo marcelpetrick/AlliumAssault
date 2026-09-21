@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { contourRegion } from '../src/core/contour';
 import { mulberry32, hashString } from '../src/core/rng';
-import { CELL, findSpawnCandidates, generateTerrain, pickSpawns, Terrain } from '../src/core/terrain';
+import { CELL, findSpawnCandidates, generateTerrain, PLATFORM_LENGTH, pickSpawns, Terrain } from '../src/core/terrain';
 
 const spec = { seed: 'garlic', width: 128, height: 64, waterLevel: 3 };
 
@@ -64,6 +64,44 @@ describe('terrain destruction', () => {
     expect(t.isSolid(25, 9)).toBe(true);
     expect(t.dirty.size).toBeGreaterThan(0);
     expect(Math.max(...t.scorch)).toBeGreaterThan(0.5);
+  });
+});
+
+describe('placed platforms', () => {
+  const airAbove = (groundY: number) => {
+    const t = new Terrain(40, 30, 3);
+    t.fill((_x, y) => groundY - y);
+    return t;
+  };
+
+  it('is solid rock for every terrain query once placed, without touching the field', () => {
+    const t = airAbove(12);
+    const board = { x: 20, y: 17, angle: 0.2 };
+    expect(t.canPlacePlatform(board)).toBe(true);
+    t.addPlatform(board);
+    expect(t.isSolid(20, 17)).toBe(true);
+    expect(t.isSolid(20 + PLATFORM_LENGTH / 2 + 0.5, 17)).toBe(false);
+    // Its top surface points up, so a body lands on it instead of sliding through.
+    expect(t.normal(20, 17.2).y).toBeGreaterThan(0.9);
+    // The density field itself is untouched, so a blast cannot cut the board.
+    t.carve(20, 17, 3);
+    expect(t.isSolid(20, 17)).toBe(true);
+  });
+
+  it('refuses spots in rock, under water, off the map, over-tilted or on a body', () => {
+    const t = airAbove(12);
+    const board = { x: 20, y: 17, angle: 0.2 };
+    expect(t.canPlacePlatform(board, [{ x: 20, y: 17 }])).toBe(false);
+    expect(t.canPlacePlatform({ ...board, y: 12 })).toBe(false);
+    expect(t.canPlacePlatform({ ...board, y: 3 })).toBe(false);
+    expect(t.canPlacePlatform({ ...board, y: 30 })).toBe(false);
+    expect(t.canPlacePlatform({ ...board, x: -1 })).toBe(false);
+    expect(t.canPlacePlatform({ ...board, x: 39 })).toBe(false);
+    expect(t.canPlacePlatform({ ...board, angle: Infinity })).toBe(false);
+    expect(t.canPlacePlatform({ ...board, angle: Math.PI })).toBe(false);
+    t.addPlatform(board);
+    // Boards may not be stacked into each other either.
+    expect(t.canPlacePlatform(board)).toBe(false);
   });
 });
 

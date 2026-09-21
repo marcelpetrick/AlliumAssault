@@ -83,8 +83,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 - **Arsenal setting** — start with every weapon, find the special weapons (sheep, air strike,
   self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule, napalm strike)
   in crates only, or play with infinite supplies of everything. The basic weapons — bazooka,
-  grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch, drill and rope — are
-  always in the loadout from turn one.
+  grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch, drill, rope and platform
+  — are always in the loadout from turn one.
 - **Sudden Death** — from the setup screen, pick the turn (10, 20 or 30, or off) on which every
   living buddy drops to 1 HP. The water then rises continuously, flooding caves and low ground.
   Nobody dies from the strike itself, but a hit or the rising water finishes the match.
@@ -109,9 +109,9 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | Backspace                 | Back-flip (high jump)                                                                             |
 | ↑ ↓                       | Aim                                                                                               |
 | Space                     | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–9 / Tab   | Choose weapon (or click it in the weapon bar)                                                     |
-| Mouse wheel / drag        | Zoom / pan camera                                                                                 |
-| Click                     | Call the air strike or napalm strike, or drop the concrete mule, onto that spot                   |
+| 1–9, 0, Shift+1–0 / Tab   | Choose weapon (or click it in the weapon bar)                                                     |
+| Mouse wheel / drag        | Zoom / pan camera; the wheel tilts a platform while one is being placed                           |
+| Click                     | Call a strike, drop the concrete mule, or set a platform at that spot                             |
 | ← → (air/napalm strike)   | Choose the side the plane flies in from; the buddy stays put while choosing                       |
 | ↑ ↓ ← → (on the rope)     | Reel in and out, swing left and right                                                             |
 | Arrow keys (flying sheep) | Steer the flying sheep towards that direction                                                     |
@@ -140,6 +140,7 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🌋 Napalm Strike       | 1    | Click on the map: a plane drops napalm that the wind carries far; burning ground (about 5 s) makes buddies hop for 3 dmg, water puts it out |
 | 🛞 Proximity Mine      | 2    | Space drops it at your feet; it arms after 1.5 s and blows up the first buddy within 2 units — friend, foe or the one who laid it (40 dmg)  |
 | 🪝 Rope                | 3    | Space shoots a hook up to 24 units into rock; hang, ↑↓ reel, ←→ swing, Space lets go with your momentum. Land first, then fire a weapon     |
+| 🪵 Platform            | 2    | Move the mouse to place a five-unit board in open air, the wheel tilts it up to 60°, a left click sets it; solid, indestructible, no damage |
 
 ## Architecture
 
@@ -149,7 +150,7 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── weapons.ts   weapon table (19 weapons by kind), arsenal flags, hotkey mapping
+│   ├── weapons.ts   weapon table (20 weapons by kind), arsenal flags, hotkey mapping
 │   ├── game.ts      match state machine, turns, weapon execution, damage, crates, mines, flames, tombstones
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep
 │   ├── strike.ts    air strike, napalm and concrete mule drop planning

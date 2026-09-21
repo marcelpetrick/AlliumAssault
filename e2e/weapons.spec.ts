@@ -589,6 +589,50 @@ test('rope: Shift+9 hooks the rock overhead, then reel, swing and let go', async
   expect(errors).toEqual([]);
 });
 
+test('platform: Shift+0 previews a board, the wheel tilts it and a click sets it down', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'Shift+0', 'platform');
+  const before = await state(page);
+  // Find open air near the buddy that the board fits into, and where on screen that is.
+  const target = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const world = window.__allium.app.world!;
+    const buddy = g.activeBuddy!;
+    const occupied = g.buddies.map((b) => b.body);
+    for (let offset = 5; offset < 18; offset++) {
+      const x = buddy.body.x + offset;
+      for (let y = buddy.body.y + 4; y < buddy.body.y + 14; y++) {
+        if (!g.terrain.canPlacePlatform({ x, y, angle: 0.08 }, occupied)) continue;
+        const screen = world.project(x, y);
+        if (screen && screen.x > 40 && screen.y > 40 && screen.x < innerWidth - 40 && screen.y < innerHeight - 100) return screen;
+      }
+    }
+    return null;
+  });
+  expect(target).not.toBeNull();
+  const box = await page.locator('canvas').boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + target!.x, box!.y + target!.y);
+  // The preview follows the mouse and the wheel tilts it instead of zooming.
+  await expect.poll(() => page.evaluate(() => window.__allium.app.world!.scene.getMeshByName('platformPreview')?.isEnabled() ?? false)).toBe(true);
+  const zoom = await page.evaluate(() => window.__allium.app.world!.zoomDistance);
+  await page.mouse.wheel(0, 120);
+  expect(await page.evaluate(() => window.__allium.app.world!.platformAngle)).toBeGreaterThan(0);
+  // The wheel tilted the board instead of zooming the camera.
+  expect(await page.evaluate(() => window.__allium.app.world!.zoomDistance)).toBe(zoom);
+  await page.mouse.click(box!.x + target!.x, box!.y + target!.y);
+  await waitFor(page, (s) => s.platforms.length === 1, 10_000);
+  await waitForSound(page, 'clunk');
+  const after = await state(page);
+  expect(after.platforms[0].angle).toBeGreaterThan(0);
+  expect(after.ammo!.platform).toBe(before.ammo!.platform - 1);
+  expect(after.phase).toBe('retreat');
+  expect(await page.evaluate(() => window.__allium.app.world!.scene.getMeshByName('platform-0')?.isEnabled())).toBe(true);
+  await info.attach('platform', { body: await page.screenshot(), contentType: 'image/png' });
+  expect(errors).toEqual([]);
+});
+
 test('proximity mine: Shift+8 drops it, it arms with a click and blows up whoever comes near', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

@@ -25,10 +25,12 @@ import { WEAPONS } from '../core/weapons';
 import { defined } from '../core/assert';
 import { clamp } from '../core/math';
 import { hashString } from '../core/rng';
+import { PLATFORM_MAX_ANGLE } from '../core/terrain';
 import { BuddyKit, BuddyView } from './buddyView';
 import { Decorations } from './decorations';
 import { Effects } from './effects';
 import { Environment } from './environment';
+import { PlatformView } from './platformView';
 import { TerrainView } from './terrainView';
 import type { Theme } from './themes';
 
@@ -43,6 +45,7 @@ export class World {
   readonly camera: FreeCamera;
   private readonly shadows: CascadedShadowGenerator | null = null;
   private readonly terrainView: TerrainView;
+  private readonly platformView: PlatformView;
   private readonly environment: Environment;
   private readonly decorations: Decorations;
   private readonly effects: Effects;
@@ -58,8 +61,10 @@ export class World {
   private hold: { x: number; y: number; until: number } | null = null;
   /** Temporary zoom-out while a strike plays: the zoom to restore and the zoom that was forced. */
   private strikeView: { distance: number; forced: number; until: number } | null = null;
-  /** World point under the mouse, for the air strike cursor. */
+  /** World point under the mouse, for the air strike cursor and the platform preview. */
   private pointer: { x: number; y: number } | null = null;
+  /** Tilt of the next platform, turned by the mouse wheel while one is being placed. */
+  platformAngle = 0;
   private shakeAmount = 0;
   private time = 0;
 
@@ -113,6 +118,7 @@ export class World {
 
     this.environment = new Environment(scene, theme, t.width, t.waterLevel);
     this.terrainView = new TerrainView(scene, t, theme, addCaster);
+    this.platformView = new PlatformView(scene, t, addCaster);
     this.decorations = new Decorations(scene, t, theme, hashString(game.config.seed));
 
     const kit = new BuddyKit(scene);
@@ -227,6 +233,7 @@ export class World {
     this.time += dt;
     const g = this.game;
     this.terrainView.update();
+    this.updatePlatforms();
     for (const view of this.buddyViews.values()) view.update(g, dt, this.time);
 
     const active = g.activeBuddy;
@@ -277,6 +284,11 @@ export class World {
     this.goalDistance = clamp(this.goalDistance * (1 + delta * 0.0012), MIN_DISTANCE, MAX_DISTANCE);
   }
 
+  /** Camera distance the zoom is easing towards (for tests). */
+  get zoomDistance(): number {
+    return this.goalDistance;
+  }
+
   /** World point the camera is centred on (for tests). */
   get focusPoint(): { x: number; y: number } {
     return { x: this.focus.x, y: this.focus.y };
@@ -293,6 +305,23 @@ export class World {
     const t = -ray.origin.z / ray.direction.z;
     if (t <= 0) return null;
     return { x: ray.origin.x + ray.direction.x * t, y: ray.origin.y + ray.direction.y * t };
+  }
+
+  /** The preview follows the mouse only while a human is placing a board. */
+  private updatePlatforms(): void {
+    const g = this.game;
+    const placing = this.pointer && g.isHumanTurn && g.phase === 'aiming' && WEAPONS[g.weapon].kind === 'platform';
+    if (!placing) {
+      this.platformView.update(null, []);
+      return;
+    }
+    const occupied = [...g.buddies.filter((b) => b.alive).map((b) => b.body), ...g.crates.map((c) => c.body), ...g.mines.map((m) => m.body)];
+    this.platformView.update({ ...defined(this.pointer, 'pointer'), angle: this.platformAngle }, occupied);
+  }
+
+  /** Tilt the next board by a wheel notch, up to the placement limit. */
+  rotatePlatform(delta: number): void {
+    this.platformAngle = clamp(this.platformAngle + Math.sign(delta) * 0.08, -PLATFORM_MAX_ANGLE, PLATFORM_MAX_ANGLE);
   }
 
   /** Track the mouse for the air strike cursor; null when it left the canvas. */
@@ -313,6 +342,7 @@ export class World {
 
   dispose(): void {
     this.terrainView.dispose();
+    this.platformView.dispose();
     this.decorations.dispose();
     this.environment.dispose();
     this.scene.dispose();

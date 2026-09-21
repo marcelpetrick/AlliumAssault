@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.43.0] — 2026-09-21
+
+### Added
+
+- **Platform** (Shift+0, two per team). A five-unit wooden board that is set with the mouse: the
+  preview follows the cursor and shows green where it fits and red where it does not, the wheel
+  tilts it up to 60°, and a left click puts it down and ends the turn. Boards are solid for buddies,
+  projectiles and the AI alike, and explosions cannot cut them. Spots in rock, under water, off the
+  map or on top of a buddy, a crate or a mine are refused without costing a use or the turn.
+
 ## [1.42.0] — 2026-09-21
 
 ### Added

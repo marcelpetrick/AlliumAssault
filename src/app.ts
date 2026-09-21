@@ -300,6 +300,11 @@ export class App {
         case 'suddenDeath':
           this.audio.play('alarm');
           break;
+        case 'platformPlaced': {
+          const { fireSound } = WEAPONS[e.weapon].look;
+          if (fireSound) this.audio.play(fireSound);
+          break;
+        }
         case 'ignite':
           this.audio.play('ignite');
           break;
@@ -429,16 +434,16 @@ export class App {
     });
     window.addEventListener('pointermove', (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      // Only the strike cursor uses the picked point, and picking builds a full ray per event.
-      if (this.targetingStrike()) this.world?.setPointer(e.clientX - rect.left, e.clientY - rect.top);
+      // Only the map weapons use the picked point, and picking builds a full ray per event.
+      if (this.targetingMap()) this.world?.setPointer(e.clientX - rect.left, e.clientY - rect.top);
       else this.world?.setPointer(null);
       if (!this.drag || !this.world) return;
       this.world.pan(e.clientX - this.drag.x, e.clientY - this.drag.y);
       this.drag = { x: e.clientX, y: e.clientY, moved: this.drag.moved + Math.hypot(e.clientX - this.drag.x, e.clientY - this.drag.y) };
     });
     window.addEventListener('pointerup', (e) => {
-      // A click (not a drag) on the map calls the selected air strike.
-      if (this.drag && this.drag.moved < CLICK_SLOP && e.target === this.canvas) {
+      // A left click (not a drag) on the map fires the selected map weapon.
+      if (e.button === 0 && this.drag && this.drag.moved < CLICK_SLOP && e.target === this.canvas) {
         const rect = this.canvas.getBoundingClientRect();
         this.clickMap(e.clientX - rect.left, e.clientY - rect.top);
       }
@@ -452,26 +457,38 @@ export class App {
       'wheel',
       (e) => {
         e.preventDefault();
-        if (!this.demo) this.world?.zoom(e.deltaY);
+        if (this.demo) return;
+        // While a board is being placed the wheel tilts it instead of zooming.
+        if (this.targetingPlatform()) this.world?.rotatePlatform(e.deltaY);
+        else this.world?.zoom(e.deltaY);
       },
       { passive: false },
     );
   }
 
-  /** A human player is aiming a strike weapon, so the map cursor is live. */
-  private targetingStrike(): boolean {
+  /** A human player is aiming a weapon that is pointed with the mouse, so the map cursor is live. */
+  private targetingMap(): boolean {
     const game = this.game;
     if (!game || this.demo || this.paused || this.menu.screen) return false;
-    return game.isHumanTurn && game.phase === 'aiming' && WEAPONS[game.weapon].kind === 'strike';
+    const kind = WEAPONS[game.weapon].kind;
+    return game.isHumanTurn && game.phase === 'aiming' && (kind === 'strike' || kind === 'platform');
+  }
+
+  private targetingPlatform(): boolean {
+    const game = this.game;
+    return game !== null && this.targetingMap() && WEAPONS[game.weapon].kind === 'platform';
   }
 
   /** Handle a click on the map at CSS pixels relative to the canvas. */
   clickMap(cssX: number, cssY: number): void {
     const game = this.game;
     if (!game || !this.world || this.demo || this.paused || this.menu.screen || !game.isHumanTurn) return;
-    if (WEAPONS[game.weapon].kind !== 'strike') return;
+    const kind = WEAPONS[game.weapon].kind;
+    if (kind !== 'strike' && kind !== 'platform') return;
     const at = this.world.pick(cssX, cssY);
-    if (at) game.strike(at.x);
+    if (!at) return;
+    if (kind === 'strike') game.strike(at.x);
+    else game.placePlatform({ ...at, angle: this.world.platformAngle });
   }
 
   state() {
@@ -496,6 +513,7 @@ export class App {
       lastStrike: this.lastStrike,
       winner: g?.winner ?? null,
       terrainRevision: g?.terrain.revision ?? 0,
+      platforms: g?.terrain.platforms ?? [],
       waterLevel: g?.terrain.waterLevel ?? 0,
       waterRising: g?.waterRising ?? false,
       projectiles: g?.projectiles.length ?? 0,

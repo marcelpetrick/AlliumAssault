@@ -39,7 +39,7 @@ import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { ropePath, shootRope, stepRope, type Rope } from './rope';
 import { PLANE_SPEED, planStrike } from './strike';
-import { findSpawnCandidates, generateTerrain, pickSpawns, type Terrain } from './terrain';
+import { findSpawnCandidates, generateTerrain, pickSpawns, type Platform, type Terrain } from './terrain';
 import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 export type Controller = 'human' | 'ai';
@@ -173,6 +173,7 @@ export type GameEvent =
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number; x: number; y: number }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'suddenDeath'; turn: number }
+  | { type: 'platformPlaced'; weapon: WeaponId; x: number; y: number; angle: number }
   | { type: 'gameOver'; winner: number | null };
 
 export interface InputState {
@@ -537,7 +538,7 @@ export class Game {
     if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || this.charge !== null) return;
     // Ammo is consumed on the first shot, so a multi-shot weapon may finish with zero ammo left.
     const midUse = this.shotsLeft < def.shots;
-    if ((team.ammo[this.weapon] <= 0 && !midUse) || def.kind === 'strike') return;
+    if ((team.ammo[this.weapon] <= 0 && !midUse) || def.kind === 'strike' || def.kind === 'platform') return;
     if (def.charge) this.charge = 0;
     else this.fire(1);
   }
@@ -576,6 +577,30 @@ export class Game {
       speed: PLANE_SPEED,
     });
     this.startRetreat();
+  }
+
+  /**
+   * Set a board where the player clicked. A rejected spot — buried in rock, under water, off the
+   * map, over-tilted or on top of a body — costs neither the turn nor a use, so the player can
+   * simply move the mouse and click again. Returns whether the board was placed.
+   */
+  placePlatform(platform: Platform): boolean {
+    const b = this.activeBuddy;
+    const team = this.activeTeamData;
+    const def = WEAPONS[this.weapon];
+    if (this.phase !== 'aiming' || !b?.alive || !team || def.kind !== 'platform' || team.ammo[def.id] <= 0 || this.charge !== null) return false;
+    const occupied = [
+      ...this.buddies.filter((buddy) => buddy.alive).map((buddy) => buddy.body),
+      ...this.crates.map((c) => c.body),
+      ...this.mines.map((m) => m.body),
+    ];
+    if (!this.terrain.canPlacePlatform(platform, occupied)) return false;
+    this.terrain.addPlatform(platform);
+    team.ammo[def.id] -= 1;
+    this.shotsLeft = 0;
+    this.emit({ type: 'platformPlaced', weapon: def.id, ...platform });
+    this.startRetreat();
+    return true;
   }
 
   skipTurn(): void {

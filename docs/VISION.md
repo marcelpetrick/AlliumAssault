@@ -37,7 +37,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 
 ## Weapons
 
-Nineteen weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
+Twenty weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
 
 | Weapon                        | Ammo | Behaviour                                                                                                            |
 | ----------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
@@ -60,6 +60,7 @@ Nineteen weapons. _Special_ weapons can be restricted to crates with the arsenal
 | Napalm Strike (special)       | 1    | Click a target: wind-blown napalm sets the ground aflame for about 5 s; flames make buddies hop, water puts them out |
 | Proximity Mine (special)      | 2    | Dropped at the buddy's feet; arms after 1.5 s, then goes off 1 s after any living buddy comes within 2 units         |
 | Rope                          | 3    | Hook into rock within 24 units, then hang, reel, swing and let go; a miss costs nothing                              |
+| Platform                      | 2    | A solid five-unit board set in open air with the mouse; tilt with the wheel, click to place                          |
 
 ## Rope
 
@@ -156,4 +157,4 @@ general-purpose physics engines cannot do arbitrarily destructible Worms terrain
 
 ## Out of scope (for now)
 
-Online multiplayer, ninja rope, jetpack, mines, sudden death, persistent statistics.
+Online multiplayer, jetpack, persistent statistics.

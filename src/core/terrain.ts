@@ -11,6 +11,26 @@ export const CELL = 0.25;
 export const CHUNK_CELLS = 32;
 /** Field values are clamped to ±MAX_DIST (approximate distance to the surface). */
 export const MAX_DIST = 4;
+/** Length, thickness and largest tilt of a placed platform, in world units and radians. */
+export const PLATFORM_LENGTH = 5;
+export const PLATFORM_THICKNESS = 0.35;
+export const PLATFORM_MAX_ANGLE = Math.PI / 3;
+/** Free air a platform needs around itself, and how close a body may be to where one is placed. */
+const PLATFORM_CLEARANCE = 0.3;
+const PLATFORM_BODY_GAP = 0.95;
+
+/** A board placed in the world: its centre and its tilt in the gameplay plane. */
+export interface Platform {
+  x: number;
+  y: number;
+  angle: number;
+}
+
+/** A placed board with its rotation resolved once, because `sample` runs on every physics step. */
+interface Board extends Platform {
+  cos: number;
+  sin: number;
+}
 
 /**
  * Destructible terrain as a scalar density field sampled on a regular grid.
@@ -27,6 +47,11 @@ export class Terrain {
   readonly chunksY: number;
   readonly dirty = new Set<number>();
   revision = 0;
+  /**
+   * Placed boards. They are solid for every terrain query but live outside the density field, so
+   * blasts cannot cut them and the rock mesh never has to be rebuilt for them.
+   */
+  private readonly boards: Board[] = [];
 
   constructor(
     readonly width: number,
@@ -42,9 +67,50 @@ export class Terrain {
     this.markAllDirty();
   }
 
-  /** Bilinear field sample; everything outside the grid is air. */
+  get platforms(): readonly Platform[] {
+    return this.boards;
+  }
+
+  /** Bilinear field sample, merged with the placed boards; everything outside the grid is air. */
   sample(x: number, y: number): number {
-    return this.bilinear(this.field, x, y, -MAX_DIST);
+    let density = this.bilinear(this.field, x, y, -MAX_DIST);
+    for (const b of this.boards) {
+      const dx = x - b.x;
+      const dy = y - b.y;
+      // Distance into the plank: the smaller of how far it is inside along its length and across it.
+      const along = PLATFORM_LENGTH / 2 - Math.abs(dx * b.cos + dy * b.sin);
+      if (along <= density) continue;
+      const across = PLATFORM_THICKNESS / 2 - Math.abs(dy * b.cos - dx * b.sin);
+      const inside = Math.min(along, across);
+      if (inside > density) density = inside;
+    }
+    return density;
+  }
+
+  /**
+   * A board may only be set in free air: inside the map, clear of rock, other boards and bodies,
+   * above the water and not tilted past `PLATFORM_MAX_ANGLE`.
+   */
+  canPlacePlatform({ x, y, angle }: Platform, occupied: readonly Point[] = []): boolean {
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(angle) || Math.abs(angle) > PLATFORM_MAX_ANGLE) return false;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    for (let u = -PLATFORM_LENGTH / 2; u <= PLATFORM_LENGTH / 2 + 0.01; u += CELL) {
+      const px = x + u * cos;
+      const py = y + u * sin;
+      if (px < 1 || px > this.width - 1 || py < this.waterLevel + 0.8 || py > this.height - 1) return false;
+      for (const v of [-PLATFORM_CLEARANCE, 0, PLATFORM_CLEARANCE]) {
+        if (this.sample(px - v * sin, py + v * cos) > -0.08) return false;
+      }
+      for (const body of occupied) if (Math.hypot(px - body.x, py - body.y) < PLATFORM_BODY_GAP) return false;
+    }
+    return true;
+  }
+
+  /** Bumps the revision: the new board changes where buddies (and the AI) can stand. */
+  addPlatform({ x, y, angle }: Platform): void {
+    this.boards.push({ x, y, angle, cos: Math.cos(angle), sin: Math.sin(angle) });
+    this.revision++;
   }
 
   scorchAt(x: number, y: number): number {

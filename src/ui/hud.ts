@@ -279,6 +279,7 @@ export class Hud {
       const side = g.choosingApproach ? ` · ← → plane comes in from the ${g.strikeDir > 0 ? 'left' : 'right'}` : '';
       return `Click on the map to drop the ${def.name.toLowerCase()}${side} · Esc menu`;
     }
+    if (def.kind === 'platform' && g.phase === 'aiming') return 'Move the mouse to place the board · wheel tilts it · left-click sets it · Esc menu';
     if (g.phase === 'firing') return 'Rat-a-tat-tat! 🔩';
     if (g.phase === 'drilling') return 'Drilling down… ⛏️';
     if (g.phase === 'torching') return 'Burning through the rock… 🔥';

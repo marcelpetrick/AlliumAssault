@@ -25,8 +25,9 @@ export type WeaponId =
   | 'mine'
   | 'rope'
   | 'napalm'
-  | 'napalmbomb';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine' | 'rope';
+  | 'napalmbomb'
+  | 'platform';
+export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine' | 'rope' | 'platform';
 
 /**
  * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and
@@ -647,6 +648,27 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 22,
     range: 0,
   },
+  platform: {
+    id: 'platform',
+    look: { fireSound: 'clunk' },
+    name: 'Platform',
+    icon: '🪵',
+    blurb: 'Move the mouse to place a five-unit board, wheel to tilt it, left-click to set it. No damage.',
+    kind: 'platform',
+    ammo: 2,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 0,
+    damage: 0,
+    force: 0,
+    range: 0,
+  },
 };
 
 /** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
@@ -670,17 +692,18 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   'napalm',
   'mine',
   'rope',
+  'platform',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);
 
 /**
- * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 the next ones.
- * Returns the weapon for a digit key, or null when that key is unused.
+ * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 and Shift+0 the ten
+ * after them. Returns the weapon for a digit key, or null when that key is unused.
  */
 export function weaponForKey(digit: number, shift: boolean): WeaponId | null {
-  const index = shift ? (digit === 0 ? -1 : 9 + digit) : digit === 0 ? 9 : digit - 1;
+  const index = shift ? (digit === 0 ? 19 : 9 + digit) : digit === 0 ? 9 : digit - 1;
   return WEAPON_ORDER[index] ?? null;
 }
 
@@ -688,5 +711,6 @@ export function weaponForKey(digit: number, shift: boolean): WeaponId | null {
 export function hotkeyLabel(index: number): string {
   if (index < 9) return String(index + 1);
   if (index === 9) return '0';
+  if (index === 19) return '⇧0';
   return `⇧${index - 9}`;
 }

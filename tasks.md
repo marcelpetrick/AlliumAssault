@@ -85,19 +85,30 @@ Status: ☐ open · ☑ done
 | T71 | Expand E2E movement, landing and drill fall scenarios                                                     | ☐      |                |
 | T72 | Raise the water continuously once Sudden Death begins                                                     | ☑      | 1.42.0         |
 | T73 | Include Rope in the starting arsenal even when special weapons require crates                             | ☑      | 1.41.0         |
-| T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☐      |                |
+| T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☑      | 1.43.0         |
+| T75 | Map preview for the chosen seed in the setup screen                                                       | ☐      |                |
+| T76 | Three gravity options in the menu, with today's gravity as the default                                    | ☐      |                |
+| T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☐      |                |
+| T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☐      |                |
+| T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
 
 ## Current implementation plan
 
-1. Add a platform as a persistent solid collider and 3D board. Mouse movement places a preview,
-   the wheel rotates it, and left click commits it. Reject blocked or submerged positions, consume
-   one of two starting uses, then let buddies walk, jump and land on it (T74).
+1. Raise the Sudden Death water once per turn instead of every frame, so sitting out a turn no
+   longer floods the map faster than playing it (T78).
 2. Add browser scenarios for ordinary and hard landings, jumping and a drill-cushioned fall (T71).
 3. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
    more than 98% in each of the four Vitest metrics without excluding reachable code (T70).
 4. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
    issue, and verify that the new meshes leave no active objects after their effects end (T69).
-5. Review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+5. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
+   scenery changes, so the map is visible before the match starts (T75).
+6. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
+   scales the gravity used by buddies, projectiles and everything else that falls, and reaches the
+   core through the match configuration (T76).
+7. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
+8. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+9. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -109,6 +120,23 @@ Status: ☐ open · ☑ done
   asset paths, so no server is needed (T8).
 
 ## Details
+
+### T74 — Placeable platform ☑
+
+Implemented in 1.43.0. The twentieth weapon (Shift+0, two per team) is a five-unit wooden board.
+While it is selected the mouse carries a preview across the map — green where it fits, red where it
+does not — the wheel tilts it in 0.08 rad steps up to 60° instead of zooming, and a left click sets
+it down, which ends the turn like any other shot. A rejected spot costs neither the use nor the
+turn.
+
+`Terrain` keeps the boards outside the density field and merges them into `sample()`, so they are
+solid for collision, normals, distances and the AI's surface search, but blasts cannot cut them and
+the rock mesh is never rebuilt for them; `addPlatform` bumps the terrain revision so the AI drops
+its cached surface heights. Each board's cosine and sine are resolved once at placement, because
+`sample()` runs several times per body per physics step. `canPlacePlatform` demands open air with
+0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
+refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
+preview; the terrain owns the collision.
 
 ### T72 — Rising water in Sudden Death ☑
 

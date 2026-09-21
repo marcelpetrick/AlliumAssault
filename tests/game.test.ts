@@ -866,7 +866,7 @@ describe('sudden death', () => {
 });
 
 describe('starting arsenal', () => {
-  const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill', 'rope'];
+  const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill', 'rope', 'platform'];
 
   it('hands every team the basic weapons from turn one, under every arsenal setting', () => {
     for (const arsenal of ['all', 'crates', 'infinite'] as const) {
@@ -888,14 +888,75 @@ describe('weapon hotkeys', () => {
     expect(weaponForKey(9, false)).toBe(WEAPON_ORDER[8]);
     expect(weaponForKey(0, false)).toBe(WEAPON_ORDER[9]);
     expect(weaponForKey(1, true)).toBe(WEAPON_ORDER[10]);
-    expect(weaponForKey(0, true)).toBeNull();
-    // Shift+9 is the last shifted slot there is; nothing beyond it can be bound.
-    expect(weaponForKey(9, true)).toBe(WEAPON_ORDER[18]);
+    expect(weaponForKey(0, true)).toBe(WEAPON_ORDER[19]);
+    // Shift+9 keeps the weapon it had when the twentieth slot was appended behind it.
+    expect(weaponForKey(9, true)).toBe('rope');
+    expect(weaponForKey(11, true)).toBeNull();
     WEAPON_ORDER.forEach((id, k) => {
       const label = hotkeyLabel(k);
       const shift = label.startsWith('⇧');
       expect(weaponForKey(Number(label.replace('⇧', '')), shift)).toBe(id);
     });
+  });
+});
+
+describe('platform', () => {
+  const placing = () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.selectWeapon('platform');
+    return g;
+  };
+
+  it('sets a tilted board in mid-air, spends one of two uses and ends the turn', () => {
+    const g = placing();
+    expect(g.teams[0].ammo.platform).toBe(2);
+    expect(g.placePlatform({ x: 50, y: 25, angle: 0.15 })).toBe(true);
+    expect(g.phase).toBe('retreat');
+    expect(g.teams[0].ammo.platform).toBe(1);
+    expect(g.terrain.platforms).toEqual([{ x: 50, y: 25, angle: 0.15, cos: Math.cos(0.15), sin: Math.sin(0.15) }]);
+    expect(g.drainEvents().some((e) => e.type === 'platformPlaced' && e.weapon === 'platform')).toBe(true);
+  });
+
+  it('carries a falling buddy and survives a blast underneath it', () => {
+    const g = placing();
+    expect(g.placePlatform({ x: 50, y: 25, angle: 0 })).toBe(true);
+    const b = g.buddies[1];
+    b.body.x = 50;
+    b.body.y = 29;
+    b.body.vy = 0;
+    b.body.grounded = false;
+    expect(runUntil(g, () => b.body.grounded, 5)).toBe(true);
+    expect(b.body.y).toBeGreaterThan(25);
+    expect(b.hp).toBe(100);
+    g.explode(50, 24, 6, 0, 0);
+    expect(g.terrain.isSolid(50, 25)).toBe(true);
+  });
+
+  it('refuses buried, submerged, over-tilted and occupied spots without spending a use', () => {
+    const g = placing();
+    g.crates.push({ id: 900, kind: 'health', weapon: null, body: createBody(70, 25, CRATE_RADIUS) });
+    for (const at of [
+      { x: 50, y: 20, angle: 0 },
+      { x: 50, y: 3, angle: 0 },
+      { x: 20, y: 20.6, angle: 0 },
+      { x: 70, y: 25, angle: 0 },
+      { x: 50, y: 25, angle: Math.PI },
+    ]) {
+      expect({ at, placed: g.placePlatform(at) }).toEqual({ at, placed: false });
+    }
+    expect(g.teams[0].ammo.platform).toBe(2);
+    expect(g.phase).toBe('aiming');
+  });
+
+  it('is set by clicking, never by the fire button, and only while the weapon is in stock', () => {
+    const g = placing();
+    g.pressFire();
+    expect(g.charge).toBeNull();
+    expect(g.phase).toBe('aiming');
+    g.teams[0].ammo.platform = 0;
+    expect(g.placePlatform({ x: 50, y: 25, angle: 0 })).toBe(false);
+    expect(g.terrain.platforms).toHaveLength(0);
   });
 });
 
