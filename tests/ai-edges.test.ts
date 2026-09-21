@@ -311,3 +311,68 @@ describe('AI crate hunting', () => {
     expect(fired).toBe(false);
   });
 });
+
+describe('AI rope swing, at its edges', () => {
+  /** Put a driver straight into the swing stage, as a chosen rope fetch would. */
+  const swinging = (crate: number) => {
+    const driver = new AiDriver('hard', mulberry32(1));
+    const internals = driver as unknown as { stage: string; swing: { crate: number; spent: number } | null };
+    internals.stage = 'swing';
+    internals.swing = { crate, spent: 0 };
+    return { driver, internals };
+  };
+
+  it('lets go when the crate it was swinging to is gone', () => {
+    const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45 });
+    aiming(g);
+    onlyWeapon(g, 0, 'rope');
+    const me = g.buddies[0];
+    g.terrain.addDisc(me.body.x, me.body.y + 9, 3.5);
+    g.selectWeapon('rope');
+    me.aim = 1.2;
+    g.pressFire();
+    expect(g.phase).toBe('roping');
+    // The crate it set off for has been blown up in the meantime.
+    const { driver } = swinging(12_345);
+    driver.update(g, 1 / 60);
+    // It let go rather than hanging there for the rest of the turn.
+    expect(g.rope === null || g.phase !== 'roping').toBe(true);
+  });
+
+  it('drops onto a crate once it is hanging over it', () => {
+    const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45 });
+    aiming(g);
+    onlyWeapon(g, 0, 'rope');
+    const me = g.buddies[0];
+    g.terrain.addDisc(me.body.x, me.body.y + 9, 3.5);
+    g.selectWeapon('rope');
+    me.aim = 1.2;
+    g.pressFire();
+    runUntil(g, () => g.rope?.state === 'attached', 4);
+    // A crate directly below the buddy: it should let go and drop onto it.
+    const crate = { id: 77, kind: 'health' as const, weapon: null, body: createBody(me.body.x, me.body.y - 3, 0.45) };
+    g.crates.push(crate);
+    const { driver } = swinging(77);
+    for (let k = 0; k < 20 && g.rope; k++) driver.update(g, 1 / 60);
+    expect(g.rope).toBeNull();
+  });
+
+  it('gives up on a swing that has run out of patience', () => {
+    const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45 });
+    aiming(g);
+    onlyWeapon(g, 0, 'rope');
+    const me = g.buddies[0];
+    g.terrain.addDisc(me.body.x, me.body.y + 9, 3.5);
+    g.selectWeapon('rope');
+    me.aim = 1.2;
+    g.pressFire();
+    runUntil(g, () => g.rope?.state === 'attached', 4);
+    const crate = { id: 78, kind: 'health' as const, weapon: null, body: createBody(me.body.x + 40, me.body.y, 0.45) };
+    g.crates.push(crate);
+    const { driver, internals } = swinging(78);
+    // Already at the end of its patience: the next frame must let go.
+    internals.swing = { crate: 78, spent: 100 };
+    driver.update(g, 1 / 60);
+    expect(g.rope).toBeNull();
+  });
+});

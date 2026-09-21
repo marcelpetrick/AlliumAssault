@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.65.1] — 2026-09-22
+
+### Added
+
+- Tests for the edges of the AI's new rope fetch: the crate blown up mid-swing, the drop onto a
+  crate it is hanging over, and the swing that has run out of patience. Core coverage is back above
+  the enforced thresholds on all four measures.
+
 ## [1.65.0] — 2026-09-22
 
 ### Added
