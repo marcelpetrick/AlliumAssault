@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.67.1] — 2026-09-22
+
+### Fixed
+
+- **The weapon bar keeps to two rows.** With twenty-three weapons it wrapped to eleven, eleven and
+  one, leaving a single slot marooned on a third row. The column count is now half the arsenal
+  rounded up, taken from the weapon table, so adding a weapon rebalances the bar instead of starting
+  a new row.
+- The HUD's Help and Pause buttons kept their plain accessible names when the labels were
+  translated; a screen reader was being offered "❔ Help" and the title text as the button's name.
+
 ## [1.67.0] — 2026-09-22
 
 ### Added

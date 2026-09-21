@@ -67,8 +67,8 @@ export class Hud {
           <div class="gravity glass-card" hidden><div class="wind-label">${t('hud.gravity')}</div><div class="gravity-value"></div></div>
           <div class="approach glass-card" hidden><div class="wind-label">${t('hud.approach')}</div><div class="approach-arrow"></div></div>
           <div class="hud-menu glass-card">
-            <button class="hud-button" data-menu="help" title="${t('hud.helpTitle')}" aria-label="${t('hud.helpTitle')}">${t('hud.help')}</button>
-            <button class="hud-button" data-menu="pause" title="${t('hud.pauseTitle')}" aria-label="${t('hud.pause')}">${t('hud.pause')}</button>
+            <button class="hud-button" data-menu="help" title="${t('hud.helpTitle')}" aria-label="${t('hud.helpAria')}">${t('hud.help')}</button>
+            <button class="hud-button" data-menu="pause" title="${t('hud.pauseTitle')}" aria-label="${t('hud.pauseAria')}">${t('hud.pause')}</button>
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ export class Hud {
         <div class="team-bars glass-card"></div>
         <div class="weapons glass-card">
           <div class="weapon-caption"><b class="weapon-name"></b><span class="weapon-blurb"></span></div>
-          <div class="slots">
+          <div class="slots" style="--slot-columns:${Math.ceil(WEAPON_ORDER.length / 2)}">
             ${WEAPON_ORDER.map((id, k) => `<button class="slot" data-weapon="${id}" title="${esc(weaponName(id))} (${hotkeyLabel(k)})" aria-label="${esc(weaponName(id))}"><span class="slot-key">${hotkeyLabel(k)}</span><span class="slot-icon">${WEAPONS[id].icon}</span><span class="slot-ammo"></span></button>`).join('')}
           </div>
         </div>

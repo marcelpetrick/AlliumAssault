@@ -588,18 +588,19 @@ test('HUD: weapon bar lists every weapon with ammo and follows the selection', a
   await expect(page.locator('.hint')).toContainText('release the sheep');
   await expect(page.locator('.weapon-name')).toContainText('Sheep ×1');
 
-  // Two rows of eleven at 1280 px, so the thematic groups stay readable, and no overflow.
+  // Always two rows at 1280 px, whatever the arsenal grows to, and no overflow either side.
   const box = (await page.locator('.weapons').boundingBox())!;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(1280);
   const rows = await slots.evaluateAll((els) => [...new Set(els.map((el) => Math.round(el.getBoundingClientRect().top)))].length);
   expect(rows).toBe(2);
-  // And the first row really is the first eleven of the weapon order.
+  // The first row holds half of them rounded up, so a new weapon rebalances the bar rather than
+  // starting a third row with one lonely slot in it.
   const firstRow = await slots.evaluateAll((els) => {
     const top = Math.min(...els.map((el) => Math.round(el.getBoundingClientRect().top)));
     return els.filter((el) => Math.round(el.getBoundingClientRect().top) === top).length;
   });
-  expect(firstRow).toBe(11);
+  expect(firstRow).toBe(Math.ceil(selectable.length / 2));
   expect(errors).toEqual([]);
 });
 

@@ -878,9 +878,15 @@ kbd {
  * off in one long strip: launcher and thrown things, guns and fists on the first row, the sheep,
  * the air attacks, the tools and the traps on the second.
  */
+
+/*
+ * Two rows, always. The column count is half the arsenal rounded up, set from the weapon table
+ * rather than written here, so adding a weapon rebalances the bar instead of starting a third row
+ * with one lonely slot in it.
+ */
 .slots {
   display: grid;
-  grid-template-columns: repeat(11, auto);
+  grid-template-columns: repeat(var(--slot-columns, 11), auto);
   grid-auto-rows: auto;
   justify-content: center;
   gap: 3px;
