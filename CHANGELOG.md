@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.59.0] — 2026-09-22
+
+### Added
+
+- **The teleport shows where it will put you.** The air strike draws a reticle and the platform
+  draws the board it is about to place; the teleport asked the player to click blind. A blue cross
+  now follows the mouse while the teleport is selected, turning red over any spot the buddy would
+  not fit into — inside rock, off the map, or too tight to stand in. The cursor asks the game the
+  same question the click does, `canTeleportTo`, so the preview can never promise a move that the
+  click then refuses.
+
 ## [1.58.2] — 2026-09-22
 
 ### Fixed

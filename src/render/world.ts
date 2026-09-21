@@ -294,6 +294,8 @@ export class World {
     this.effects.updateFlames(g, this.time);
     const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
     this.effects.setStrikeCursor(targeting ? this.pointer : null, this.time);
+    const beaming = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'teleport' ? this.pointer : null;
+    this.effects.setTeleportCursor(beaming, beaming !== null && g.canTeleportTo(beaming.x, beaming.y), this.time);
     if (this.strikeView && this.time > this.strikeView.until) {
       // Only undo the forced zoom; if the player zoomed in the meantime, keep their choice.
       if (this.goalDistance === this.strikeView.forced) this.goalDistance = this.strikeView.distance;

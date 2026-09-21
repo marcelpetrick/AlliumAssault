@@ -104,6 +104,8 @@ export class Effects {
   private rope: { mesh: Mesh; points: number } | null = null;
   private readonly graves = new Map<number, GraveView>();
   private readonly strikeCursor: Mesh;
+  /** Where a teleport would put the buddy down; blue when the spot is free, red when it is not. */
+  private readonly teleportCursor: TransformNode;
   private flame: ParticleSystem | null = null;
   private torchBody: { outer: Mesh; inner: Mesh } | null = null;
   private dust: ParticleSystem | null = null;
@@ -166,6 +168,8 @@ export class Effects {
       medRed: mat('fxMedRed', '#e12b2b', 0.4),
       sheepFace: mat('fxSheepFace', '#2b2522'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
+      beacon: mat('fxBeacon', '#3fa9ff', 1),
+      beaconBad: mat('fxBeaconBad', '#ff3b3b', 1),
       tracer: mat('fxTracer', '#ffe27a', 1),
       mineShell: mat('fxMineShell', '#4c5157', 0.05),
       mineLight: mat('fxMineLight', '#ff2d2d', 1),
@@ -193,6 +197,25 @@ export class Effects {
     beam.position.z = -15;
     beam.isPickable = false;
     this.strikeCursor.setEnabled(false);
+
+    // A cross rather than a ring: it marks one point — where the buddy will stand — and a ring
+    // would read as an area of effect, which is the last thing a teleport has.
+    this.teleportCursor = new TransformNode('teleportCursor', scene);
+    for (const [w, h] of [
+      [1.5, 0.12],
+      [0.12, 1.5],
+    ]) {
+      const bar = MeshBuilder.CreateBox('teleportBar', { width: w, height: h, depth: 0.12 }, scene);
+      bar.parent = this.teleportCursor;
+      bar.isPickable = false;
+      glow(bar);
+    }
+    const halo = MeshBuilder.CreateTorus('teleportHalo', { diameter: 1.05, thickness: 0.05, tessellation: 24 }, scene);
+    halo.parent = this.teleportCursor;
+    halo.rotation.x = Math.PI / 2;
+    halo.isPickable = false;
+    glow(halo);
+    this.teleportCursor.setEnabled(false);
 
     this.reticle = MeshBuilder.CreateTorus('reticle', { diameter: 0.55, thickness: 0.07, tessellation: 24 }, scene);
     this.reticle.rotation.x = Math.PI / 2;
@@ -761,6 +784,20 @@ export class Effects {
   }
 
   /** Crosshair where a click would call the air strike; null hides it. */
+  /**
+   * Mark where a teleport would put the buddy down. `ok` is the game's own answer to whether the
+   * spot is free, so the colour on screen and what the click does can never disagree.
+   */
+  setTeleportCursor(at: { x: number; y: number } | null, ok: boolean, time: number): void {
+    this.teleportCursor.setEnabled(at !== null);
+    if (!at) return;
+    this.teleportCursor.position.set(at.x, at.y, -0.6);
+    this.teleportCursor.rotation.z = time * 1.6;
+    this.teleportCursor.scaling.setAll(ok ? 1 + Math.sin(time * 6) * 0.07 : 0.8);
+    const material = ok ? this.materials.beacon : this.materials.beaconBad;
+    for (const mesh of this.teleportCursor.getChildMeshes()) mesh.material = material;
+  }
+
   setStrikeCursor(at: { x: number; y: number } | null, time: number): void {
     this.strikeCursor.setEnabled(!!at);
     if (!at) return;

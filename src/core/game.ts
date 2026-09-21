@@ -421,10 +421,7 @@ export class Game {
     const team = this.activeTeamData;
     const def = WEAPONS[this.weapon];
     if (this.phase !== 'aiming' || !b?.alive || !team || def.kind !== 'teleport' || team.ammo[def.id] <= 0 || this.charge !== null) return false;
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
-    if (x < 1 || x > this.terrain.width - 1 || y < 0 || y > this.terrain.height - 1) return false;
-    // It must fit: the destination and the buddy's own girth around it have to be free of rock.
-    if (this.terrain.distance(x, y) < b.body.radius) return false;
+    if (!this.canTeleportTo(x, y)) return false;
     const from = { x: b.body.x, y: b.body.y };
     b.body.x = x;
     b.body.y = y;
@@ -438,6 +435,19 @@ export class Game {
     this.emit({ type: 'teleport', weapon: def.id, buddy: b.id, fromX: from.x, fromY: from.y, x, y });
     this.startRetreat();
     return true;
+  }
+
+  /**
+   * Whether the active buddy would arrive in one piece at (x, y): inside the map, and with room for
+   * its own girth in the rock around it. The renderer asks the same question to colour the cursor,
+   * so what the player is shown and what the click does can never disagree.
+   */
+  canTeleportTo(x: number, y: number): boolean {
+    const b = this.activeBuddy;
+    if (!b?.alive) return false;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    if (x < 1 || x > this.terrain.width - 1 || y < 0 || y > this.terrain.height - 1) return false;
+    return this.terrain.distance(x, y) >= b.body.radius;
   }
 
   skipTurn(): void {

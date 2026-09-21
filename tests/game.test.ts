@@ -1159,6 +1159,25 @@ describe('teleport', () => {
     expect(b.body.grounded).toBe(false);
   });
 
+  it('answers the same question the cursor asks, so the preview cannot lie', () => {
+    const g = ready();
+    const b = g.buddies[0];
+    // Open air well above the ground: free, and the click agrees.
+    expect(g.canTeleportTo(70, 30)).toBe(true);
+    // Inside the rock: refused, and refusing costs neither the turn nor the use.
+    expect(g.terrain.isSolid(70, 15)).toBe(true);
+    expect(g.canTeleportTo(70, 15)).toBe(false);
+    expect(g.teleportTo(70, 15)).toBe(false);
+    expect(g.teams[0].ammo.teleport).toBe(1);
+    expect(g.phase).toBe('aiming');
+    // Off the map, and nonsense, are refused the same way.
+    expect(g.canTeleportTo(-5, 30)).toBe(false);
+    expect(g.canTeleportTo(g.terrain.width + 5, 30)).toBe(false);
+    expect(g.canTeleportTo(Number.NaN, 30)).toBe(false);
+    // Too tight to stand in: closer to the rock than the buddy is wide.
+    expect(g.canTeleportTo(70, 20 + b.body.radius * 0.5)).toBe(false);
+  });
+
   it('lets the buddy fall from where it arrives, with the usual fall damage', () => {
     const g = ready();
     const b = g.buddies[0];

@@ -637,6 +637,70 @@ test('teleport: T selects it, a click beams the buddy there and it falls from wh
   expect(errors).toEqual([]);
 });
 
+/** What the teleport cursor is doing right now: enabled, where, and in which colour. */
+const cursorState = (page: Page) =>
+  page.evaluate(() => {
+    const scene = window.__allium.app.world!.scene;
+    const cursor = scene.getTransformNodeByName('teleportCursor');
+    const bar = scene.getMeshByName('teleportBar');
+    return { on: cursor?.isEnabled() ?? false, cx: cursor?.position.x ?? 0, cy: cursor?.position.y ?? 0, colour: bar?.material?.name ?? '' };
+  });
+
+test('teleport: a blue cross marks the spot, and turns red where the buddy would not fit', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'KeyT', 'teleport');
+  const box = (await page.locator('canvas').boundingBox())!;
+
+  /** Move the mouse to a world point and report what the cursor is doing there. */
+  const hoverWorld = async (pick: 'air' | 'rock') => {
+    const at = await page.evaluate((want) => {
+      const g = window.__allium.app.game!;
+      const world = window.__allium.app.world!;
+      const b = g.activeBuddy!;
+      for (let dx = -22; dx <= 22; dx += 1) {
+        for (const dy of want === 'air' ? [10, 8, 12] : [-1.4, -2, -0.8]) {
+          const x = b.body.x + dx;
+          const y = b.body.y + dy;
+          if (g.canTeleportTo(x, y) !== (want === 'air')) continue;
+          const screen = world.project(x, y);
+          if (screen && screen.x > 40 && screen.y > 40 && screen.x < innerWidth - 40 && screen.y < innerHeight - 140) return { x, y, screen };
+        }
+      }
+      return null;
+    }, pick);
+    if (!at) return null;
+    await page.mouse.move(box.x + at.screen.x, box.y + at.screen.y);
+    // The cursor is set from the frame loop, so wait for a frame rather than for the mouse event.
+    await page.waitForFunction(() => window.__allium.app.world!.scene.getTransformNodeByName('teleportCursor')?.isEnabled() === true, null, {
+      timeout: 20_000,
+    });
+    return { ...at, ...(await cursorState(page)) };
+  };
+
+  const air = await hoverWorld('air');
+  expect(air, 'no reachable open-air spot on this map').not.toBeNull();
+  expect(air!.on).toBe(true);
+  // Blue over a spot the buddy fits in, and on the spot the mouse is pointing at.
+  await expect.poll(async () => (await cursorState(page)).colour, { timeout: 20_000 }).toBe('fxBeacon');
+  expect(Math.abs(air!.cx - air!.x)).toBeLessThan(1.5);
+  await info.attach('teleport-cursor', { body: await page.screenshot(), contentType: 'image/png' });
+
+  const rock = await hoverWorld('rock');
+  expect(rock, 'no solid rock under the buddy to test against').not.toBeNull();
+  expect(rock!.on).toBe(true);
+  // Red where the click would be refused, so the cursor never promises a move that cannot happen.
+  await expect.poll(async () => (await cursorState(page)).colour, { timeout: 20_000 }).toBe('fxBeaconBad');
+  // And it really is over the spot the mouse is on.
+  const at = await cursorState(page);
+  expect(Math.abs(at.cx - rock!.x)).toBeLessThan(1.5);
+
+  // And it is gone on the next frame after another weapon is selected.
+  await select(page, '1', 'bazooka');
+  await page.waitForFunction(() => window.__allium.app.world!.scene.getTransformNodeByName('teleportCursor')?.isEnabled() === false, null, { timeout: 20_000 });
+  expect(errors).toEqual([]);
+});
+
 test('platform: Shift+8 previews a board, the wheel tilts it and a click sets it down', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
