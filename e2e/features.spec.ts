@@ -129,6 +129,62 @@ test('explosions throw earth out of the ground, and nothing when they go off in 
   expect(errors).toEqual([]);
 });
 
+test('mystery boxes: a clown box with a question mark hands out a goodie or a live mine', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page, { crates: 0, turnTime: 45 });
+
+  // A mystery box is a clown box: its own bright material and painted stripes, not a wooden crate.
+  const looks = await page.evaluate(() => {
+    const app = window.__allium.app;
+    const g = app.game!;
+    g.crates.push({
+      id: 7777,
+      kind: 'mystery',
+      weapon: null,
+      body: { x: g.activeBuddy!.body.x + 8, y: 40, vx: 0, vy: 0, radius: 0.45, grounded: false, impact: 0, restTime: 0 },
+    });
+    app.world!.update(1 / 60);
+    return {
+      materials: app.world!.scene.meshes.filter((m) => m.name === 'crateBox').map((m) => m.material?.name ?? ''),
+      stripes: app.world!.scene.meshes.filter((m) => m.name === 'stripe').length,
+      marks: app.world!.scene.meshes.filter((m) => m.name.startsWith('mark')).length,
+    };
+  });
+  expect(looks.materials).toContain('fxClownBox');
+  expect(looks.stripes).toBeGreaterThanOrEqual(2);
+  // The question mark on its side: a hook, a stem and a dot.
+  expect(looks.marks).toBeGreaterThanOrEqual(4);
+  await info.attach('mystery-box', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // Opening boxes reports what came out of each, always flagged as a mystery.
+  const prizes = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const seen: { kind: string; mystery: boolean }[] = [];
+    for (let k = 0; k < 40 && seen.length < 5; k++) {
+      const b = g.activeBuddy;
+      if (!b?.alive) break;
+      g.crates.push({
+        id: 8000 + k,
+        kind: 'mystery',
+        weapon: null,
+        body: { x: b.body.x, y: b.body.y, vx: 0, vy: 0, radius: 0.45, grounded: false, impact: 0, restTime: 0 },
+      });
+      // Stepped directly: the app's own loop drains the events before a test could read them.
+      g.step(1 / 60);
+      for (const e of g.drainEvents()) if (e.type === 'cratePickup') seen.push({ kind: e.kind, mystery: e.mystery });
+      // Clear the mines a mystery box may have left, so the buddy survives to open the next one.
+      g.mines = [];
+    }
+    return seen;
+  });
+  expect(prizes.length).toBeGreaterThanOrEqual(3);
+  for (const p of prizes) {
+    expect(p.mystery).toBe(true);
+    expect(['health', 'weapon', 'mine']).toContain(p.kind);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('crate craziness: two crates teleport in every turn', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page, { crates: 2 });

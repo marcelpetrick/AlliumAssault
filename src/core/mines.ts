@@ -34,9 +34,12 @@ export interface Mine {
 
 export type MineStep = 'none' | 'armed' | 'triggered' | 'blast' | 'water' | 'out';
 
-/** A mine dropped by a buddy standing at (x, y), placed at its feet. */
-export function placeMine(id: number, owner: number, team: number, x: number, y: number): Mine {
-  return { id, owner, team, body: createBody(x, y, MINE_RADIUS), state: 'unarmed', age: 0, fuse: MINE_FUSE };
+/**
+ * A mine dropped by a buddy standing at (x, y), placed at its feet. `armed` skips the arming delay,
+ * which is what a mystery box does to whoever opened it: no grace, the thing is live already.
+ */
+export function placeMine(id: number, owner: number, team: number, x: number, y: number, armed = false): Mine {
+  return { id, owner, team, body: createBody(x, y, MINE_RADIUS), state: armed ? 'armed' : 'unarmed', age: armed ? MINE_ARM_TIME : 0, fuse: MINE_FUSE };
 }
 
 /**

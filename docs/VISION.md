@@ -32,7 +32,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 | Wind         | New random wind each turn, shown in HUD; affects projectiles per weapon                 |
 | Victory      | Last team with living buddies wins; draw if none survive                                |
 | Gravity      | Moon, Normal or Heavy: scales the pull on everything that falls                         |
-| Crates       | Optional health and weapon crates: Off / Normal / Lots / Cratyness (see below)          |
+| Crates       | Optional health, weapon and mystery crates: Off / Normal / Lots / Cratyness (see below) |
 | Arsenal      | All weapons, special weapons from crates only, or infinite supplies                     |
 | Sudden Death | Off, or turn 10 / 20 / 30: 1 HP for everybody, then the water climbs a unit per turn    |
 

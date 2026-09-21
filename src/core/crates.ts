@@ -30,8 +30,15 @@ export const CRATE_HEAL = 25;
 export const DEFAULT_CRATE_CHANCE = 0.35;
 /** Weapons a weapon crate can contain: every special weapon. */
 export const CRATE_WEAPONS: readonly WeaponId[] = SPECIAL_WEAPONS;
-/** Share of crates that are health crates. */
+/** Share of crates that are health crates, and of the rest, the share that are mystery boxes. */
 const HEALTH_SHARE = 0.4;
+const MYSTERY_SHARE = 0.25;
+/**
+ * What a mystery box turns out to hold, once somebody is rash enough to open it. The odds are
+ * deliberately in the player's favour: three quarters of the time it is worth having, and the
+ * quarter that is not is what makes the other three interesting.
+ */
+export const MYSTERY_ODDS = { health: 0.35, weapon: 0.4, mine: 0.25 };
 /** Crates do not appear right next to a buddy. */
 const MIN_BUDDY_DISTANCE = 3;
 /** A crate caught in an explosion blows up with this blast. */
@@ -42,7 +49,14 @@ export const CRATE_BLAST = { radius: 1.8, damage: 10, force: 6 };
  */
 export const CRATE_FIRE = { flames: 3, duration: 2.5 };
 
-export type CrateKind = 'health' | 'weapon';
+/**
+ * `mystery` is a clown box with a question mark on its side: what is in it is rolled when it is
+ * opened, not when it drops, so nothing about the box on the map gives the answer away.
+ */
+export type CrateKind = 'health' | 'weapon' | 'mystery';
+
+/** What a mystery box turned out to be. */
+export type MysteryPrize = { kind: 'health' } | { kind: 'weapon'; weapon: WeaponId } | { kind: 'mine' };
 
 export interface Crate {
   id: number;
@@ -52,12 +66,27 @@ export interface Crate {
   body: Body;
 }
 
+/**
+ * Open a mystery box. Rolled at the moment of opening, from the match's own crate stream, so the
+ * same seed plays out the same way twice and no amount of looking at the box helps.
+ */
+export function openMystery(rng: Rng): MysteryPrize {
+  const roll = rng();
+  if (roll < MYSTERY_ODDS.health) return { kind: 'health' };
+  if (roll < MYSTERY_ODDS.health + MYSTERY_ODDS.weapon) {
+    return { kind: 'weapon', weapon: CRATE_WEAPONS[Math.floor(rng() * CRATE_WEAPONS.length)] };
+  }
+  return { kind: 'mine' };
+}
+
 /** Pick contents and a free land spot for a new crate, or null when there is no room. */
 export function rollCrate(t: Terrain, rng: Rng, id: number, occupied: readonly { x: number; y: number }[]): Crate | null {
   const spots = findSpawnCandidates(t, CRATE_RADIUS).filter((p) => occupied.every((o) => Math.hypot(o.x - p.x, o.y - p.y) >= MIN_BUDDY_DISTANCE));
   if (!spots.length) return null;
   const spot = spots[Math.floor(rng() * spots.length)];
-  const health = rng() < HEALTH_SHARE;
-  const weapon = health ? null : CRATE_WEAPONS[Math.floor(rng() * CRATE_WEAPONS.length)];
-  return { id, kind: health ? 'health' : 'weapon', weapon, body: createBody(spot.x, spot.y, CRATE_RADIUS) };
+  const body = createBody(spot.x, spot.y, CRATE_RADIUS);
+  if (rng() < HEALTH_SHARE) return { id, kind: 'health', weapon: null, body };
+  // A mystery box has no contents yet: they are rolled when somebody opens it.
+  if (rng() < MYSTERY_SHARE) return { id, kind: 'mystery', weapon: null, body };
+  return { id, kind: 'weapon', weapon: CRATE_WEAPONS[Math.floor(rng() * CRATE_WEAPONS.length)], body };
 }

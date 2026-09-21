@@ -82,6 +82,9 @@ the pixel density is halved.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
   25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots / Cratyness (two fresh
   crates every single turn, up to eight on the map) in the setup. A hopping
+- **Mystery boxes** — one crate in four is a clown box with a question mark on its side. What is
+  in it is rolled when somebody opens it, not when it drops: usually health or a special weapon,
+  and one time in four a live mine, armed on the spot under whoever was greedy.
   sheep or a Super Sheep that runs over a crate collects it for the buddy that launched it, without
   going off.
 - **Arsenal setting** — start with every weapon, find the special weapons (sheep, air strike,

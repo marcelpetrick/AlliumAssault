@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { NO_KNOWLEDGE, planAttack, scoreBlast, simulateShot } from '../src/core/ai';
 import { Game, REST_SPEED, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
-import { crateLimit, CRATE_FIRE, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES } from '../src/core/crates';
+import { crateLimit, CRATE_FIRE, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES, MYSTERY_ODDS, openMystery } from '../src/core/crates';
 import { hotkeyLabel, LETTER_KEYS, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { defined } from '../src/core/assert';
@@ -1401,6 +1401,63 @@ describe('crates', () => {
     g.skipTurn();
     runUntil(g, () => g.phase === 'aiming', 20);
   };
+
+  it('mystery boxes roll their contents when they are opened, not when they drop', () => {
+    // The odds are a decision, not an accident, and they add up.
+    expect(MYSTERY_ODDS.health + MYSTERY_ODDS.weapon + MYSTERY_ODDS.mine).toBeCloseTo(1, 6);
+    const prizes = new Set<string>();
+    for (let seed = 0; seed < 200; seed++) {
+      const rng = mulberry32(seed);
+      const prize = openMystery(rng);
+      prizes.add(prize.kind);
+      if (prize.kind === 'weapon') expect(CRATE_WEAPONS).toContain(prize.weapon);
+    }
+    // All three outcomes really happen, so no branch is decoration.
+    expect([...prizes].sort()).toEqual(['health', 'mine', 'weapon']);
+    // And the same seed always tells the same joke.
+    expect(openMystery(mulberry32(7))).toEqual(openMystery(mulberry32(7)));
+  });
+
+  it('a mystery box that holds a mine arms it under the buddy that opened it', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { crates: 0, turnTime: 40 });
+    toAiming(g);
+    const b = defined(g.activeBuddy, 'active buddy');
+    // Drop a mystery box on the buddy, and keep rolling the crate stream until it hands out a mine.
+    let laid = 0;
+    for (let k = 0; k < 40 && laid === 0; k++) {
+      g.crates.push({ id: 5000 + k, kind: 'mystery', weapon: null, body: createBody(b.body.x, b.body.y, CRATE_RADIUS) });
+      g.simulate(1 / 30);
+      laid = g.mines.length;
+    }
+    expect(laid).toBe(1);
+    const mine = g.mines[0];
+    // Live immediately: no arming grace for whoever was greedy, so it is already counting down
+    // under the buddy that opened the box rather than waiting to be walked over later.
+    expect(mine.state).not.toBe('unarmed');
+    const hp = b.hp;
+    runUntil(g, () => g.mines.length === 0, 6);
+    expect(b.hp).toBeLessThan(hp);
+    const pickup = g.drainEvents().filter((e) => e.type === 'cratePickup').at(-1);
+    expect(pickup).toMatchObject({ kind: 'mine', mystery: true });
+  });
+
+  it('a mystery box that holds a goodie hands it over like any other crate', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { crates: 0, turnTime: 40 });
+    toAiming(g);
+    const b = defined(g.activeBuddy, 'active buddy');
+    const hp = b.hp;
+    b.hp = 40;
+    let healed = false;
+    for (let k = 0; k < 40 && !healed; k++) {
+      g.crates.push({ id: 6000 + k, kind: 'mystery', weapon: null, body: createBody(b.body.x, b.body.y, CRATE_RADIUS) });
+      g.simulate(1 / 30);
+      healed = g.drainEvents().some((e) => e.type === 'cratePickup' && e.kind === 'health' && e.mystery);
+      if (!healed) g.mines = [];
+    }
+    expect(healed).toBe(true);
+    expect(b.hp).toBeGreaterThan(40);
+    expect(hp).toBe(100);
+  });
 
   it('leave a short-lived fire where a blast bursts them', () => {
     const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { crates: 0, turnTime: 40 });

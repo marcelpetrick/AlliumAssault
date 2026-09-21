@@ -143,8 +143,15 @@ export class Hud {
           if (buddy) this.float(`−${e.amount}`, buddy.body.x, buddy.body.y + 1.6, g.teams[buddy.team].config.color);
           break;
         case 'cratePickup': {
-          const text = e.kind === 'health' || !e.weapon ? `+${e.amount} HP` : `+${e.amount} ${WEAPONS[e.weapon].icon} ${WEAPONS[e.weapon].name}`;
-          const colour = e.kind === 'health' ? '#5ee27a' : '#ffd166';
+          const prize =
+            e.kind === 'mine'
+              ? '\u{1f92f} a live mine!'
+              : e.kind === 'health' || !e.weapon
+                ? `+${e.amount} HP`
+                : `+${e.amount} ${WEAPONS[e.weapon].icon} ${WEAPONS[e.weapon].name}`;
+          // A mystery box says so, because what came out of it is the whole joke.
+          const text = e.mystery ? `❓ ${prize}` : prize;
+          const colour = e.kind === 'mine' ? '#ff5a5a' : e.kind === 'health' ? '#5ee27a' : '#ffd166';
           // One reward, one number, and always over the buddy that was actually credited. A sheep
           // that runs over a crate collects it for its launcher; printing it at the crate as well
           // read as two pickups.

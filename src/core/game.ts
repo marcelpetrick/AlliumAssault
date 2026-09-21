@@ -33,7 +33,7 @@ import {
 import { clamp, lerp, type Point } from './math';
 import { createBody, glideBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { rngFor, type Rng } from './rng';
-import { CRATE_BLAST, CRATE_FIRE, CRATE_HEAL, crateLimit, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
+import { CRATE_BLAST, CRATE_FIRE, CRATE_HEAL, crateLimit, openMystery, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
 import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './mines';
 import { FLAME_BITE_INTERVAL, FLAME_BITE_RADIUS, spreadFlames, type Flame } from './fire';
 import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
@@ -733,14 +733,26 @@ export class Game {
    */
   private collectCrate(crate: Crate, b: Buddy): void {
     this.removeCrate(crate);
+    const { x, y } = crate.body;
+    // A mystery box is opened here, not when it dropped: nothing about the box on the map told
+    // anybody what was in it, and the roll comes from the match's own crate stream so a given seed
+    // always plays the same joke.
+    const prize = crate.kind === 'mystery' ? openMystery(this.crateRng) : null;
+    const kind = prize ? prize.kind : crate.kind === 'health' ? 'health' : 'weapon';
+    const weapon = prize?.kind === 'weapon' ? prize.weapon : crate.weapon;
     let amount = 1;
-    if (crate.kind === 'health') {
+    if (kind === 'health') {
       amount = CRATE_HEAL;
       b.hp += amount;
-    } else if (crate.weapon) {
-      this.teams[b.team].ammo[crate.weapon] += amount;
+    } else if (kind === 'mine') {
+      // The joke: a live mine, armed where the box stood, and the buddy is standing on it.
+      const mine = placeMine(this.nextId++, b.id, b.team, x, y, true);
+      this.mines.push(mine);
+      this.emit({ type: 'mineArmed', mine: mine.id, x, y });
+    } else if (weapon) {
+      this.teams[b.team].ammo[weapon] += amount;
     }
-    this.emit({ type: 'cratePickup', crate: crate.id, buddy: b.id, kind: crate.kind, weapon: crate.weapon, amount, x: crate.body.x, y: crate.body.y });
+    this.emit({ type: 'cratePickup', crate: crate.id, buddy: b.id, kind, weapon, amount, x, y, mystery: crate.kind === 'mystery' });
   }
 
   private removeCrate(crate: Crate): void {

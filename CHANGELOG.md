@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.63.0] — 2026-09-22
+
+### Added
+
+- **Mystery boxes.** A third kind of crate: a clown box in pink and yellow with a question mark
+  painted on its side and a knob on the lid. What is inside is rolled when somebody opens it rather
+  than when it drops, so nothing about the box on the map gives it away — a third of the time
+  health, two fifths a special weapon, and the remaining quarter a live mine, armed on the spot
+  with no grace period, under whoever was greedy. Seeded like everything else, so the same map
+  plays the same joke twice.
+
 ## [1.62.0] — 2026-09-22
 
 ### Added

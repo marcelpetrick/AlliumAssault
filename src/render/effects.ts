@@ -15,6 +15,7 @@ import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTextur
 import type { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { MUZZLE_OFFSET } from '../core/constants';
 import { defined } from '../core/assert';
+import type { CrateKind } from '../core/crates';
 import type { Flame } from '../core/fire';
 import type { Game } from '../core/game';
 import { WEAPONS, type WeaponLook } from '../core/weapons';
@@ -171,6 +172,8 @@ export class Effects {
       medRed: mat('fxMedRed', '#e12b2b', 0.4),
       sheepFace: mat('fxSheepFace', '#2b2522'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
+      clownBox: mat('fxClownBox', '#c8308f', 0.12),
+      clownStripe: mat('fxClownStripe', '#ffd23f', 0.14),
       porcelain: mat('fxPorcelain', '#f4f2ec', 0.05),
       cobalt: mat('fxCobalt', '#1f4fa8', 0.06),
       beacon: mat('fxBeacon', '#3fa9ff', 1),
@@ -1089,7 +1092,7 @@ export class Effects {
     };
   }
 
-  private createCrate(kind: 'health' | 'weapon'): TransformNode {
+  private createCrate(kind: CrateKind): TransformNode {
     const node = new TransformNode('crate', this.scene);
     const part = (mesh: Mesh, material: StandardMaterial, x = 0, y = 0, z = 0) => {
       mesh.material = material;
@@ -1104,6 +1107,23 @@ export class Effects {
       // Red cross on the front face, towards the camera.
       part(MeshBuilder.CreateBox('crossH', { width: 0.56, height: 0.16, depth: 0.02 }, this.scene), this.materials.medRed, 0, 0, -size / 2 - 0.01);
       part(MeshBuilder.CreateBox('crossV', { width: 0.16, height: 0.56, depth: 0.02 }, this.scene), this.materials.medRed, 0, 0, -size / 2 - 0.01);
+    } else if (kind === 'mystery') {
+      // A clown box: bright stripes, a question mark on the front and a knobbed lid, so it reads
+      // as a box that might be fun and might not.
+      part(MeshBuilder.CreateBox('crateBox', { size }, this.scene), this.materials.clownBox);
+      for (const x of [-0.24, 0.24]) {
+        part(MeshBuilder.CreateBox('stripe', { width: 0.16, height: size + 0.02, depth: size + 0.02 }, this.scene), this.materials.clownStripe, x);
+      }
+      part(MeshBuilder.CreateBox('lid', { width: size + 0.06, height: 0.12, depth: size + 0.06 }, this.scene), this.materials.clownStripe, 0, size / 2);
+      const knob = part(MeshBuilder.CreateSphere('knob', { diameter: 0.18, segments: 10 }, this.scene), this.materials.medWhite, 0, size / 2 + 0.12);
+      this.glow(knob);
+      // The question mark: a hook of three boxes and a dot, on the face towards the camera.
+      const front = -size / 2 - 0.02;
+      const curve = part(MeshBuilder.CreateBox('markTop', { width: 0.3, height: 0.1, depth: 0.02 }, this.scene), this.materials.medWhite, 0.02, 0.2, front);
+      curve.rotation.z = 0.1;
+      part(MeshBuilder.CreateBox('markSide', { width: 0.1, height: 0.2, depth: 0.02 }, this.scene), this.materials.medWhite, 0.14, 0.08, front);
+      part(MeshBuilder.CreateBox('markStem', { width: 0.1, height: 0.18, depth: 0.02 }, this.scene), this.materials.medWhite, 0.02, -0.04, front);
+      part(MeshBuilder.CreateBox('markDot', { width: 0.1, height: 0.1, depth: 0.02 }, this.scene), this.materials.medWhite, 0.02, -0.22, front);
     } else {
       part(MeshBuilder.CreateBox('crateBox', { size }, this.scene), this.materials.crateWood);
       for (const y of [-0.28, 0.28]) {

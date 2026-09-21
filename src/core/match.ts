@@ -167,7 +167,19 @@ export type GameEvent =
   | { type: 'mineArmed'; mine: number; x: number; y: number }
   | { type: 'mineTriggered'; mine: number; x: number; y: number }
   | { type: 'crateSpawn'; crate: number; x: number; y: number }
-  | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number; x: number; y: number }
+  | {
+      type: 'cratePickup';
+      crate: number;
+      buddy: number;
+      /** What the crate turned out to be — a mystery box reports what came out of it. */
+      kind: 'health' | 'weapon' | 'mine';
+      weapon: WeaponId | null;
+      amount: number;
+      x: number;
+      y: number;
+      /** True when this came out of a mystery box, so the HUD can say so. */
+      mystery: boolean;
+    }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'suddenDeath'; turn: number }
   | { type: 'panic'; buddy: number; seconds: number }

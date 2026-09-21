@@ -128,7 +128,7 @@ Status: ☐ open · ☑ done
 | T114 | Flamethrower: three seconds of burning fuel, steered with up/down, blown by wind, leaves a fire carpet    | ☑      | 1.62.0         |
 | T115 | Garlic punch: boxing gloves on the buddy, and an upward punch that knocks a hole in the ceiling           | ☑      | 1.59.1         |
 | T116 | Drill: a jackhammer animation while it runs, instead of a bit that just hangs there                       | ☑      | 1.59.3         |
-| T117 | Mystery crate: a clown box with a question mark, random contents — a goodie, or a mine that arms itself   | ☐      |                |
+| T117 | Mystery crate: a clown box with a question mark, random contents — a goodie, or a mine that arms itself   | ☑      | 1.63.0         |
 | T118 | Languages: English (default), German, Croatian in a Split accent, and Mandarin, chosen in the setup       | ☐      |                |
 | T119 | Scale the sheep weapon model up by 50%, so it reads as a sheep rather than a dot                          | ☑      | 1.59.3         |
 | T120 | Napalm strike: smaller flames that dig only two thirds as deep — a carpet, not a trench                   | ☑      | 1.60.1         |
