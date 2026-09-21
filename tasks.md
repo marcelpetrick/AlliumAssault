@@ -113,10 +113,11 @@ Status: ☐ open · ☑ done
 | T99  | Minigun icon: a screw, not a gun — give it a firearm icon in the shotgun's style                          | ☑      | 1.54.0         |
 | T100 | Group the weapons thematically in the bar: launchers, thrown, guns, melee, sheep, air, digging, …         | ☑      | 1.54.0         |
 | T101 | Self-destruct: a Lemmings-style panic and countdown before the blast, in the spirit of the 1992 game      | ☑      | 1.54.0         |
+| T102 | Public release v1.55.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.55.0         |
 
 ## Current implementation plan
 
-The backlog is empty. T98 — splitting `game.ts` (1,571 lines) and `effects.ts` (1,348) into smaller
+The backlog is empty; v1.55.0 is released. T98 — splitting `game.ts` (1,571 lines) and `effects.ts` (1,348) into smaller
 modules — is the one piece of work left on the list, recorded as a proposal in
 [review.md](review.md#9--open--gamets-1571-lines-and-effectsts-1348-are-too-big): a large,
 mechanical refactor that touches everything and wants its own session and its own review. Finding 10
@@ -481,6 +482,11 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T102 — Public release v1.55.0 ☑
+
+Requested on 2026-09-21 after the review batch. Pushed `master` and the single tag `v1.55.0`, which
+runs the release workflow — now gated on coverage as well — and deploys Pages from the same push.
 
 ### T90–T101 — Review fixes, the weapon bar and the Lemmings moment ☑
 

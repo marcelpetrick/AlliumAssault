@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.55.0] — 2026-09-21
+
+Public release. It carries everything from 1.53.1 and 1.54.0: the thematically grouped two-row
+weapon bar with its new hotkeys, the minigun that finally looks like a gun, the Lemmings-style
+self-destruct, the coverage gate that now actually runs, the community health files, share
+metadata, reduced-motion support, refreshed documentation and re-captured screenshots.
+
 ## [1.54.0] — 2026-09-21
 
 ### Added
