@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.40.1] — 2026-09-21
+
+### Fixed
+
+- Explosions now show an immediate, brighter 3D fireball. Burning napalm patches keep visible
+  flickering flames even when a browser renders few particles, and the blowtorch projects a clear
+  flame along its burn direction. Checked in Chrome and Firefox at desktop and compact resolutions.
+
 ## [1.40.0] — 2026-09-20
 
 Public release. Everything below has been in the changelog since 1.33.5; this is the summary that

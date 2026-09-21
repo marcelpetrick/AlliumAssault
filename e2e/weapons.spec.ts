@@ -51,6 +51,7 @@ test('bazooka: charge whoosh while holding Space, whistling rocket, explosion an
   expect(after.projectiles).toBe(0);
   expect(after.terrainRevision).toBeGreaterThan(before.terrainRevision);
   expect(played(after, 'explosion')).toBeGreaterThan(played(before, 'explosion'));
+  expect(await page.evaluate(() => window.__allium.app.world!.scene.getMeshesById('blastCore').some((mesh) => mesh.isEnabled()))).toBe(true);
   expect(['retreat', 'settling', 'deaths', 'turnStart', 'aiming']).toContain(after.phase);
   await info.attach('bazooka', { body: await page.screenshot(), contentType: 'image/png' });
   expect(errors).toEqual([]);
@@ -149,6 +150,14 @@ test('blowtorch: roaring flame walks the buddy forward through the rock', async 
   await page.evaluate(() => {
     window.__allium.stepFrames(20, 1 / 30);
   });
+  const torch = await page.evaluate(() => {
+    const game = window.__allium.app.game!;
+    const mesh = window.__allium.app.world!.scene.getMeshByName('torchOuter');
+    return { visible: mesh?.isEnabled(), reach: mesh?.scaling.y ?? 0, ahead: (mesh?.position.x ?? 0) - game.activeBuddy!.body.x };
+  });
+  expect(torch.visible).toBe(true);
+  expect(torch.reach).toBeGreaterThan(2);
+  expect(torch.ahead).toBeGreaterThan(1);
   await info.attach('torch', { body: await page.screenshot(), contentType: 'image/png' });
   // stepFrames switched to manual frames; sounds follow the game only while frames run.
   await page.evaluate(() => window.__allium.setManual(false));
@@ -176,6 +185,15 @@ test('blowtorch aimed upwards cuts its way up through the rock', async ({ page }
   await aim(page, 0.9, 1);
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.phase === 'torching', 10_000);
+  const upwardFlame = await page.evaluate(() => {
+    const app = window.__allium.app;
+    app.stepFrames(1);
+    const mesh = app.world!.scene.getMeshByName('torchOuter');
+    const rise = (mesh?.position.y ?? 0) - app.game!.activeBuddy!.body.y;
+    app.manual = false;
+    return rise;
+  });
+  expect(upwardFlame).toBeGreaterThan(1);
   await fastForward(page, 3.2);
   const moved = (await state(page)).buddies.find((b) => b.name === start.name)!;
   expect(moved.y).toBeGreaterThan(start.y + 1.5);
@@ -414,10 +432,16 @@ test('napalm strike: Shift+7 and a click, flames crackle on the ground, then bur
   });
   await waitForSound(page, 'ignite');
   await waitFor(page, (s) => s.sound.fire, 10_000);
+  const visibleFire = await page.evaluate(() => {
+    const app = window.__allium.app;
+    return app.game!.flames.filter((flame) => app.world!.scene.getMeshByName(`groundFlameOuter-${flame.id}`)?.isEnabled()).length;
+  });
+  expect(visibleFire).toBeGreaterThan(0);
   await info.attach('napalm', { body: await page.screenshot(), contentType: 'image/png' });
   await fastForward(page, 7);
   await waitFor(page, (s) => !s.sound.fire, 10_000);
   expect(await page.evaluate(() => window.__allium.app.game!.flames.length)).toBe(0);
+  expect(await page.evaluate(() => window.__allium.app.world!.scene.meshes.filter((mesh) => mesh.name.startsWith('groundFlame')).length)).toBe(0);
   expect(errors).toEqual([]);
 });
 

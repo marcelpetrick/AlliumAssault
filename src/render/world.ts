@@ -245,7 +245,7 @@ export class World {
     this.effects.syncMines(g, this.time);
     this.effects.syncRope(g);
     this.effects.syncGraves(g, dt);
-    this.effects.updateTorch(g);
+    this.effects.updateTorch(g, this.time);
     this.effects.updateDrill(g, this.theme.dirt);
     this.effects.updateFlames(g, this.time);
     const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';

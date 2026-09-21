@@ -12,6 +12,7 @@ import {
   StandardMaterial,
   TransformNode,
   Vector3,
+  VertexData,
   type Scene,
   type Texture,
 } from '@babylonjs/core';
@@ -94,10 +95,12 @@ export class Effects {
   private readonly graves = new Map<number, GraveView>();
   private readonly strikeCursor: Mesh;
   private flame: ParticleSystem | null = null;
+  private torchBody: { outer: Mesh; inner: Mesh } | null = null;
   private dust: ParticleSystem | null = null;
   private fire: ParticleSystem | null = null;
   private fireSmoke: ParticleSystem | null = null;
   private fireLight: PointLight | null = null;
+  private readonly groundFire = new Map<number, { outer: Mesh; inner: Mesh }>();
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
@@ -142,7 +145,19 @@ export class Effects {
       mineShell: mat('fxMineShell', '#4c5157', 0.05),
       mineLight: mat('fxMineLight', '#ff2d2d', 1),
       rope: mat('fxRope', '#d8c08a', 0.1),
+      flameOuter: mat('fxFlameOuter', '#f04b0b', 1),
+      flameInner: mat('fxFlameInner', '#ffdc45', 1.2),
+      groundOuter: mat('fxGroundOuter', '#e84b0d', 0.7),
+      groundInner: mat('fxGroundInner', '#ffb72d', 1),
     };
+    this.materials.flameOuter.alpha = 0.8;
+    this.materials.flameInner.alpha = 0.9;
+    this.materials.groundOuter.alpha = 0.5;
+    this.materials.groundInner.alpha = 0.65;
+    for (const flame of [this.materials.flameOuter, this.materials.flameInner, this.materials.groundOuter, this.materials.groundInner]) {
+      flame.disableLighting = true;
+      flame.backFaceCulling = false;
+    }
 
     this.strikeCursor = MeshBuilder.CreateTorus('strikeCursor', { diameter: 1.2, thickness: 0.09, tessellation: 32 }, scene);
     this.strikeCursor.rotation.x = Math.PI / 2;
@@ -179,6 +194,7 @@ export class Effects {
   explosion(x: number, y: number, radius: number, debris: Color3): void {
     const r = radius / 2.8;
     const at = new Vector3(x, y, -0.6);
+    this.fireball(x, y, radius);
     this.burst(at, {
       count: Math.round(80 * r) + 10,
       colors: [new Color4(1, 0.9, 0.45, 1), new Color4(1, 0.45, 0.08, 1), new Color4(0.35, 0.05, 0, 0)],
@@ -401,25 +417,44 @@ export class Effects {
   }
 
   /** Blowtorch flame at the nozzle, pointing along the burn line, while the torch burns. */
-  updateTorch(game: Game): void {
+  updateTorch(game: Game, time: number): void {
     const b = game.activeBuddy;
     const torch = game.torch;
     if (!torch || !b) {
       this.flame?.stop();
+      this.torchBody?.outer.setEnabled(false);
+      this.torchBody?.inner.setEnabled(false);
       return;
+    }
+    this.torchBody ??= {
+      outer: this.flameCone('torchOuter', this.materials.flameOuter),
+      inner: this.flameCone('torchInner', this.materials.flameInner),
+    };
+    const nozzleX = b.body.x + torch.dx * 0.75;
+    const nozzleY = b.body.y + torch.dy * 0.75 + 0.05;
+    const angle = Math.atan2(torch.dy, torch.dx) - Math.PI / 2;
+    const pulse = 1 + Math.sin(time * 27) * 0.09 + Math.sin(time * 41) * 0.04;
+    for (const [mesh, length, width, depth] of [
+      [this.torchBody.outer, 2.8 * pulse, 0.9, -0.65],
+      [this.torchBody.inner, 2.15 * pulse, 0.48, -0.82],
+    ] as const) {
+      mesh.setEnabled(true);
+      mesh.position.set(nozzleX + torch.dx * length * 0.5, nozzleY + torch.dy * length * 0.5, depth);
+      mesh.rotation.z = angle;
+      mesh.scaling.set(width, length, width);
     }
     if (!this.flame) {
       const ps = new ParticleSystem('torchFlame', 400, this.scene);
       ps.particleTexture = this.dot;
       ps.emitter = new Vector3();
       ps.createPointEmitter(new Vector3(0.8, -0.3, -0.3), new Vector3(1.6, 0.3, 0.3));
-      ps.emitRate = 160;
-      ps.minLifeTime = 0.08;
-      ps.maxLifeTime = 0.22;
-      ps.minSize = 0.2;
-      ps.maxSize = 0.55;
-      ps.minEmitPower = 2;
-      ps.maxEmitPower = 4;
+      ps.emitRate = 260;
+      ps.minLifeTime = 0.16;
+      ps.maxLifeTime = 0.38;
+      ps.minSize = 0.28;
+      ps.maxSize = 0.7;
+      ps.minEmitPower = 4;
+      ps.maxEmitPower = 7;
       ps.addColorGradient(0, new Color4(0.7, 0.85, 1, 1));
       ps.addColorGradient(0.3, new Color4(1, 0.75, 0.25, 1));
       ps.addColorGradient(1, new Color4(1, 0.25, 0.05, 0));
@@ -428,10 +463,10 @@ export class Effects {
     }
     const ps = this.flame;
     const nozzle = ps.emitter as Vector3;
-    nozzle.set(b.body.x + torch.dx * 0.75, b.body.y + torch.dy * 0.75 + 0.05, -0.5);
+    nozzle.set(nozzleX, nozzleY, -0.5);
     ps.direction1.set(torch.dx * 0.8 - torch.dy * 0.2, torch.dy * 0.8 + torch.dx * 0.2 - 0.1, -0.3);
     ps.direction2.set(torch.dx * 1.6 + torch.dy * 0.2, torch.dy * 1.6 - torch.dx * 0.2 + 0.1, 0.3);
-    if (!ps.isStarted()) ps.start();
+    if (!ps.isStarted() || ps.isStopping()) ps.start();
     this.flashLevel = Math.max(this.flashLevel, 1.2);
     this.flash.position.set(nozzle.x, nozzle.y, -1.5);
     this.flash.range = 6;
@@ -489,11 +524,36 @@ export class Effects {
    */
   updateFlames(game: Game, time: number): void {
     const flames = game.flames;
+    const live = new Set(flames.map((flame) => flame.id));
+    for (const [id, meshes] of this.groundFire) {
+      if (live.has(id)) continue;
+      meshes.outer.dispose();
+      meshes.inner.dispose();
+      this.groundFire.delete(id);
+    }
     if (!flames.length) {
       this.fire?.stop();
       this.fireSmoke?.stop();
       if (this.fireLight) this.fireLight.intensity = 0;
       return;
+    }
+    for (const flame of flames) {
+      let meshes = this.groundFire.get(flame.id);
+      if (!meshes) {
+        meshes = {
+          outer: this.flameCone(`groundFlameOuter-${flame.id}`, this.materials.groundOuter),
+          inner: this.flameCone(`groundFlameInner-${flame.id}`, this.materials.groundInner),
+        };
+        this.groundFire.set(flame.id, meshes);
+      }
+      const pulse = 1 + Math.sin(time * 12 + flame.id * 2.3) * 0.18;
+      const height = (1.65 + Math.sin(flame.id * 7) * 0.2) * pulse;
+      meshes.outer.position.set(flame.x, flame.y + height * 0.5, -0.65);
+      meshes.outer.scaling.set(0.78, height, 0.78);
+      meshes.outer.rotation.z = Math.sin(time * 6 + flame.id) * 0.12;
+      meshes.inner.position.set(flame.x, flame.y + height * 0.34, -0.82);
+      meshes.inner.scaling.set(0.38, height * 0.68, 0.38);
+      meshes.inner.rotation.z = meshes.outer.rotation.z;
     }
     const atRandomFlame = (position: Vector3, spread: number, lift: number): void => {
       const f = game.flames[Math.floor(Math.random() * game.flames.length)] ?? { x: 0, y: -100 };
@@ -561,8 +621,8 @@ export class Effects {
     const smoke = defined(this.fireSmoke, 'napalm smoke');
     this.fire.emitRate = Math.min(110 * flames.length, 900);
     smoke.emitRate = Math.min(9 * flames.length, 70);
-    if (!this.fire.isStarted()) this.fire.start();
-    if (!smoke.isStarted()) smoke.start();
+    if (!this.fire.isStarted() || this.fire.isStopping()) this.fire.start();
+    if (!smoke.isStarted() || smoke.isStopping()) smoke.start();
     const cx = flames.reduce((sum, f) => sum + f.x, 0) / flames.length;
     const cy = flames.reduce((sum, f) => sum + f.y, 0) / flames.length;
     const light = defined(this.fireLight, 'napalm light');
@@ -1052,6 +1112,80 @@ export class Effects {
     cap.material = this.materials.metal;
     cap.parent = node;
     return { node, trail: null };
+  }
+
+  /** Solid emissive geometry makes the impact readable even between sparse particle frames. */
+  private fireball(x: number, y: number, radius: number): void {
+    const outer = MeshBuilder.CreateSphere('blastOuter', { diameter: 1, segments: 12 }, this.scene);
+    const inner = MeshBuilder.CreateSphere('blastCore', { diameter: 1, segments: 12 }, this.scene);
+    const outerMat = this.materials.flameOuter.clone('blastOuterMat');
+    const innerMat = this.materials.flameInner.clone('blastCoreMat');
+    outer.material = outerMat;
+    inner.material = innerMat;
+    outer.position.set(x, y, -0.85);
+    inner.position.set(x, y, -1.1);
+    outer.isPickable = inner.isPickable = false;
+    this.glow(outer);
+    this.glow(inner);
+    let age = 0;
+    this.transients.push({
+      update: (dt) => {
+        age += dt;
+        const t = Math.min(age / 0.48, 1);
+        const size = Math.max(radius, 0.8) * (0.32 + t * 0.85);
+        outer.scaling.setAll(size);
+        inner.scaling.setAll(size * (0.55 + t * 0.08));
+        outerMat.alpha = 0.8 * (1 - t);
+        innerMat.alpha = 0.95 * (1 - t * t);
+        return t < 1;
+      },
+      dispose: () => {
+        outer.dispose();
+        inner.dispose();
+        outerMat.dispose();
+        innerMat.dispose();
+      },
+    });
+  }
+
+  private flameCone(name: string, material: StandardMaterial): Mesh {
+    const cone = new Mesh(name, this.scene);
+    const rings = [
+      [-0.5, 0.34, 0],
+      [-0.28, 0.5, 0],
+      [-0.06, 0.4, 0.04],
+      [0.2, 0.25, 0.1],
+      [0.4, 0.1, 0.16],
+      [0.5, 0.01, 0.19],
+    ];
+    const sides = 10;
+    const positions: number[] = [];
+    const indices: number[] = [];
+    for (const [height, width, bend] of rings) {
+      for (let side = 0; side < sides; side++) {
+        const angle = (side * Math.PI * 2) / sides;
+        positions.push(Math.cos(angle) * width + bend, height, Math.sin(angle) * width);
+      }
+    }
+    for (let ring = 0; ring < rings.length - 1; ring++) {
+      for (let side = 0; side < sides; side++) {
+        const next = (side + 1) % sides;
+        const a = ring * sides + side;
+        const b = ring * sides + next;
+        indices.push(a, b, a + sides, b, b + sides, a + sides);
+      }
+    }
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, indices, normals);
+    const data = new VertexData();
+    data.positions = positions;
+    data.indices = indices;
+    data.normals = normals;
+    data.applyToMesh(cone);
+    cone.material = material;
+    cone.isPickable = false;
+    this.glow(cone);
+    return cone;
   }
 
   private burst(at: Vector3, o: BurstOptions): void {

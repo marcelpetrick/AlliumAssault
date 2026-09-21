@@ -79,6 +79,7 @@ Status: ☐ open · ☑ done
 | T65 | Review the AI opponents and plan crate, blast-chain and target-selection improvements                     | ☑      | 1.34.2         |
 | T66 | Implement the reviewed AI improvements                                                                    | ☑      | 1.37.0         |
 | T67 | Public release v1.40.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.40.0         |
+| T68 | Investigate Firefox fire visibility and strengthen explosion, napalm and blowtorch effects                | ☑      | 1.40.1         |
 
 ## Answered questions
 
@@ -90,6 +91,17 @@ Status: ☐ open · ☑ done
   asset paths, so no server is needed (T8).
 
 ## Details
+
+### T68 — Fire visibility and browser review ☑
+
+At 1280×720, Chrome and Firefox both rendered napalm particles, but the blowtorch emitted only a
+small glow at the buddy and a blast's bright phase was easy to miss. The same effect was more
+noticeable at a closer camera distance, so this was not a Firefox-specific failure. Added animated
+3D flame geometry to the blowtorch and burning patches, a short-lived emissive fireball to every
+explosion, and longer, stronger torch particles. The geometry appears on the first rendered frame
+and follows the core flame and torch state; meshes are hidden or removed as those states end.
+Checked Firefox at 1280×720 and 800×600, Chrome at 1280×720, and extended the weapon E2E checks
+to cover the visible effects and their cleanup.
 
 ### T1 — Buddies float after the ground under them is blasted away ☑
 
