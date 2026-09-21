@@ -218,7 +218,8 @@ test('HUD: weapon bar lists every weapon with ammo and follows the selection', a
 
 test('sudden death: 1 HP, siren, banner and rising visible water', async ({ page }, info) => {
   const errors = await boot(page);
-  await startDuel(page, { suddenDeath: 4, turnTime: 1 });
+  // A turn long enough to sit out for a while: the water must not move until the next one starts.
+  await startDuel(page, { suddenDeath: 4, turnTime: 20 });
   expect((await state(page)).buddies.every((b) => b.hp === 100)).toBe(true);
 
   // Skip ahead turn by turn; the strike lands when turn 4 begins.
@@ -236,12 +237,22 @@ test('sudden death: 1 HP, siren, banner and rising visible water', async ({ page
   const struck = await state(page);
   expect(struck.buddies.every((b) => b.alive && b.hp === 1)).toBe(true);
   expect(struck.waterRising).toBe(true);
+  // Playing on does not raise the water; the next turn does, by exactly one step.
   await fastForward(page, 5);
+  expect((await state(page)).waterLevel).toBe(struck.waterLevel);
   await page.evaluate(() => {
-    window.__allium.stepFrames(1);
+    const g = window.__allium.app.game!;
+    for (let k = 0; k < 600 && g.turn < 5; k++) {
+      if (g.phase === 'aiming') g.skipTurn();
+      window.__allium.app.fastForward(1 / 60);
+    }
   });
+  await waitFor(page, (s) => s.turn >= 5, 30_000);
   const flooded = await state(page);
-  expect(flooded.waterLevel).toBeGreaterThan(struck.waterLevel + 0.5);
-  expect(await page.evaluate(() => window.__allium.app.world!.scene.getMeshByName('water')?.position.y)).toBeCloseTo(flooded.waterLevel, 2);
+  expect(flooded.waterLevel).toBe(struck.waterLevel + 1);
+  // The water surface follows the level on the next rendered frame.
+  await expect
+    .poll(() => page.evaluate(() => window.__allium.app.world!.scene.getMeshByName('water')?.position.y ?? 0), { timeout: 30_000 })
+    .toBeCloseTo(flooded.waterLevel, 2);
   expect(errors).toEqual([]);
 });

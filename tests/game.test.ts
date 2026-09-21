@@ -8,6 +8,7 @@ import { createBody } from '../src/core/physics';
 import { CRATE_RADIUS, CRATE_WEAPONS } from '../src/core/crates';
 import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
+import { SUDDEN_DEATH_WATER_RISE } from '../src/core/constants';
 import { MINE_ARM_TIME, MINE_FUSE, MINE_TRIGGER_RANGE, placeMine } from '../src/core/mines';
 import { config, flatGame, onlyWeapon, runUntil, slopeGame, team } from './helpers';
 
@@ -847,20 +848,35 @@ describe('sudden death', () => {
     expect(g.terrain.waterLevel).toBe(3);
   });
 
-  it('raises the water from the sudden-death turn and floods a sheltered cave', () => {
+  it('raises the water one step per turn, never by the second', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 2, turnTime: 20 });
+    const initial = g.terrain.waterLevel;
+    toTurn(g, 2);
+    expect(g.waterRising).toBe(true);
+    // The strike turn itself stays dry, so the announcement and the first rise do not collide.
+    expect(g.terrain.waterLevel).toBe(initial);
+    // Sitting out the whole turn floods no more than playing it: the level holds until the next turn.
+    runUntil(g, () => g.phase === 'aiming', 20);
+    for (let s = 0; s < 10 * 60; s++) g.step(1 / 60);
+    expect(g.turn).toBe(2);
+    expect(g.terrain.waterLevel).toBe(initial);
+    toTurn(g, 3);
+    expect(g.terrain.waterLevel).toBe(initial + SUDDEN_DEATH_WATER_RISE);
+    toTurn(g, 5);
+    expect(g.terrain.waterLevel).toBe(initial + 3 * SUDDEN_DEATH_WATER_RISE);
+  });
+
+  it('drowns a buddy sheltered under a rock roof once the water reaches it', () => {
     const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 2, turnTime: 1 });
     const buddy = g.buddies[0];
-    // A rock roof over the buddy does not block the flood.
+    // A rock roof over the buddy does not keep the flood out.
     g.terrain.carve(buddy.body.x, 5, 2.5);
     buddy.body.y = 3.3;
     buddy.body.vy = 0;
     buddy.body.grounded = true;
-    const initial = g.terrain.waterLevel;
-    toTurn(g, 2);
-    expect(g.waterRising).toBe(true);
-    expect(g.terrain.waterLevel).toBeGreaterThan(initial);
+    toTurn(g, 3);
     expect(g.terrain.isSolid(buddy.body.x, 9)).toBe(true);
-    expect(runUntil(g, () => !buddy.alive, 30)).toBe(true);
+    expect(buddy.alive).toBe(false);
     expect(g.drainEvents().some((e) => e.type === 'drown' && e.buddy === buddy.id)).toBe(true);
   });
 });

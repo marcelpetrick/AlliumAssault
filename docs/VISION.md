@@ -33,7 +33,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 | Victory      | Last team with living buddies wins; draw if none survive                                |
 | Crates       | Optional random health and weapon crates (see below)                                    |
 | Arsenal      | All weapons, special weapons from crates only, or infinite supplies                     |
-| Sudden Death | Off, or turn 10 / 20 / 30: every living buddy drops to 1 HP and the water starts rising |
+| Sudden Death | Off, or turn 10 / 20 / 30: 1 HP for everybody, then the water climbs a unit per turn    |
 
 ## Weapons
 

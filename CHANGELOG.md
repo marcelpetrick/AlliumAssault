@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.43.1] — 2026-09-21
+
+### Fixed
+
+- The Sudden Death flood now rises once at the start of each turn instead of continuously, so
+  letting the turn clock run out no longer floods the map faster than playing the turn. The strike
+  turn itself stays dry; from the next turn on the water climbs a world unit each time.
+
 ## [1.43.0] — 2026-09-21
 
 ### Added

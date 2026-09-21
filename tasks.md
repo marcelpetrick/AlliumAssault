@@ -89,26 +89,24 @@ Status: ☐ open · ☑ done
 | T75 | Map preview for the chosen seed in the setup screen                                                       | ☐      |                |
 | T76 | Three gravity options in the menu, with today's gravity as the default                                    | ☐      |                |
 | T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☐      |                |
-| T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☐      |                |
+| T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☑      | 1.43.1         |
 | T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
 
 ## Current implementation plan
 
-1. Raise the Sudden Death water once per turn instead of every frame, so sitting out a turn no
-   longer floods the map faster than playing it (T78).
-2. Add browser scenarios for ordinary and hard landings, jumping and a drill-cushioned fall (T71).
-3. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
+1. Add browser scenarios for ordinary and hard landings, jumping and a drill-cushioned fall (T71).
+2. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
    more than 98% in each of the four Vitest metrics without excluding reachable code (T70).
-4. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
+3. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
    issue, and verify that the new meshes leave no active objects after their effects end (T69).
-5. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
+4. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
    scenery changes, so the map is visible before the match starts (T75).
-6. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
+5. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
    scales the gravity used by buddies, projectiles and everything else that falls, and reaches the
    core through the match configuration (T76).
-7. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
-8. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-9. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+6. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
+7. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+8. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -138,12 +136,22 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
 
+### T78 — One water rise per turn ☑
+
+Fixed in 1.43.1. The flood introduced in 1.42.0 climbed by the second, which rewarded stalling:
+a player who let the whole turn clock run down flooded the map further than one who acted. The
+water now climbs one world unit in `beginTurn`, before the turn is announced, and not at all in
+between. The strike turn itself stays dry, so the Sudden Death banner and the first rise do not
+land together. Unit tests cover the per-turn step, that ten seconds of play inside a turn move
+nothing, and that a buddy under a rock roof still drowns; the browser test checks the same
+sequence and that the water surface follows.
+
 ### T72 — Rising water in Sudden Death ☑
 
 Implemented in 1.42.0. Sudden Death used to be a single strike; a match between two careful players
 could still crawl on. `Game.waterRising` is set when the strike lands and, from then until the match
-ends, every step raises `Terrain.waterLevel` by 0.12 units per second (one world unit per eight
-seconds, capped one unit below the map ceiling). The water level was already read live by everything
+ends, the water climbs (see [T78](#t78--one-water-rise-per-turn-), which made the rise per turn
+rather than per second), capped one unit below the map ceiling. The water level was already read live by everything
 that can drown — buddies, mines, crates, projectiles, sheep, flyers, graves, napalm flames, the rope
 hook, the camera floor and the AI's judgement of safe ground — so a roof over a hole shelters nobody
 and no separate flood logic was needed. The renderer moves the water plane to the current level each

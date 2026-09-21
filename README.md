@@ -86,8 +86,9 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch, drill, rope and platform
   — are always in the loadout from turn one.
 - **Sudden Death** — from the setup screen, pick the turn (10, 20 or 30, or off) on which every
-  living buddy drops to 1 HP. The water then rises continuously, flooding caves and low ground.
-  Nobody dies from the strike itself, but a hit or the rising water finishes the match.
+  living buddy drops to 1 HP. From the next turn on the water climbs a world unit at the start of
+  every turn, flooding caves and low ground. Nobody dies from the strike itself, but a hit or the
+  rising water finishes the match.
 - **Tombstones** — fallen buddies leave a comic R.I.P. tombstone with their name that explosions
   knock around.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real

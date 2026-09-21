@@ -612,9 +612,6 @@ export class Game {
   step(dt = 1 / 60): void {
     this.time += dt;
     this.phaseTime += dt;
-    if (this.waterRising && this.phase !== 'gameOver') {
-      this.terrain.waterLevel = Math.min(this.terrain.height - 1, this.terrain.waterLevel + SUDDEN_DEATH_WATER_RISE * dt);
-    }
     const active = this.activeBuddy;
 
     if (this.acting && !this.isHumanTurn) this.ai.get(this.activeTeam)?.update(this, dt);
@@ -1206,7 +1203,7 @@ export class Game {
 
   /**
    * Sudden Death: on the configured turn every living buddy drops to 1 HP and the water starts
-   * rising. It strikes once per match, and 1 rather than 0 keeps it out of the death phase:
+   * climbing. It strikes once per match, and 1 rather than 0 keeps it out of the death phase:
    * nobody dies from the strike itself.
    * Returns true when it struck, so the turn can announce it after the usual turn banner.
    */
@@ -1218,6 +1215,16 @@ export class Game {
     }
     this.waterRising = true;
     return true;
+  }
+
+  /**
+   * The flood climbs one step per turn, not per second: a player who sits out the whole turn timer
+   * must not drown the others faster than one who plays it. The strike turn itself stays dry, so
+   * the announcement and the first rise do not land together.
+   */
+  private raiseWater(): void {
+    if (!this.waterRising) return;
+    this.terrain.waterLevel = Math.min(this.terrain.height - 1, this.terrain.waterLevel + SUDDEN_DEATH_WATER_RISE);
   }
 
   private beginTurn(): void {
@@ -1238,6 +1245,7 @@ export class Game {
       break;
     }
     this.turn++;
+    this.raiseWater();
     const suddenDeath = this.checkSuddenDeath();
     this.introTime = this.maybeDropCrate() ? INTRO_TIME + CRATE_INTRO_TIME : INTRO_TIME;
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
