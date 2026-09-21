@@ -2,8 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { AiLevel, Controller, MatchConfig, TeamConfig } from '../core/game';
+import type { Quality } from '../render/world';
 import { THEME_IDS } from '../render/themes';
-import { ARSENAL_OPTIONS, CRATE_OPTIONS, GRAVITY_OPTIONS, quickMatch, randomSeed, SUDDEN_DEATH_OPTIONS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
+import {
+  ARSENAL_OPTIONS,
+  CRATE_OPTIONS,
+  GRAVITY_OPTIONS,
+  QUALITY_OPTIONS,
+  quickMatch,
+  randomSeed,
+  SUDDEN_DEATH_OPTIONS,
+  TURN_OPTIONS,
+  WIND_OPTIONS,
+} from './presets';
 
 export type TextSize = 'normal' | 'large' | 'huge';
 
@@ -17,11 +28,13 @@ export const TEXT_SIZES: { label: string; value: TextSize; scale: number }[] = [
 export interface Settings {
   match: MatchConfig;
   textSize: TextSize;
+  /** How much the renderer may spend; Full unless the player or the URL says otherwise. */
+  quality: Quality;
 }
 
 const STORAGE_KEY = 'allium.settings';
 
-export const defaultSettings = (): Settings => ({ match: quickMatch(), textSize: 'normal' });
+export const defaultSettings = (): Settings => ({ match: quickMatch(), textSize: 'normal', quality: 'high' });
 
 /** Stored settings, or defaults when there are none or they are unreadable. The map seed is always fresh. */
 export function loadSettings(): Settings {
@@ -98,12 +111,17 @@ export function parseSettings(raw: string): Settings | null {
     ),
     theme: pick(m.theme, THEME_IDS, d.theme),
   };
+  const quality = pick(
+    data.quality,
+    QUALITY_OPTIONS.map((q) => q.value),
+    defaults.quality,
+  );
   const textSize = pick(
     data.textSize,
     TEXT_SIZES.map((t) => t.value),
     defaults.textSize,
   );
-  return { match, textSize };
+  return { match, textSize, quality };
 }
 
 const CONTROLLERS: readonly Controller[] = ['human', 'ai'];

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import type { Quality } from '../render/world';
 import { DEFAULT_CRATE_CHANCE } from '../core/crates';
 import type { AiLevel, Arsenal, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { shuffle } from '../core/rng';
@@ -58,6 +59,15 @@ export const GRAVITY_OPTIONS = [
   { label: 'Moon', value: 0.55 },
   { label: 'Normal', value: 1 },
   { label: 'Heavy', value: 1.5 },
+];
+/**
+ * How much the renderer is allowed to spend. Full is the default and stays the default: shadows,
+ * bloom, antialiasing and the full pixel density, even where that costs frames. Low is for weak
+ * GPUs and is what `?quality=low` in the URL selects.
+ */
+export const QUALITY_OPTIONS: { label: string; value: Quality }[] = [
+  { label: 'Full', value: 'high' },
+  { label: 'Low (weak GPU)', value: 'low' },
 ];
 export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },

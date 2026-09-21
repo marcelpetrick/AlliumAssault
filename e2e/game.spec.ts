@@ -480,3 +480,42 @@ test('pause menu: controls, resume and quit to title', async ({ page }) => {
   await waitFor(page, (s) => s.demo && s.screen === 'title', 10_000);
   expect(errors).toEqual([]);
 });
+
+test('the Graphics setting picks the renderer budget, persists, and yields to ?quality=low', async ({ page }) => {
+  // Booted without the URL override, so the stored setting is what decides.
+  const errors = await boot(page, '/');
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await boot(page, '/');
+
+  // Full is the default, and the scene it builds has the shadow cascade.
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await expect(page.locator('[data-action="quality"][data-value="high"]')).toHaveClass(/on/);
+  expect((await state(page)).quality).toBe('high');
+  expect((await state(page)).shadows).toBe(true);
+
+  // Low is remembered, and takes effect for the next match rather than the one on screen.
+  await page.locator('[data-action="quality"][data-value="low"]').click();
+  await expect(page.locator('[data-action="quality"][data-value="low"]')).toHaveClass(/on/);
+  expect((await state(page)).shadows).toBe(true);
+  expect(await page.evaluate(() => (JSON.parse(localStorage.getItem('allium.settings') ?? '{}') as { quality?: string }).quality)).toBe('low');
+  await startDuel(page);
+  expect((await state(page)).quality).toBe('low');
+  expect((await state(page)).shadows).toBe(false);
+
+  // A reload restores the choice, and Reset all puts Full back.
+  await boot(page, '/');
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await expect(page.locator('[data-action="quality"][data-value="low"]')).toHaveClass(/on/);
+  expect((await state(page)).quality).toBe('low');
+  await page.getByRole('button', { name: /Reset all/ }).click();
+  await expect(page.locator('[data-action="quality"][data-value="high"]')).toHaveClass(/on/);
+  expect((await state(page)).quality).toBe('high');
+
+  // The URL escape hatch forces Low even though the stored setting now says Full.
+  await boot(page);
+  expect((await state(page)).quality).toBe('low');
+  expect((await state(page)).shadows).toBe(false);
+  expect(errors).toEqual([]);
+});

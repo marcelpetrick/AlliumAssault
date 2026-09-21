@@ -60,7 +60,9 @@ npm run dev          # http://localhost:5173
 Production build (static files, no backend): `npm run build`, then serve `dist/` with any static
 file server, e.g. `npm run preview`.
 
-Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA).
+On a weak GPU, switch **Graphics** to Low in the setup screen; `?quality=low` in the URL does the
+same before the menu is even reachable. Either way the shadow cascade, bloom and MSAA are off and
+the pixel density is halved.
 
 ## Features
 
@@ -103,8 +105,9 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   HUD shows the pull whenever it is not the ordinary one.
 - **Map preview** — the setup screen draws the island the current seed produces, in the colours of
   the chosen scenery, so you can roll the dice until you like the map before starting.
-- **Comfortable setup** — text size Normal / Large / Huge, and the last match settings are
-  remembered in the browser for the next game (Reset all restores the defaults).
+- **Comfortable setup** — text size Normal / Large / Huge, a Graphics budget (Full or Low, for
+  weak GPUs), and the last match settings are remembered in the browser for the next game (Reset
+  all restores the defaults).
 - **Synthesized sound** — every effect generated with Web Audio, no asset files: charge whoosh,
   whistling rockets, bleating sheep, a propeller plane, crackling napalm, footsteps and more —
   every action has its own voice, written down in [docs/SOUND.md](docs/SOUND.md).

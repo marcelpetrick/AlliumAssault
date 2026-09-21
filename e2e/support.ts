@@ -20,11 +20,15 @@ export const waitFor = (page: Page, fn: (s: AppState) => boolean, timeout = 90_0
   page.waitForFunction(`(${fn.toString()})(window.__allium.state())`, undefined, { timeout, polling: 'raf' });
 
 /** Open the game in Chrome and collect console errors. */
-export async function boot(page: Page): Promise<string[]> {
+/**
+ * Load the app and collect console errors. Headless Chrome draws with SwiftShader, so tests ask for
+ * low graphics by default; pass a URL to boot at the setting the test is actually about.
+ */
+export async function boot(page: Page, url = '/?quality=low'): Promise<string[]> {
   const errors: string[] = [];
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/?quality=low');
+  await page.goto(url);
   // The hook only exists once the app has booted.
   await page.waitForFunction(() => '__allium' in window && window.__allium.ready, null, { timeout: 60_000 });
   return errors;

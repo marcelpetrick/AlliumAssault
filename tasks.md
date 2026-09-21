@@ -117,6 +117,7 @@ Status: ☐ open · ☑ done
 | T103 | Fix the map-dependent gravity test that failed on CI, and teach Dependabot the two version limits         | ☑      | 1.55.1         |
 | T104 | Profiling run across every stage of play, best-practice audit of the stack, then the fixes worth making   | ☑      | 1.56.0         |
 | T105 | Tidy the repository root: fewer Markdown files, the rest moved into folders and linked                    | ☐      |                |
+| T106 | Graphics setting in the setup: Full or Low, saved, with `?quality=low` still forcing Low                  | ☑      | 1.57.0         |
 
 ## Current implementation plan
 
@@ -503,6 +504,17 @@ request was closed with that explanation.
 
 Requested on 2026-09-21 after the review batch. Pushed `master` and the single tag `v1.55.0`, which
 runs the release workflow — now gated on coverage as well — and deploys Pages from the same push.
+
+### T106 — A graphics budget the player picks ☑
+
+Added in 1.57.0. The renderer had one fixed budget — four million pixels at up to 1.5× device
+density — and one escape hatch, `?quality=low` in the URL, which nobody finds. The setup screen now
+has **Graphics: Full or Low**, saved with the rest of the settings. Full is the default and is
+deliberately generous (8.3 megapixels, up to 2× density, shadow cascade, bloom, MSAA), because the
+game is meant to look right on a desktop even where that costs frames; Low halves the density, caps
+at 2.1 megapixels and drops the three expensive passes. The URL parameter still wins, so a machine
+that cannot render the menu smoothly has a way in. The setting takes effect for the next match, not
+the one on screen: the scene is built once, with the budget it was given.
 
 ### T104 — Profiling, and a bundle four times smaller ☑
 

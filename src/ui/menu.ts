@@ -5,10 +5,12 @@ import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
+import type { Quality } from '../render/world';
 import {
   ARSENAL_OPTIONS,
   CRATE_OPTIONS,
   GRAVITY_OPTIONS,
+  QUALITY_OPTIONS,
   makeTeam,
   quickMatch,
   randomSeed,
@@ -78,6 +80,8 @@ export class Menu {
   /** Last custom setup saved by the player; a temporary Quick Match must not replace it. */
   private savedMatch: MatchConfig;
   private textSize: TextSize;
+  /** Renderer budget for the next match; a match already running keeps the one it started with. */
+  private quality: Quality;
   private helpReturn: Screen = 'title';
   /** Pending repaint of the map preview while the seed is being typed. */
   private previewTimer = 0;
@@ -91,6 +95,7 @@ export class Menu {
     this.draft = structuredClone(settings.match);
     this.savedMatch = structuredClone(settings.match);
     this.textSize = settings.textSize;
+    this.quality = settings.quality;
     applyTextSize(this.textSize);
     this.el = document.createElement('div');
     this.el.className = 'menu';
@@ -182,6 +187,10 @@ export class Menu {
             <div><label class="field-label">Crates</label>${segmented(
               CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })),
               'crates',
+            )}</div>
+            <div><label class="field-label">Graphics</label>${segmented(
+              QUALITY_OPTIONS.map((q) => ({ label: q.label, value: q.value, on: q.value === this.quality })),
+              'quality',
             )}</div>
             <div><label class="field-label">Text size</label>${segmented(
               TEXT_SIZES.map((t) => ({ label: t.label, value: t.value, on: t.value === this.textSize })),
@@ -459,6 +468,10 @@ export class Menu {
       case 'gravity':
         d.gravity = Number(value);
         break;
+      case 'quality':
+        // Takes effect for the next match: the scene is built once, with the budget it was given.
+        this.quality = value as Quality;
+        break;
       case 'arsenal':
         d.arsenal = value as Arsenal;
         // Special weapons only come from crates, so make sure crates drop.
@@ -474,7 +487,7 @@ export class Menu {
         this.textSize = value as TextSize;
         applyTextSize(this.textSize);
         if (screen === 'pause') {
-          this.persistTextSize();
+          this.persistPreferences();
           this.showPause();
           return;
         }
@@ -485,6 +498,7 @@ export class Menu {
         this.draft = structuredClone(defaults.match);
         this.savedMatch = structuredClone(defaults.match);
         this.textSize = defaults.textSize;
+        this.quality = defaults.quality;
         applyTextSize(this.textSize);
         this.showSetup();
         return;
@@ -501,10 +515,16 @@ export class Menu {
 
   private persist(): void {
     this.savedMatch = structuredClone(this.draft);
-    this.persistTextSize();
+    this.persistPreferences();
   }
 
-  private persistTextSize(): void {
-    saveSettings({ match: this.savedMatch, textSize: this.textSize });
+  /** Save the preferences without touching the saved match — a paused game may be changing them. */
+  private persistPreferences(): void {
+    saveSettings({ match: this.savedMatch, textSize: this.textSize, quality: this.quality });
+  }
+
+  /** What the player chose; the app still lets `?quality=low` in the URL override it. */
+  get renderQuality(): Quality {
+    return this.quality;
   }
 }

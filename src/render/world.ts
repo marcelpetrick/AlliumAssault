@@ -324,6 +324,11 @@ export class World {
     return this.goalDistance;
   }
 
+  /** Whether this scene was built with the shadow cascade, i.e. at full graphics (for tests). */
+  get castsShadows(): boolean {
+    return this.shadows !== null;
+  }
+
   /** World point the camera is centred on (for tests). */
   get focusPoint(): { x: number; y: number } {
     return { x: this.focus.x, y: this.focus.y };

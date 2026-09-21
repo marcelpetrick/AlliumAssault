@@ -23,10 +23,13 @@ const MAX_STEPS_PER_FRAME = 8;
 const TARGET_FPS = 60;
 const PAUSED_FPS = 20;
 /**
- * Ceiling on the drawing buffer. A maximised window on a HiDPI screen would otherwise be rendered
- * at several times this many pixels — far past the point where more of them are visible.
+ * Ceilings on the drawing buffer, per graphics setting: total pixels, and how far the device pixel
+ * ratio is followed. A maximised window on a HiDPI screen would otherwise be drawn at several times
+ * these numbers. Full is deliberately generous — the game is meant to look right on a desktop even
+ * where that costs frames — while Low keeps a weak GPU playable.
  */
-const MAX_RENDER_PIXELS = 4_000_000;
+const MAX_RENDER_PIXELS = { high: 8_300_000, low: 2_100_000 };
+const MAX_DENSITY = { high: 2, low: 1 };
 /** Pointer travel in pixels below which a press counts as a click rather than a drag. */
 const CLICK_SLOP = 6;
 /** Distance walked between two footstep sounds. */
@@ -59,7 +62,8 @@ export class App {
   private lastTick = 0;
   /** Where the walking buddy last made a footstep sound. */
   private lastStep: { buddy: number; x: number } | null = null;
-  private readonly quality: Quality;
+  /** 'low' when the URL forces it; otherwise whatever the menu's Graphics setting says. */
+  private readonly forcedLowQuality: boolean;
   /** performance.now() of the last drawn frame, for the frame-rate cap. */
   private lastFrame = 0;
 
@@ -67,9 +71,8 @@ export class App {
     private readonly canvas: HTMLCanvasElement,
     uiRoot: HTMLElement,
   ) {
-    this.quality = new URLSearchParams(location.search).get('quality') === 'low' ? 'low' : 'high';
+    this.forcedLowQuality = new URLSearchParams(location.search).get('quality') === 'low';
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, antialias: true, powerPreference: 'high-performance' }, true);
-    this.applyRenderScale();
 
     this.hud = new Hud(
       uiRoot,
@@ -121,12 +124,15 @@ export class App {
 
   showTitle(): void {
     this.startMatch(demoMatch(), true);
+    this.applyRenderScale();
     this.menu.showTitle();
   }
 
   startMatch(config: MatchConfig, demo = false): void {
     this.world?.dispose();
     this.game = new Game(config);
+    // The setting may have changed since the last match, so the buffer is sized again here.
+    this.applyRenderScale();
     this.world = new World(this.engine, this.game, THEMES[config.theme] ?? THEMES.meadow, this.quality);
     this.hud.attach(this.game, this.world);
     this.hud.setVisible(!demo);
@@ -183,11 +189,13 @@ export class App {
    * than MAX_RENDER_PIXELS in total, so a big window costs a big window's worth of work and no more.
    */
   private applyRenderScale(): void {
-    const density = Math.min(window.devicePixelRatio || 1, 1.5);
+    const quality = this.quality;
+    const density = Math.min(window.devicePixelRatio || 1, MAX_DENSITY[quality]);
     const width = this.canvas.clientWidth || window.innerWidth;
     const height = this.canvas.clientHeight || window.innerHeight;
     const pixels = width * height * density * density;
-    const shrink = pixels > MAX_RENDER_PIXELS ? Math.sqrt(pixels / MAX_RENDER_PIXELS) : 1;
+    const budget = MAX_RENDER_PIXELS[quality];
+    const shrink = pixels > budget ? Math.sqrt(pixels / budget) : 1;
     this.engine.setHardwareScalingLevel(shrink / density);
   }
 
@@ -487,6 +495,14 @@ export class App {
     return game !== null && this.targetingMap() && WEAPONS[game.weapon].kind === 'platform';
   }
 
+  /**
+   * Full graphics unless the player picked Low in the menu, or the URL forces it with
+   * `?quality=low` — which stays the escape hatch for a machine that cannot open the menu smoothly.
+   */
+  private get quality(): Quality {
+    return this.forcedLowQuality ? 'low' : this.menu.renderQuality;
+  }
+
   /** Handle a click on the map at CSS pixels relative to the canvas. */
   clickMap(cssX: number, cssY: number): void {
     const game = this.game;
@@ -532,6 +548,8 @@ export class App {
       mines: (g?.mines ?? []).map((m) => ({ id: m.id, owner: m.owner, team: m.team, state: m.state, x: m.body.x, y: m.body.y })),
       ammo: g?.activeTeamData ? { ...g.activeTeamData.ammo } : null,
       sound: this.audio.voices,
+      quality: this.quality,
+      shadows: this.world?.castsShadows ?? false,
       camera: this.world?.focusPoint ?? null,
       buddies: (g?.buddies ?? []).map((b) => ({
         id: b.id,

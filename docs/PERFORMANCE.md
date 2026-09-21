@@ -102,13 +102,15 @@ with DevTools against `npm run dev` instead, using the snippet above.
 - **Fixed-step simulation** decoupled from the frame rate, with a cap on catch-up steps, so a slow
   frame cannot cascade.
 - **Frame-rate cap and render scaling**: the canvas never draws more pixels than
-  `MAX_RENDER_PIXELS`, and the menu renders at a lower rate than a match.
+  `MAX_RENDER_PIXELS` for the chosen quality, and the menu renders at a lower rate than a match.
 - **Dirty-chunk terrain**: only the 32×32-cell chunks a blast touched are re-contoured, not the map.
 - **`isPickable = false`** on everything that is not a click target, so picking a strike point does
   not walk the whole scene.
 - **Seeded randomness** everywhere it matters, which is what makes the core benchmarks comparable
   between runs.
-- **`?quality=low`** already drops shadows, bloom and MSAA for weak GPUs.
+- **A graphics budget the player controls**: Full and Low in the setup menu, persisted with the
+  other settings, with `?quality=low` in the URL as the escape hatch for a machine that cannot get
+  as far as the menu. Low drops the shadow cascade, bloom and MSAA and halves the pixel density.
 
 ## Ideas that were measured and dropped
 

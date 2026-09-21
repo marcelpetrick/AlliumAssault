@@ -8,10 +8,12 @@ describe('persisted settings', () => {
   it('round-trip through JSON', () => {
     const settings = defaultSettings();
     settings.textSize = 'huge';
+    settings.quality = 'low';
     settings.match.turnTime = 60;
     settings.match.theme = 'candy';
     const parsed = parseSettings(JSON.stringify(settings))!;
     expect(parsed.textSize).toBe('huge');
+    expect(parsed.quality).toBe('low');
     expect(parsed.match.turnTime).toBe(60);
     expect(parsed.match.theme).toBe('candy');
     expect(parsed.match.teams).toHaveLength(2);
@@ -25,6 +27,7 @@ describe('persisted settings', () => {
     const tampered = parseSettings(
       JSON.stringify({
         textSize: 'gigantic',
+        quality: 'ultra',
         match: {
           ...defaults.match,
           theme: 'lava',
@@ -39,6 +42,7 @@ describe('persisted settings', () => {
       }),
     )!;
     expect(tampered.textSize).toBe('normal');
+    expect(tampered.quality).toBe('high');
     expect(tampered.match.theme).toBe('meadow');
     expect(tampered.match.turnTime).toBe(45);
     expect(tampered.match.arsenal).toBe('all');

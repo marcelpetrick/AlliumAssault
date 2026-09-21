@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.57.0] — 2026-09-21
+
+### Added
+
+- **A Graphics setting in the setup screen**, Full or Low, saved with the other settings. Full is
+  the default and now spends what a desktop can afford — up to 8.3 megapixels at twice the device
+  density, where the old fixed budget capped everything at 4 million pixels and 1.5× — while Low
+  drops the shadow cascade, bloom and MSAA for a weak GPU. `?quality=low` in the URL still forces
+  Low, for a machine that cannot get as far as the menu. The choice applies to the next match; the
+  one on screen keeps the scene it was built with.
+
 ## [1.56.0] — 2026-09-21
 
 ### Changed
