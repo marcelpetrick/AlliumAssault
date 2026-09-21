@@ -121,7 +121,7 @@ Status: ☐ open · ☑ done
 | T107 | Full project review (code, architecture, documentation), then fix every finding                           | ☑      | 1.57.1         |
 | T108 | Teleport: show a blue cross at the cursor, so the player sees where the buddy will arrive                 | ☐      |                |
 | T109 | End-of-match statistics screen: damage, favourite weapon, best and worst, and funnier awards              | ☐      |                |
-| T110 | Settings: a versioned, robust store in the browser that still loads a config written by an older build    | ☐      |                |
+| T110 | Settings: a versioned, robust store in the browser that still loads a config written by an older build    | ☑      | 1.58.0         |
 | T111 | Setup screen: put the map seed in the same row as the map preview                                         | ☐      |                |
 | T112 | Setup screen: keep Start Battle visible instead of letting the options scroll over it                     | ☐      |                |
 | T113 | One text scale for the whole game: menus, setup and HUD grow together, in every size mode                 | ☐      |                |
@@ -131,6 +131,13 @@ Status: ☐ open · ☑ done
 | T117 | Mystery crate: a clown box with a question mark, random contents — a goodie, or a mine that arms itself   | ☐      |                |
 | T118 | Languages: English (default), German, Croatian in a Split accent, and Mandarin, chosen in the setup       | ☐      |                |
 | T119 | Scale the sheep weapon model up by 50%, so it reads as a sheep rather than a dot                          | ☐      |                |
+| T120 | Napalm strike: smaller flames that dig only two thirds as deep — a carpet, not a trench                   | ☐      |                |
+| T121 | Ming vase: a very rare cluster weapon — a blue-and-white porcelain vase that shatters into shards         | ☐      |                |
+| T122 | Baseball bat: a stadium home-run roar when the swing connects and the victim sails away                   | ☐      |                |
+| T123 | A crate caught in a blast leaves two or three short-lived flames where it burst                           | ☐      |                |
+| T124 | AI: Normal and Hard hunt crates — walk to them, and take the rope when walking will not do                | ☐      |                |
+| T125 | AI: stop leaning on the concrete mule — spread the choice across the arsenal it actually has              | ☐      |                |
+| T126 | Bug: a crate collected by a sheep floats its reward twice — once at the crate, once over the buddy        | ☐      |                |
 
 ## Current implementation plan
 
@@ -193,13 +200,47 @@ Status: ☐ open · ☑ done
     large, so what bounds across the island actually looks like a sheep. Only the model grows; the
     collision radius and the blast stay where the rules put them.
 
-12. **T105 — tidy the root.** Eight Markdown files sit in the repository root. `README.md`,
+12. **T120 — a flame carpet, not a trench.** The napalm strike currently eats a visible trench out
+    of the ground. The flames are drawn smaller and take two thirds of the bite they took, so what
+    is left behind is a charred carpet a buddy has to cross rather than a ditch it can hide in.
+
+13. **T121 — the Ming vase.** A cluster weapon in the banana's family, but rare and enormous: one
+    vase per match, a blue-and-white porcelain lob that bursts for heavy damage and throws shards
+    that each hit nearly as hard as a grenade. It looks like what it is — a glazed vase with a
+    painted band — right up to the moment it stops being one.
+
+14. **T122 — the home run.** A bat that connects sends its victim across the island, and the crowd
+    should know: a synthesized stadium roar — crack, then a swell of cheering — plays on the hit,
+    not on the swing, so a miss stays silent.
+
+15. **T123 — burning crates.** A crate that goes up in someone else's blast leaves two or three
+    flames behind it, burning for a couple of seconds rather than the long napalm burn — enough to
+    make the spot worth stepping around on the way past, not enough to hold up the turn.
+
+16. **T124 — the AI goes shopping.** Normal and Hard weigh a crate against the shot they would
+    otherwise take: a health crate is worth most when they are hurt, a weapon crate when the
+    arsenal is thin. They walk to one when the ground allows it, and when it does not — a ledge, a
+    gap, an island — they fire the rope and swing across. Easy keeps ignoring crates, because
+    that is what makes it Easy.
+
+17. **T125 — a broader AI arsenal.** The AI reaches for the concrete mule far too often, because
+    its score beats everything else from almost anywhere. Scoring gains a spread: a weapon the AI
+    has already used this match is worth less than one it has not, limited-ammo weapons are held
+    back for shots that earn them, and the mule in particular has to clearly beat the alternative
+    rather than merely match it. A unit test plays a long match and checks the AI used at least a
+    handful of different weapons.
+
+18. **T126 — one reward, one number.** A crate a sheep runs over floats "+25 HP" twice: the HUD
+    prints it at the crate and again over the buddy that was actually credited, which reads as two
+    pickups. Only the rewarded buddy's number stays, so what the player sees is what the rules did.
+
+19. **T105 — tidy the root.** Eight Markdown files sit in the repository root. `README.md`,
     `CHANGELOG.md` and `AGENTS.md` belong there; `CONTRIBUTING.md` and `SECURITY.md` are just as at
     home in `.github/`, which GitHub reads as well; and `tasks.md`, `review.md` and
     `touchdisplay_support_ideation.md` belong in `docs/`. Everything that links to them — the README
     first — moves with them, and `docs/` gets an index so the pile is navigable.
 
-13. `npm run verify` stays green before every versioned, local commit.
+20. `npm run verify` stays green before every versioned, local commit.
 
 ## Answered questions
 

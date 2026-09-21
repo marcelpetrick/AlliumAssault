@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.58.0] — 2026-09-22
+
+### Added
+
+- **The settings store carries a schema version.** What the browser keeps is now stamped with the
+  shape that wrote it, and a migration chain brings an older blob up to the current one before the
+  field-by-field validation ever sees it — so a config saved by 1.57.1, which had no version and no
+  graphics setting, still opens with everything the player chose. A config written by a *newer*
+  build is read for what this one understands instead of being thrown away, so opening an older tab
+  no longer costs you your setup.
+
 ## [1.57.1] — 2026-09-22
 
 ### Fixed

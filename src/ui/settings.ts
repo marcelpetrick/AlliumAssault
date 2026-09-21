@@ -24,6 +24,34 @@ export interface Settings {
 
 const STORAGE_KEY = 'allium.settings';
 
+/**
+ * Shape version of what is written to storage. Bump it whenever a field changes meaning rather
+ * than merely appearing — a new field needs no bump, because {@link parseSettings} reads every
+ * field on its own and falls back to the default when it is missing.
+ *
+ * 1: the original shape, written without a version at all (up to 1.57.1).
+ * 2: `quality` added.
+ */
+export const SETTINGS_VERSION = 2;
+
+/** What actually sits in localStorage: the settings plus the version that wrote them. */
+interface StoredSettings extends Settings {
+  version: number;
+}
+
+/**
+ * Bring a blob written by an older build up to the current shape. Each step is responsible for one
+ * version bump and nothing else, so the chain stays readable as it grows. A blob from a *newer*
+ * build is left alone: the field-by-field reader takes what it understands and ignores the rest,
+ * which is friendlier than throwing away settings because the user opened an older tab.
+ */
+function migrate(data: Record<string, unknown>): Record<string, unknown> {
+  const from = typeof data.version === 'number' && Number.isFinite(data.version) ? data.version : 1;
+  let out = data;
+  if (from < 2) out = { ...out, quality: out.quality ?? 'high' };
+  return out;
+}
+
 export const defaultSettings = (): Settings => ({ match: quickMatch(), textSize: 'normal', quality: 'high' });
 
 /** Stored settings, or defaults when there are none or they are unreadable. The map seed is always fresh. */
@@ -41,10 +69,11 @@ export function loadSettings(): Settings {
 }
 
 export function saveSettings(settings: Settings): void {
+  const stored: StoredSettings = { version: SETTINGS_VERSION, ...settings };
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
   } catch {
-    // Not persisted; the settings still apply for this session.
+    // Storage full, blocked or in private mode: the settings still apply for this session.
   }
 }
 
@@ -56,15 +85,20 @@ export function clearSettings(): void {
   }
 }
 
-/** Validate stored JSON field by field, so an old or tampered entry can never break the game. */
+/**
+ * Read stored JSON: migrate it to the current shape, then validate it field by field so an old,
+ * truncated or tampered entry can never break the game. Anything unreadable falls back to the
+ * default for that field alone, so one bad value never costs the player the rest of their setup.
+ */
 export function parseSettings(raw: string): Settings | null {
-  let data: unknown;
+  let parsed: unknown;
   try {
-    data = JSON.parse(raw);
+    parsed = JSON.parse(raw);
   } catch {
     return null;
   }
-  if (!isRecord(data)) return null;
+  if (!isRecord(parsed)) return null;
+  const data = migrate(parsed);
   const defaults = defaultSettings();
   const m = isRecord(data.match) ? data.match : {};
   const d = defaults.match;

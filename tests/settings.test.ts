@@ -2,9 +2,55 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { defaultSettings, parseSettings } from '../src/ui/settings';
+import { defaultSettings, parseSettings, SETTINGS_VERSION } from '../src/ui/settings';
 
 describe('persisted settings', () => {
+  it('write the schema version, so a later build knows what it is reading', () => {
+    const stored = JSON.parse(JSON.stringify({ version: SETTINGS_VERSION, ...defaultSettings() })) as { version: number };
+    expect(stored.version).toBe(SETTINGS_VERSION);
+    expect(parseSettings(JSON.stringify(stored))).not.toBeNull();
+  });
+
+  it('still load a config written before the store was versioned', () => {
+    // Exactly what 1.57.1 and earlier wrote: no version, no quality.
+    const old = {
+      textSize: 'large',
+      match: { ...defaultSettings().match, turnTime: 60, theme: 'candy' },
+    };
+    const parsed = parseSettings(JSON.stringify(old));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.textSize).toBe('large');
+    expect(parsed!.match.turnTime).toBe(60);
+    expect(parsed!.match.theme).toBe('candy');
+    // The field the old build never wrote comes back at its default rather than undefined.
+    expect(parsed!.quality).toBe('high');
+  });
+
+  it('take what they understand from a config written by a newer build', () => {
+    const future = {
+      version: SETTINGS_VERSION + 99,
+      textSize: 'huge',
+      quality: 'low',
+      soundtrack: 'jazz',
+      match: { ...defaultSettings().match, turnTime: 60, weather: 'rain' },
+    };
+    const parsed = parseSettings(JSON.stringify(future));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.textSize).toBe('huge');
+    expect(parsed!.quality).toBe('low');
+    expect(parsed!.match.turnTime).toBe(60);
+    expect(parsed).not.toHaveProperty('soundtrack');
+  });
+
+  it('survive every kind of rubbish a storage entry can hold', () => {
+    for (const raw of ['', 'null', 'true', '[]', '"text"', '{', 'undefined']) {
+      expect(() => parseSettings(raw)).not.toThrow();
+    }
+    expect(parseSettings('{}')).not.toBeNull();
+    // A record that is valid JSON but empty falls back to the defaults field by field.
+    expect(parseSettings('{}')!.match.teams).toHaveLength(2);
+  });
+
   it('round-trip through JSON', () => {
     const settings = defaultSettings();
     settings.textSize = 'huge';
