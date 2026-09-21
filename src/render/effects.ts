@@ -986,10 +986,28 @@ export class Effects {
         return this.createVase(1);
       case 'shard':
         return this.createVase(0.42);
+      case 'fuel':
+        return this.createFuelGob();
       case 'grenade':
       case undefined:
         return this.createGrenade(this.materials.bomb);
     }
+  }
+
+  /** A gob of lit petroleum: a small glowing blob with a hotter core, bright enough to trail. */
+  private createFuelGob(): ProjectileView {
+    const node = new TransformNode('fuelGob', this.scene);
+    const outer = MeshBuilder.CreateSphere('fuelOuter', { diameter: 0.34, segments: 8 }, this.scene);
+    outer.material = this.materials.flameOuter;
+    outer.parent = node;
+    outer.isPickable = false;
+    this.glow(outer);
+    const core = MeshBuilder.CreateSphere('fuelCore', { diameter: 0.18, segments: 8 }, this.scene);
+    core.material = this.materials.flameInner;
+    core.parent = node;
+    core.isPickable = false;
+    this.glow(core);
+    return { node, trail: null };
   }
 
   /**

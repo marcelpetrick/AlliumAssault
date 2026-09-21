@@ -500,6 +500,56 @@ test('cluster bomb: red grenade bursts into five exploding bomblets', async ({ p
   expect(errors).toEqual([]);
 });
 
+test('flamethrower: F sprays burning fuel, the arrow keys steer it, and the ground keeps burning', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'KeyF', 'flamer');
+  await aim(page, 0.3);
+  const before = await state(page);
+  expect(before.ammo!.flamer).toBe(2);
+
+  await page.keyboard.press('Space');
+  await waitFor(page, (s) => s.phase === 'spraying', 10_000);
+  expect((await state(page)).ammo!.flamer).toBe(1);
+
+  // A stream of gobs, not a shot: several are in the air at once.
+  const peak = await page.evaluate(() => {
+    const app = window.__allium.app;
+    let most = 0;
+    for (let k = 0; k < 60; k++) {
+      app.fastForward(1 / 60);
+      most = Math.max(most, app.game!.projectiles.filter((p) => p.weapon === 'fuelgob').length);
+    }
+    return most;
+  });
+  expect(peak).toBeGreaterThan(3);
+  await info.attach('flamethrower', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // Up and down swing the nozzle while it runs.
+  const swung = await page.evaluate(() => {
+    const app = window.__allium.app;
+    const before = app.game!.flamer!.aim;
+    app.game!.input.down = true;
+    for (let k = 0; k < 40; k++) app.fastForward(1 / 60);
+    const after = app.game!.flamer?.aim ?? before;
+    app.game!.input.down = false;
+    return { before, after };
+  });
+  expect(swung.after).toBeLessThan(swung.before);
+
+  // Three seconds and it is spent, leaving fire on the ground behind it.
+  await waitFor(page, (s) => s.phase !== 'spraying', 20_000);
+  const burning = await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 120; k++) app.fastForward(1 / 60);
+    return app.game!.flames.length;
+  });
+  expect(burning).toBeGreaterThan(0);
+  const after = await state(page);
+  expect(played(after, 'ignite')).toBeGreaterThan(played(before, 'ignite'));
+  expect(errors).toEqual([]);
+});
+
 test('Ming vase: V throws it once, it shatters into eight shards and takes the hillside with it', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

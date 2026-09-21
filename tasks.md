@@ -125,7 +125,7 @@ Status: ☐ open · ☑ done
 | T111 | Setup screen: put the map seed in the same row as the map preview                                         | ☑      | 1.58.1         |
 | T112 | Setup screen: keep Start Battle visible instead of letting the options scroll over it                     | ☑      | 1.58.1         |
 | T113 | One text scale for the whole game: menus, setup and HUD grow together, in every size mode                 | ☑      | 1.58.1         |
-| T114 | Flamethrower: three seconds of burning fuel, steered with up/down, blown by wind, leaves a fire carpet    | ☐      |                |
+| T114 | Flamethrower: three seconds of burning fuel, steered with up/down, blown by wind, leaves a fire carpet    | ☑      | 1.62.0         |
 | T115 | Garlic punch: boxing gloves on the buddy, and an upward punch that knocks a hole in the ceiling           | ☑      | 1.59.1         |
 | T116 | Drill: a jackhammer animation while it runs, instead of a bit that just hangs there                       | ☑      | 1.59.3         |
 | T117 | Mystery crate: a clown box with a question mark, random contents — a goodie, or a mine that arms itself   | ☐      |                |

@@ -248,7 +248,7 @@ export class App {
     }
     this.audio.setCharge(game.charge);
     this.audio.setFire(game.flames.length);
-    this.audio.setTool(game.phase === 'torching' ? 'torch' : game.phase === 'drilling' ? 'drill' : null);
+    this.audio.setTool(game.phase === 'torching' || game.phase === 'spraying' ? 'torch' : game.phase === 'drilling' ? 'drill' : null);
     const flights: FlightSound[] = game.projectiles.map((p) => ({
       id: p.id,
       kind: WEAPONS[p.weapon].look.flight ?? 'lob',

@@ -61,6 +61,9 @@ import {
   SCORCH_DAMAGE,
   SCORCH_HOP,
   SMASH_REBOUND,
+  NOZZLE_MAX,
+  NOZZLE_MIN,
+  NOZZLE_SPEED,
   SUDDEN_DEATH_HP,
   TORCH_CARVE_INTERVAL,
   UPPERCUT_MIN_SIN,
@@ -71,6 +74,7 @@ import {
   type Buddy,
   type BurstAction,
   type DrillAction,
+  type FlamerAction,
   type GameEvent,
   type GameOverrides,
   type Grave,
@@ -231,6 +235,11 @@ export class Game {
   /** The drill while it runs. */
   get drill(): DrillAction | null {
     return this.action?.kind === 'drill' ? this.action : null;
+  }
+
+  /** The flamethrower while it runs, so the renderer can put the flame at the nozzle. */
+  get flamer(): FlamerAction | null {
+    return this.action?.kind === 'flamer' ? this.action : null;
   }
 
   /** The minigun burst while it fires. */
@@ -788,6 +797,10 @@ export class Game {
         if (b?.alive && this.phase === 'firing') this.stepBurst(action, b, dt);
         else this.action = null;
         return;
+      case 'flamer':
+        if (b?.alive && this.phase === 'spraying') this.stepFlamer(action, b, dt);
+        else this.action = null;
+        return;
       case 'panic':
         // Nothing can stop it now: even a buddy killed mid-panic still takes the hillside with it.
         if (!b) {
@@ -885,6 +898,37 @@ export class Game {
       this.shoot(b, def, { x: b.body.x + dir.x * MUZZLE_OFFSET, y: b.body.y + dir.y * MUZZLE_OFFSET }, dir);
     }
     if (this.action === burst && burst.left <= 0) {
+      this.action = null;
+      this.startRetreat();
+    }
+  }
+
+  /**
+   * One frame of the flamethrower. The nozzle swings with up and down while it runs — this is the
+   * whole point of the weapon: you sweep it, and the ground it passes over goes on burning. Each
+   * gob is an ordinary projectile with a heavy wind influence, so the fuel drifts and falls and the
+   * carpet it lays is never quite where the nozzle was pointing.
+   */
+  private stepFlamer(flamer: FlamerAction, b: Buddy, dt: number): void {
+    const def = WEAPONS[flamer.weapon];
+    const spray = defined(def.spray, `${def.id} spray`);
+    flamer.left -= dt;
+    // The nozzle, not the buddy's aim: the aim stays where the shot was taken from.
+    const steer = Number(this.input.up) - Number(this.input.down);
+    flamer.aim = clamp(flamer.aim + steer * NOZZLE_SPEED * dt, NOZZLE_MIN, NOZZLE_MAX);
+    b.aim = clamp(flamer.aim, AIM_MIN, AIM_MAX);
+    flamer.next -= dt;
+    while (flamer.next <= 0 && flamer.left > 0 && this.action === flamer) {
+      flamer.next += spray.interval;
+      // A fixed wobble, so a given sweep sprays the same way twice.
+      const wobble = [0, 1, -1, 0.6, -0.6, 0.3, -0.3][flamer.emitted % 7] * spray.spread;
+      const angle = flamer.aim + wobble;
+      const dir = { x: Math.cos(angle) * b.facing, y: Math.sin(angle) };
+      flamer.emitted++;
+      const from = { x: b.body.x + dir.x * MUZZLE_OFFSET, y: b.body.y + dir.y * MUZZLE_OFFSET };
+      this.spawnProjectile(spray.weapon, from.x, from.y, dir.x * spray.speed, dir.y * spray.speed, b.id);
+    }
+    if (this.action === flamer && flamer.left <= 0) {
       this.action = null;
       this.startRetreat();
     }
@@ -1040,6 +1084,7 @@ export class Game {
         break;
       case 'torching':
       case 'drilling':
+      case 'spraying':
         this.turnTimeLeft -= dt;
         if (this.turnTimeLeft <= 0) this.endTurnEarly();
         break;
@@ -1188,6 +1233,10 @@ export class Game {
     } else if (def.kind === 'drill') {
       this.action = { kind: 'drill', left: def.fuse, carveIn: 0, hit: [] };
       this.setPhase('drilling');
+      return;
+    } else if (def.kind === 'flamer') {
+      this.action = { kind: 'flamer', weapon: def.id, left: def.fuse, next: 0, aim: b.aim, emitted: 0 };
+      this.setPhase('spraying');
       return;
     } else if (def.kind === 'torch') {
       this.action = { kind: 'torch', dx: dir.x, dy: dir.y, left: def.fuse, carveIn: 0, burnt: [] };

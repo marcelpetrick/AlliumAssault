@@ -63,20 +63,33 @@ export interface GameOverrides {
  * `guiding`: a released sheep is hopping or flying; the turn timer runs and Space detonates it.
  * `torching`: the active buddy walks forward burning a tunnel; no other input.
  * `drilling`: the active buddy drills straight down; no other input, no fall damage.
+ * `spraying`: the flamethrower is running; up and down steer the nozzle and nothing else answers.
  * `firing`: a burst weapon is rattling off its bullets; no other input.
  */
 export type Phase =
-  'turnStart' | 'aiming' | 'guiding' | 'torching' | 'drilling' | 'roping' | 'firing' | 'panicking' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+  | 'turnStart'
+  | 'aiming'
+  | 'guiding'
+  | 'torching'
+  | 'drilling'
+  | 'spraying'
+  | 'roping'
+  | 'firing'
+  | 'panicking'
+  | 'retreat'
+  | 'settling'
+  | 'deaths'
+  | 'gameOver';
 
 /** Phases in which the turn timer counts down. */
-export const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping'];
+export const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'spraying', 'roping'];
 /** Seconds a buddy panics with its thumb on the detonator before the blast. */
 export const PANIC_TIME = 3;
 /** Weapons pointed with the mouse: they are used by clicking the map, never with the fire button. */
 export const MAP_WEAPONS: readonly WeaponKind[] = ['strike', 'platform', 'teleport'];
 
 /** Phases in which the active team is still playing its turn, so hurting its buddy ends it. */
-export const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping', 'firing', 'panicking', 'retreat'];
+export const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'spraying', 'roping', 'firing', 'panicking', 'retreat'];
 
 export interface Buddy {
   id: number;
@@ -268,6 +281,27 @@ export interface PanicAction {
   ticked: number;
 }
 
+/**
+ * The flamethrower running: how long it has left, when the next gob leaves the nozzle, and where
+ * the nozzle is pointing — which the player keeps changing with up and down while it runs.
+ */
+export interface FlamerAction {
+  kind: 'flamer';
+  weapon: WeaponId;
+  left: number;
+  next: number;
+  /** Radians above the horizontal, in the buddy's facing direction. */
+  aim: number;
+  /** Which gob this is, so the spray wobbles to a fixed pattern rather than randomly. */
+  emitted: number;
+}
+
+/** How fast up and down swing the nozzle, in radians a second. */
+export const NOZZLE_SPEED = 1.15;
+/** The nozzle reaches further down than the aim normally allows: you can hose your own feet. */
+export const NOZZLE_MIN = -0.7;
+export const NOZZLE_MAX = 1.5;
+
 /** Burst weapon firing: bullets left and seconds until the next one. */
 export interface BurstAction {
   kind: 'burst';
@@ -284,4 +318,5 @@ export type TurnAction =
   | TorchAction
   | DrillAction
   | BurstAction
+  | FlamerAction
   | PanicAction;

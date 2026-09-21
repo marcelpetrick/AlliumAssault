@@ -302,6 +302,14 @@ export class BuddyView {
         [MeshBuilder.CreateBox('heldPlank', { width: 0.9, height: 0.12, depth: 0.5 }, scene), kit.wood, [0.55, 0.02, 0], false],
         [MeshBuilder.CreateBox('heldPlankEnd', { width: 0.1, height: 0.2, depth: 0.5 }, scene), kit.metal, [0.95, 0.02, 0], false],
       ]),
+      // A fuel canister and a long nozzle with a pilot ring at the tip.
+      flamer: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCylinder('flamerTank', { height: 0.42, diameter: 0.24, tessellation: 12 }, scene), kit.metal, [0.08, 0.06, -0.18], false],
+        [MeshBuilder.CreateCylinder('flamerPipe', { height: 0.72, diameter: 0.08, tessellation: 10 }, scene), kit.metal, [0.62, 0, 0], true],
+        [MeshBuilder.CreateCylinder('flamerNozzle', { height: 0.16, diameterTop: 0.16, diameterBottom: 0.1, tessellation: 12 }, scene), kit.glove, [1.0, 0, 0], true],
+        [MeshBuilder.CreateTorus('flamerPilot', { diameter: 0.15, thickness: 0.03, tessellation: 10 }, scene), kit.wood, [1.08, 0, 0], true],
+        [MeshBuilder.CreateCylinder('flamerHose', { height: 0.3, diameter: 0.05, tessellation: 8 }, scene), kit.wood, [0.3, 0.1, -0.1], true],
+      ]),
       // Carried in both hands, the way you carry something irreplaceable.
       ming: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateSphere('heldVase', { diameterX: 0.36, diameterY: 0.42, diameterZ: 0.36, segments: 12 }, scene), kit.porcelain, [0.58, 0.02, 0], false],
@@ -408,7 +416,7 @@ export class BuddyView {
     for (const pupil of this.pupils) pupil.position.x = b.facing * 0.03;
     this.root.rotation.z = this.hurtTime > 0 ? Math.sin(time * 60) * 0.12 : 0;
 
-    const holding = game && isActive && ['aiming', 'turnStart', 'torching', 'drilling'].includes(game.phase) ? game.weapon : null;
+    const holding = game && isActive && ['aiming', 'turnStart', 'torching', 'drilling', 'spraying'].includes(game.phase) ? game.weapon : null;
     for (const [id, node] of Object.entries(this.weapons)) node.setEnabled(holding === id);
     this.weaponPivot.rotation.z = b.facing > 0 ? b.aim : Math.PI - b.aim;
     this.weaponPivot.rotation.x = b.facing > 0 ? 0 : Math.PI;

@@ -480,6 +480,57 @@ describe('match flow', () => {
     expect(g.projectiles.length).toBe(0);
   });
 
+  it('the flamethrower sprays for three seconds, steers with up and down, and lays a carpet', () => {
+    const g = flatGame([40, 90], [team('A', 1), team('B', 1)], { turnTime: 45, windMax: 0 });
+    toAiming(g);
+    const b = g.buddies[0];
+    b.facing = 1;
+    b.aim = 0.3;
+    g.selectWeapon('flamer');
+    expect(g.teams[0].ammo.flamer).toBe(2);
+    g.pressFire();
+    expect(g.phase).toBe('spraying');
+    expect(g.teams[0].ammo.flamer).toBe(1);
+
+    // It throws a stream of gobs rather than one shot.
+    g.simulate(0.4);
+    const flamer = defined(g.flamer, 'flamer running');
+    expect(flamer.emitted).toBeGreaterThan(4);
+
+    // Up and down swing the nozzle while it runs, further than the ordinary aim limits allow.
+    const started = flamer.aim;
+    g.input.up = true;
+    g.simulate(0.5);
+    expect(defined(g.flamer, 'still spraying').aim).toBeGreaterThan(started);
+    g.input.up = false;
+    g.input.down = true;
+    g.simulate(1.2);
+    const lowered = defined(g.flamer, 'still spraying').aim;
+    expect(lowered).toBeLessThan(started);
+
+    // Three seconds and it is out, and the turn goes to retreat like any other used weapon.
+    runUntil(g, () => g.phase === 'retreat', 6);
+    expect(g.phase).toBe('retreat');
+    expect(g.action).toBeNull();
+    // What it leaves behind is fire on the ground, not a hole in it.
+    runUntil(g, () => g.projectiles.length === 0, 6);
+    expect(g.flames.length).toBeGreaterThan(3);
+  });
+
+  it('the flamethrower burns whoever stands in the stream', () => {
+    const g = flatGame([40, 46], [team('A', 1), team('B', 1)], { turnTime: 45, windMax: 0 });
+    toAiming(g);
+    const victim = g.buddies[1];
+    g.buddies[0].facing = 1;
+    g.buddies[0].aim = 0.12;
+    g.selectWeapon('flamer');
+    g.pressFire();
+    runUntil(g, () => victim.hp < 100, 4);
+    expect(victim.hp).toBeLessThan(100);
+    // Mediocre damage on purpose: the point is the ground it leaves burning, not the stream itself.
+    expect(victim.hp).toBeGreaterThan(20);
+  });
+
   it('the Ming vase is one per match, bursts enormously and throws eight shards', () => {
     const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
     toAiming(g);
@@ -1311,6 +1362,7 @@ describe('weapon voices', () => {
     shotgun: 'shot',
     minigun: 'spinup',
     torch: 'torchLight',
+    flamer: 'torchLight',
     sheep: 'baa',
     flysheep: 'baa',
     selfdestruct: 'alarm',

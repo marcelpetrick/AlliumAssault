@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.62.0] — 2026-09-22
+
+### Added
+
+- **The Flamethrower** (F, two per match, special). Three seconds of lit fuel out of a nozzle. Up
+  and down swing the nozzle *while it is running* — further than the ordinary aim allows, so you
+  can hose your own feet — and each gob is a projectile that wind and gravity carry, which means
+  the stream drifts and falls and never quite lands where the nozzle pointed. Where it lands it
+  goes on burning, so a sweep lays a carpet of fire across the ground. Damage from the stream
+  itself is deliberately mediocre: the weapon is for driving a buddy out of cover and across the
+  flames, not for killing it outright.
+
 ## [1.61.0] — 2026-09-22
 
 ### Added

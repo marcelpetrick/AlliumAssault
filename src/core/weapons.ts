@@ -29,9 +29,24 @@ export type WeaponId =
   | 'platform'
   | 'teleport'
   | 'ming'
-  | 'shard';
+  | 'shard'
+  | 'flamer'
+  | 'fuelgob';
 export type WeaponKind =
-  'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine' | 'rope' | 'platform' | 'teleport';
+  | 'projectile'
+  | 'hitscan'
+  | 'melee'
+  | 'walker'
+  | 'strike'
+  | 'self'
+  | 'torch'
+  | 'flamer'
+  | 'flyer'
+  | 'drill'
+  | 'mine'
+  | 'rope'
+  | 'platform'
+  | 'teleport';
 
 /**
  * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and
@@ -39,7 +54,7 @@ export type WeaponKind =
  */
 export interface WeaponLook {
   /** Model of the projectile in flight: rockets and bombs point along their flight, the rest tumble. */
-  projectile?: 'rocket' | 'bomb' | 'grenade' | 'redGrenade' | 'holyGrenade' | 'banana' | 'smallBanana' | 'bomblet' | 'mule' | 'vase' | 'shard';
+  projectile?: 'rocket' | 'bomb' | 'grenade' | 'redGrenade' | 'holyGrenade' | 'banana' | 'smallBanana' | 'bomblet' | 'mule' | 'vase' | 'shard' | 'fuel';
   /** Sound while in flight: rockets whistle, lobbed things whoosh. */
   flight?: 'rocket' | 'lob';
   /** Sound when the weapon is used. */
@@ -108,6 +123,8 @@ export interface WeaponDef {
   /** Projectiles that explode on every impact and keep smashing downwards this many times. */
   impacts?: number;
   /** Fragments released when this projectile explodes. */
+  /** A nozzle that sprays lit fuel: the gob it throws, how often, how fast and how widely. */
+  spray?: { weapon: WeaponId; interval: number; speed: number; spread: number };
   cluster?: {
     weapon: WeaponId;
     count: number;
@@ -318,6 +335,52 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 13,
     range: 0,
     cluster: { weapon: 'bananalet', count: 5, speed: 12, stagger: 0.25 },
+  },
+  flamer: {
+    id: 'flamer',
+    look: { fireSound: 'torchLight' },
+    special: true,
+    name: 'Flamethrower',
+    icon: '🧯',
+    blurb: 'Three seconds of burning fuel. Up and down steer the nozzle while it runs; wind and gravity carry the gobs, and where they land they keep burning.',
+    kind: 'flamer',
+    ammo: 2,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 1,
+    restitution: null,
+    // Seconds the nozzle runs for.
+    fuse: 3,
+    radius: 0,
+    damage: 0,
+    force: 0,
+    range: 0,
+    spray: { weapon: 'fuelgob', interval: 0.055, speed: 16, spread: 0.06 },
+  },
+  fuelgob: {
+    id: 'fuelgob',
+    look: { projectile: 'fuel', flight: 'lob' },
+    name: 'Burning Fuel',
+    icon: '🧯',
+    blurb: 'A gob of lit petroleum; hurts a little on the way past and a lot where it settles.',
+    kind: 'projectile',
+    ammo: 0,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0.55,
+    gravityScale: 0.75,
+    restitution: null,
+    fuse: 0,
+    radius: 0.7,
+    damage: 7,
+    force: 3,
+    range: 0,
+    napalm: { flames: 1, duration: 3.2 },
   },
   ming: {
     id: 'ming',
@@ -780,15 +843,16 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   'mine',
   'selfdestruct',
   'teleport',
-  // The heirloom, and last: the rarest thing in the arsenal.
+  // Appended, so every hotkey above keeps the slot it has always had.
   'ming',
+  'flamer',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);
 
 /** Weapons past the twenty digit slots carry a letter key of their own. */
-export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport', KeyV: 'ming' };
+export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport', KeyV: 'ming', KeyF: 'flamer' };
 
 /**
  * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 and Shift+0 the ten
