@@ -1029,8 +1029,16 @@ export class Effects {
       return mesh;
     };
     part(MeshBuilder.CreateSphere('vaseBody', { diameterX: 0.44, diameterY: 0.5, diameterZ: 0.44, segments: 14 }, this.scene), this.materials.porcelain, 0);
-    part(MeshBuilder.CreateCylinder('vaseFoot', { height: 0.1, diameterTop: 0.2, diameterBottom: 0.26, tessellation: 14 }, this.scene), this.materials.porcelain, -0.26);
-    part(MeshBuilder.CreateCylinder('vaseNeck', { height: 0.2, diameterTop: 0.2, diameterBottom: 0.14, tessellation: 14 }, this.scene), this.materials.porcelain, 0.32);
+    part(
+      MeshBuilder.CreateCylinder('vaseFoot', { height: 0.1, diameterTop: 0.2, diameterBottom: 0.26, tessellation: 14 }, this.scene),
+      this.materials.porcelain,
+      -0.26,
+    );
+    part(
+      MeshBuilder.CreateCylinder('vaseNeck', { height: 0.2, diameterTop: 0.2, diameterBottom: 0.14, tessellation: 14 }, this.scene),
+      this.materials.porcelain,
+      0.32,
+    );
     part(MeshBuilder.CreateTorus('vaseLip', { diameter: 0.22, thickness: 0.05, tessellation: 14 }, this.scene), this.materials.porcelain, 0.42);
     // The cobalt band, the thing that makes it a Ming vase and not a pot.
     part(MeshBuilder.CreateTorus('vaseBand', { diameter: 0.45, thickness: 0.07, tessellation: 16 }, this.scene), this.materials.cobalt, 0.02);

@@ -65,6 +65,37 @@ const KILL_BONUS = 40;
 /** Hurting a team-mate, and hurting itself, counts against a shot this much. */
 const FRIEND_WEIGHT = 1.5;
 const SELF_WEIGHT = 2.5;
+/**
+ * How often a team has already used each weapon this match. The AI leans on whatever scores best
+ * from a given spot, which for the concrete mule is almost anywhere, so without a memory it plays
+ * the same weapon every turn until the ammo runs out.
+ */
+export type WeaponHistory = ReadonlyMap<WeaponId, number>;
+export const NO_HISTORY: WeaponHistory = new Map<WeaponId, number>();
+
+/**
+ * Spending a limited weapon at all, per use already spent, and for holding the last of something.
+ * The scarcity term is a share of the weapon's own damage rather than a flat number: the rarer and
+ * the heavier a weapon is, the more decisive the shot has to be before it is worth spending. It is
+ * what stops the AI opening every match with the biggest thing in its bag and ending it on turn
+ * three.
+ */
+const LIMITED_COST = 12;
+const REPEAT_COST = 9;
+const FREE_REPEAT_COST = 3.5;
+const SCARCITY_SHARE = 0.5;
+
+/**
+ * How heavy a weapon is, all in: its own blast plus half of what its fragments add up to. A cluster
+ * weapon is worth far more than its first explosion, and scarcity has to price the whole thing or
+ * the AI throws its one Ming vase on the opening turn of every match.
+ */
+function payloadWeight(def: WeaponDef): number {
+  const fragments = def.cluster ? def.cluster.count * WEAPONS[def.cluster.weapon].damage * 0.5 : 0;
+  const payload = def.strike ? def.strike.count * WEAPONS[def.strike.weapon].damage * 0.5 : 0;
+  return def.damage + fragments + payload;
+}
+
 /** Supply thrown away when a blast destroys a crate nobody has collected yet. */
 const CRATE_LOSS = 4;
 /** Extra weight on an enemy team down to its last living buddy. */
@@ -247,11 +278,28 @@ export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: Wea
  * The rope is deliberately absent: rope path planning is its own problem and is not part of this
  * release. Nothing here can pick the `rope` kind up, so an AI never strands itself holding one.
  */
-export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only?: WeaponId): AttackPlan {
+export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only?: WeaponId, history: WeaponHistory = NO_HISTORY): AttackPlan {
   const cfg = LEVELS[level];
   const know = KNOWLEDGE[level];
   const team = game.teams[me.team];
   const allowed = (weapon: WeaponId) => (only ? weapon === only : team.ammo[weapon] > 0);
+  /**
+   * What reaching for this weapon costs before its blast is even considered. Spending a limited
+   * weapon has always cost something; on top of that, a weapon this team has already leant on costs
+   * more every time, and the last one of anything costs more than the first. Without this the AI
+   * finds the single highest-scoring weapon on turn one and then plays it over and over, which is
+   * both dull to watch and a worse strategy than spreading the arsenal out.
+   */
+  const pickCost = (weapon: WeaponId): number => {
+    if (only) return 0;
+    const repeats = Math.min(history.get(weapon) ?? 0, 4);
+    const left = team.ammo[weapon];
+    // Even a weapon it can never run out of gets duller the fifth time in a row; a limited one
+    // costs the same again for being limited, and more again for being nearly gone.
+    if (left === Infinity) return repeats * FREE_REPEAT_COST;
+    const scarcity = (payloadWeight(WEAPONS[weapon]) * SCARCITY_SHARE) / Math.max(1, left);
+    return LIMITED_COST + scarcity + repeats * REPEAT_COST;
+  };
   const enemies = game.buddies.filter((b) => b.alive && b.team !== me.team);
   const nearest = enemies.reduce<Buddy | null>((best, b) => (!best || Math.abs(b.body.x - me.body.x) < Math.abs(best.body.x - me.body.x) ? b : best), null);
   const directAim = (target: Buddy) => clamp(Math.atan2(target.body.y - me.body.y, Math.abs(target.body.x - me.body.x)), AIM_MIN, AIM_MAX);
@@ -265,9 +313,8 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
 
   for (const weapon of WEAPON_ORDER.filter((id) => WEAPONS[id].kind === 'projectile')) {
     if (!allowed(weapon)) continue;
-    // Spending limited ammo needs a clearly better shot than an unlimited weapon.
     const limited = team.ammo[weapon] !== Infinity;
-    const cost = limited ? 12 : 0;
+    const cost = pickCost(weapon);
     // Limited weapons are a rare pick, so search them on a coarser grid to keep thinking fast.
     const stride = limited && !only ? 2 : 1;
     for (const facing of [1, -1] as const) {
@@ -289,7 +336,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const budget = game.turnTimeLeft - cfg.think - 1.5;
     for (const facing of [1, -1] as const) {
       const run = simulateSheep(game, me, facing, budget, know);
-      const score = run.score - 15;
+      const score = run.score - pickCost('sheep');
       if (score > best.score) best = { weapon: 'sheep', facing, aim: me.aim, power: 1, score, delay: run.time };
     }
   }
@@ -314,6 +361,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
         // Fly in from our own side of the target, as before, but say so explicitly: the human
         // selector must not decide where an AI plane comes from.
         const facing: 1 | -1 = target < me.body.x ? -1 : 1;
+        score -= pickCost(strike);
         if (score > best.score) best = { weapon: strike, facing, aim: me.aim, power: 1, score, target, strikeDir: facing };
       }
     }
@@ -322,7 +370,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
   if (allowed('flysheep') && nearest) {
     // Hard to predict exactly; valued as a likely, heavy hit that costs a rare weapon.
     const def = WEAPONS.flysheep;
-    const score = (def.damage * 0.55 + (nearest.hp <= def.damage * 0.55 ? KILL_BONUS : 0)) * enemyWeight(game, me, nearest, know) - 15;
+    const score = (def.damage * 0.55 + (nearest.hp <= def.damage * 0.55 ? KILL_BONUS : 0)) * enemyWeight(game, me, nearest, know) - pickCost('flysheep');
     const facing: 1 | -1 = nearest.body.x < me.body.x ? -1 : 1;
     // Only launch along a clear path: a sheep hitting rock right away explodes next to us.
     const aim = [0.8, 1.2, 0.4, 1.45].find((a) => flyerLaunchClear(game, me, facing, a));
@@ -336,7 +384,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     for (const enemy of enemies) {
       const dx = enemy.body.x - me.body.x;
       if (Math.abs(enemy.body.y - me.body.y) > 1 || Math.abs(dx) > TORCH_SPEED * def.fuse + def.range || lineOfSight(game, me, enemy)) continue;
-      const score = (def.damage + (enemy.hp <= def.damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 6;
+      const score = (def.damage + (enemy.hp <= def.damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 6 - pickCost('torch');
       if (score > best.score) best = { weapon: 'torch', facing: dx < 0 ? -1 : 1, aim: 0, power: 1, score };
     }
   }
@@ -347,7 +395,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     for (const enemy of enemies) {
       const below = me.body.y - enemy.body.y;
       if (Math.abs(enemy.body.x - me.body.x) > def.radius + BUDDY_RADIUS || below < 1 || below > DRILL_REACH || lineOfSight(game, me, enemy)) continue;
-      const score = (def.damage + (enemy.hp <= def.damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 6;
+      const score = (def.damage + (enemy.hp <= def.damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 6 - pickCost('drill');
       if (score > best.score) best = { weapon: 'drill', facing: best.facing, aim: me.aim, power: 1, score };
     }
   }
@@ -390,7 +438,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const aim = directAim(enemy);
       const launch = meleeLaunch(def, facing, { x: Math.cos(aim) * facing, y: Math.sin(aim) });
       const lethal = enemy.hp <= def.damage || knockedOut(game, enemy, launch.x, launch.y);
-      const score = (def.damage + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) + 5 - (team.ammo[weapon] === Infinity ? 0 : 8);
+      const score = (def.damage + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) + 5 - pickCost(weapon);
       if (score > best.score) best = { weapon, facing, aim, power: 1, score };
     }
     if (allowed('minigun') && dist < WEAPONS.minigun.range && lineOfSight(game, me, enemy)) {
@@ -401,12 +449,12 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const hits = count * 0.7;
       const shove = { x: Math.cos(aim) * facing * def.force * hits, y: Math.sin(aim) * def.force * hits + (def.lift ?? 0) * hits };
       const lethal = enemy.hp <= def.damage * hits || knockedOut(game, enemy, shove.x, shove.y);
-      const score = (def.damage * hits + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 10;
+      const score = (def.damage * hits + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 10 - pickCost('minigun');
       if (score > best.score) best = { weapon: 'minigun', facing, aim, power: 1, score };
     }
     if (allowed('shotgun') && dist < WEAPONS.shotgun.range && lineOfSight(game, me, enemy)) {
       const damage = WEAPONS.shotgun.damage * 2;
-      const score = (damage * 0.9 + (enemy.hp <= damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know);
+      const score = (damage * 0.9 + (enemy.hp <= damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - pickCost('shotgun');
       if (score > best.score) best = { weapon: 'shotgun', facing, aim: directAim(enemy), power: 1, score };
     }
   }
@@ -481,6 +529,20 @@ const SURFACE_STEP = 0.5;
 const MAX_CLIMB = 1;
 /** Seconds held back for aiming and firing after a walk. */
 const FETCH_MARGIN = 6;
+/** Rope fetching: how far it reaches sideways, how far up and down, and how long a trip may take. */
+const ROPE_REACH = 26;
+const ROPE_CLIMB = 14;
+const ROPE_DROP = 10;
+const ROPE_ANCHOR_HEIGHT = 16;
+const ROPE_FETCH_TIME = 12;
+/** What a rope trip costs against simply walking: slower, riskier, and it spends a rope. */
+const ROPE_TRIP_COST = 6;
+/** A swing is abandoned after this long, whatever it has achieved. */
+const SWING_TIMEOUT = 9;
+/** Close enough overhead to let go and drop onto the crate. */
+const SWING_DROP_RANGE = 1.6;
+/** The hook is fired at this angle: steep enough to find a ceiling, flat enough to carry sideways. */
+const ROPE_LAUNCH_AIM = 1.15;
 
 /**
  * What walking to this crate is worth. A level without `crates` knowledge treats every crate the
@@ -522,28 +584,63 @@ function walkable(game: Game, fromX: number, toX: number, seconds: number): bool
   return true;
 }
 
-/** The crate worth most to this buddy right now, with what walking to it is worth. */
-function crateGoal(game: Game, me: Buddy, know: AiKnowledge, seconds: number): { crate: Crate; value: number } | null {
-  let best: { crate: Crate; value: number } | null = null;
+/** How a buddy would get to a crate: on its feet, or hanging from the rope. */
+export type CrateRoute = 'walk' | 'rope';
+
+/**
+ * The crate worth most to this buddy right now, how it would get there, and what the trip is worth.
+ *
+ * A level that thinks about crates checks it can actually reach one before setting off. Walking is
+ * always preferred; where the ground does not allow it — a ledge above, a gap in between, an island
+ * of its own — a team with rope left can swing across instead, which is the difference between an
+ * AI that collects the crates it happens to be standing next to and one that goes shopping.
+ */
+function crateGoal(game: Game, me: Buddy, know: AiKnowledge, seconds: number): { crate: Crate; value: number; route: CrateRoute } | null {
+  let best: { crate: Crate; value: number; route: CrateRoute } | null = null;
+  const roped = know.crates && game.teams[me.team].ammo.rope > 0 && seconds > ROPE_FETCH_TIME;
   for (const c of game.crates) {
     const dx = Math.abs(c.body.x - me.body.x);
-    if (dx > CRATE_REACH || Math.abs(c.body.y - me.body.y) > 3 || !c.body.grounded) continue;
-    // Only the levels that think about crates check whether they can actually get there.
-    if (know.crates && !walkable(game, me.body.x, c.body.x, seconds)) continue;
-    const value = crateValue(game, me, c, know) - dx * CRATE_DISTANCE_COST;
-    if (!best || value > best.value) best = { crate: c, value };
+    const dy = c.body.y - me.body.y;
+    if (!c.body.grounded) continue;
+    const onFoot = Math.abs(dy) <= 3 && dx <= CRATE_REACH && (!know.crates || walkable(game, me.body.x, c.body.x, seconds));
+    // The rope reaches further and, more to the point, upwards — which walking never does.
+    const byRope = !onFoot && roped && dx <= ROPE_REACH && dy > -ROPE_DROP && dy < ROPE_CLIMB && ropeAnchorAbove(game, me, c);
+    if (!onFoot && !byRope) continue;
+    const route: CrateRoute = onFoot ? 'walk' : 'rope';
+    // Swinging is slower and riskier than walking, and it spends a rope.
+    const value = crateValue(game, me, c, know) - dx * CRATE_DISTANCE_COST - (route === 'rope' ? ROPE_TRIP_COST : 0);
+    if (!best || value > best.value) best = { crate: c, value, route };
   }
   return best;
 }
 
+/**
+ * Is there rock to hook above the line between the buddy and the crate? A rope needs something
+ * overhead to hang from; without this the AI fires hopefully at open sky and falls where it stood.
+ */
+function ropeAnchorAbove(game: Game, me: Buddy, crate: Crate): boolean {
+  const t = game.terrain;
+  const midX = (me.body.x + crate.body.x) / 2;
+  for (const x of [midX, me.body.x + (crate.body.x - me.body.x) * 0.3, me.body.x]) {
+    for (let y = me.body.y + 2; y < me.body.y + ROPE_ANCHOR_HEIGHT; y += 0.5) {
+      if (t.isSolid(x, y)) return true;
+    }
+  }
+  return false;
+}
+
 /** Drives an AI team through the same commands a human uses. */
 export class AiDriver {
-  private stage: 'think' | 'fetch' | 'aim' | 'fire' | 'wait' = 'think';
+  private stage: 'think' | 'fetch' | 'swing' | 'aim' | 'fire' | 'wait' = 'think';
   /** Crate being walked to, and how often this turn the AI already went for one. */
   private fetch: { crate: number; lastX: number; stuck: number } | null = null;
   private fetches = 0;
   private timer = 0;
   private plan: AttackPlan | null = null;
+  /** What this team has already used, so the scoring can push it towards something else. */
+  private readonly history = new Map<WeaponId, number>();
+  /** A crate being swung to on the rope, and the seconds spent trying. */
+  private swing: { crate: number; spent: number } | null = null;
 
   constructor(
     private readonly level: AiLevel,
@@ -552,6 +649,7 @@ export class AiDriver {
 
   reset(): void {
     this.fetch = null;
+    this.swing = null;
     this.fetches = 0;
     this.stage = 'think';
     this.timer = 0;
@@ -597,6 +695,42 @@ export class AiDriver {
     input.down = dy / len < -axis;
   }
 
+  /**
+   * Fly the rope to the crate. Swing towards it, reel in while it is still above, and let go once
+   * the buddy is more or less over it so the drop finishes the job. Abandoned after a few seconds
+   * however it is going: a traversal that is not working must not eat the turn.
+   */
+  private steerSwing(game: Game, me: Buddy, dt: number): void {
+    const swing = this.swing;
+    const crate = swing && game.crates.find((c) => c.id === swing.crate);
+    if (!swing || !crate) {
+      game.pressFire();
+      return;
+    }
+    swing.spent += dt;
+    if (swing.spent > SWING_TIMEOUT) {
+      if (game.rope) game.pressFire();
+      return;
+    }
+    const dx = crate.body.x - me.body.x;
+    const dy = crate.body.y - me.body.y;
+    if (!game.rope) {
+      // Between hooks: falling. Let it fall — the crate is collected by touching it.
+      return;
+    }
+    if (Math.abs(dx) < SWING_DROP_RANGE && dy < 0) {
+      // Over it and above it: let go and drop onto the crate.
+      game.pressFire();
+      return;
+    }
+    const input = game.input;
+    input.right = dx > 0;
+    input.left = dx < 0;
+    // Reel in while the crate is still above, pay out while it is below.
+    input.up = dy > 1;
+    input.down = dy < -1;
+  }
+
   update(game: Game, dt: number): void {
     const me = game.activeBuddy;
     if (!me) return;
@@ -617,22 +751,37 @@ export class AiDriver {
       else if (this.timer >= (this.plan?.delay ?? 0)) game.pressFire();
       return;
     }
+    if (game.phase === 'roping') {
+      this.steerSwing(game, me, dt);
+      return;
+    }
     if (game.phase !== 'aiming') return;
 
     switch (this.stage) {
       case 'think': {
         if (this.timer < LEVELS[this.level].think) return;
         const midUse = game.shotsLeft < WEAPONS[game.weapon].shots;
-        const plan = planAttack(game, me, this.level, this.rng, midUse ? game.weapon : undefined);
+        const plan = planAttack(game, me, this.level, this.rng, midUse ? game.weapon : undefined, this.history);
         const goal = midUse ? null : crateGoal(game, me, KNOWLEDGE[this.level], game.turnTimeLeft - FETCH_MARGIN);
         if (goal && goal.value > plan.score && this.fetches < 2 && game.turnTimeLeft > 12) {
           this.fetches++;
+          this.timer = 0;
+          if (goal.route === 'rope') {
+            // Fire the hook up and towards the crate; the swing stage flies the rest of it.
+            this.swing = { crate: goal.crate.id, spent: 0 };
+            this.stage = 'swing';
+            game.selectWeapon('rope');
+            game.face(goal.crate.body.x < me.body.x ? -1 : 1);
+            me.aim = ROPE_LAUNCH_AIM;
+            game.pressFire();
+            return;
+          }
           this.fetch = { crate: goal.crate.id, lastX: me.body.x, stuck: 0 };
           this.stage = 'fetch';
-          this.timer = 0;
           return;
         }
         this.plan = plan;
+        this.history.set(plan.weapon, (this.history.get(plan.weapon) ?? 0) + 1);
         game.selectWeapon(plan.weapon);
         game.face(plan.facing);
         this.stage = 'aim';
@@ -655,6 +804,12 @@ export class AiDriver {
         if (f.stuck > 0.3) game.jump(false);
         return;
       }
+      case 'swing':
+        // The hook never bit, or the traversal is over and we are standing again: think afresh.
+        this.stage = 'think';
+        this.timer = LEVELS[this.level].think * 0.5;
+        this.swing = null;
+        return;
       case 'aim': {
         const plan = this.plan;
         if (!plan) {

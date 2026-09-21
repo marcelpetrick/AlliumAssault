@@ -306,14 +306,29 @@ export class BuddyView {
       flamer: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('flamerTank', { height: 0.42, diameter: 0.24, tessellation: 12 }, scene), kit.metal, [0.08, 0.06, -0.18], false],
         [MeshBuilder.CreateCylinder('flamerPipe', { height: 0.72, diameter: 0.08, tessellation: 10 }, scene), kit.metal, [0.62, 0, 0], true],
-        [MeshBuilder.CreateCylinder('flamerNozzle', { height: 0.16, diameterTop: 0.16, diameterBottom: 0.1, tessellation: 12 }, scene), kit.glove, [1.0, 0, 0], true],
+        [
+          MeshBuilder.CreateCylinder('flamerNozzle', { height: 0.16, diameterTop: 0.16, diameterBottom: 0.1, tessellation: 12 }, scene),
+          kit.glove,
+          [1.0, 0, 0],
+          true,
+        ],
         [MeshBuilder.CreateTorus('flamerPilot', { diameter: 0.15, thickness: 0.03, tessellation: 10 }, scene), kit.wood, [1.08, 0, 0], true],
         [MeshBuilder.CreateCylinder('flamerHose', { height: 0.3, diameter: 0.05, tessellation: 8 }, scene), kit.wood, [0.3, 0.1, -0.1], true],
       ]),
       // Carried in both hands, the way you carry something irreplaceable.
       ming: this.buildWeapon(scene, attach, [
-        [MeshBuilder.CreateSphere('heldVase', { diameterX: 0.36, diameterY: 0.42, diameterZ: 0.36, segments: 12 }, scene), kit.porcelain, [0.58, 0.02, 0], false],
-        [MeshBuilder.CreateCylinder('heldVaseNeck', { height: 0.16, diameterTop: 0.16, diameterBottom: 0.11, tessellation: 12 }, scene), kit.porcelain, [0.58, 0.28, 0], false],
+        [
+          MeshBuilder.CreateSphere('heldVase', { diameterX: 0.36, diameterY: 0.42, diameterZ: 0.36, segments: 12 }, scene),
+          kit.porcelain,
+          [0.58, 0.02, 0],
+          false,
+        ],
+        [
+          MeshBuilder.CreateCylinder('heldVaseNeck', { height: 0.16, diameterTop: 0.16, diameterBottom: 0.11, tessellation: 12 }, scene),
+          kit.porcelain,
+          [0.58, 0.28, 0],
+          false,
+        ],
         [MeshBuilder.CreateTorus('heldVaseBand', { diameter: 0.38, thickness: 0.06, tessellation: 14 }, scene), kit.cobalt, [0.58, 0.04, 0], false],
       ]),
       // A boxing glove, not a red ball: a rounded fist with a thumb, a laced wrist and a second

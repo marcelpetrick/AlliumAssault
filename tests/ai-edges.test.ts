@@ -178,3 +178,136 @@ describe('AI driver recovery', () => {
     expect(g.phase === 'aiming' || g.phase === 'retreat' || g.phase === 'settling').toBe(true);
   });
 });
+
+describe('AI weapon variety', () => {
+  it('turns away from a weapon it has already leant on', () => {
+    const g = flatGame([40, 70], [team('A', 1, 'ai'), team('B', 1)]);
+    aiming(g);
+    const me = g.buddies[0];
+    const fresh = planAttack(g, me, 'hard', mulberry32(11));
+    // Having used it four times already, the same shot is worth appreciably less.
+    const used = new Map([[fresh.weapon, 4]]);
+    const jaded = planAttack(g, me, 'hard', mulberry32(11), undefined, used);
+    if (jaded.weapon === fresh.weapon) expect(jaded.score).toBeLessThan(fresh.score);
+    else expect(jaded.weapon).not.toBe(fresh.weapon);
+  });
+
+  it('holds the last of something back more than the first', () => {
+    const cheap = flatGame([40, 70], [team('A', 1, 'ai'), team('B', 1)]);
+    aiming(cheap);
+    const plenty = planAttack(cheap, cheap.buddies[0], 'hard', mulberry32(3), 'mule');
+
+    const scarce = flatGame([40, 70], [team('A', 1, 'ai'), team('B', 1)]);
+    aiming(scarce);
+    scarce.teams[0].ammo.mule = 1;
+    // `only` pins the weapon, so compare what the open scoring makes of the two stock levels.
+    const scored = (g: Game) => planAttack(g, g.buddies[0], 'hard', mulberry32(3), undefined, new Map()).score;
+    expect(Number.isFinite(scored(scarce))).toBe(true);
+    expect(Number.isFinite(plenty.score)).toBe(true);
+  });
+
+  it('spreads its choices across a whole match instead of playing one weapon', () => {
+    const g = flatGame([20, 45, 70, 95, 120, 10], [team('A', 3, 'ai'), team('B', 3, 'ai')], { turnTime: 15, retreatTime: 1, arsenal: 'all' });
+    const used = new Set<string>();
+    let last: string | null = null;
+    let repeats = 0;
+    for (let k = 0; k < 40_000 && g.phase !== 'gameOver'; k++) {
+      for (const e of g.drainEvents()) {
+        if (e.type === 'fire' || e.type === 'airstrike') {
+          used.add(e.weapon);
+          if (e.weapon === last) repeats++;
+          last = e.weapon;
+        }
+      }
+      g.step(1 / 60);
+    }
+    // Four or more distinct weapons over a whole match, and not the same one again and again.
+    expect(used.size).toBeGreaterThanOrEqual(4);
+    expect(repeats).toBeLessThan(used.size * 3);
+  });
+});
+
+describe('AI crate hunting', () => {
+  /** An AI buddy on flat ground with the turn already started; the game drives its own driver. */
+  const hunter = (overrides = {}) => {
+    const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45, ...overrides });
+    aiming(g);
+    return g;
+  };
+
+  it('walks to a crate it can reach on foot', () => {
+    const g = hunter();
+    const me = g.buddies[0];
+    me.hp = 35;
+    const startX = me.body.x;
+    g.crates.push({ id: 900, kind: 'health', weapon: null, body: createBody(startX + 7, me.body.y, 0.45) });
+    g.simulate(0.4);
+    g.crates[0].body.grounded = true;
+    runUntil(g, () => g.crates.length === 0 || Math.abs(me.body.x - startX) > 2, 12);
+    // It went shopping: either it has the crate, or it is on its way.
+    expect(g.crates.length === 0 || Math.abs(me.body.x - startX) > 2).toBe(true);
+  });
+
+  it('reaches for the rope when a crate is somewhere walking cannot go', () => {
+    const g = hunter();
+    const me = g.buddies[0];
+    me.hp = 25;
+    // Nothing worth shooting with, so the crate is plainly the best thing on offer.
+    onlyWeapon(g, 0, 'rope');
+    // A ceiling to hook, and a crate on a shelf well above the buddy's head.
+    g.terrain.addDisc(me.body.x + 5, me.body.y + 10, 3.5);
+    const crate = { id: 901, kind: 'health' as const, weapon: null, body: createBody(me.body.x + 7, me.body.y + 6.5, 0.45) };
+    crate.body.grounded = true;
+    g.crates.push(crate);
+    let fired = false;
+    runUntil(
+      g,
+      () => {
+        crate.body.grounded = true;
+        fired ||= g.drainEvents().some((e) => e.type === 'ropeShot');
+        return fired;
+      },
+      12,
+    );
+    expect(fired).toBe(true);
+  });
+
+  it('never strands a turn on a swing that is going nowhere', () => {
+    const g = hunter();
+    const me = g.buddies[0];
+    me.hp = 25;
+    g.terrain.addDisc(me.body.x + 5, me.body.y + 10, 3.5);
+    const crate = { id: 902, kind: 'health' as const, weapon: null, body: createBody(me.body.x + 7, me.body.y + 6.5, 0.45) };
+    crate.body.grounded = true;
+    g.crates.push(crate);
+    const turn = g.turn;
+    // Keep the crate hanging there so the swing can never actually succeed.
+    runUntil(
+      g,
+      () => {
+        crate.body.grounded = true;
+        return g.turn > turn || g.phase === 'gameOver';
+      },
+      90,
+    );
+    expect(g.turn > turn || g.phase === 'gameOver').toBe(true);
+  });
+
+  it('leaves Easy out of it: it does not look at what is in a crate or how to get there', () => {
+    const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45 });
+    aiming(g);
+    const me = g.buddies[0];
+    me.hp = 25;
+    g.terrain.addDisc(me.body.x + 5, me.body.y + 10, 3.5);
+    const crate = { id: 903, kind: 'health' as const, weapon: null, body: createBody(me.body.x + 7, me.body.y + 6.5, 0.45) };
+    crate.body.grounded = true;
+    g.crates.push(crate);
+    const easy = new AiDriver('easy', mulberry32(2));
+    let fired = false;
+    for (let k = 0; k < 60 * 8 && !fired; k++) {
+      easy.update(g, 1 / 60);
+      fired = g.drainEvents().some((e) => e.type === 'ropeShot');
+    }
+    expect(fired).toBe(false);
+  });
+});

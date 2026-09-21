@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.64.0] — 2026-09-22
+
+### Changed
+
+- **The AI stops leaning on one weapon.** What a weapon costs to reach for now depends on how often
+  this team has already used it, on how little is left, and — for a cluster weapon — on its whole
+  payload rather than just its first blast. The concrete mule used to win from almost anywhere and
+  be played every turn until it ran out; over a full match the AI now reaches for six to eight
+  different weapons and no longer opens every game with the biggest thing in its bag.
+- **Normal and Hard go shopping.** They already valued crates; now they can get to the ones that are
+  not simply along the ground. When a crate is out of walking reach but there is rock overhead to
+  hook, they fire the rope, swing across, reel in and let go over it. The attempt is abandoned after
+  nine seconds however it is going, so a traversal that is not working can never eat a turn. Easy
+  is untouched: not thinking about crates is part of what makes it Easy.
+
 ## [1.63.0] — 2026-09-22
 
 ### Added

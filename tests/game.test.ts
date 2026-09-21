@@ -1437,7 +1437,10 @@ describe('crates', () => {
     const hp = b.hp;
     runUntil(g, () => g.mines.length === 0, 6);
     expect(b.hp).toBeLessThan(hp);
-    const pickup = g.drainEvents().filter((e) => e.type === 'cratePickup').at(-1);
+    const pickup = g
+      .drainEvents()
+      .filter((e) => e.type === 'cratePickup')
+      .at(-1);
     expect(pickup).toMatchObject({ kind: 'mine', mystery: true });
   });
 

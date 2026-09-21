@@ -33,20 +33,7 @@ export type WeaponId =
   | 'flamer'
   | 'fuelgob';
 export type WeaponKind =
-  | 'projectile'
-  | 'hitscan'
-  | 'melee'
-  | 'walker'
-  | 'strike'
-  | 'self'
-  | 'torch'
-  | 'flamer'
-  | 'flyer'
-  | 'drill'
-  | 'mine'
-  | 'rope'
-  | 'platform'
-  | 'teleport';
+  'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flamer' | 'flyer' | 'drill' | 'mine' | 'rope' | 'platform' | 'teleport';
 
 /**
  * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and

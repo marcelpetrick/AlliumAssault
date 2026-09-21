@@ -135,8 +135,8 @@ Status: ☐ open · ☑ done
 | T121 | Ming vase: a very rare cluster weapon — a blue-and-white porcelain vase that shatters into shards         | ☑      | 1.61.0         |
 | T122 | Baseball bat: a stadium home-run roar when the swing connects and the victim sails away                   | ☑      | 1.59.2         |
 | T123 | A crate caught in a blast leaves two or three short-lived flames where it burst                           | ☑      | 1.60.0         |
-| T124 | AI: Normal and Hard hunt crates — walk to them, and take the rope when walking will not do                | ☐      |                |
-| T125 | AI: stop leaning on the concrete mule — spread the choice across the arsenal it actually has              | ☐      |                |
+| T124 | AI: Normal and Hard hunt crates — walk to them, and take the rope when walking will not do                | ☑      | 1.64.0         |
+| T125 | AI: stop leaning on the concrete mule — spread the choice across the arsenal it actually has              | ☑      | 1.64.0         |
 | T126 | Bug: a crate collected by a sheep floats its reward twice — once at the crate, once over the buddy        | ☑      | 1.58.2         |
 
 ## Current implementation plan
