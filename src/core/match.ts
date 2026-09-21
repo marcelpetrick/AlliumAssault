@@ -134,7 +134,7 @@ export type GameEvent =
   | { type: 'fire'; weapon: WeaponId; x: number; y: number; dx: number; dy: number; power: number }
   | { type: 'explosion'; x: number; y: number; radius: number }
   | { type: 'shot'; weapon: WeaponId; x0: number; y0: number; x1: number; y1: number }
-  | { type: 'punch'; weapon: WeaponId; buddy: number; x: number; y: number; dx: number; dy: number }
+  | { type: 'punch'; weapon: WeaponId; buddy: number; x: number; y: number; dx: number; dy: number; hit: boolean }
   | { type: 'damage'; buddy: number; amount: number }
   | { type: 'death'; buddy: number }
   | { type: 'grave'; grave: number; buddy: number; x: number; y: number }
@@ -214,6 +214,14 @@ export const DRILL_BITE = 0.35;
 
 /** Seconds between two tunnel carves of the blowtorch. */
 export const TORCH_CARVE_INTERVAL = 0.08;
+
+/**
+ * An uppercut aimed at least this steeply (sine of the aim, so about 55° up) punches through the
+ * rock overhead instead of merely denting whatever is in front of the buddy, and reaches this much
+ * further than its nominal range while doing it.
+ */
+export const UPPERCUT_MIN_SIN = 0.82;
+export const UPPERCUT_REACH = 1.1;
 
 /** Lowest launch angle of a swing, radians above horizontal. */
 export const MIN_SWING_ANGLE = 0.35;

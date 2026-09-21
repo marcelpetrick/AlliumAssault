@@ -164,6 +164,34 @@ describe('match flow', () => {
     expect(g.buddies[1].body.y).toBeGreaterThan(21.5);
   });
 
+  it('an uppercut aimed at the ceiling punches a shaft through it', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const b = g.buddies[0];
+    // A slab of rock hanging over the buddy's head, with clear air between.
+    g.terrain.addDisc(b.body.x, b.body.y + 3.2, 1.6);
+    expect(g.terrain.isSolid(b.body.x, b.body.y + 3.2)).toBe(true);
+    g.selectWeapon('punch');
+    b.aim = Math.PI / 2 - 0.05;
+    g.pressFire();
+    // The ceiling above it is gone, in a shaft the buddy could climb through.
+    expect(g.terrain.isSolid(b.body.x, b.body.y + 1.6)).toBe(false);
+    expect(g.terrain.isSolid(b.body.x, b.body.y + 2.4)).toBe(false);
+  });
+
+  it('a punch thrown flat still only dents what is in front of the buddy', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const b = g.buddies[0];
+    g.terrain.addDisc(b.body.x, b.body.y + 3.2, 1.6);
+    g.selectWeapon('punch');
+    b.facing = 1;
+    b.aim = 0.2;
+    g.pressFire();
+    // The ceiling is untouched: only a steep uppercut reaches it.
+    expect(g.terrain.isSolid(b.body.x, b.body.y + 3.2)).toBe(true);
+  });
+
   it('baseball bat does less damage than the punch but knocks the enemy much further', () => {
     const hit = (weapon: 'punch' | 'bat') => {
       const g = flatGame([40, 41.2], [team('A', 1), team('B', 1)]);

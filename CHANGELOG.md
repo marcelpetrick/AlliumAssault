@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.59.1] — 2026-09-22
+
+### Added
+
+- **The garlic punch wears a proper boxing glove** — a laced fist with a thumb, and a second glove
+  held back at the chin — instead of the red ball it had before.
+- **An uppercut thrown at the ceiling punches through it.** Aimed steeply upwards, the punch drives
+  a shaft of discs along the aim rather than denting whatever happens to be in front of the buddy,
+  so a buddy boxed in under a ledge can knock its own way out. A flat swing behaves exactly as it
+  did.
+- A swing now reports whether it connected, so presentation can tell a hit from a miss without
+  guessing from the damage events that follow.
+
 ## [1.59.0] — 2026-09-22
 
 ### Added

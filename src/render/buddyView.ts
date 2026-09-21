@@ -294,9 +294,19 @@ export class BuddyView {
         [MeshBuilder.CreateBox('heldPlank', { width: 0.9, height: 0.12, depth: 0.5 }, scene), kit.wood, [0.55, 0.02, 0], false],
         [MeshBuilder.CreateBox('heldPlankEnd', { width: 0.1, height: 0.2, depth: 0.5 }, scene), kit.metal, [0.95, 0.02, 0], false],
       ]),
+      // A boxing glove, not a red ball: a rounded fist with a thumb, a laced wrist and a second
+      // glove held back at the chin, the way a boxer actually stands.
       punch: this.buildWeapon(scene, attach, [
-        [MeshBuilder.CreateSphere('glove', { diameter: 0.42, segments: 12 }, scene), kit.glove, [0.62, 0, 0], false],
-        [MeshBuilder.CreateCylinder('cuff', { height: 0.16, diameter: 0.28, tessellation: 12 }, scene), kit.eyeWhite, [0.38, 0, 0], true],
+        [MeshBuilder.CreateSphere('glove', { diameterX: 0.62, diameterY: 0.54, diameterZ: 0.54, segments: 14 }, scene), kit.glove, [0.72, 0, 0], true],
+        [MeshBuilder.CreateSphere('gloveThumb', { diameter: 0.22, segments: 10 }, scene), kit.glove, [0.66, -0.16, -0.16], false],
+        [MeshBuilder.CreateCylinder('gloveCuff', { height: 0.2, diameter: 0.38, tessellation: 14 }, scene), kit.eyeWhite, [0.42, 0, 0], true],
+        [MeshBuilder.CreateTorus('gloveLace', { diameter: 0.34, thickness: 0.05, tessellation: 12 }, scene), kit.wood, [0.42, 0, 0], true],
+        [
+          MeshBuilder.CreateSphere('gloveGuard', { diameterX: 0.42, diameterY: 0.38, diameterZ: 0.38, segments: 12 }, scene),
+          kit.glove,
+          [0.06, 0.24, -0.2],
+          false,
+        ],
       ]),
     };
     this.update(null, 0, 0);

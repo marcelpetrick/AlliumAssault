@@ -63,6 +63,8 @@ import {
   SMASH_REBOUND,
   SUDDEN_DEATH_HP,
   TORCH_CARVE_INTERVAL,
+  UPPERCUT_MIN_SIN,
+  UPPERCUT_REACH,
   meleeLaunch,
   selfDestructBlast,
   startingAmmo,
@@ -1273,9 +1275,11 @@ export class Game {
   private melee(b: Buddy, def: WeaponDef, dir: Point): void {
     const cx = b.body.x + dir.x * def.range;
     const cy = b.body.y + dir.y * def.range;
-    this.emit({ type: 'punch', weapon: def.id, buddy: b.id, x: cx, y: cy, dx: dir.x, dy: dir.y });
-    for (const t of this.buddies) {
-      if (!t.alive || t === b || Math.hypot(t.body.x - cx, t.body.y - cy) > def.range + BUDDY_RADIUS * 0.5) continue;
+    // Who is in reach is decided before anything is announced, so the swing's own event can say
+    // whether it connected — the crowd only roars for a bat that actually sent somebody flying.
+    const victims = this.buddies.filter((t) => t.alive && t !== b && Math.hypot(t.body.x - cx, t.body.y - cy) <= def.range + BUDDY_RADIUS * 0.5);
+    this.emit({ type: 'punch', weapon: def.id, buddy: b.id, x: cx, y: cy, dx: dir.x, dy: dir.y, hit: victims.length > 0 });
+    for (const t of victims) {
       const v = meleeLaunch(def, b.facing, dir);
       t.body.vx = v.x;
       t.body.vy = v.y;
@@ -1283,7 +1287,24 @@ export class Game {
       t.body.restTime = 0;
       this.damage(t, def.damage);
     }
-    if (def.radius > 0) this.terrain.carve(cx, cy, def.radius);
+    this.meleeCarve(b, def, dir, cx, cy);
+  }
+
+  /**
+   * What a melee weapon does to the rock. A flat swing takes a bite where it lands; a punch thrown
+   * steeply upwards drives a shaft through the ceiling instead, so a buddy boxed in under a ledge
+   * can knock its own way out rather than being stuck with a weapon that cannot reach.
+   */
+  private meleeCarve(b: Buddy, def: WeaponDef, dir: Point, cx: number, cy: number): void {
+    if (def.radius <= 0) return;
+    if (def.knock === 'uppercut' && dir.y > UPPERCUT_MIN_SIN) {
+      // Discs along the aim, from just above the head to the full reach, so the hole is a shaft.
+      for (let d = b.body.radius; d <= def.range + UPPERCUT_REACH; d += def.radius * 0.5) {
+        this.terrain.carve(b.body.x + dir.x * d, b.body.y + dir.y * d, def.radius * 0.8);
+      }
+      return;
+    }
+    this.terrain.carve(cx, cy, def.radius);
   }
 
   private shoot(b: Buddy, def: WeaponDef, from: Point, dir: Point): void {
