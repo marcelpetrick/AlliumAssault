@@ -5,6 +5,8 @@ import type { Game, GameEvent, Phase } from '../core/game';
 import { query, queryAs } from './dom';
 import { hotkeyLabel, LETTER_KEYS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from '../core/weapons';
 import type { World } from '../render/world';
+import { t } from './i18n';
+import { weaponBlurb, weaponName } from './i18nWeapons';
 
 interface Floater {
   el: HTMLElement;
@@ -22,8 +24,8 @@ const RING = 2 * Math.PI * 26;
 /** HTML overlay: turn info, timer, wind, weapon bar, team health, name tags and floating damage. */
 export class Hud {
   private readonly el: HTMLElement;
-  private readonly labelsEl: HTMLElement;
-  private readonly bannerEl: HTMLElement;
+  private labelsEl!: HTMLElement;
+  private bannerEl!: HTMLElement;
   private readonly labels = new Map<number, { el: HTMLElement; hpEl: HTMLElement; shown: number }>();
   private readonly fuses = new Map<number, HTMLElement>();
   private floaters: Floater[] = [];
@@ -39,6 +41,16 @@ export class Hud {
   ) {
     this.el = document.createElement('div');
     this.el.className = 'hud';
+    uiRoot.appendChild(this.el);
+    this.render();
+  }
+
+  /**
+   * Build the fixed chrome. Called again whenever the language changes, because the wind and
+   * gravity captions, the two buttons and every weapon's tooltip are written into the markup once
+   * rather than refreshed each frame — and the listeners go back on the nodes that replaced them.
+   */
+  private render(): void {
     this.el.innerHTML = `
       <div class="labels"></div>
       <div class="hud-top">
@@ -51,12 +63,12 @@ export class Hud {
           <span class="timer-caption"></span>
         </div>
         <div class="hud-right">
-          <div class="wind glass-card"><div class="wind-label">Wind</div><div class="wind-bar"><span class="wind-mid"></span><div class="wind-fill"></div></div></div>
-          <div class="gravity glass-card" hidden><div class="wind-label">Gravity</div><div class="gravity-value"></div></div>
-          <div class="approach glass-card" hidden><div class="wind-label">Approach</div><div class="approach-arrow"></div></div>
+          <div class="wind glass-card"><div class="wind-label">${t('hud.wind')}</div><div class="wind-bar"><span class="wind-mid"></span><div class="wind-fill"></div></div></div>
+          <div class="gravity glass-card" hidden><div class="wind-label">${t('hud.gravity')}</div><div class="gravity-value"></div></div>
+          <div class="approach glass-card" hidden><div class="wind-label">${t('hud.approach')}</div><div class="approach-arrow"></div></div>
           <div class="hud-menu glass-card">
-            <button class="hud-button" data-menu="help" title="How to Play" aria-label="Help">❔ Help</button>
-            <button class="hud-button" data-menu="pause" title="Pause the match (Esc)" aria-label="Pause">⏸ Pause</button>
+            <button class="hud-button" data-menu="help" title="${t('hud.helpTitle')}" aria-label="${t('hud.helpTitle')}">${t('hud.help')}</button>
+            <button class="hud-button" data-menu="pause" title="${t('hud.pauseTitle')}" aria-label="${t('hud.pause')}">${t('hud.pause')}</button>
           </div>
         </div>
       </div>
@@ -66,12 +78,11 @@ export class Hud {
         <div class="weapons glass-card">
           <div class="weapon-caption"><b class="weapon-name"></b><span class="weapon-blurb"></span></div>
           <div class="slots">
-            ${WEAPON_ORDER.map((id, k) => `<button class="slot" data-weapon="${id}" title="${WEAPONS[id].name} (${hotkeyLabel(k)})" aria-label="${WEAPONS[id].name}"><span class="slot-key">${hotkeyLabel(k)}</span><span class="slot-icon">${WEAPONS[id].icon}</span><span class="slot-ammo"></span></button>`).join('')}
+            ${WEAPON_ORDER.map((id, k) => `<button class="slot" data-weapon="${id}" title="${esc(weaponName(id))} (${hotkeyLabel(k)})" aria-label="${esc(weaponName(id))}"><span class="slot-key">${hotkeyLabel(k)}</span><span class="slot-icon">${WEAPONS[id].icon}</span><span class="slot-ammo"></span></button>`).join('')}
           </div>
         </div>
         <div class="hint glass-card"></div>
       </div>`;
-    uiRoot.appendChild(this.el);
     this.labelsEl = query(this.el, '.labels');
     this.bannerEl = query(this.el, '.banner');
     query(this.el, '.weapons').addEventListener('click', (e) => {
@@ -85,6 +96,8 @@ export class Hud {
   }
 
   attach(game: Game, world: World): void {
+    // A new match is the only moment the language can have changed since the chrome was built.
+    this.render();
     this.game = game;
     this.world = world;
     this.labelsEl.innerHTML = '';
@@ -123,21 +136,21 @@ export class Hud {
       switch (e.type) {
         case 'turnStart': {
           const team = g.teams[e.team].config;
-          this.banner(team.name, `${buddy?.name ?? ''} is up${team.controller === 'ai' ? ' · 🤖' : ''}`, team.color);
+          this.banner(team.name, `${t('hud.isUp', { name: buddy?.name ?? '' })}${team.controller === 'ai' ? ' · 🤖' : ''}`, team.color);
           break;
         }
         case 'panic':
           // Lemmings again: "Oh no!", then the seconds ticking away over its head.
           if (buddy) {
-            if (e.seconds >= 3) this.float('Oh no!', buddy.body.x, buddy.body.y + 2.1, '#ffd166');
+            if (e.seconds >= 3) this.float(t('float.ohNo'), buddy.body.x, buddy.body.y + 2.1, '#ffd166');
             else this.float(String(e.seconds), buddy.body.x, buddy.body.y + 2.4, '#ff5a3c');
           }
           break;
         case 'waterRise':
-          this.float('🌊 rising', e.x, e.level + 2.4, '#7fd8ff');
+          this.float(t('float.rising'), e.x, e.level + 2.4, '#7fd8ff');
           break;
         case 'suddenDeath':
-          this.banner('Sudden Death!', '1 HP each — and the water rises every turn!', '#ff5a3c');
+          this.banner(t('banner.suddenDeath'), t('banner.suddenDeathSub'), '#ff5a3c');
           break;
         case 'damage':
           if (buddy) this.float(`−${e.amount}`, buddy.body.x, buddy.body.y + 1.6, g.teams[buddy.team].config.color);
@@ -145,10 +158,10 @@ export class Hud {
         case 'cratePickup': {
           const prize =
             e.kind === 'mine'
-              ? '\u{1f92f} a live mine!'
+              ? t('float.liveMine')
               : e.kind === 'health' || !e.weapon
                 ? `+${e.amount} HP`
-                : `+${e.amount} ${WEAPONS[e.weapon].icon} ${WEAPONS[e.weapon].name}`;
+                : `+${e.amount} ${WEAPONS[e.weapon].icon} ${weaponName(e.weapon)}`;
           // A mystery box says so, because what came out of it is the whole joke.
           const text = e.mystery ? `❓ ${prize}` : prize;
           const colour = e.kind === 'mine' ? '#ff5a5a' : e.kind === 'health' ? '#5ee27a' : '#ffd166';
@@ -163,10 +176,10 @@ export class Hud {
           this.float('⚠', e.x, e.y + 1, '#ff5a5a');
           break;
         case 'drown':
-          if (buddy) this.banner('Splash!', `${buddy.name} went for a swim`, '#4fc3f7');
+          if (buddy) this.banner(t('banner.splash'), t('banner.swim', { name: buddy.name }), '#4fc3f7');
           break;
         case 'death':
-          if (buddy) this.banner('Peeled!', `${buddy.name} is out`, g.teams[buddy.team].config.color);
+          if (buddy) this.banner(t('banner.peeled'), t('banner.out', { name: buddy.name }), g.teams[buddy.team].config.color);
           break;
       }
     }
@@ -180,7 +193,7 @@ export class Hud {
     const team = g.activeTeamData;
 
     if (g.phase !== this.lastPhase) {
-      if (g.phase === 'retreat') this.banner('Retreat!', '', '#ffd166');
+      if (g.phase === 'retreat') this.banner(t('banner.retreat'), '', '#ffd166');
       this.lastPhase = g.phase;
     }
 
@@ -194,7 +207,7 @@ export class Hud {
     const seconds = retreat ? g.retreatLeft : g.countingDown || g.phase === 'turnStart' ? g.turnTimeLeft : 0;
     const total = retreat ? g.config.retreatTime : g.config.turnTime;
     this.text('.timer-value', g.phase === 'settling' || g.phase === 'deaths' ? '…' : String(Math.max(0, Math.ceil(seconds))));
-    this.text('.timer-caption', retreat ? 'retreat' : 'turn');
+    this.text('.timer-caption', retreat ? t('hud.retreat') : t('hud.turn'));
     const progress = queryAs(this.el, '.progress', SVGCircleElement);
     progress.style.strokeDashoffset = String(RING * (1 - Math.max(0, seconds) / total));
     query(this.el, '.timer').classList.toggle('urgent', g.countingDown && seconds <= 5);
@@ -228,13 +241,13 @@ export class Hud {
     const approach = this.el.querySelector<HTMLElement>('.approach');
     if (approach) {
       approach.hidden = !g.choosingApproach;
-      query(approach, '.approach-arrow').textContent = g.strikeDir > 0 ? '✈️ ⟶ from the left' : 'from the right ⟵ ✈️';
+      query(approach, '.approach-arrow').textContent = g.strikeDir > 0 ? t('hud.fromLeft') : t('hud.fromRight');
     }
 
     const def = WEAPONS[g.weapon];
     const ammo = team?.ammo[g.weapon] ?? 0;
-    this.text('.weapon-name', `${def.icon} ${def.name}${ammo === Infinity ? '' : ` ×${ammo}`}`);
-    this.text('.weapon-blurb', def.blurb);
+    this.text('.weapon-name', `${def.icon} ${weaponName(g.weapon)}${ammo === Infinity ? '' : ` ×${ammo}`}`);
+    this.text('.weapon-blurb', weaponBlurb(g.weapon));
     this.text('.hint', this.hint(g, def, team?.config.name, human, retreat));
 
     // Name tags follow buddies; HP counts down Worms-style.
@@ -299,41 +312,44 @@ export class Hud {
 
   /** One line of help for whatever the player can do right now. */
   private hint(g: Game, def: WeaponDef, teamName: string | undefined, human: boolean, retreat: boolean): string {
-    if (g.phase === 'gameOver') return 'Match over';
-    if (!human) return `🤖 ${teamName ?? 'AI'} is plotting…`;
+    if (g.phase === 'gameOver') return t('hud.matchOver');
+    if (!human) return t('hud.plotting', { team: teamName ?? 'AI' });
     if (def.kind === 'strike' && g.phase === 'aiming') {
-      const side = g.choosingApproach ? ` · ← → plane comes in from the ${g.strikeDir > 0 ? 'left' : 'right'}` : '';
-      return `Click on the map to drop the ${def.name.toLowerCase()}${side} · Esc menu`;
+      const side = g.choosingApproach ? ` · ${g.strikeDir > 0 ? t('hud.approachLeft') : t('hud.approachRight')}` : '';
+      return `${t('hud.clickStrike', { weapon: weaponName(g.weapon) })}${side} · ${t('hud.esc')}`;
     }
-    if (def.kind === 'platform' && g.phase === 'aiming') return 'Move the mouse to place the board · wheel tilts it · left-click sets it · Esc menu';
-    if (def.kind === 'teleport' && g.phase === 'aiming') return 'Left-click anywhere to beam there — mind the drop · Esc menu';
-    if (g.phase === 'firing') return 'Rat-a-tat-tat! 🔩';
-    if (g.phase === 'drilling') return 'Drilling down… ⛏️';
-    if (g.phase === 'torching') return 'Burning through the rock… 🔥';
-    if (g.phase === 'roping') return g.rope ? '↑↓ reel · ←→ swing · Space to let go 🪝' : 'Space to shoot the hook again 🪝';
+    if (def.kind === 'platform' && g.phase === 'aiming') return t('hud.platform');
+    if (def.kind === 'teleport' && g.phase === 'aiming') return t('hud.teleport');
+    if (g.phase === 'firing') return t('hud.firing');
+    if (g.phase === 'drilling') return t('hud.drilling');
+    if (g.phase === 'torching') return t('hud.torching');
+    if (g.phase === 'spraying') return t('hud.spraying');
+    if (g.phase === 'roping') return g.rope ? t('hud.ropeHanging') : t('hud.ropeBetween');
     if (g.phase === 'guiding') {
-      return g.flyer ? 'Arrow keys steer the flying sheep · Space to blow it up! 🦸' : 'Space to blow up the sheep! 🐑';
+      return g.flyer ? t('hud.guidingFlyer') : t('hud.guidingSheep');
     }
-    if (retreat) return 'Run! ← → walk · Enter jump · Backspace back-flip';
+    if (retreat) return t('hud.retreatNow');
     const use = def.charge
-      ? 'Hold Space to charge, release to fire'
+      ? t('hud.useCharge')
       : def.kind === 'walker'
-        ? 'Space to release the sheep'
+        ? t('hud.useSheep')
         : def.kind === 'torch'
-          ? 'Space to light the blowtorch'
+          ? t('hud.useTorch')
           : def.kind === 'drill'
-            ? 'Space to start drilling'
-            : def.kind === 'rope'
-              ? 'Space to shoot the hook'
-              : def.kind === 'mine'
-                ? 'Space to drop the mine, then run'
-                : 'Space to strike';
+            ? t('hud.useDrill')
+            : def.kind === 'flamer'
+              ? t('hud.useFlamer')
+              : def.kind === 'rope'
+                ? t('hud.useRope')
+                : def.kind === 'mine'
+                  ? t('hud.useMine')
+                  : t('hud.useStrike');
     // Digits and shifted digits cover the first twenty slots; anything past them has a letter key.
     const letters = Object.entries(LETTER_KEYS)
       .map(([code]) => code.slice(3))
       .join(', ');
     const keys = WEAPON_ORDER.length > 20 ? `1–0, ⇧1–⇧0, ${letters}` : `1–0, ⇧1–⇧${WEAPON_ORDER.length - 10}`;
-    return `${use} · ↑↓ aim · Enter jump · ${keys} weapons · Esc menu`;
+    return `${use} · ↑↓ ${t('hud.keysAim')} · Enter ${t('hud.keysJump')} · ${keys} ${t('hud.keysWeapons')} · ${t('hud.esc')}`;
   }
 
   private banner(title: string, sub: string, color: string): void {

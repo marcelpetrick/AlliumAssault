@@ -3,6 +3,7 @@
 
 import type { AiLevel, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
+import { LANGUAGES, preferredLanguage, setLanguage, type Language } from './i18n';
 import { THEME_IDS } from '../render/themes';
 import { ARSENAL_OPTIONS, CRATE_OPTIONS, GRAVITY_OPTIONS, quickMatch, randomSeed, SUDDEN_DEATH_OPTIONS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
 
@@ -20,6 +21,8 @@ export interface Settings {
   textSize: TextSize;
   /** How much the renderer may spend; Full unless the player or the URL says otherwise. */
   quality: Quality;
+  /** Which language the interface speaks. */
+  language: Language;
 }
 
 const STORAGE_KEY = 'allium.settings';
@@ -31,8 +34,9 @@ const STORAGE_KEY = 'allium.settings';
  *
  * 1: the original shape, written without a version at all (up to 1.57.1).
  * 2: `quality` added.
+ * 3: `language` added.
  */
-export const SETTINGS_VERSION = 2;
+export const SETTINGS_VERSION = 3;
 
 /** What actually sits in localStorage: the settings plus the version that wrote them. */
 interface StoredSettings extends Settings {
@@ -49,10 +53,16 @@ function migrate(data: Record<string, unknown>): Record<string, unknown> {
   const from = typeof data.version === 'number' && Number.isFinite(data.version) ? data.version : 1;
   let out = data;
   if (from < 2) out = { ...out, quality: out.quality ?? 'high' };
+  // Nothing sensible to migrate from: a build that never had a language never stored one, so the
+  // browser's own preference is a better guess than English.
+  if (from < 3) out = { ...out, language: out.language ?? browserLanguage() };
   return out;
 }
 
-export const defaultSettings = (): Settings => ({ match: quickMatch(), textSize: 'normal', quality: 'high' });
+/** What the browser says the reader speaks, when it says anything this game understands. */
+const browserLanguage = (): Language => preferredLanguage(typeof navigator === 'undefined' ? [] : navigator.languages);
+
+export const defaultSettings = (): Settings => ({ match: quickMatch(), textSize: 'normal', quality: 'high', language: browserLanguage() });
 
 /** Stored settings, or defaults when there are none or they are unreadable. The map seed is always fresh. */
 export function loadSettings(): Settings {
@@ -145,7 +155,12 @@ export function parseSettings(raw: string): Settings | null {
     TEXT_SIZES.map((t) => t.value),
     defaults.textSize,
   );
-  return { match, textSize, quality };
+  const lang = pick(
+    data.language,
+    LANGUAGES.map((l) => l.value),
+    defaults.language,
+  );
+  return { match, textSize, quality, language: lang };
 }
 
 const CONTROLLERS: readonly Controller[] = ['human', 'ai'];
@@ -172,6 +187,11 @@ function pick<T>(value: unknown, allowed: readonly T[], fallback: T): T {
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** Switch the interface to `lang`, and tell the document about it for the sake of the browser. */
+export function applyLanguage(lang: Language): void {
+  setLanguage(lang);
+}
 
 /** Scale the whole HTML overlay (HUD, name tags, menus) for readability. */
 export function applyTextSize(size: TextSize): void {

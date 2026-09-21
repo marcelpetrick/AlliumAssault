@@ -7,6 +7,8 @@ import type { MatchSummary } from '../core/stats';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
+import { LANGUAGES, t, type Language } from './i18n';
+import { weaponBlurb, weaponName } from './i18nWeapons';
 import {
   ARSENAL_OPTIONS,
   CRATE_OPTIONS,
@@ -21,7 +23,7 @@ import {
   WIND_OPTIONS,
 } from './presets';
 import { drawMapPreview } from './mapPreview';
-import { applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
+import { applyLanguage, applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
 
 export type Screen = 'title' | 'setup' | 'help' | 'about' | 'pause' | 'victory' | 'stats';
 
@@ -80,6 +82,8 @@ export class Menu {
   /** Last custom setup saved by the player; a temporary Quick Match must not replace it. */
   private savedMatch: MatchConfig;
   private textSize: TextSize;
+  /** Which language the interface speaks; changing it repaints whatever screen is open. */
+  private lang: Language;
   /** Renderer budget for the next match; a match already running keeps the one it started with. */
   private quality: Quality;
   private helpReturn: Screen = 'title';
@@ -95,6 +99,8 @@ export class Menu {
     this.draft = structuredClone(settings.match);
     this.savedMatch = structuredClone(settings.match);
     this.textSize = settings.textSize;
+    this.lang = settings.language;
+    applyLanguage(this.lang);
     this.quality = settings.quality;
     applyTextSize(this.textSize);
     this.el = document.createElement('div');
@@ -120,15 +126,15 @@ export class Menu {
         <div class="logo">
           <div class="logo-garlic">🧄</div>
           <h1><span>Allium</span><span>Assault</span></h1>
-          <p class="tagline">Turn-based garlic warfare on destructible islands</p>
+          <p class="tagline">${t('title.tagline')}</p>
         </div>
         <div class="title-buttons">
-          <button class="primary big" data-action="quick">▶ Quick Match <small>You vs AI</small></button>
-          <button class="glass big" data-action="setup">⚙ Custom Match</button>
-          <button class="glass big" data-action="help">❔ How to Play</button>
-          <button class="ghost" data-action="about">ℹ About</button>
+          <button class="primary big" data-action="quick">${t('title.quick')} <small>${t('title.quickSub')}</small></button>
+          <button class="glass big" data-action="setup">${t('title.custom')}</button>
+          <button class="glass big" data-action="help">${t('title.help')}</button>
+          <button class="ghost" data-action="about">${t('title.about')}</button>
         </div>
-        <footer class="version">v${this.version} · sound ${this.actions.isMuted() ? 'off' : 'on'} (M)</footer>
+        <footer class="version">v${this.version} · ${t('title.sound')} ${this.actions.isMuted() ? t('title.off') : t('title.on')} (M)</footer>
       </div>`;
   }
 
@@ -139,85 +145,89 @@ export class Menu {
       <div class="screen setup-screen">
         <div class="panel wide">
           <header class="panel-head">
-            <button class="ghost" data-action="title">← Back</button>
-            <h2>Custom Match</h2>
+            <button class="ghost" data-action="title">${t('setup.back')}</button>
+            <h2>${t('setup.heading')}</h2>
             <span></span>
           </header>
           <section class="teams-grid">
             ${d.teams
-              .map((t, i) => {
-                const ctrl = t.controller === 'human' ? 'human' : t.aiLevel;
+              .map((cfg, i) => {
+                const ctrl = cfg.controller === 'human' ? 'human' : cfg.aiLevel;
                 return `
-              <div class="team-card" style="--team:${t.color}">
+              <div class="team-card" style="--team:${cfg.color}">
                 <div class="team-top">
                   <span class="team-dot"></span>
-                  <input class="team-name" data-field="team-name" data-team="${i}" value="${esc(t.name)}" maxlength="18" spellcheck="false" />
-                  ${d.teams.length > 2 ? `<button class="icon" data-action="remove-team" data-team="${i}" title="Remove team">✕</button>` : ''}
+                  <input class="team-name" data-field="team-name" data-team="${i}" value="${esc(cfg.name)}" maxlength="18" spellcheck="false" />
+                  ${d.teams.length > 2 ? `<button class="icon" data-action="remove-team" data-team="${i}" title="${t('setup.removeTeam')}">✕</button>` : ''}
                 </div>
-                <div class="swatches">${TEAM_COLORS.map((c) => `<button class="swatch ${c === t.color ? 'on' : ''}" style="--c:${c}" data-action="color" data-team="${i}" data-value="${c}"></button>`).join('')}</div>
-                <label class="field-label">Player</label>
+                <div class="swatches">${TEAM_COLORS.map((c) => `<button class="swatch ${c === cfg.color ? 'on' : ''}" style="--c:${c}" data-action="color" data-team="${i}" data-value="${c}"></button>`).join('')}</div>
+                <label class="field-label">${t('setup.player')}</label>
                 ${segmented(
                   CONTROLLERS.map((c) => ({ label: c.label, value: c.id, on: c.id === ctrl })),
                   'controller',
                   i,
                 )}
-                <label class="field-label">Buddies</label>
+                <label class="field-label">${t('setup.buddies')}</label>
                 <div class="buddies">
                   <div class="stepper">
                     <button data-action="buddies" data-team="${i}" data-value="-1">−</button>
-                    <span>${t.buddyNames.length}</span>
+                    <span>${cfg.buddyNames.length}</span>
                     <button data-action="buddies" data-team="${i}" data-value="1">+</button>
                   </div>
-                  <div class="buddy-names">${t.buddyNames.map((n) => `<span>🧄 ${esc(n)}</span>`).join('')}</div>
+                  <div class="buddy-names">${cfg.buddyNames.map((n) => `<span>🧄 ${esc(n)}</span>`).join('')}</div>
                 </div>
               </div>`;
               })
               .join('')}
-            ${d.teams.length < 4 ? `<button class="team-card add" data-action="add-team">＋<span>Add team</span></button>` : ''}
+            ${d.teams.length < 4 ? `<button class="team-card add" data-action="add-team">＋<span>${t('setup.addTeam')}</span></button>` : ''}
           </section>
           <section class="options">
-            <div><label class="field-label">Turn time</label>${segmented(
+            <div><label class="field-label">${t('setup.turnTime')}</label>${segmented(
               TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })),
               'turn',
             )}</div>
-            <div><label class="field-label">Wind</label>${segmented(
+            <div><label class="field-label">${t('setup.wind')}</label>${segmented(
               WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })),
               'wind',
             )}</div>
-            <div><label class="field-label">Crates</label>${segmented(
+            <div><label class="field-label">${t('setup.crates')}</label>${segmented(
               CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })),
               'crates',
             )}</div>
-            <div><label class="field-label">Graphics</label>${segmented(
+            <div><label class="field-label">${t('setup.graphics')}</label>${segmented(
               QUALITY_OPTIONS.map((q) => ({ label: q.label, value: q.value, on: q.value === this.quality })),
               'quality',
             )}</div>
-            <div><label class="field-label">Text size</label>${segmented(
-              TEXT_SIZES.map((t) => ({ label: t.label, value: t.value, on: t.value === this.textSize })),
+            <div><label class="field-label">${t('setup.language')}</label>${segmented(
+              LANGUAGES.map((l) => ({ label: l.label, value: l.value, on: l.value === this.lang })),
+              'language',
+            )}</div>
+            <div><label class="field-label">${t('setup.textSize')}</label>${segmented(
+              TEXT_SIZES.map((size) => ({ label: size.label, value: size.value, on: size.value === this.textSize })),
               'text-size',
             )}</div>
-            <div><label class="field-label">Arsenal</label>${segmented(
+            <div><label class="field-label">${t('setup.arsenal')}</label>${segmented(
               ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })),
               'arsenal',
             )}</div>
-            <div><label class="field-label">Gravity</label>${segmented(
+            <div><label class="field-label">${t('setup.gravity')}</label>${segmented(
               GRAVITY_OPTIONS.map((g) => ({ label: g.label, value: g.value, on: g.value === (d.gravity ?? 1) })),
               'gravity',
             )}</div>
-            <div><label class="field-label">Sudden Death</label>${segmented(
+            <div><label class="field-label">${t('setup.suddenDeath')}</label>${segmented(
               SUDDEN_DEATH_OPTIONS.map((o) => ({ label: o.label, value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
               'sudden-death',
             )}</div>
             <div class="map-field">
-              <div class="seed-field"><label class="field-label">Map seed</label>
-                <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
+              <div class="seed-field"><label class="field-label">${t('setup.seed')}</label>
+                <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="${t('setup.randomSeed')}">🎲</button></div>
               </div>
-              <div class="preview-field"><label class="field-label">Map preview</label>
-                <canvas class="map-preview" data-preview width="384" height="192" aria-label="Preview of the map this seed generates"></canvas>
+              <div class="preview-field"><label class="field-label">${t('setup.preview')}</label>
+                <canvas class="map-preview" data-preview width="384" height="192" aria-label="${t('setup.previewAlt')}"></canvas>
               </div>
             </div>
           </section>
-          <label class="field-label">Scenery</label>
+          <label class="field-label">${t('setup.scenery')}</label>
           <section class="themes">
             ${THEME_IDS.map((id) => {
               const th = THEMES[id];
@@ -227,8 +237,8 @@ export class Menu {
             }).join('')}
           </section>
           <footer class="panel-foot">
-            <button class="ghost" data-action="reset" title="Restore all default settings">↺ Reset all</button>
-            <button class="primary big" data-action="start">Start Battle ▶</button>
+            <button class="ghost" data-action="reset" title="${t('setup.resetTitle')}">${t('setup.reset')}</button>
+            <button class="primary big" data-action="start">${t('setup.start')}</button>
           </footer>
         </div>
       </div>`;
@@ -280,16 +290,15 @@ export class Menu {
     this.el.innerHTML = `
       <div class="screen">
         <div class="panel">
-          <header class="panel-head"><button class="ghost" data-action="help-back">← Back</button><h2>How to Play</h2><span></span></header>
-          <p class="lead">Teams take turns. Walk your garlic buddy into position, pick a weapon, aim, and blast the enemy — then
-          retreat before the smoke clears. Water is deadly, falls hurt, and the last team standing wins.</p>
+          <header class="panel-head"><button class="ghost" data-action="help-back">${t('setup.back')}</button><h2>${t('help.heading')}</h2><span></span></header>
+          <p class="lead">${t('help.lead')}</p>
           <div class="help-grid">
             <div>${CONTROLS_HTML}</div>
             <div class="weapon-list">
               ${WEAPON_ORDER.map((id) => {
                 const w = WEAPONS[id];
-                return `<div class="weapon-row"><span class="weapon-icon">${w.icon}</span><div><b>${w.name}</b>
-                  <small>${w.ammo === Infinity ? 'unlimited' : `${w.ammo} per team`} · ${w.damage} dmg</small><p>${w.blurb}</p></div></div>`;
+                return `<div class="weapon-row"><span class="weapon-icon">${w.icon}</span><div><b>${esc(weaponName(id))}</b>
+                  <small>${w.ammo === Infinity ? t('help.unlimited') : t('help.perTeam', { n: w.ammo })} · ${w.damage} ${t('help.damage')}</small><p>${esc(weaponBlurb(id))}</p></div></div>`;
               }).join('')}
             </div>
           </div>
@@ -302,20 +311,20 @@ export class Menu {
     this.el.innerHTML = `
       <div class="screen dim">
         <div class="panel narrow">
-          <h2>Paused</h2>
+          <h2>${t('pause.heading')}</h2>
           <div class="pause-setting">
-            <label class="field-label">Text size</label>
+            <label class="field-label">${t('setup.textSize')}</label>
             ${segmented(
               TEXT_SIZES.map((size) => ({ label: size.label, value: size.value, on: size.value === this.textSize })),
               'text-size',
             )}
           </div>
           <div class="stack">
-            <button class="primary" data-action="resume">Resume</button>
-            <button class="glass" data-action="restart">Restart match</button>
-            <button class="glass" data-action="help-pause">❔ How to Play</button>
-            <button class="glass" data-action="mute">Sound: ${this.actions.isMuted() ? 'off' : 'on'}</button>
-            <button class="ghost" data-action="quit">Quit to title</button>
+            <button class="primary" data-action="resume">${t('pause.resume')}</button>
+            <button class="glass" data-action="restart">${t('pause.restart')}</button>
+            <button class="glass" data-action="help-pause">${t('pause.help')}</button>
+            <button class="glass" data-action="mute">${t('pause.sound')}: ${this.actions.isMuted() ? t('title.off') : t('title.on')}</button>
+            <button class="ghost" data-action="quit">${t('pause.quit')}</button>
           </div>
         </div>
       </div>`;
@@ -336,13 +345,13 @@ export class Menu {
       <div class="screen dim">
         <div class="panel narrow victory" style="--team:${winner?.color ?? '#999'}">
           <div class="trophy">${winner ? '🏆' : '🧄'}</div>
-          <h2>${winner ? `${esc(winner.name)} wins!` : 'Draw!'}</h2>
-          <p class="lead">${winner ? `Victory after ${turns} turns of pungent combat.` : 'Everybody got peeled.'}</p>
+          <h2>${winner ? esc(t('victory.wins', { name: winner.name })) : t('victory.draw')}</h2>
+          <p class="lead">${winner ? t('victory.after', { turns }) : t('victory.everybody')}</p>
           <div class="stack">
-            ${this.summary ? '<button class="glass" data-action="stats">\u{1f4ca} Match statistics</button>' : ''}
-            <button class="primary" data-action="rematch">Rematch on a new map</button>
-            <button class="glass" data-action="setup">Change setup</button>
-            <button class="ghost" data-action="quit">Title screen</button>
+            ${this.summary ? `<button class="glass" data-action="stats">${t('victory.stats')}</button>` : ''}
+            <button class="primary" data-action="rematch">${t('victory.rematch')}</button>
+            <button class="glass" data-action="setup">${t('victory.change')}</button>
+            <button class="ghost" data-action="quit">${t('victory.title')}</button>
           </div>
         </div>
       </div>`;
@@ -363,9 +372,9 @@ export class Menu {
     this.el.innerHTML = `
       <div class="screen">
         <div class="panel wide stats-panel">
-          <header class="panel-head"><button class="ghost" data-action="victory">\u2190 Back</button><h2>Match statistics</h2><span></span></header>
+          <header class="panel-head"><button class="ghost" data-action="victory">${t('setup.back')}</button><h2>${t('stats.heading')}</h2><span></span></header>
           <table class="stats-table">
-            <tr><th>Team</th><th>Damage dealt</th><th>Taken</th><th>Own goals</th><th>Shots</th><th>On target</th><th>Lost</th></tr>
+            <tr><th>${t('stats.team')}</th><th>${t('stats.dealt')}</th><th>${t('stats.taken')}</th><th>${t('stats.ownGoals')}</th><th>${t('stats.shots')}</th><th>${t('stats.onTarget')}</th><th>${t('stats.lost')}</th></tr>
             ${summary.teams
               .map(
                 (t) =>
@@ -373,7 +382,7 @@ export class Menu {
               )
               .join('')}
           </table>
-          <h3>Honours</h3>
+          <h3>${t('stats.honours')}</h3>
           <div class="awards">
             ${summary.awards
               .map(
@@ -382,9 +391,9 @@ export class Menu {
               )
               .join('')}
           </div>
-          <h3>Every buddy</h3>
+          <h3>${t('stats.everyBuddy')}</h3>
           <table class="stats-table">
-            <tr><th>Buddy</th><th>Dealt</th><th>Taken</th><th>Own goals</th><th>Shots</th><th>Crates</th><th>Best hit</th></tr>
+            <tr><th>${t('stats.buddy')}</th><th>${t('stats.dealtShort')}</th><th>${t('stats.taken')}</th><th>${t('stats.ownGoals')}</th><th>${t('stats.shots')}</th><th>${t('stats.crates')}</th><th>${t('stats.bestHit')}</th></tr>
             ${summary.buddies
               .map(
                 (b) =>
@@ -493,7 +502,7 @@ export class Menu {
           return;
         }
       case 'add-team': {
-        const used = d.teams.map((t) => t.color);
+        const used = d.teams.map((existing) => existing.color);
         const t = makeTeam(
           d.teams.length,
           'ai',
@@ -536,6 +545,10 @@ export class Menu {
       case 'gravity':
         d.gravity = Number(value);
         break;
+      case 'language':
+        this.lang = value as Language;
+        applyLanguage(this.lang);
+        break;
       case 'quality':
         // Takes effect for the next match: the scene is built once, with the budget it was given.
         this.quality = value as Quality;
@@ -567,6 +580,8 @@ export class Menu {
         this.savedMatch = structuredClone(defaults.match);
         this.textSize = defaults.textSize;
         this.quality = defaults.quality;
+        this.lang = defaults.language;
+        applyLanguage(this.lang);
         applyTextSize(this.textSize);
         this.showSetup();
         return;
@@ -588,7 +603,7 @@ export class Menu {
 
   /** Save the preferences without touching the saved match — a paused game may be changing them. */
   private persistPreferences(): void {
-    saveSettings({ match: this.savedMatch, textSize: this.textSize, quality: this.quality });
+    saveSettings({ match: this.savedMatch, textSize: this.textSize, quality: this.quality, language: this.lang });
   }
 
   /** What the player chose; the app still lets `?quality=low` in the URL override it. */

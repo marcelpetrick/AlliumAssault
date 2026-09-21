@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.66.0] — 2026-09-22
+
+### Added
+
+- **Four languages.** English, German, Croatian and Mandarin, chosen in the setup screen beside
+  Graphics and remembered with the rest of the settings. The first time a player arrives, the
+  browser's own language decides. Menus, the HUD, every hint and banner, and all twenty-three
+  weapons' names and descriptions follow the setting; the choice repaints whatever screen is open,
+  and the HUD picks it up when the next match starts.
+- The Croatian is written the way it is spoken in Split — the Dalmatian ikavica and the čakavian
+  habits that go with it: *vrime* not *vrijeme*, *di* not *gdje*, *biž* not *bježi*.
+- English is the source of truth and holds every key; the other catalogues are partial and fall
+  back to it, so a gap shows English words rather than an identifier. Tests walk all four
+  catalogues and fail on a missing key or an untranslated weapon.
+
 ## [1.65.1] — 2026-09-22
 
 ### Added

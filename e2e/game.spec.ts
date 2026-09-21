@@ -662,3 +662,46 @@ test('match statistics: the victory screen leads to a scoreboard with teams, bud
   await expect(page.getByRole('button', { name: /Rematch/ })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('languages: the whole interface follows the setting, and it survives a reload', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await boot(page);
+  // English is what an English browser gets, and the buttons say so.
+  await expect(page.getByRole('button', { name: /Custom Match/ })).toBeVisible();
+
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.locator('[data-action="language"][data-value="de"]').click();
+  // The screen repaints in German, including the control that was just used.
+  await expect(page.getByRole('button', { name: 'Schlacht beginnen ▶' })).toBeVisible();
+  await expect(page.locator('.field-label').first()).not.toHaveText('Turn time');
+  expect(await page.evaluate(() => document.documentElement.lang)).toBe('de');
+
+  // The HUD comes up in German too, and so do the weapon names.
+  await startDuel(page);
+  await expect(page.locator('.timer-caption')).toHaveText('Zug');
+  await expect(page.locator('.wind-label').first()).toHaveText('Wind');
+  await expect(page.locator('.slot[data-weapon="sheep"]')).toHaveAttribute('aria-label', 'Schaf');
+  await expect(page.locator('.hint')).toContainText('Leertaste');
+
+  // Croatian is written the way it is spoken in Split.
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /Zurück zum Titel/ }).click();
+  await waitFor(page, (s) => s.demo && s.screen === 'title', 10_000);
+  await page.getByRole('button', { name: /Svoja partija|Eigenes Match/ }).click();
+  await page.locator('[data-action="language"][data-value="hr"]').click();
+  await expect(page.getByRole('button', { name: 'Počni bitku ▶' })).toBeVisible();
+  await expect(page.locator('.setup-screen')).toContainText('Vrime poteza');
+
+  // Mandarin.
+  await page.locator('[data-action="language"][data-value="zh"]').click();
+  await expect(page.getByRole('button', { name: '开战 ▶' })).toBeVisible();
+
+  // And the choice is remembered across a reload.
+  await boot(page);
+  expect(await page.evaluate(() => document.documentElement.lang)).toBe('zh');
+  await expect(page.getByRole('button', { name: /自定义对战/ })).toBeVisible();
+  expect(errors).toEqual([]);
+});

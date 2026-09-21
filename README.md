@@ -108,6 +108,9 @@ the pixel density is halved.
   HUD shows the pull whenever it is not the ordinary one.
 - **Map preview** — the setup screen draws the island the current seed produces, in the colours of
   the chosen scenery, so you can roll the dice until you like the map before starting.
+- **Four languages** — English, German, Croatian (written the way it is spoken in Split) and
+  Mandarin, chosen in the setup screen and remembered. The first time, the browser's own language
+  decides. Menus, HUD, hints, banners and every weapon's name and description follow the setting.
 - **Comfortable setup** — text size Normal / Large / Huge, a Graphics budget (Full or Low, for
   weak GPUs), and the last match settings are remembered in the browser for the next game (Reset
   all restores the defaults).
