@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.49.0] — 2026-09-21
+
+### Changed
+
+- Napalm burns for about nine seconds instead of five, and now eats into the ground it burns on:
+  each patch takes four small bites of rock and sinks into the hollow, leaving a charred dent about
+  a unit and a half deep.
+
 ## [1.48.0] — 2026-09-21
 
 ### Added

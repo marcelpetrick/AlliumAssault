@@ -415,7 +415,7 @@ test('drill: Shift+6, grinding sound, the buddy drills straight down', async ({ 
   expect(errors).toEqual([]);
 });
 
-test('napalm strike: Shift+7 and a click, flames crackle on the ground, then burn out', async ({ page }, info) => {
+test('napalm strike: Shift+7 and a click, flames crackle, eat into the ground, then burn out', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
   await select(page, 'Shift+7', 'napalm');
@@ -438,9 +438,12 @@ test('napalm strike: Shift+7 and a click, flames crackle on the ground, then bur
   });
   expect(visibleFire).toBeGreaterThan(0);
   await info.attach('napalm', { body: await page.screenshot(), contentType: 'image/png' });
-  await fastForward(page, 7);
+  const groundBefore = await page.evaluate(() => window.__allium.app.game!.terrain.solidFraction());
+  await fastForward(page, 12);
   await waitFor(page, (s) => !s.sound.fire, 10_000);
   expect(await page.evaluate(() => window.__allium.app.game!.flames.length)).toBe(0);
+  // The napalm ate its way into the ground it burnt on.
+  expect(await page.evaluate(() => window.__allium.app.game!.terrain.solidFraction())).toBeLessThan(groundBefore);
   expect(await page.evaluate(() => window.__allium.app.world!.scene.meshes.filter((mesh) => mesh.name.startsWith('groundFlame')).length)).toBe(0);
   expect(errors).toEqual([]);
 });

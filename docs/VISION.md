@@ -40,28 +40,28 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 
 Twenty weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
 
-| Weapon                        | Ammo | Behaviour                                                                                                            |
-| ----------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
-| Bazooka                       | ∞    | Charged shot, ballistic, strong wind influence, explodes on contact                                                  |
-| Grenade                       | ∞    | Charged throw, bounces, 3 s fuse, light wind influence                                                               |
-| Shotgun                       | 2    | Two instant shots per turn along the aim line, small craters                                                         |
-| Garlic Punch                  | ∞    | Melee uppercut: 45 damage + launch, no charge                                                                        |
-| Cluster Bomb                  | 3    | Red grenade; bursts into five bomblets of 10 damage                                                                  |
-| Sheep (special)               | 1    | Hops forward on its own; Space detonates                                                                             |
-| Air Strike (special)          | 1    | Click a target: a plane drops five bombs                                                                             |
-| Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far                                                                              |
-| Blowtorch                     | 2    | Burns a 3 s tunnel along the aim line and rides it; falls where there is nothing left to cut                         |
-| Self-Destruct (special)       | 1    | Buddy explodes: damage = health, radius = health ÷ 10                                                                |
-| Minigun (special)             | 1    | 14-bullet burst that shoves the victim far                                                                           |
-| Holy Garlic Grenade (special) | 1    | Explodes 1.6 s after coming to rest, huge blast                                                                      |
-| Banana Bomb (special)         | 1    | Bursts into five bouncing bananas that explode in turn                                                               |
-| Flying Sheep (special)        | 1    | Steered with the arrow keys for the whole flight, Space detonates                                                    |
-| Concrete Mule (special)       | 1    | Click a target: falls from the sky and smashes down six times                                                        |
-| Drill                         | 2    | Drills straight down 3 s, obeys gravity, no fall damage while drilling                                               |
-| Napalm Strike (special)       | 1    | Click a target: wind-blown napalm sets the ground aflame for about 5 s; flames make buddies hop, water puts them out |
-| Proximity Mine (special)      | 2    | Dropped at the buddy's feet; arms after 1.5 s, then goes off 1 s after any living buddy comes within 2 units         |
-| Rope                          | 3    | Hook into rock within 24 units, then hang, reel, swing and let go; a miss costs nothing                              |
-| Platform                      | 2    | A solid five-unit board set in open air with the mouse; tilt with the wheel, click to place                          |
+| Weapon                        | Ammo | Behaviour                                                                                                    |
+| ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------ |
+| Bazooka                       | ∞    | Charged shot, ballistic, strong wind influence, explodes on contact                                          |
+| Grenade                       | ∞    | Charged throw, bounces, 3 s fuse, light wind influence                                                       |
+| Shotgun                       | 2    | Two instant shots per turn along the aim line, small craters                                                 |
+| Garlic Punch                  | ∞    | Melee uppercut: 45 damage + launch, no charge                                                                |
+| Cluster Bomb                  | 3    | Red grenade; bursts into five bomblets of 10 damage                                                          |
+| Sheep (special)               | 1    | Hops forward on its own; Space detonates                                                                     |
+| Air Strike (special)          | 1    | Click a target: a plane drops five bombs                                                                     |
+| Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far                                                                      |
+| Blowtorch                     | 2    | Burns a 3 s tunnel along the aim line and rides it; falls where there is nothing left to cut                 |
+| Self-Destruct (special)       | 1    | Buddy explodes: damage = health, radius = health ÷ 10                                                        |
+| Minigun (special)             | 1    | 14-bullet burst that shoves the victim far                                                                   |
+| Holy Garlic Grenade (special) | 1    | Explodes 1.6 s after coming to rest, huge blast                                                              |
+| Banana Bomb (special)         | 1    | Bursts into five bouncing bananas that explode in turn                                                       |
+| Flying Sheep (special)        | 1    | Steered with the arrow keys for the whole flight, Space detonates                                            |
+| Concrete Mule (special)       | 1    | Click a target: falls from the sky and smashes down six times                                                |
+| Drill                         | 2    | Drills straight down 3 s, obeys gravity, no fall damage while drilling                                       |
+| Napalm Strike (special)       | 1    | Click a target: wind-blown napalm burns the ground for about 9 s and eats into it; flames make buddies hop   |
+| Proximity Mine (special)      | 2    | Dropped at the buddy's feet; arms after 1.5 s, then goes off 1 s after any living buddy comes within 2 units |
+| Rope                          | 3    | Hook into rock within 24 units, then hang, reel, swing and let go; a miss costs nothing                      |
+| Platform                      | 2    | A solid five-unit board set in open air with the mouse; tilt with the wheel, click to place                  |
 
 ## Rope
 

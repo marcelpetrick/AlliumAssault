@@ -35,7 +35,7 @@ import { createBody, glideBody, GRAVITY, stepBody, stepProjectile, type Body } f
 import { rngFor, type Rng } from './rng';
 import { CRATE_BLAST, CRATE_HEAL, crateLimit, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
 import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './mines';
-import { spreadFlames, type Flame } from './fire';
+import { FLAME_BITE_INTERVAL, FLAME_BITE_RADIUS, spreadFlames, type Flame } from './fire';
 import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { ropePath, shootRope, stepRope, type Rope } from './rope';
@@ -849,6 +849,14 @@ export class Game {
     if (!this.flames.length) return;
     for (const f of this.flames) {
       f.life -= dt;
+      // Napalm eats into what it burns on: every bite takes a little rock and the flame sinks
+      // into the hollow it made, so a long burn leaves a charred dent rather than a clean surface.
+      f.bite -= dt;
+      if (f.bite <= 0 && f.bitesLeft > 0) {
+        f.bite = FLAME_BITE_INTERVAL;
+        f.bitesLeft--;
+        this.terrain.carve(f.x, f.y - FLAME_BITE_RADIUS * 0.6, FLAME_BITE_RADIUS);
+      }
       // Burning napalm sinks after its ground when that is blasted away.
       if (!this.terrain.isSolid(f.x, f.y - 0.15)) f.y -= FLAME_FALL_SPEED * dt;
     }

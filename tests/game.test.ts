@@ -8,6 +8,7 @@ import { createBody } from '../src/core/physics';
 import { crateLimit, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES } from '../src/core/crates';
 import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
+import { FLAME_BITE_INTERVAL, FLAME_BITES } from '../src/core/fire';
 import { SUDDEN_DEATH_WATER_RISE } from '../src/core/constants';
 import { MINE_ARM_TIME, MINE_FUSE, MINE_TRIGGER_RANGE, placeMine } from '../src/core/mines';
 import { config, flatGame, onlyWeapon, runUntil, slopeGame, team } from './helpers';
@@ -710,12 +711,30 @@ describe('match flow', () => {
       expect(f.y).toBeGreaterThan(18.5);
       expect(f.y).toBeLessThan(20.5);
     }
-    runUntil(g, () => g.drops.length === 0 && g.projectiles.length === 0, 8);
+    runUntil(g, () => g.drops.length === 0 && g.projectiles.length === 0, 12);
     const burning = g.time;
-    runUntil(g, () => g.flames.length === 0, 8);
+    const groundBefore = g.terrain.solidFraction();
+    runUntil(g, () => g.flames.length === 0, 14);
     expect(g.flames).toHaveLength(0);
-    expect(g.time - burning).toBeGreaterThan(3);
-    expect(g.time - burning).toBeLessThanOrEqual(5.05);
+    // Nine seconds of napalm, give or take the spread of the individual patches.
+    expect(g.time - burning).toBeGreaterThan(5);
+    expect(g.time - burning).toBeLessThanOrEqual(9.05);
+    // And it ate its way into the ground it burnt on.
+    expect(g.terrain.solidFraction()).toBeLessThan(groundBefore);
+    expect(g.terrain.isSolid(70, 20)).toBe(false);
+  });
+
+  it('a single flame burns a dent into the ground and sinks into it', () => {
+    const g = flatGame([30, 100], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    const surface = 20;
+    g.flames.push({ id: 995, x: 60, y: surface + 0.1, life: 6, bite: FLAME_BITE_INTERVAL, bitesLeft: FLAME_BITES });
+    expect(g.terrain.isSolid(60, surface - 0.3)).toBe(true);
+    runUntil(g, () => g.flames.length === 0, 10);
+    // The rock under it is gone and the flame followed it down — a dent, not a mineshaft.
+    expect(g.terrain.isSolid(60, surface - 0.3)).toBe(false);
+    expect(g.terrain.isSolid(60, surface - 1.2)).toBe(false);
+    expect(g.terrain.isSolid(60, surface - 2.2)).toBe(true);
   });
 
   it('napalm is carried far by the wind', () => {
@@ -746,14 +765,14 @@ describe('match flow', () => {
     const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
     toAiming(g);
     const enemy = g.buddies[1];
-    g.flames.push({ id: 990, x: enemy.body.x - 0.3, y: 20.05, life: 1.5 });
+    g.flames.push({ id: 990, x: enemy.body.x - 0.3, y: 20.05, life: 1.5, bite: FLAME_BITE_INTERVAL, bitesLeft: FLAME_BITES });
     g.step();
     expect(enemy.hp).toBe(97);
     expect(enemy.body.vy).toBeGreaterThan(5);
     expect(enemy.body.vx).toBeGreaterThan(0);
     // A flame over a flooded crater sinks and is put out.
     g.terrain.carve(60, 10, 12);
-    g.flames.push({ id: 991, x: 60, y: 20.05, life: 10 });
+    g.flames.push({ id: 991, x: 60, y: 20.05, life: 10, bite: FLAME_BITE_INTERVAL, bitesLeft: FLAME_BITES });
     g.simulate(1);
     expect(g.flames.find((f) => f.id === 991)!.y).toBeLessThan(15);
     g.simulate(2);

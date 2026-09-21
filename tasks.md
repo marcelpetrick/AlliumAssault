@@ -96,23 +96,22 @@ Status: ☐ open · ☑ done
 | T82 | Explosions: thinner and more translucent, with chunks of earth thrown out of the crater                   | ☐      |                |
 | T83 | Sudden Death: show the rising water with the camera, and end a turn the moment the active buddy drowns    | ☑      | 1.48.0         |
 | T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☐      |                |
-| T85 | Napalm: flames burn longer and eat into the ground                                                        | ☐      |                |
+| T85 | Napalm: flames burn longer and eat into the ground                                                        | ☑      | 1.49.0         |
 | T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☐      |                |
 | T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☐      |                |
 
 ## Current implementation plan
 
-1. Napalm burns longer and eats into the ground it burns on (T85).
-2. Rework the explosion look: fewer, more translucent particles, plus chunks of earth thrown out of
+1. Rework the explosion look: fewer, more translucent particles, plus chunks of earth thrown out of
    a crater in the ground (T82).
-3. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
+2. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
    lands like any other body (T84).
-4. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
+3. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
    one, add teleport and platform sounds, and write the choices down (T86).
-5. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
+4. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
    translucent on-screen controls that are off by default — and write it up in
    `touchdisplay_support_ideation.md`. Ideation only, no implementation (T87).
-6. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
+5. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
    each versioned, local commit. Do not push or tag without being asked.
 
 ## Answered questions
@@ -470,6 +469,17 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T85 — Napalm burns longer and eats into the ground ☑
+
+Done in 1.49.0. The patches lasted about five seconds and left the ground exactly as they found it,
+so a napalm strike was a light show with no aftermath. A patch now burns for nine seconds and takes
+bites out of what it burns on: a 0.3-unit disc of rock every 1.1 s, four bites at most, after which
+it only keeps burning. The flame sinks into the hollow it made — the rule that lets a flame follow
+ground blasted from under it — so a patch ends up about 1.5 units deep and the ground keeps the
+scar. Four bites is the cap on purpose: napalm should char a dent, not sink a mineshaft. Unit tests
+cover the longer burn, the dent, its depth and the floor left under it; the browser test checks the
+ground really lost substance where it burnt.
 
 ### T83 — Sudden Death you can see, and no turn wasted on a drowned buddy ☑
 

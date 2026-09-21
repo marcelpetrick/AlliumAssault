@@ -10,7 +10,19 @@ export interface Flame {
   y: number;
   /** Seconds left before it burns out. */
   life: number;
+  /** Seconds until the next bite out of the ground below it. */
+  bite: number;
+  /** Bites of ground it has left: napalm chars a dent, it does not dig a shaft. */
+  bitesLeft: number;
 }
+
+/**
+ * A flame eats into what it burns on: a bite every so often, each a small disc of rock, and only
+ * a few of them, so a patch of napalm leaves a charred hollow about a unit deep.
+ */
+export const FLAME_BITE_INTERVAL = 1.1;
+export const FLAME_BITE_RADIUS = 0.3;
+export const FLAME_BITES = 4;
 
 /** Horizontal spacing of the flames a napalm canister spreads. */
 const FLAME_SPACING = 0.8;
@@ -34,7 +46,16 @@ export function spreadFlames(t: Terrain, x: number, y: number, count: number, du
   const flames: Flame[] = [];
   for (let k = 0; k < count; k++) {
     const spot = burnSpot(t, x + (k - (count - 1) / 2) * FLAME_SPACING, y);
-    if (spot) flames.push({ id: nextId(), x: spot.x, y: spot.y, life: duration * (0.75 + 0.25 * (((k * 5) % count) / count)) });
+    if (spot) {
+      flames.push({
+        id: nextId(),
+        x: spot.x,
+        y: spot.y,
+        life: duration * (0.75 + 0.25 * (((k * 5) % count) / count)),
+        bite: FLAME_BITE_INTERVAL,
+        bitesLeft: FLAME_BITES,
+      });
+    }
   }
   return flames;
 }

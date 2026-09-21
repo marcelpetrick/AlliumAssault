@@ -6,6 +6,7 @@ import { Game } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { WEAPONS } from '../src/core/weapons';
 import { Terrain } from '../src/core/terrain';
+import { FLAME_BITE_INTERVAL, FLAME_BITES } from '../src/core/fire';
 import { flatGame, runUntil, team } from './helpers';
 
 const aiming = (g: Game) => {
@@ -143,7 +144,7 @@ describe('world boundaries', () => {
     aiming(g);
     const b = g.buddies[0];
     b.body.x = 39.5;
-    g.flames.push({ id: 540, x: 40, y: 20.1, life: 4 });
+    g.flames.push({ id: 540, x: 40, y: 20.1, life: 4, bite: FLAME_BITE_INTERVAL, bitesLeft: FLAME_BITES });
     g.step();
     expect(b.body.vx).toBeLessThan(0);
     expect(b.hp).toBeLessThan(100);
