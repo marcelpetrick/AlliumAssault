@@ -46,6 +46,8 @@ export interface WeaponLook {
   shotSound?: 'bullet';
   /** Sound when a melee weapon connects. */
   hitSound?: 'punch' | 'bat';
+  /** A connecting swing brings the stadium with it. Presentation never switches on weapon ids. */
+  homerun?: boolean;
   /** Muzzle flash when used, and on every bullet of a burst. */
   muzzle?: boolean;
   muzzleEveryShot?: boolean;
@@ -227,7 +229,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
   bat: {
     id: 'bat',
-    look: { hitSound: 'bat', followHit: true },
+    look: { hitSound: 'bat', followHit: true, homerun: true },
     name: 'Baseball Bat',
     icon: '🏏',
     blurb: 'Home run! Less damage than a punch, but swats the victim far along the aim line.',

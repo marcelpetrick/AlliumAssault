@@ -164,6 +164,21 @@ describe('match flow', () => {
     expect(g.buddies[1].body.y).toBeGreaterThan(21.5);
   });
 
+  it('a swing says whether it connected, so only a real hit brings the crowd', () => {
+    const swing = (enemyX: number) => {
+      const g = flatGame([40, enemyX], [team('A', 1), team('B', 1)]);
+      toAiming(g);
+      g.selectWeapon('bat');
+      g.buddies[0].facing = 1;
+      g.buddies[0].aim = 0.3;
+      g.pressFire();
+      return g.drainEvents().find((e) => e.type === 'punch');
+    };
+    expect(swing(41.2)).toMatchObject({ weapon: 'bat', hit: true });
+    // Thin air across the island: the same swing, and nothing to cheer about.
+    expect(swing(90)).toMatchObject({ weapon: 'bat', hit: false });
+  });
+
   it('an uppercut aimed at the ceiling punches a shaft through it', () => {
     const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
     toAiming(g);

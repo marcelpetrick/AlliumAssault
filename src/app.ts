@@ -358,6 +358,8 @@ export class App {
           break;
         case 'punch':
           this.audio.play(WEAPONS[e.weapon].look.hitSound ?? 'punch');
+          // A bat that connects sends its victim over the island, and the crowd knows it.
+          if (e.hit && WEAPONS[e.weapon].look.homerun) this.audio.play('homerun');
           break;
         case 'jump':
           this.audio.play('jump');

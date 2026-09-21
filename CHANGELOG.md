@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.59.2] — 2026-09-22
+
+### Added
+
+- **A stadium roars when the baseball bat connects.** Crack, then a swell of synthesized crowd noise
+  with a couple of whistles riding on top — on the hit, never on a swing through thin air.
+
 ## [1.59.1] — 2026-09-22
 
 ### Added

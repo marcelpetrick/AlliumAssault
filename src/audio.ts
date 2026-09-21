@@ -29,6 +29,7 @@ export type Sfx =
   | 'bullet'
   | 'spinup'
   | 'bat'
+  | 'homerun'
   | 'step'
   | 'teleport'
   | 'pickup'
@@ -250,6 +251,16 @@ export class Audio {
         this.tone('triangle', 520 * pitch, 300, 0.1, 0.35);
         this.tone('sine', 1250 * pitch, 900, 0.05, 0.12);
         this.noise(0.25, 'bandpass', 2400, 600, 0.12);
+        break;
+      case 'homerun':
+        // That one goes all the way: a stadium's worth of noise swelling behind the crack. Filtered
+        // noise rising and falling is what a crowd is, and a couple of whistles ride on top of it.
+        this.noise(1.9, 'bandpass', 900, 1500, 0.3, 0.35);
+        this.noise(1.6, 'highpass', 2200, 3000, 0.12, 0.5);
+        [0.35, 0.62, 0.95].forEach((d) => {
+          this.tone('sine', 2100 * pitch, 2600 * pitch, 0.18, 0.05, d);
+        });
+        this.tone('triangle', 180, 120, 0.7, 0.07, 0.2);
         break;
       case 'step':
         // Soft papery patter of a garlic clove's feet.
