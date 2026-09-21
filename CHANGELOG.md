@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.66.2] — 2026-09-22
+
+### Fixed
+
+- The browser test that grabs a crate only knew about health and weapon crates, so it failed the
+  moment a mystery box happened to be the one that dropped. It now checks all three: healed, armed,
+  or standing on a live mine.
+
 ## [1.66.1] — 2026-09-22
 
 ### Changed

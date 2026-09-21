@@ -48,10 +48,16 @@ test('crates: one teleports in on the next turn and heals or arms the buddy who 
   if (crate.kind === 'health') {
     expect(after.buddies.find((b) => b.name === grabber.name)!.hp).toBe(grabber.hp + 25);
     expect(played(after, 'heal')).toBe(1);
-  } else {
+  } else if (crate.kind === 'weapon') {
     const weapon = crate.weapon!;
     expect(after.ammo![weapon]).toBe(ammoBefore[weapon] + 1);
     expect(played(after, 'pickup')).toBe(1);
+  } else {
+    // A mystery box: whatever it held, opening it did something — healed, handed over a weapon, or
+    // left a live mine under the buddy that was greedy.
+    const healed = (after.buddies.find((b) => b.name === grabber.name)?.hp ?? 0) > grabber.hp;
+    const armed = Object.entries(after.ammo!).some(([id, n]) => n > (ammoBefore[id as keyof typeof ammoBefore] ?? 0));
+    expect(healed || armed || after.mines.length > 0, 'a mystery box handed out nothing at all').toBe(true);
   }
   expect(errors).toEqual([]);
 });
