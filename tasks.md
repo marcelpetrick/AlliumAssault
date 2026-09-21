@@ -81,7 +81,7 @@ Status: ☐ open · ☑ done
 | T67 | Public release v1.40.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.40.0         |
 | T68 | Investigate Firefox fire visibility and strengthen explosion, napalm and blowtorch effects                | ☑      | 1.40.1         |
 | T69 | Review fire effects again, including lifecycle and browser behavior                                       | ☐      |                |
-| T70 | Raise enforced core test coverage above 98% for statements, branches, functions and lines                 | ☐      |                |
+| T70 | Raise enforced core test coverage above 98% for statements, branches, functions and lines                 | ☑      | 1.43.3         |
 | T71 | Expand E2E movement, landing and drill fall scenarios                                                     | ☑      | 1.43.2         |
 | T72 | Raise the water continuously once Sudden Death begins                                                     | ☑      | 1.42.0         |
 | T73 | Include Rope in the starting arsenal even when special weapons require crates                             | ☑      | 1.41.0         |
@@ -94,18 +94,16 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
-   more than 98% in each of the four Vitest metrics without excluding reachable code (T70).
-2. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
+1. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
    issue, and verify that the new meshes leave no active objects after their effects end (T69).
-3. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
+2. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
    scenery changes, so the map is visible before the match starts (T75).
-4. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
+3. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
    scales the gravity used by buddies, projectiles and everything else that falls, and reaches the
    core through the match configuration (T76).
-5. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
-6. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-7. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+4. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
+5. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+6. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -134,6 +132,18 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
+
+### T70 — Core coverage above 98%, enforced ☑
+
+Raised in 1.43.3. The Vitest thresholds had stood at 90/85/90/90 while the suite actually reached
+far more, so a real gap could open without anything failing. Two test files were added for the
+paths that only ever came up at the edges — `tests/game-edges.test.ts` for turn, rope, sheep,
+crate, mine, grave and boundary handling plus a draw, and `tests/ai-edges.test.ts` for AI scoring,
+crate fetching and recovery — and `tests/terrain.test.ts` gained the boundary cases of fire, flyer,
+mine, rope and contour code. Nothing reachable is excluded from the report. The run now measures
+99.8% statements, 98.2% branches, 100% functions and 99.9% lines, and the enforced threshold is
+98% in each of the four. `coverage/` is now ignored by ESLint, so a local coverage run no longer
+trips the lint step.
 
 ### T71 — Movement, landing and drill scenarios in the browser ☑
 

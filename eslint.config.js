@@ -7,7 +7,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  { ignores: ['dist', 'node_modules', 'test-results', 'playwright-report'] },
+  { ignores: ['dist', 'node_modules', 'test-results', 'playwright-report', 'coverage'] },
   js.configs.recommended,
   // Type-aware rules: floating promises, unsafe any, unnecessary conditions, misused non-null, …
   tseslint.configs.strictTypeChecked,

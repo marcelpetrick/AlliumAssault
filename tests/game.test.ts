@@ -952,11 +952,13 @@ describe('platform', () => {
   it('refuses buried, submerged, over-tilted and occupied spots without spending a use', () => {
     const g = placing();
     g.crates.push({ id: 900, kind: 'health', weapon: null, body: createBody(70, 25, CRATE_RADIUS) });
+    g.mines.push({ id: 901, owner: 0, team: 0, body: createBody(80, 25, 0.25), state: 'armed', age: 2, fuse: 0 });
     for (const at of [
       { x: 50, y: 20, angle: 0 },
       { x: 50, y: 3, angle: 0 },
       { x: 20, y: 20.6, angle: 0 },
       { x: 70, y: 25, angle: 0 },
+      { x: 80, y: 25, angle: 0 },
       { x: 50, y: 25, angle: Math.PI },
     ]) {
       expect({ at, placed: g.placePlatform(at) }).toEqual({ at, placed: false });

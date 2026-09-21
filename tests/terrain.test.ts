@@ -4,7 +4,15 @@
 import { describe, expect, it } from 'vitest';
 import { contourRegion } from '../src/core/contour';
 import { mulberry32, hashString } from '../src/core/rng';
-import { CELL, findSpawnCandidates, generateTerrain, PLATFORM_LENGTH, pickSpawns, Terrain } from '../src/core/terrain';
+import { CELL, findSpawnCandidates, generateTerrain, PLATFORM_LENGTH, PLATFORM_THICKNESS, pickSpawns, Terrain } from '../src/core/terrain';
+import { burnSpot, spreadFlames } from '../src/core/fire';
+import { stepFlyer, type Flyer } from '../src/core/flyer';
+import { defined } from '../src/core/assert';
+import { createBody } from '../src/core/physics';
+import { mineSees, placeMine, stepMine } from '../src/core/mines';
+import { clearLine, HOOK_MAX_TIME, ropePath, shootRope, stepRope } from '../src/core/rope';
+import { releaseSheep, stepSheep } from '../src/core/sheep';
+import { weaponForKey } from '../src/core/weapons';
 
 const spec = { seed: 'garlic', width: 128, height: 64, waterLevel: 3 };
 
@@ -88,6 +96,15 @@ describe('placed platforms', () => {
     expect(t.isSolid(20, 17)).toBe(true);
   });
 
+  it('keeps the deeper of two crossing boards when sampling their overlap', () => {
+    const t = airAbove(12);
+    t.addPlatform({ x: 20, y: 17, angle: 0 });
+    // A second board crossing the first: the sample point sits deep in the flat one and only
+    // clips the tilted one, so the deeper value has to win.
+    t.addPlatform({ x: 20, y: 17.15, angle: 0.5 });
+    expect(t.sample(20, 17)).toBeCloseTo(PLATFORM_THICKNESS / 2, 5);
+  });
+
   it('refuses spots in rock, under water, off the map, over-tilted or on a body', () => {
     const t = airAbove(12);
     const board = { x: 20, y: 17, angle: 0.2 };
@@ -105,7 +122,157 @@ describe('placed platforms', () => {
   });
 });
 
+describe('hazards and hard cases at the map boundary', () => {
+  it('reports no scorch outside the grid and none on untouched rock', () => {
+    const t = new Terrain(40, 30, 3);
+    t.fill((_x, y) => 12 - y);
+    expect(t.scorchAt(-1, 17)).toBe(0);
+    expect(t.scorchAt(20, 17)).toBe(0);
+  });
+
+  it('does not burn under water or beyond the map, and skips patches with no ground', () => {
+    const t = new Terrain(20, 20, 3);
+    t.fill((_x, y) => 3 - y);
+    expect(burnSpot(t, -1, 3)).toBeNull();
+    expect(burnSpot(t, 10, 3)).toBeNull();
+    t.fill(() => -4);
+    expect(burnSpot(t, 10, 10)).toBeNull();
+    expect(spreadFlames(t, 10, 10, 3, 5, () => 1)).toEqual([]);
+  });
+
+  it('classifies a flying sheep hitting a buddy, water and the outer boundary', () => {
+    const t = new Terrain(20, 20, 3);
+    const flyer = (x: number, y: number, angle: number): Flyer => ({ id: 1, owner: 0, x, y, angle, age: 0 });
+    expect(stepFlyer(t, flyer(10, 10, 0), 0.1, { x: 0, y: 0 }, () => true)).toBe('hit');
+    expect(stepFlyer(t, flyer(10, 3.1, -Math.PI / 2), 0.1, { x: 0, y: 0 }, () => false)).toBe('water');
+    expect(stepFlyer(t, flyer(49.9, 10, 0), 0.1, { x: 0, y: 0 }, () => false)).toBe('out');
+    expect(stepFlyer(t, flyer(10, 59.9, Math.PI / 2), 0.1, { x: 0, y: 0 }, () => false)).toBe('out');
+  });
+
+  it('handles a mine on top of its target and mines leaving the arena', () => {
+    const t = new Terrain(20, 20, 3);
+    const mine = placeMine(1, 0, 0, 10, 10);
+    expect(mineSees(t, mine, 10, 10)).toBe(true);
+    mine.body.y = 2;
+    expect(stepMine(t, mine, 0, false)).toBe('water');
+    mine.body.x = -31;
+    mine.body.y = 10;
+    expect(stepMine(t, mine, 0, false)).toBe('out');
+  });
+
+  it('draws a flying hook and a taut rope, then detects a hook lost to water', () => {
+    const t = new Terrain(20, 20, 3);
+    const body = createBody(10, 10, 0.6);
+    const hook = shootRope(1, 10, 10, 0, -1, false);
+    expect(ropePath(hook, body)).toEqual([
+      { x: 10, y: 10 },
+      { x: 10, y: 10 },
+    ]);
+    expect(stepRope(t, hook, body, 0.5, 0, 0)).toBe('missed');
+    hook.state = 'attached';
+    hook.pivots = [{ x: 10, y: 14 }];
+    hook.length = 4;
+    expect(ropePath(hook, body)).toEqual([
+      { x: 10, y: 14 },
+      { x: 10, y: 10 },
+    ]);
+    expect(defined(hook, 'hook')).toBe(hook);
+    expect(() => defined(null, 'hook')).toThrow('hook');
+  });
+
+  it('expires a stalled hook and safely releases a rope that would need too many corners', () => {
+    const t = new Terrain(30, 30, 0);
+    const body = createBody(10, 10, 0.6);
+    expect(clearLine(t, { x: 10, y: 10 }, { x: 10, y: 10 })).toBe(true);
+    const stalled = shootRope(1, 10, 10, 0, 0, false);
+    expect(stepRope(t, stalled, body, HOOK_MAX_TIME + 0.1, 0, 0)).toBe('missed');
+
+    t.addDisc(10, 15, 0.5);
+    t.addDisc(10, 12.5, 0.5);
+    const attached = shootRope(1, 10, 15, 0, 0, true);
+    attached.state = 'attached';
+    attached.pivots = Array.from({ length: 8 }, (_, k) => ({ x: 10, y: 15 - k * 0.1 }));
+    attached.length = 8;
+    expect(stepRope(t, attached, body, 1 / 60, 0, 0)).toBe('detached');
+  });
+
+  it('holds a rope that has pulled the buddy right onto its pivot', () => {
+    const t = new Terrain(30, 30, 0);
+    // Rock for the anchor to hold on to, with the corner the buddy hangs from out in the air.
+    t.addDisc(10, 18, 1);
+    const body = createBody(10, 15, 0.6);
+    const rope = shootRope(1, 10, 18, 0, 1, true);
+    rope.state = 'attached';
+    rope.pivots = [
+      { x: 10, y: 18 },
+      { x: 10, y: 15 },
+    ];
+    rope.length = 5;
+    // The buddy is on the pivot, so there is no rope direction to work with: the solver has to
+    // fall back on "straight down" instead of producing NaN.
+    expect(stepRope(t, rope, body, 1e-5, 0, 0)).toBe('attached');
+    expect(Number.isFinite(body.x) && Number.isFinite(body.y)).toBe(true);
+    expect(Number.isFinite(body.vx) && Number.isFinite(body.vy)).toBe(true);
+  });
+
+  it('handles a sheep leaving the map and an unused weapon key', () => {
+    const t = new Terrain(20, 20, 3);
+    const sheep = releaseSheep(1, 1, 51, 10, 1);
+    expect(stepSheep(t, sheep, 1 / 60)).toBe('out');
+    expect(weaponForKey(11, true)).toBeNull();
+  });
+
+  it('removes isolated specks at every terrain edge and supplies an upward normal in empty air', () => {
+    const t = new Terrain(2, 2, 0);
+    expect(t.normal(1, 1)).toEqual({ x: 0, y: 1 });
+    for (const [x, y] of [
+      [0, 0],
+      [2, 0],
+      [0, 2],
+      [2, 2],
+    ])
+      t.addDisc(x, y, 0.1);
+    t.removeSpecks(2);
+    for (const [x, y] of [
+      [0, 0],
+      [2, 0],
+      [0, 2],
+      [2, 2],
+    ])
+      expect(t.isSolid(x, y)).toBe(false);
+  });
+
+  it('does not try to carve a cave in a map too shallow to fit one', () => {
+    const t = generateTerrain({ seed: 'shallow', width: 40, height: 18, waterLevel: 12 });
+    expect(t.height).toBe(18);
+    expect(t.solidFraction()).toBeGreaterThan(0);
+  });
+});
+
 describe('marching squares contour', () => {
+  it('keeps disconnected saddle corners separate', () => {
+    const field = new Float32Array([1, -4, -4, 1]);
+    const { triangles, edges } = contourRegion(field, 2, 0, 0, 1, 1);
+    expect(triangles).toHaveLength(12);
+    expect(edges).toHaveLength(8);
+  });
+
+  it('joins a saddle whose centre is rock into one patch', () => {
+    // The same two opposite corners, but so much rock that the cell centre is solid.
+    const field = new Float32Array([4, -1, -1, 4]);
+    const { triangles, edges } = contourRegion(field, 2, 0, 0, 1, 1);
+    expect(triangles.length).toBeGreaterThan(0);
+    expect(edges.length).toBeGreaterThan(0);
+    expect(triangles).not.toHaveLength(12);
+  });
+
+  it('splits a saddle that sits on the other pair of corners', () => {
+    const field = new Float32Array([-4, 1, 1, -4]);
+    const { triangles, edges } = contourRegion(field, 2, 0, 0, 1, 1);
+    expect(triangles).toHaveLength(12);
+    expect(edges).toHaveLength(8);
+  });
+
   it('reproduces the area and perimeter of a disc', () => {
     const t = new Terrain(20, 20, 0);
     t.addDisc(10, 10, 5);

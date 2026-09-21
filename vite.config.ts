@@ -22,7 +22,8 @@ export default defineConfig({
       // need a GPU context or the DOM, so they are covered by the Playwright suite in `e2e/`
       // instead; measuring them here would report a number that no unit test could ever move.
       include: ['src/core/**/*.ts'],
-      thresholds: { statements: 90, branches: 85, functions: 90, lines: 90 },
+      // The rules core is meant to stay fully exercised; raise these when the numbers allow it.
+      thresholds: { statements: 98, branches: 98, functions: 98, lines: 98 },
     },
   },
 });

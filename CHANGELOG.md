@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.43.3] — 2026-09-21
+
+### Changed
+
+- The rules core is now covered to 99.8% of statements, 98.2% of branches, 100% of functions and
+  99.9% of lines, with the enforced Vitest thresholds raised from 90/85/90/90 to 98 in all four.
+  New tests cover match draws, empty weapon crates, boundary handling for fire, flyers, mines,
+  ropes and contours, and the AI's recovery from a lost plan.
+
 ## [1.43.2] — 2026-09-21
 
 ### Changed
