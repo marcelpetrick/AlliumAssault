@@ -234,4 +234,17 @@ Regenerate all media with `npm run capture-media -- <preview url>` against a run
 Version 1 replaced two earlier 2D prototypes with this 3D rewrite. See [`CHANGELOG.md`](CHANGELOG.md)
 for the release history.
 
+![Lines of code per area and core test coverage across the project's commits](docs/screenshots/history.png)
+
+Every commit measured straight out of git: the bands are the lines of code in the rules core, the
+renderer, the app and UI, the unit tests and the browser tests, and the drop is the day the 2D
+prototype was thrown away. Below it, the four Vitest coverage metrics of `src/core`, sampled at
+every tenth commit — running the suite at a past commit is not free — against the 98% that is
+enforced today.
+
+```bash
+python3 scripts/history_chart.py              # redraw; measures the samples it does not know yet
+python3 scripts/history_chart.py --no-measure # redraw from the cached measurements only
+```
+
 Game mechanics are inspired by Team17's Worms series; all design, art, sound and code are original.

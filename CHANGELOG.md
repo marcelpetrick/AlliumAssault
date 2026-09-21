@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.53.1] — 2026-09-21
+
+### Added
+
+- `scripts/history_chart.py` and the chart it draws at the bottom of the README: lines of code per
+  area across every commit, and the four core coverage metrics sampled at every tenth commit, with
+  the measurements cached so redrawing is cheap.
+
 ## [1.53.0] — 2026-09-21
 
 Public release. Everything below has been in the changelog since 1.44.1; this is the summary that

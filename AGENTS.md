@@ -25,7 +25,7 @@ entirely in the browser as a static site: local hot-seat and human-vs-AI.
 | `src/app.ts`              | Frame loop, input, event dispatch, `window.__allium` test hook                                                                                                                                                |                                                                  |
 | `tests/`                  | Vitest core tests                                                                                                                                                                                             |                                                                  |
 | `e2e/`                    | Playwright tests in Google Chrome: `game.spec.ts` (flows, settings, about), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, tombstones, sceneries, sounds, HUD), helpers in `support.ts` | Every new weapon or feature gets an E2E test                     |
-| `scripts/`                | `spdx.mjs` (SPDX check and fixer), `capture-media.mjs` (README screenshots and GIF)                                                                                                                           |                                                                  |
+| `scripts/`                | `spdx.mjs` (SPDX check and fixer), `capture-media.mjs` (README screenshots and GIF), `history_chart.py` (README growth and coverage chart)                                                                    |                                                                  |
 | `REUSE.toml`, `LICENSES/` | REUSE annotations for files without headers, license texts                                                                                                                                                    |                                                                  |
 | `docs/`                   | `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `archive/`                                                                                                                                          |                                                                  |
 | `tasks.md`                | Every request with status and version                                                                                                                                                                         | Update in every commit: add new requests, tick off finished ones |
@@ -49,6 +49,7 @@ npm run coverage   # Vitest with v8 coverage of src/core (thresholds enforced), 
 npm run e2e        # Playwright, Google Chrome, builds and serves on :4173
 npm run verify     # lint, typecheck, test, build, e2e
 npm run capture-media -- http://localhost:4173   # regenerate README media from a preview build
+python3 scripts/history_chart.py                 # redraw the README history chart (needs matplotlib)
 ```
 
 ## Working rules

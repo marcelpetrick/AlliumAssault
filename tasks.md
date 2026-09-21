@@ -99,15 +99,13 @@ Status: ☐ open · ☑ done
 | T85 | Napalm: flames burn longer and eat into the ground                                                        | ☑      | 1.49.0         |
 | T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☑      | 1.52.0         |
 | T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☑      | 1.52.1         |
-| T88 | Python script charting lines of code and coverage over the commits, embedded in the README                | ☐      |                |
+| T88 | Python script charting lines of code and coverage over the commits, embedded in the README                | ☑      | 1.53.1         |
 | T89 | Public release v1.53.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.53.0         |
 
 ## Current implementation plan
 
-1. Last, and only then: the history chart (T88) — lines of code per commit straight from git, and
-   coverage sampled at every tenth commit so the measuring stays cheap, cached between runs and
-   embedded at the bottom of the README.
-2. `npm run verify` stays green before every versioned, local commit.
+The backlog is empty: every request from T36 to T89 is done. `npm run verify` stays green before
+every versioned, local commit, and nothing is pushed or tagged without being asked.
 
 ## Answered questions
 
@@ -464,6 +462,23 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T88 — Growth and coverage chart ☑
+
+Added in 1.53.1. `scripts/history_chart.py` draws two panels against the commit number — a date axis
+squeezed nine tenths of the work into the last centimetre, because the project was written in
+bursts, so the dates went onto the ticks instead. The top panel stacks the lines of code in the
+rules core, the renderer, the app and UI, the unit tests and the browser tests, read straight out of
+git for all 163 commits through a single `git cat-file --batch`, and marks the largest drop in the
+line, which is the day the 2D prototype was thrown away. The bottom panel plots the four Vitest
+metrics for `src/core`.
+
+Measuring coverage at a past commit means running the suite there, so it is sampled at every tenth
+commit — as requested — in a throwaway `git worktree` with today's `node_modules` symlinked in, and
+every result is cached in `docs/history-coverage.json`, so a later run only measures what it does
+not already know. The picture it tells: coverage sat in the low nineties through the build-out,
+branches as low as 83.7%, and jumped to 98–100% when the thresholds were raised in
+[T70](#t70--core-coverage-above-98-enforced-). The chart is embedded at the bottom of the README.
 
 ### T89 — Public release v1.53.0 ☑
 
