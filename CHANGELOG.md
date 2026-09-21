@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.60.0] — 2026-09-22
+
+### Added
+
+- **A crate caught in a blast leaves its contents burning.** Two or three flames for a couple of
+  seconds — enough to make the spot worth walking around, far short of a napalm strike, and never
+  long enough to hold a turn up.
+
 ## [1.59.3] — 2026-09-22
 
 ### Changed

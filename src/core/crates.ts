@@ -36,6 +36,11 @@ const HEALTH_SHARE = 0.4;
 const MIN_BUDDY_DISTANCE = 3;
 /** A crate caught in an explosion blows up with this blast. */
 export const CRATE_BLAST = { radius: 1.8, damage: 10, force: 6 };
+/**
+ * And leaves its contents burning: a couple of flames for a couple of seconds, so the spot is
+ * worth stepping around on the way past without being a napalm strike in disguise.
+ */
+export const CRATE_FIRE = { flames: 3, duration: 2.5 };
 
 export type CrateKind = 'health' | 'weapon';
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { NO_KNOWLEDGE, planAttack, scoreBlast, simulateShot } from '../src/core/ai';
 import { Game, REST_SPEED, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
-import { crateLimit, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES } from '../src/core/crates';
+import { crateLimit, CRATE_FIRE, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES } from '../src/core/crates';
 import { hotkeyLabel, LETTER_KEYS, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { defined } from '../src/core/assert';
@@ -1310,6 +1310,26 @@ describe('crates', () => {
     g.skipTurn();
     runUntil(g, () => g.phase === 'aiming', 20);
   };
+
+  it('leave a short-lived fire where a blast bursts them', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { crates: 0, turnTime: 40 });
+    toAiming(g);
+    // A crate standing on the flat ground, well clear of everybody.
+    g.crates.push({ id: 4242, kind: 'health', weapon: null, body: createBody(60, 20 + CRATE_RADIUS, CRATE_RADIUS) });
+    g.simulate(0.5);
+    g.drainEvents();
+    expect(g.flames).toHaveLength(0);
+    g.explode(58, 20.5, 2.5, 5, 0);
+    expect(g.crates).toHaveLength(0);
+    // A couple of flames, not a napalm strike.
+    expect(g.flames.length).toBeGreaterThanOrEqual(1);
+    expect(g.flames.length).toBeLessThanOrEqual(CRATE_FIRE.flames);
+    expect(g.drainEvents().some((e) => e.type === 'ignite')).toBe(true);
+    // And they are out again within a few seconds, so they never hold a turn up.
+    for (const f of g.flames) expect(f.life).toBeLessThanOrEqual(CRATE_FIRE.duration);
+    runUntil(g, () => g.flames.length === 0, 8);
+    expect(g.flames).toHaveLength(0);
+  });
 
   it('teleport onto free land from the second turn on, at most four, never with crates off', () => {
     const off = crateGame(0);

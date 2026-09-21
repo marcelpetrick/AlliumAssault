@@ -33,7 +33,7 @@ import {
 import { clamp, lerp, type Point } from './math';
 import { createBody, glideBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { rngFor, type Rng } from './rng';
-import { CRATE_BLAST, CRATE_HEAL, crateLimit, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
+import { CRATE_BLAST, CRATE_FIRE, CRATE_HEAL, crateLimit, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
 import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './mines';
 import { FLAME_BITE_INTERVAL, FLAME_BITE_RADIUS, spreadFlames, type Flame } from './fire';
 import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
@@ -1364,8 +1364,11 @@ export class Game {
     for (const crate of this.crates.filter((c) => Math.hypot(c.body.x - x, c.body.y - y) < radius + c.body.radius)) {
       // A chained blast may already have taken it; remove it before its own blast so it cannot recurse.
       if (!this.crates.includes(crate)) continue;
+      const { x: cx, y: cy } = crate.body;
       this.removeCrate(crate);
-      this.explode(crate.body.x, crate.body.y, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force);
+      this.explode(cx, cy, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force);
+      // Whatever was in it is burning now — briefly, and only where there is ground to burn on.
+      this.ignite(cx, cy, CRATE_FIRE);
     }
     // Mines go off the same way, in id order, each one out of the list before its own blast.
     for (const mine of [...this.mines].sort((a, b) => a.id - b.id)) {
