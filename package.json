@@ -1,6 +1,6 @@
 {
   "name": "allium-assault",
-  "version": "1.64.0",
+  "version": "1.65.0",
   "description": "Turn-based 3D artillery game with garlic buddies, in the spirit of Worms Armageddon. Runs in the browser.",
   "private": true,
   "type": "module",

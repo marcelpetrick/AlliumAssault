@@ -3,6 +3,7 @@
 
 import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
+import type { MatchSummary } from '../core/stats';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
@@ -22,7 +23,7 @@ import {
 import { drawMapPreview } from './mapPreview';
 import { applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
 
-export type Screen = 'title' | 'setup' | 'help' | 'about' | 'pause' | 'victory';
+export type Screen = 'title' | 'setup' | 'help' | 'about' | 'pause' | 'victory' | 'stats';
 
 export interface MenuActions {
   start(config: MatchConfig): void;
@@ -320,7 +321,16 @@ export class Menu {
       </div>`;
   }
 
-  showVictory(winner: { name: string; color: string } | null, turns: number): void {
+  /** The result of the match that just ended, kept so the two screens can be flipped between. */
+  private summary: MatchSummary | null = null;
+  private result: { winner: { name: string; color: string } | null; turns: number } = { winner: null, turns: 0 };
+
+  showVictory(winner: { name: string; color: string } | null, turns: number, summary?: MatchSummary | null): void {
+    if (summary !== undefined) {
+      this.summary = summary;
+      this.result = { winner, turns };
+    }
+    ({ winner, turns } = this.result);
     this.screen = 'victory';
     this.el.innerHTML = `
       <div class="screen dim">
@@ -329,10 +339,59 @@ export class Menu {
           <h2>${winner ? `${esc(winner.name)} wins!` : 'Draw!'}</h2>
           <p class="lead">${winner ? `Victory after ${turns} turns of pungent combat.` : 'Everybody got peeled.'}</p>
           <div class="stack">
+            ${this.summary ? '<button class="glass" data-action="stats">\u{1f4ca} Match statistics</button>' : ''}
             <button class="primary" data-action="rematch">Rematch on a new map</button>
             <button class="glass" data-action="setup">Change setup</button>
             <button class="ghost" data-action="quit">Title screen</button>
           </div>
+        </div>
+      </div>`;
+  }
+
+  /**
+   * The scoreboard: what each team and each buddy did, and the honours board. Built from the
+   * summary the rules handed over, so nothing here recounts anything.
+   */
+  showStats(): void {
+    const summary = this.summary;
+    if (!summary) {
+      this.showVictory(this.result.winner, this.result.turns);
+      return;
+    }
+    this.screen = 'stats';
+    const pct = (hits: number, shots: number) => (shots > 0 ? `${Math.round((hits / shots) * 100)}%` : '—');
+    this.el.innerHTML = `
+      <div class="screen">
+        <div class="panel wide stats-panel">
+          <header class="panel-head"><button class="ghost" data-action="victory">\u2190 Back</button><h2>Match statistics</h2><span></span></header>
+          <table class="stats-table">
+            <tr><th>Team</th><th>Damage dealt</th><th>Taken</th><th>Own goals</th><th>Shots</th><th>On target</th><th>Lost</th></tr>
+            ${summary.teams
+              .map(
+                (t) =>
+                  `<tr style="--team:${t.colour}"><td><span class="stats-dot"></span>${esc(t.name)}</td><td>${String(t.dealt)}</td><td>${String(t.taken)}</td><td>${String(t.friendly)}</td><td>${String(t.shots)}</td><td>${pct(t.hits, t.shots)}</td><td>${String(t.lost)}</td></tr>`,
+              )
+              .join('')}
+          </table>
+          <h3>Honours</h3>
+          <div class="awards">
+            ${summary.awards
+              .map(
+                (a) =>
+                  `<div class="award"><span class="award-icon">${a.icon}</span><div><b>${esc(a.title)}</b><div class="award-who">${esc(a.who)}</div><small>${esc(a.detail)}</small></div></div>`,
+              )
+              .join('')}
+          </div>
+          <h3>Every buddy</h3>
+          <table class="stats-table">
+            <tr><th>Buddy</th><th>Dealt</th><th>Taken</th><th>Own goals</th><th>Shots</th><th>Crates</th><th>Best hit</th></tr>
+            ${summary.buddies
+              .map(
+                (b) =>
+                  `<tr class="${b.alive ? 'alive' : 'out'}"><td>${b.alive ? '\u{1f9c4}' : '\u{1faa6}'} ${esc(b.name)}</td><td>${String(b.dealt)}</td><td>${String(b.taken)}</td><td>${String(b.friendly)}</td><td>${String(b.shots)}</td><td>${String(b.crates)}</td><td>${String(b.best.amount)}</td></tr>`,
+              )
+              .join('')}
+          </table>
         </div>
       </div>`;
   }
@@ -403,6 +462,14 @@ export class Menu {
         this.persist();
         this.actions.start(structuredClone(d));
         return;
+      case 'stats': {
+        this.showStats();
+        return;
+      }
+      case 'victory': {
+        this.showVictory(this.result.winner, this.result.turns);
+        return;
+      }
       case 'resume': {
         this.actions.resume();
         return;

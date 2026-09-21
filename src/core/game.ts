@@ -33,6 +33,7 @@ import {
 import { clamp, lerp, type Point } from './math';
 import { createBody, glideBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { rngFor, type Rng } from './rng';
+import { MatchStats, type Blame, type MatchSummary, type StatsRoster } from './stats';
 import { CRATE_BLAST, CRATE_FIRE, CRATE_HEAL, crateLimit, openMystery, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
 import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './mines';
 import { FLAME_BITE_INTERVAL, FLAME_BITE_RADIUS, spreadFlames, type Flame } from './fire';
@@ -110,6 +111,8 @@ export class Game {
   graves: Grave[] = [];
   /** Burning napalm patches. */
   flames: Flame[] = [];
+  /** Who last hurt each buddy, so the blow that finishes it can be credited to somebody. */
+  private readonly lastBlow = new Map<number, Blame>();
   /** Game time until which each buddy (by id) is immune to flames after being scorched. */
   private readonly scorchedUntil = new Map<number, number>();
   /** Where each buddy stood before this step, so mine detection can sweep the path it took. */
@@ -144,6 +147,10 @@ export class Game {
   waterRising = false;
 
   private events: GameEvent[] = [];
+  /** Everything the scoreboard shows, counted as it happens. */
+  private readonly statsRecorder = new MatchStats();
+  /** Share of the island that was solid when the match began, for the demolition award. */
+  private readonly groundAtStart: number;
   private readonly windRng: Rng;
   private readonly crateRng: Rng;
   private readonly ai = new Map<number, AiDriver>();
@@ -164,6 +171,7 @@ export class Game {
     }
     this.terrain = defined(terrain, 'generated terrain');
     this.terrain.gravityScale = config.gravity ?? 1;
+    this.groundAtStart = this.terrain.solidFraction();
     this.windRng = rngFor(config.seed, 'wind');
     this.crateRng = rngFor(config.seed, 'crates');
 
@@ -381,6 +389,7 @@ export class Game {
     const target = clamp(x, 0, this.terrain.width);
     team.ammo[def.id] -= 1;
     this.shotsLeft = 0;
+    this.statsRecorder.fired(b.id, def.id, this.roster());
     const payload = defined(def.strike, `${def.id} strike payload`);
     const plan = planStrike(this.terrain, def, target, payload.plane ? this.strikeDir : b.facing, this.wind);
     for (const d of plan.drops) this.drops.push({ weapon: payload.weapon, x: d.x, y: plan.altitude, vx: plan.bombVx, at: this.time + d.delay, owner: b.id });
@@ -415,6 +424,7 @@ export class Game {
     ];
     if (!this.terrain.canPlacePlatform(platform, occupied)) return false;
     this.terrain.addPlatform(platform);
+    this.statsRecorder.fired(b.id, def.id, this.roster());
     team.ammo[def.id] -= 1;
     this.shotsLeft = 0;
     this.emit({ type: 'platformPlaced', weapon: def.id, ...platform });
@@ -441,6 +451,7 @@ export class Game {
     b.body.grounded = false;
     b.body.restTime = 0;
     b.body.impact = 0;
+    this.statsRecorder.fired(b.id, def.id, this.roster());
     team.ammo[def.id] -= 1;
     this.shotsLeft = 0;
     this.emit({ type: 'teleport', weapon: def.id, buddy: b.id, fromX: from.x, fromY: from.y, x, y });
@@ -581,12 +592,12 @@ export class Game {
       if ((hit === 'terrain' || hit === 'target') && def.impacts && p.bounces < def.impacts - 1) {
         // Smash, then keep crashing down through the crater.
         p.bounces++;
-        this.explode(p.x, p.y, def.radius, def.damage, def.force);
+        this.explode(p.x, p.y, def.radius, def.damage, def.force, false, { buddy: p.owner, weapon: p.weapon });
         p.vx *= 0.3;
         p.vy = SMASH_REBOUND;
       } else if (hit === 'terrain' || hit === 'target' || (ticking && p.fuse <= 0)) {
         this.removeProjectile(p);
-        this.explode(p.x, p.y, def.radius, def.damage, def.force, def.flatDamage);
+        this.explode(p.x, p.y, def.radius, def.damage, def.force, def.flatDamage, { buddy: p.owner, weapon: p.weapon });
         if (def.cluster) this.scatter(p, def.cluster);
         if (def.napalm) this.ignite(p.x, p.y, def.napalm);
       } else if (hit === 'water' || hit === 'out') {
@@ -667,7 +678,7 @@ export class Game {
         const def = WEAPONS.mine;
         // Out of the list before its own blast, so a chain can never come back round to it.
         this.removeMine(mine);
-        this.explode(mine.body.x, mine.body.y, def.radius, def.damage, def.force);
+        this.explode(mine.body.x, mine.body.y, def.radius, def.damage, def.force, false, { buddy: mine.owner, weapon: 'mine' });
       }
     }
   }
@@ -723,7 +734,7 @@ export class Game {
       b.body.grounded = false;
       b.body.restTime = 0;
       this.emit({ type: 'scorch', buddy: b.id, x: b.body.x, y: b.body.y });
-      this.damage(b, SCORCH_DAMAGE);
+      this.damage(b, SCORCH_DAMAGE, null);
     }
   }
 
@@ -752,6 +763,7 @@ export class Game {
     } else if (weapon) {
       this.teams[b.team].ammo[weapon] += amount;
     }
+    this.statsRecorder.collected(b.id, this.roster());
     this.emit({ type: 'cratePickup', crate: crate.id, buddy: b.id, kind, weapon, amount, x, y, mystery: crate.kind === 'mystery' });
   }
 
@@ -861,7 +873,7 @@ export class Game {
       t.body.vy = Math.max(torch.dy * def.force, def.force * 0.5);
       t.body.grounded = false;
       t.body.restTime = 0;
-      this.damage(t, def.damage);
+      this.damage(t, def.damage, { buddy: b.id, weapon: def.id });
     }
     if (torch.left <= 0) {
       this.action = null;
@@ -886,7 +898,7 @@ export class Game {
       t.body.vy = def.force * 0.4;
       t.body.grounded = false;
       t.body.restTime = 0;
-      this.damage(t, def.damage);
+      this.damage(t, def.damage, { buddy: b.id, weapon: def.id });
     }
     if (drill.left <= 0) {
       this.action = null;
@@ -1073,7 +1085,10 @@ export class Game {
     if (this.phase === 'guiding') this.startRetreat();
     const at = guided.kind === 'sheep' ? guided.sheep.body : guided.flyer;
     const def = guided.kind === 'sheep' ? WEAPONS.sheep : WEAPONS.flysheep;
-    this.explode(at.x, at.y, def.radius, def.damage, def.force);
+    this.explode(at.x, at.y, def.radius, def.damage, def.force, false, {
+      buddy: guided.kind === 'sheep' ? guided.sheep.owner : guided.flyer.owner,
+      weapon: def.id,
+    });
   }
 
   private startRetreat(): void {
@@ -1120,8 +1135,10 @@ export class Game {
         if (doomed) {
           if (this.phaseTime >= DEATH_DELAY) {
             doomed.alive = false;
+            // Credited to whoever struck the blow that took it to nil, which may have been turns ago.
+            this.statsRecorder.died(doomed.id, this.lastBlow.get(doomed.id) ?? null, false, this.roster());
             this.emit({ type: 'death', buddy: doomed.id });
-            this.explode(doomed.body.x, doomed.body.y, DEATH_BLAST.radius, DEATH_BLAST.damage, DEATH_BLAST.force);
+            this.explode(doomed.body.x, doomed.body.y, DEATH_BLAST.radius, DEATH_BLAST.damage, DEATH_BLAST.force, false, { buddy: doomed.id, weapon: null });
             this.raiseGrave(doomed);
             this.setPhase('settling');
           }
@@ -1225,6 +1242,7 @@ export class Game {
 
     const dir = this.aimDirection(b);
     const m = this.muzzle(b);
+    this.statsRecorder.fired(b.id, def.id, this.roster());
     this.emit({ type: 'fire', weapon: def.id, x: m.x, y: m.y, dx: dir.x, dy: dir.y, power });
 
     if (def.kind === 'projectile') {
@@ -1309,9 +1327,10 @@ export class Game {
     const blast = selfDestructBlast(WEAPONS.selfdestruct, b.hp);
     b.alive = false;
     b.hp = 0;
+    this.statsRecorder.died(b.id, { buddy: b.id, weapon: 'selfdestruct' }, false, this.roster());
     this.action = null;
     this.emit({ type: 'death', buddy: b.id });
-    this.explode(b.body.x, b.body.y, blast.radius, blast.damage, blast.force);
+    this.explode(b.body.x, b.body.y, blast.radius, blast.damage, blast.force, false, { buddy: b.id, weapon: 'selfdestruct' });
     this.raiseGrave(b);
     this.endTurnEarly();
   }
@@ -1346,7 +1365,7 @@ export class Game {
       t.body.vy = v.y;
       t.body.grounded = false;
       t.body.restTime = 0;
-      this.damage(t, def.damage);
+      this.damage(t, def.damage, { buddy: b.id, weapon: def.id });
     }
     this.meleeCarve(b, def, dir, cx, cy);
   }
@@ -1380,7 +1399,7 @@ export class Game {
           victim.body.vy += dir.y * def.force + (def.lift ?? 0);
           victim.body.grounded = false;
           victim.body.restTime = 0;
-          this.damage(victim, def.damage);
+          this.damage(victim, def.damage, { buddy: b.id, weapon: def.id });
           this.emit({ type: 'explosion', x, y, radius: Math.min(def.radius, 0.6) });
         } else if (this.terrain.isSolid(x, y)) {
           this.terrain.carve(x, y, def.radius);
@@ -1391,7 +1410,12 @@ export class Game {
     }
   }
 
-  explode(x: number, y: number, radius: number, damage: number, force: number, flatDamage = false): void {
+  /**
+   * A blast. `by` is whoever is answerable for it — the buddy that fired, and what they fired —
+   * which is the only place that is known, and which the scoreboard needs in order to credit damage
+   * to the player who caused it rather than to whoever happens to be taking the turn.
+   */
+  explode(x: number, y: number, radius: number, damage: number, force: number, flatDamage = false, by: Blame | null = null): void {
     this.terrain.carve(x, y, radius);
     this.emit({ type: 'explosion', x, y, radius });
     for (const b of this.buddies) {
@@ -1408,7 +1432,7 @@ export class Game {
       b.body.vy += ny * force * f + force * 0.35 * f;
       b.body.grounded = false;
       b.body.restTime = 0;
-      this.damage(b, flatDamage ? damage : Math.round(damage * f));
+      this.damage(b, flatDamage ? damage : Math.round(damage * f), by);
     }
     // Tombstones get knocked around like buddies, without taking damage.
     for (const g of this.graves) {
@@ -1427,7 +1451,8 @@ export class Game {
       if (!this.crates.includes(crate)) continue;
       const { x: cx, y: cy } = crate.body;
       this.removeCrate(crate);
-      this.explode(cx, cy, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force);
+      // A chained crate is still the original culprit's doing.
+      this.explode(cx, cy, CRATE_BLAST.radius, CRATE_BLAST.damage, CRATE_BLAST.force, false, by);
       // Whatever was in it is burning now — briefly, and only where there is ground to burn on.
       this.ignite(cx, cy, CRATE_FIRE);
     }
@@ -1436,7 +1461,7 @@ export class Game {
       if (!this.mines.includes(mine) || Math.hypot(mine.body.x - x, mine.body.y - y) >= radius + mine.body.radius) continue;
       const def = WEAPONS.mine;
       this.removeMine(mine);
-      this.explode(mine.body.x, mine.body.y, def.radius, def.damage, def.force);
+      this.explode(mine.body.x, mine.body.y, def.radius, def.damage, def.force, false, { buddy: mine.owner, weapon: 'mine' });
     }
     for (const p of this.projectiles) {
       const dist = Math.hypot(p.x - x, p.y - y);
@@ -1447,9 +1472,11 @@ export class Game {
     }
   }
 
-  private damage(b: Buddy, amount: number): void {
+  private damage(b: Buddy, amount: number, by: Blame | null = null): void {
     if (amount <= 0 || !b.alive) return;
     b.hp = Math.max(0, b.hp - amount);
+    this.statsRecorder.damaged(by, b, amount, this.roster());
+    if (by) this.lastBlow.set(b.id, by);
     this.emit({ type: 'damage', buddy: b.id, amount });
     if (b === this.activeBuddy && this.activeBuddyInPlay) this.endTurnEarly();
   }
@@ -1457,6 +1484,7 @@ export class Game {
   private drown(b: Buddy): void {
     b.alive = false;
     b.hp = 0;
+    this.statsRecorder.died(b.id, null, true, this.roster());
     this.emit({ type: 'drown', buddy: b.id });
     this.emit({ type: 'splash', x: b.body.x, y: this.terrain.waterLevel });
     if (b === this.activeBuddy && this.activeBuddyInPlay) this.endTurnEarly();
@@ -1472,6 +1500,22 @@ export class Game {
 
   private removeProjectile(p: Projectile): void {
     this.projectiles = this.projectiles.filter((q) => q !== p);
+  }
+
+  /** The match as the recorder needs to see it: who is in it, and how far it has run. */
+  private roster(): StatsRoster {
+    return {
+      buddies: this.buddies.map((b) => ({ id: b.id, name: b.name, team: b.team, alive: b.alive })),
+      teams: this.teams.map((t) => ({ index: t.index, name: t.config.name, colour: t.config.color })),
+      turns: this.turn,
+      seconds: this.time,
+      groundLost: Math.max(0, this.groundAtStart - this.terrain.solidFraction()) / Math.max(this.groundAtStart, 1e-6),
+    };
+  }
+
+  /** The scoreboard: everything that happened, worked out once the match is over. */
+  summary(): MatchSummary {
+    return this.statsRecorder.summary(this.roster());
   }
 
   private setPhase(phase: Phase): void {

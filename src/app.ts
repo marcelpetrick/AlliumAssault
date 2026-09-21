@@ -282,7 +282,7 @@ export class App {
     }
     const winner = game.winner === null ? null : game.teams[game.winner].config;
     this.audio.play('victory');
-    this.menu.showVictory(winner && { name: winner.name, color: winner.color }, game.turn);
+    this.menu.showVictory(winner && { name: winner.name, color: winner.color }, game.turn, game.summary());
   }
 
   private dispatch(events: GameEvent[]): void {

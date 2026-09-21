@@ -610,3 +610,55 @@ test('text size scales the whole overlay by one factor: menu, HUD and name tags 
   }
   expect(errors).toEqual([]);
 });
+
+test('match statistics: the victory screen leads to a scoreboard with teams, buddies and awards', async ({ page }, info) => {
+  const errors = await boot(page);
+  // A short, violent duel between two AI teams, so the match reaches a winner on its own. Started
+  // directly rather than through startDuel, which waits for a human turn that never comes.
+  await page.evaluate(() => {
+    window.__allium.startMatch({
+      seed: 'e2e-stats',
+      teams: [
+        { name: 'Reds', color: '#ef4b3c', controller: 'ai', aiLevel: 'hard', buddyNames: ['Rocco'] },
+        { name: 'Blues', color: '#3d8bfd', controller: 'ai', aiLevel: 'hard', buddyNames: ['Bruno'] },
+      ],
+      turnTime: 10,
+      retreatTime: 1,
+      windMax: 0,
+      crates: 0,
+      theme: 'meadow',
+    });
+  });
+  await page.keyboard.press('Shift');
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 400 && app.game!.phase !== 'gameOver'; k++) app.fastForward(1 / 60);
+  });
+  await waitFor(page, (s) => s.screen === 'victory', 30_000);
+
+  await page.getByRole('button', { name: /Match statistics/ }).click();
+  await expect(page.getByRole('heading', { name: 'Match statistics' })).toBeVisible();
+
+  // Both teams are in the per-team table, with numbers rather than blanks.
+  const teamRows = await page.locator('.stats-table').first().locator('tr').allTextContents();
+  expect(teamRows.join(' ')).toContain('Reds');
+  expect(teamRows.join(' ')).toContain('Blues');
+
+  // At least a couple of awards, each naming somebody and saying something.
+  const awards = page.locator('.award');
+  expect(await awards.count()).toBeGreaterThanOrEqual(2);
+  for (const text of await awards.allTextContents()) expect(text.trim().length).toBeGreaterThan(4);
+  // The match length is always a fact, whatever else happened.
+  expect((await awards.allTextContents()).join(' ')).toContain('turns');
+
+  // Every buddy is listed by name.
+  const buddyTable = await page.locator('.stats-table').last().allTextContents();
+  expect(buddyTable.join(' ')).toContain('Rocco');
+  expect(buddyTable.join(' ')).toContain('Bruno');
+  await info.attach('statistics', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // Back to the victory screen, and the winner is still there.
+  await page.getByRole('button', { name: /Back/ }).click();
+  await expect(page.getByRole('button', { name: /Rematch/ })).toBeVisible();
+  expect(errors).toEqual([]);
+});

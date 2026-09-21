@@ -120,7 +120,7 @@ Status: ☐ open · ☑ done
 | T106 | Graphics setting in the setup: Full or Low, saved, with `?quality=low` still forcing Low                  | ☑      | 1.57.0         |
 | T107 | Full project review (code, architecture, documentation), then fix every finding                           | ☑      | 1.57.1         |
 | T108 | Teleport: show a blue cross at the cursor, so the player sees where the buddy will arrive                 | ☑      | 1.59.0         |
-| T109 | End-of-match statistics screen: damage, favourite weapon, best and worst, and funnier awards              | ☐      |                |
+| T109 | End-of-match statistics screen: damage, favourite weapon, best and worst, and funnier awards              | ☑      | 1.65.0         |
 | T110 | Settings: a versioned, robust store in the browser that still loads a config written by an older build    | ☑      | 1.58.0         |
 | T111 | Setup screen: put the map seed in the same row as the map preview                                         | ☑      | 1.58.1         |
 | T112 | Setup screen: keep Start Battle visible instead of letting the options scroll over it                     | ☑      | 1.58.1         |

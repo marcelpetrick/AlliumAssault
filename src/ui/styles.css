@@ -1167,3 +1167,81 @@ kbd {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ── Match statistics ─────────────────────────────────────────────── */
+
+.stats-panel h3 {
+  margin: 22px 0 10px;
+  font-size: 18px;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.stats-table th {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-weight: 600;
+  text-align: right;
+}
+
+.stats-table th:first-child,
+.stats-table td:first-child {
+  text-align: left;
+}
+
+.stats-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-table tr.out td {
+  color: var(--muted);
+}
+
+/* The team's own colour, as a dot beside its name. */
+.stats-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--team, #fff);
+}
+
+/* The honours board: one card per award, wrapping into as many columns as fit. */
+.awards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.award {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 5%);
+}
+
+.award-icon {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.award-who {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.award small {
+  color: var(--muted);
+}

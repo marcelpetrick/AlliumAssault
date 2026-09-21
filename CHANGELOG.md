@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.65.0] — 2026-09-22
+
+### Added
+
+- **A statistics screen at the end of a match.** The victory screen now leads to a scoreboard: a
+  per-team table of damage dealt and taken, own goals, shots and accuracy; an honours board; and a
+  line for every buddy. The awards include the most valuable buddy, the biggest single blow, the
+  own goal of the match, the deadeye and the butterfingers, the crate hoarder, who went swimming,
+  who came through without a scratch, who never fired a shot, the weapon of the match, how much of
+  the island was blasted away, and how long it all took. An award nobody earned is left out
+  entirely, so a short quiet match shows three lines rather than a dozen empty ones.
+- Damage is now attributed: every blast carries the buddy that caused it and the weapon that made
+  it, all the way through chained crates and mines, so the scoreboard credits the player who did
+  the damage rather than whoever happened to be taking the turn.
+
 ## [1.64.0] — 2026-09-22
 
 ### Changed
