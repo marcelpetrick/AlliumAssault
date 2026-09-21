@@ -866,6 +866,34 @@ describe('sudden death', () => {
     expect(g.terrain.waterLevel).toBe(initial + 3 * SUDDEN_DEATH_WATER_RISE);
   });
 
+  it('ends the turn at once when the water drowns the buddy whose turn it is', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 2, turnTime: 45 });
+    toTurn(g, 2);
+    // The buddy that plays next sits in a pit; its opponent stays on high ground.
+    const victim = g.buddies[0];
+    g.terrain.carve(victim.body.x, 18, 3);
+    expect(runUntil(g, () => victim.body.grounded && victim.body.y < 17, 5)).toBe(true);
+    // One more rise puts the pit under water, the open ground stays dry.
+    g.terrain.waterLevel = victim.body.y - SUDDEN_DEATH_WATER_RISE + 0.5;
+    g.skipTurn();
+    expect(runUntil(g, () => g.turn === 3, 20)).toBe(true);
+    expect(g.activeBuddy).toBe(victim);
+    // The clock says 45 seconds, but a drowned buddy's turn is over within its intro.
+    expect(runUntil(g, () => !victim.alive, 3)).toBe(true);
+    expect(g.buddies[1].alive).toBe(true);
+    expect(runUntil(g, () => g.phase !== 'turnStart', 3)).toBe(true);
+    expect(g.phase).not.toBe('aiming');
+    expect(runUntil(g, () => g.phase === 'gameOver', 20)).toBe(true);
+  });
+
+  it('announces every rise, so the camera and the HUD can show it', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 2, turnTime: 1 });
+    toTurn(g, 3);
+    const rises = g.drainEvents().filter((e) => e.type === 'waterRise');
+    expect(rises).toHaveLength(1);
+    expect(rises[0].level).toBe(g.terrain.waterLevel);
+  });
+
   it('drowns a buddy sheltered under a rock roof once the water reaches it', () => {
     const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 2, turnTime: 1 });
     const buddy = g.buddies[0];

@@ -30,6 +30,8 @@ export const WIND_ACCEL = 12;
 export const INTRO_TIME = 1.2;
 /** Extra turn-intro time when a crate teleports in, so the camera can show it. */
 export const CRATE_INTRO_TIME = 1.3;
+/** Extra turn intro while the camera shows the Sudden Death water climbing. */
+export const WATER_INTRO_TIME = 1.4;
 export const DEATH_DELAY = 0.7;
 export const SETTLE_MIN = 0.6;
 export const SETTLE_MAX = 15;

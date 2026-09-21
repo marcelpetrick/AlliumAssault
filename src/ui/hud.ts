@@ -126,6 +126,9 @@ export class Hud {
           this.banner(team.name, `${buddy?.name ?? ''} is up${team.controller === 'ai' ? ' · 🤖' : ''}`, team.color);
           break;
         }
+        case 'waterRise':
+          this.float('🌊 rising', e.x, e.level + 2.4, '#7fd8ff');
+          break;
         case 'suddenDeath':
           this.banner('Sudden Death!', '1 HP each — and the water rises every turn!', '#ff5a3c');
           break;

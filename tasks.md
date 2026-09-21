@@ -94,7 +94,7 @@ Status: ☐ open · ☑ done
 | T80 | Public release v1.44.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.44.0         |
 | T81 | Turn timer: the number overlaps the ring at larger text sizes — make it fit, and keep it pretty           | ☑      | 1.47.2         |
 | T82 | Explosions: thinner and more translucent, with chunks of earth thrown out of the crater                   | ☐      |                |
-| T83 | Sudden Death: show the rising water with the camera, and end a turn the moment the active buddy drowns    | ☐      |                |
+| T83 | Sudden Death: show the rising water with the camera, and end a turn the moment the active buddy drowns    | ☑      | 1.48.0         |
 | T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☐      |                |
 | T85 | Napalm: flames burn longer and eat into the ground                                                        | ☐      |                |
 | T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☐      |                |
@@ -102,19 +102,17 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Make Sudden Death readable: the camera shows the water climbing at the start of a turn, and a
-   turn ends the moment the active buddy drowns instead of running the clock out (T83).
-2. Napalm burns longer and eats into the ground it burns on (T85).
-3. Rework the explosion look: fewer, more translucent particles, plus chunks of earth thrown out of
+1. Napalm burns longer and eats into the ground it burns on (T85).
+2. Rework the explosion look: fewer, more translucent particles, plus chunks of earth thrown out of
    a crater in the ground (T82).
-4. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
+3. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
    lands like any other body (T84).
-5. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
+4. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
    one, add teleport and platform sounds, and write the choices down (T86).
-6. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
+5. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
    translucent on-screen controls that are off by default — and write it up in
    `touchdisplay_support_ideation.md`. Ideation only, no implementation (T87).
-7. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
+6. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
    each versioned, local commit. Do not push or tag without being asked.
 
 ## Answered questions
@@ -472,6 +470,21 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T83 — Sudden Death you can see, and no turn wasted on a drowned buddy ☑
+
+Done in 1.48.0. Two problems: the water climbed silently at the start of a turn, which players only
+noticed once it had swallowed something, and a buddy the flood took during its own turn intro left
+the match standing still until its 45-second clock ran out — `damage()` and `drown()` end a turn
+only in the phases where the team is really playing, and the intro is not one of them.
+
+`raiseWater` now reports that it moved and emits a `waterRise` event with the new level. The turn
+intro grows by 1.4 s, the camera holds on the waterline for it — the same mechanism a freshly
+teleported crate uses — and the HUD floats a "🌊 rising" label there. And one rule was added to the
+step: a buddy that is no longer alive during its own `turnStart` ends the turn at once. Unit tests
+cover the event and the turn handover, a browser test checks that the camera dips from the buddy
+towards the water and that a drowned buddy's turn is over inside the intro with the full clock
+untouched.
 
 ### T81 — Turn timer fits its ring ☑
 

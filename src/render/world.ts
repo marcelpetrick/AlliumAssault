@@ -164,6 +164,7 @@ export class World {
 
   handleEvents(events: GameEvent[]): void {
     let crateArrived: { x: number; y: number } | null = null;
+    let waterRose: { x: number; y: number } | null = null;
     for (const e of events) {
       switch (e.type) {
         case 'explosion':
@@ -216,15 +217,20 @@ export class World {
           if (finder) this.effects.pickup(finder.body.x, finder.body.y + 0.5, e.kind === 'health');
           break;
         }
+        case 'waterRise':
+          waterRose = { x: e.x, y: e.level };
+          break;
         case 'turnStart':
           this.manualUntil = -1;
           this.hold = null;
           break;
       }
     }
-    // Show a freshly teleported crate during the turn intro (after turnStart reset the camera).
-    if (crateArrived) {
-      this.hold = { x: crateArrived.x, y: crateArrived.y + 1, until: this.time + this.game.introTime };
+    // Show what changed during the turn intro, after turnStart reset the camera: the water that
+    // just climbed first, then a freshly teleported crate, which is the later half of the intro.
+    const attention = crateArrived ?? (waterRose ? { x: waterRose.x, y: waterRose.y + 2 } : null);
+    if (attention) {
+      this.hold = { x: attention.x, y: attention.y, until: this.time + this.game.introTime };
       this.manualUntil = -1;
     }
   }

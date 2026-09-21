@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.48.0] — 2026-09-21
+
+### Added
+
+- The Sudden Death flood is now shown: the turn intro is a little longer and the camera holds on
+  the waterline as it climbs, with a floating "rising" label.
+
+### Fixed
+
+- A buddy drowned by the rising water during its own turn intro no longer holds the match up until
+  its turn clock runs out; the turn is handed on at once.
+
 ## [1.47.2] — 2026-09-21
 
 ### Fixed

@@ -14,6 +14,7 @@ import {
   DEATH_DELAY,
   FALL_DAMAGE_PER_SPEED,
   CRATE_INTRO_TIME,
+  WATER_INTRO_TIME,
   INTRO_TIME,
   JUMP,
   MUZZLE_OFFSET,
@@ -178,6 +179,7 @@ export type GameEvent =
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number; x: number; y: number }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'suddenDeath'; turn: number }
+  | { type: 'waterRise'; level: number; x: number }
   | { type: 'platformPlaced'; weapon: WeaponId; x: number; y: number; angle: number }
   | { type: 'gameOver'; winner: number | null };
 
@@ -619,6 +621,10 @@ export class Game {
     this.time += dt;
     this.phaseTime += dt;
     const active = this.activeBuddy;
+    // A buddy that dies during its own turn intro — drowned by the water that just rose, blown up
+    // by a mine it was standing on — must not hold the match up: later phases already end the turn
+    // through damage() and drown(), but the intro is not one of them.
+    if (active && !active.alive && this.phase === 'turnStart') this.endTurnEarly();
 
     if (this.acting && !this.isHumanTurn) this.ai.get(this.activeTeam)?.update(this, dt);
 
@@ -1234,11 +1240,17 @@ export class Game {
   /**
    * The flood climbs one step per turn, not per second: a player who sits out the whole turn timer
    * must not drown the others faster than one who plays it. The strike turn itself stays dry, so
-   * the announcement and the first rise do not land together.
+   * the announcement and the first rise do not land together. Returns whether the water moved, so
+   * the turn intro can give the camera time to show it.
    */
-  private raiseWater(): void {
-    if (!this.waterRising) return;
-    this.terrain.waterLevel = Math.min(this.terrain.height - 1, this.terrain.waterLevel + SUDDEN_DEATH_WATER_RISE);
+  private raiseWater(): boolean {
+    if (!this.waterRising) return false;
+    const before = this.terrain.waterLevel;
+    this.terrain.waterLevel = Math.min(this.terrain.height - 1, before + SUDDEN_DEATH_WATER_RISE);
+    if (this.terrain.waterLevel === before) return false;
+    // Announced at the active buddy, which is where the camera is about to look anyway.
+    this.emit({ type: 'waterRise', level: this.terrain.waterLevel, x: this.activeBuddy?.body.x ?? this.terrain.width / 2 });
+    return true;
   }
 
   private beginTurn(): void {
@@ -1259,9 +1271,9 @@ export class Game {
       break;
     }
     this.turn++;
-    this.raiseWater();
+    const flooded = this.raiseWater();
     const suddenDeath = this.checkSuddenDeath();
-    this.introTime = this.dropCrates() > 0 ? INTRO_TIME + CRATE_INTRO_TIME : INTRO_TIME;
+    this.introTime = INTRO_TIME + (this.dropCrates() > 0 ? CRATE_INTRO_TIME : 0) + (flooded ? WATER_INTRO_TIME : 0);
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;

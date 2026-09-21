@@ -477,6 +477,69 @@ test('HUD: weapon bar lists every weapon with ammo and follows the selection', a
   expect(errors).toEqual([]);
 });
 
+test('sudden death: the camera shows the water climbing and a drowned buddy ends its turn', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page, { suddenDeath: 2, turnTime: 45 });
+  const toTurn = (turn: number) =>
+    page.evaluate((target) => {
+      const app = window.__allium.app;
+      const g = app.game!;
+      for (let k = 0; k < 3600 && g.turn < target && g.phase !== 'gameOver'; k++) {
+        if (g.phase === 'aiming') g.skipTurn();
+        app.fastForward(1 / 60);
+      }
+    }, turn);
+
+  // Turn 3 is the first one the water rises on; the buddies are twenty units above it.
+  await toTurn(3);
+  await waitFor(page, (s) => s.turn >= 3 && s.waterRising, 30_000);
+  const risen = await state(page);
+  expect(risen.waterLevel).toBeGreaterThan(3);
+  await page.evaluate(() => {
+    window.__allium.stepFrames(45, 1 / 30);
+  });
+  const looking = await state(page);
+  const buddy = looking.buddies.find((b) => b.name === looking.activeBuddy)!;
+  // The camera left the buddy and dipped towards the water it just raised.
+  expect(looking.camera!.y).toBeLessThan((buddy.y + looking.waterLevel) / 2);
+  await info.attach('rising-water', { body: await page.screenshot(), contentType: 'image/png' });
+  await page.evaluate(() => {
+    window.__allium.setManual(false);
+  });
+
+  // Now flood the buddy whose turn comes next, leaving its opponent safe on a pillar.
+  const drowning = await page.evaluate(() => {
+    const app = window.__allium.app;
+    const g = app.game!;
+    // The buddy that plays next drowns; the one playing now is lifted onto a pillar.
+    const safe = g.activeBuddy!;
+    const victim = g.buddies.find((b) => b !== safe)!;
+    g.terrain.addDisc(safe.body.x, 23, 3.2);
+    safe.body.y = 28;
+    safe.body.vy = 0;
+    safe.body.grounded = false;
+    // A second is plenty for the short drop onto the pillar.
+    app.fastForward(1);
+    g.terrain.waterLevel = victim.body.y - 0.2;
+    return { name: victim.name, turn: g.turn };
+  });
+  await toTurn(drowning.turn + 1);
+  await page.waitForFunction((turn) => window.__allium.state().turn === turn, drowning.turn + 1, { timeout: 30_000, polling: 'raf' });
+  expect((await state(page)).activeBuddy).toBe(drowning.name);
+
+  // Its turn is over inside the intro, with the whole 45 seconds still on the clock.
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 600 && app.game!.phase === 'turnStart'; k++) app.fastForward(1 / 60);
+  });
+  const after = await state(page);
+  expect(after.buddies.find((b) => b.name === drowning.name)!.alive).toBe(false);
+  expect(after.phase).not.toBe('aiming');
+  expect(after.phase).not.toBe('turnStart');
+  expect(after.turnTimeLeft).toBeGreaterThan(40);
+  expect(errors).toEqual([]);
+});
+
 test('sudden death: 1 HP, siren, banner and rising visible water', async ({ page }, info) => {
   const errors = await boot(page);
   // A turn long enough to sit out for a while: the water must not move until the next one starts.
