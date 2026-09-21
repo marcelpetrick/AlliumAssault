@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.43.2] — 2026-09-21
+
+### Changed
+
+- Browser tests now cover ordinary movement as well as weapons: a jump that lands safely, a long
+  fall that costs health, and the drill digging through a hollow without fall damage.
+
 ## [1.43.1] — 2026-09-21
 
 ### Fixed

@@ -82,7 +82,7 @@ Status: ☐ open · ☑ done
 | T68 | Investigate Firefox fire visibility and strengthen explosion, napalm and blowtorch effects                | ☑      | 1.40.1         |
 | T69 | Review fire effects again, including lifecycle and browser behavior                                       | ☐      |                |
 | T70 | Raise enforced core test coverage above 98% for statements, branches, functions and lines                 | ☐      |                |
-| T71 | Expand E2E movement, landing and drill fall scenarios                                                     | ☐      |                |
+| T71 | Expand E2E movement, landing and drill fall scenarios                                                     | ☑      | 1.43.2         |
 | T72 | Raise the water continuously once Sudden Death begins                                                     | ☑      | 1.42.0         |
 | T73 | Include Rope in the starting arsenal even when special weapons require crates                             | ☑      | 1.41.0         |
 | T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☑      | 1.43.0         |
@@ -94,19 +94,18 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Add browser scenarios for ordinary and hard landings, jumping and a drill-cushioned fall (T71).
-2. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
+1. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
    more than 98% in each of the four Vitest metrics without excluding reachable code (T70).
-3. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
+2. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
    issue, and verify that the new meshes leave no active objects after their effects end (T69).
-4. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
+3. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
    scenery changes, so the map is visible before the match starts (T75).
-5. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
+4. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
    scales the gravity used by buddies, projectiles and everything else that falls, and reaches the
    core through the match configuration (T76).
-6. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
-7. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-8. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+5. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
+6. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+7. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -135,6 +134,14 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
+
+### T71 — Movement, landing and drill scenarios in the browser ☑
+
+Added in 1.43.2. The browser suite checked weapons and features but never the plain act of moving
+about. Two scenarios close that: a jump that rises more than a unit, comes back to the same ground
+unhurt and thuds on landing, followed by a ten-unit drop onto the same spot that costs health; and
+a drill started over a hollow that digs the buddy through it and down past it with full health,
+which is the fall-damage exemption the drill is supposed to give.
 
 ### T78 — One water rise per turn ☑
 

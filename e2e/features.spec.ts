@@ -190,6 +190,60 @@ test('movement sounds: footsteps while walking, a hup when jumping, a thud on la
   expect(errors).toEqual([]);
 });
 
+test('a jump rises and lands safely, while a long unprotected fall costs health', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    const b = g.activeBuddy!;
+    Object.assign(b.body, { x: 40, y: 20.65, vx: 0, vy: 0, grounded: true });
+    // Keep the other buddy out of the way of everything that follows.
+    g.buddies.find((other) => other !== b)!.body.x = 100;
+  });
+  const initial = await state(page);
+  const jumper = initial.buddies.find((b) => b.name === initial.activeBuddy)!;
+  await page.keyboard.press('Enter');
+  await fastForward(page, 0.3);
+  expect((await state(page)).buddies.find((b) => b.name === jumper.name)!.y).toBeGreaterThan(jumper.y + 1);
+  await fastForward(page, 2);
+  const landed = (await state(page)).buddies.find((b) => b.name === jumper.name)!;
+  expect(landed.y).toBeCloseTo(jumper.y, 1);
+  expect(landed.hp).toBe(100);
+
+  // Dropped from ten units up, the same landing hurts and thuds.
+  await page.evaluate(() => {
+    Object.assign(window.__allium.app.game!.activeBuddy!.body, { y: 31, vx: 0, vy: 0, grounded: false });
+  });
+  await fastForward(page, 2);
+  expect((await state(page)).buddies.find((b) => b.name === jumper.name)!.hp).toBeLessThan(100);
+  await waitForSound(page, 'land');
+  expect(errors).toEqual([]);
+});
+
+test('the drill digs down through a cave and cushions the fall through it', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    // A hollow under the buddy: falling into it unprotected would hurt.
+    g.terrain.carve(40, 14, 4);
+    Object.assign(g.activeBuddy!.body, { x: 40, y: 20.65, vx: 0, vy: 0, grounded: true });
+    g.buddies.find((b) => b !== g.activeBuddy)!.body.x = 100;
+  });
+  await select(page, 'Shift+6', 'drill');
+  await page.keyboard.press('Space');
+  await fastForward(page, 2);
+  const result = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    return { y: g.activeBuddy!.body.y, hp: g.activeBuddy!.hp };
+  });
+  expect(result.y).toBeLessThan(12);
+  expect(result.hp).toBe(100);
+  expect(errors).toEqual([]);
+});
+
 test('HUD: weapon bar lists every weapon with ammo and follows the selection', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
