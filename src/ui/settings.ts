@@ -2,19 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { AiLevel, Controller, MatchConfig, TeamConfig } from '../core/game';
-import type { Quality } from '../render/world';
+import { QUALITY_OPTIONS, type Quality } from '../render/quality';
 import { THEME_IDS } from '../render/themes';
-import {
-  ARSENAL_OPTIONS,
-  CRATE_OPTIONS,
-  GRAVITY_OPTIONS,
-  QUALITY_OPTIONS,
-  quickMatch,
-  randomSeed,
-  SUDDEN_DEATH_OPTIONS,
-  TURN_OPTIONS,
-  WIND_OPTIONS,
-} from './presets';
+import { ARSENAL_OPTIONS, CRATE_OPTIONS, GRAVITY_OPTIONS, quickMatch, randomSeed, SUDDEN_DEATH_OPTIONS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
 
 export type TextSize = 'normal' | 'large' | 'huge';
 

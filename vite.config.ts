@@ -7,8 +7,9 @@ export default defineConfig({
   base: './',
   build: {
     target: 'es2022',
-    // Babylon.js is one large chunk by design; it is cached after the first load.
-    chunkSizeWarningLimit: 8000,
+    // Just above the real entry chunk, so importing Babylon from its package root again — which
+    // quadrupled the bundle before 1.56.0 — is loud instead of silent. See docs/PERFORMANCE.md.
+    chunkSizeWarningLimit: 1800,
   },
   test: {
     include: ['tests/**/*.test.ts'],

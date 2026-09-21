@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { Quality } from '../render/world';
 import { DEFAULT_CRATE_CHANCE } from '../core/crates';
 import type { AiLevel, Arsenal, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { shuffle } from '../core/rng';
@@ -60,21 +59,13 @@ export const GRAVITY_OPTIONS = [
   { label: 'Normal', value: 1 },
   { label: 'Heavy', value: 1.5 },
 ];
-/**
- * How much the renderer is allowed to spend. Full is the default and stays the default: shadows,
- * bloom, antialiasing and the full pixel density, even where that costs frames. Low is for weak
- * GPUs and is what `?quality=low` in the URL selects.
- */
-export const QUALITY_OPTIONS: { label: string; value: Quality }[] = [
-  { label: 'Full', value: 'high' },
-  { label: 'Low (weak GPU)', value: 'low' },
-];
 export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },
   { label: 'Normal', value: DEFAULT_CRATE_CHANCE },
   { label: 'Lots', value: 0.7 },
   // From 1 upwards the value is a guaranteed number of crates per turn instead of a chance.
-  { label: 'Craziness', value: 2 },
+  // "Cratyness" is spelt exactly so on purpose: crates plus craziness.
+  { label: 'Cratyness', value: 2 },
 ];
 
 export const randomSeed = (): string => Math.random().toString(36).slice(2, 8);

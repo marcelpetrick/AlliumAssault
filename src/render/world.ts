@@ -32,8 +32,9 @@ import { Environment } from './environment';
 import { PlatformView } from './platformView';
 import { TerrainView } from './terrainView';
 import type { Theme } from './themes';
+import type { Quality } from './quality';
 
-export type Quality = 'high' | 'low';
+export type { Quality };
 
 const MIN_DISTANCE = 12;
 const MAX_DISTANCE = 85;
@@ -71,7 +72,8 @@ export class World {
     engine: AbstractEngine,
     readonly game: Game,
     readonly theme: Theme,
-    quality: Quality,
+    /** The budget this scene was built with; it cannot change without rebuilding the scene. */
+    readonly quality: Quality,
   ) {
     const scene = new Scene(engine);
     this.scene = scene;
@@ -322,11 +324,6 @@ export class World {
   /** Camera distance the zoom is easing towards (for tests). */
   get zoomDistance(): number {
     return this.goalDistance;
-  }
-
-  /** Whether this scene was built with the shadow cascade, i.e. at full graphics (for tests). */
-  get castsShadows(): boolean {
-    return this.shadows !== null;
   }
 
   /** World point the camera is centred on (for tests). */

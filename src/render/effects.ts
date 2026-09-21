@@ -1161,7 +1161,6 @@ export class Effects {
     return { node, trail: null };
   }
 
-  /** Solid emissive geometry makes the impact readable even between sparse particle frames. */
   /**
    * Lumps of earth thrown out of a crater: small tumbling boxes in the scenery's own dirt colour,
    * ballistic and short-lived. They are meshes rather than particles because a handful of solid,

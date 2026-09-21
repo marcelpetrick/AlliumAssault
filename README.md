@@ -80,7 +80,7 @@ the pixel density is halved.
   through every turn until somebody walks into them. Rock between a mine and a buddy shields it, and
   a blast sets mines off in a chain.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
-  25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots / Craziness (two fresh
+  25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots / Cratyness (two fresh
   crates every single turn, up to eight on the map) in the setup. A hopping
   sheep or a Super Sheep that runs over a crate collects it for the buddy that launched it, without
   going off.
@@ -169,7 +169,8 @@ src/
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
 │   ├── weapons.ts   weapon table (21 weapons by kind), arsenal flags, hotkey mapping
-│   ├── game.ts      match state machine, turns, weapon execution, damage, crates, mines, flames, tombstones
+│   ├── match.ts     what a match is made of: config, buddies, teams, phases, turn actions, events
+│   ├── game.ts      the state machine over them: turns, weapon execution, damage, crates, mines, flames
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep
 │   ├── strike.ts    air strike, napalm and concrete mule drop planning
 │   ├── fire.ts      napalm flames on the ground · crates.ts seeded crate contents and spots
@@ -180,7 +181,8 @@ src/
 ├── ui/       HTML/CSS overlay: title, setup, HUD, help, about, pause, victory; persisted settings
 ├── audio.ts  Web Audio synthesizer
 └── app.ts    engine, fixed 60 Hz loop, input, wiring
-scripts/      SPDX check and fixer, README media capture
+bench/        core.bench.ts — what one simulation step costs, stage by stage (npm run profile)
+scripts/      SPDX check and fixer, README media capture, README history chart
 ```
 
 Terrain is a scalar field sampled every 0.25 units: positive values are rock and approximate the

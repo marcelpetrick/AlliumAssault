@@ -118,17 +118,88 @@ Status: ☐ open · ☑ done
 | T104 | Profiling run across every stage of play, best-practice audit of the stack, then the fixes worth making   | ☑      | 1.56.0         |
 | T105 | Tidy the repository root: fewer Markdown files, the rest moved into folders and linked                    | ☐      |                |
 | T106 | Graphics setting in the setup: Full or Low, saved, with `?quality=low` still forcing Low                  | ☑      | 1.57.0         |
+| T107 | Full project review (code, architecture, documentation), then fix every finding                           | ☑      | 1.57.1         |
+| T108 | Teleport: show a blue cross at the cursor, so the player sees where the buddy will arrive                 | ☐      |                |
+| T109 | End-of-match statistics screen: damage, favourite weapon, best and worst, and funnier awards              | ☐      |                |
+| T110 | Settings: a versioned, robust store in the browser that still loads a config written by an older build    | ☐      |                |
+| T111 | Setup screen: put the map seed in the same row as the map preview                                         | ☐      |                |
+| T112 | Setup screen: keep Start Battle visible instead of letting the options scroll over it                     | ☐      |                |
+| T113 | One text scale for the whole game: menus, setup and HUD grow together, in every size mode                 | ☐      |                |
+| T114 | Flamethrower: three seconds of burning fuel, steered with up/down, blown by wind, leaves a fire carpet    | ☐      |                |
+| T115 | Garlic punch: boxing gloves on the buddy, and an upward punch that knocks a hole in the ceiling           | ☐      |                |
+| T116 | Drill: a jackhammer animation while it runs, instead of a bit that just hangs there                       | ☐      |                |
+| T117 | Mystery crate: a clown box with a question mark, random contents — a goodie, or a mine that arms itself   | ☐      |                |
+| T118 | Languages: English (default), German, Croatian in a Split accent, and Mandarin, chosen in the setup       | ☐      |                |
+| T119 | Scale the sheep weapon model up by 50%, so it reads as a sheep rather than a dot                          | ☐      |                |
 
 ## Current implementation plan
 
-1. **T105 — tidy the root.** Eight Markdown files sit in the repository root. `README.md`,
-   `CHANGELOG.md` and `AGENTS.md` belong there; `CONTRIBUTING.md` and `SECURITY.md` are just as at
-   home in `.github/`, which GitHub reads as well; and `tasks.md`, `review.md` and
-   `touchdisplay_support_ideation.md` belong in `docs/`. Everything that links to them — the README
-   first — moves with them, and `docs/` gets an index so the pile is navigable.
+1. **T107 — the review and its fixes.** A full review of the project as it stands — code,
+   architecture and documentation, up to ten findings each — then every finding fixed one by one,
+   each with the tests that prove it, and a public release at the end.
 
-2. `npm run verify` stays green before every versioned, local commit; nothing is pushed or tagged
-   without being asked.
+2. **T108 — the teleport cursor.** The air strike and the platform both draw where they will act;
+   the teleport does not, so the player clicks blind. A blue cross follows the mouse while the
+   teleport is selected, marking the spot the buddy will arrive at.
+
+3. **T109 — the statistics screen.** When a match ends — a winner, or a draw when the last teams
+   go together — the victory screen leads to a scoreboard. A per-team table (damage dealt and
+   taken, buddies lost, shots fired, accuracy) and a row of awards: most valuable buddy, biggest
+   single hit, own goal, deadeye and butterfingers, the match's favourite weapon, how much of the
+   island was blasted away, crates hoarded, drownings, and who came through untouched. The numbers
+   are collected in `src/core` so they can be unit tested; damage is attributed to whoever caused
+   the blast, which means threading the culprit through `explode()` and `damage()`.
+
+4. **T110–T112 — the setup screen and what it remembers.** The settings already survive a
+   reload, but nothing says which version wrote them; the store gets a schema version and an
+   explicit migration so a config from an older build still opens, and the field-by-field
+   validation stays as the last line of defence. In the screen itself the map seed moves up beside
+   the preview it feeds, and Start Battle is pinned so the options can never scroll over it.
+
+5. **T113 — one text scale.** Text size is meant to scale the whole overlay, but parts of it are
+   written in fixed pixels, so at Large and Huge the menu grows while the HUD stays put and the
+   screen looks mismatched. Every font size in the overlay is expressed in the same scaled unit,
+   and the browser suite checks a menu and a HUD element grow by the same factor in all three modes.
+
+6. **T114 — the flamethrower.** A nozzle that sprays burning fuel for three seconds. Up and down
+   steer it while it runs; each gob is a little projectile that wind and gravity carry, and where it
+   lands it goes on burning, so a sweep lays a carpet of fire across the ground. Damage is
+   mediocre on purpose — the point is to drive a buddy out of cover and across the flames rather
+   than to kill it outright. New weapon kind, a new turn action and phase, a held model, a spray
+   effect, a roaring sound, unit tests and a browser test.
+
+7. **T115 — the boxing glove.** The punch gets a glove the buddy actually wears, and teeth: aimed
+   upwards it drives a shaft straight through the rock overhead, so a buddy boxed in under a ledge
+   can punch its own way out. Terrain damage follows the aim rather than the blast, and the glove
+   is a held model like every other weapon's.
+
+8. **T116 — the jackhammer.** The drill currently hangs under the buddy and only the dust says it
+   is working. It gets a real reciprocating action: the bit hammers up and down, the buddy shakes
+   with it, and the whole thing sinks as the shaft deepens.
+
+9. **T117 — the mystery crate.** A third kind of crate, a clown box with a question mark on its
+   side, whose contents are rolled when it is opened rather than when it drops: health, a weapon,
+   or a mine that arms itself on the spot and catches whoever was greedy. Seeded like everything
+   else, so the same map plays the same way twice.
+
+10. **T118 — four languages.** Every string the player reads — menus, HUD, hints, banners, weapon
+    names and blurbs, the statistics screen — moves into a catalogue with one entry per language:
+    English as the default and the fallback, German, Croatian written the way it is spoken in Split,
+    and Mandarin. The choice sits with the other preferences, is persisted, and is picked up from
+    the browser's own language the first time. A test walks every screen in every language and
+    fails on a missing key.
+
+11. **T119 — a bigger sheep.** The hopping sheep and the flying sheep are drawn half again as
+    large, so what bounds across the island actually looks like a sheep. Only the model grows; the
+    collision radius and the blast stay where the rules put them.
+
+12. **T105 — tidy the root.** Eight Markdown files sit in the repository root. `README.md`,
+    `CHANGELOG.md` and `AGENTS.md` belong there; `CONTRIBUTING.md` and `SECURITY.md` are just as at
+    home in `.github/`, which GitHub reads as well; and `tasks.md`, `review.md` and
+    `touchdisplay_support_ideation.md` belong in `docs/`. Everything that links to them — the README
+    first — moves with them, and `docs/` gets an index so the pile is navigable.
+
+13. `npm run verify` stays green before every versioned, local commit.
 
 ## Answered questions
 

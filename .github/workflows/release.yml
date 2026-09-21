@@ -14,7 +14,7 @@ jobs:
   release:
     name: Build and publish release
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
 
@@ -28,6 +28,12 @@ jobs:
       - run: npm run typecheck
       - run: npm run coverage
       - run: npm run build
+
+      # The browser suite is the only gate that sees the renderer actually run; a release must not
+      # ship a build it has not passed.
+      - name: Install Google Chrome for Playwright
+        run: npx playwright install --with-deps chrome
+      - run: npm run e2e
 
       - name: Check tag matches package.json
         run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"

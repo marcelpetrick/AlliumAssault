@@ -8,7 +8,8 @@ import { FLYER_SPEED } from './core/flyer';
 import { Game, MAP_WEAPONS, type GameEvent, type MatchConfig } from './core/game';
 import { LETTER_KEYS, weaponForKey, WEAPONS } from './core/weapons';
 import { THEMES } from './render/themes';
-import { World, type Quality } from './render/world';
+import type { Quality } from './render/quality';
+import { World } from './render/world';
 import { Hud } from './ui/hud';
 import { Menu } from './ui/menu';
 import { demoMatch, randomSeed } from './ui/presets';
@@ -185,8 +186,9 @@ export class App {
   }
 
   /**
-   * Pixel density for the drawing buffer: up to 1.5 device pixels per CSS pixel, but never more
-   * than MAX_RENDER_PIXELS in total, so a big window costs a big window's worth of work and no more.
+   * Size the drawing buffer for the chosen graphics setting: follow the device pixel ratio up to
+   * MAX_DENSITY, but never draw more than MAX_RENDER_PIXELS in total, so a big window costs a big
+   * window's worth of work and no more.
    */
   private applyRenderScale(): void {
     const quality = this.quality;
@@ -548,8 +550,9 @@ export class App {
       mines: (g?.mines ?? []).map((m) => ({ id: m.id, owner: m.owner, team: m.team, state: m.state, x: m.body.x, y: m.body.y })),
       ammo: g?.activeTeamData ? { ...g.activeTeamData.ammo } : null,
       sound: this.audio.voices,
-      quality: this.quality,
-      shadows: this.world?.castsShadows ?? false,
+      // What the running scene was built with, which is not the pending menu choice.
+      quality: this.world?.quality ?? this.quality,
+      shadows: this.world !== null && this.world.quality === 'high',
       camera: this.world?.focusPoint ?? null,
       buddies: (g?.buddies ?? []).map((b) => ({
         id: b.id,

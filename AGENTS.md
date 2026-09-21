@@ -57,8 +57,9 @@ python3 scripts/history_chart.py                 # redraw the README history cha
 ## Working rules
 
 - **Controls:** Enter = jump, Backspace = back-flip, Space hold/release = charge and fire (Space
-  again detonates sheep), arrows walk, aim and steer the flying sheep, 1–9, 0 and Shift+1–7 /
-  Tab select weapons, a click on the map calls strikes.
+  again detonates sheep), arrows walk, aim and steer the flying sheep, Tab cycles; 1–9 and 0 select
+  the first ten weapons, Shift+1–9 and Shift+0 the next ten, and anything past those twenty gets a
+  letter key of its own in `LETTER_KEYS` (T is the teleport). A click on the map calls strikes.
 - **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`, and `look`:
   projectile model, flight/fire/hit sounds, muzzle flash — presentation never switches on ids), appended to
   `WEAPON_ORDER` so existing hotkeys stay; behaviour in `Game` for new kinds (a timed action is a new `TurnAction` variant stepped by

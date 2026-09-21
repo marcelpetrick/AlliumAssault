@@ -22,7 +22,9 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm run preview',
     url: 'http://localhost:4173',
-    reuseExistingServer: true,
+    // Locally the suite always builds what it is about to test: reusing a server that happens to
+    // be on the port would certify a stale `dist/` and report it green. On CI nothing is listening.
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
 });

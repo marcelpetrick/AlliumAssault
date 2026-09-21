@@ -204,7 +204,6 @@ export class Game {
     return this.action?.kind === 'sheep' ? this.action.sheep : null;
   }
 
-  /** The flying sheep, while it flies. */
   /** The rope in play, hook in flight or attached; null when the buddy is between hooks. */
   get rope(): Rope | null {
     return this.action?.kind === 'rope' ? this.action.rope : null;
@@ -217,6 +216,7 @@ export class Game {
     return rope && b ? ropePath(rope, b.body) : null;
   }
 
+  /** The flying sheep, while it flies. */
   get flyer(): Flyer | null {
     return this.action?.kind === 'flyer' ? this.action.flyer : null;
   }
@@ -726,7 +726,6 @@ export class Game {
     this.crates = this.crates.filter((c) => c !== crate);
   }
 
-  /** At a turn start, maybe teleport a new crate onto a free land spot; true if one arrived. */
   /** Crates for the turn that is starting; returns how many actually landed. */
   private dropCrates(): number {
     // Special weapons must be findable when the arsenal restricts them to crates.
@@ -1225,7 +1224,6 @@ export class Game {
     return p;
   }
 
-  /** The buddy explodes: damage equals its health and the blast radius grows with it. */
   /** Press the detonator: the buddy panics, and PANIC_TIME later it takes the hillside with it. */
   private selfDestruct(b: Buddy): void {
     this.action = { kind: 'panic', buddy: b.id, left: PANIC_TIME, ticked: 0 };

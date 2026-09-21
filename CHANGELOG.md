@@ -2,6 +2,38 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.57.1] — 2026-09-22
+
+### Fixed
+
+- **The browser suite could certify a stale build.** `reuseExistingServer` was unconditional, so
+  `npm run e2e` skipped its own `npm run build` whenever anything was already serving :4173 — and
+  then reported green for whatever happened to be in `dist/`. It now rebuilds locally, as
+  Playwright's own default does.
+- **A release could publish a build the browser suite had never seen.** `release.yml` ran lint,
+  typecheck, coverage and build but not `npm run e2e` — the one gate that watches the renderer
+  actually run, and the one that caught the missing picking-ray import in 1.56.0. It runs it now.
+- **The bundle budget could no longer fire.** `chunkSizeWarningLimit` sat at 8,000 kB, above even
+  the 6.9 MB bundle the deep imports removed, so re-introducing a barrel import would have been
+  silent. It is now just above the real entry chunk, and a unit test fails outright on
+  `from '@babylonjs/core'` anywhere in `src`, or on a picking ray built without its side-effect
+  import.
+- `npm run profile` now checks each stage against a generous ceiling instead of only printing, so
+  the claim that a tenfold regression is visible is one the suite actually keeps.
+- `state().quality` reported the pending menu choice rather than the budget the scene on screen was
+  built with; `World` now keeps its quality and answers for itself.
+- Four members carried a second, stale doc comment — `get rope()` described as the flying sheep,
+  `dropCrates()` as returning a boolean, `selfDestruct()` as the blast it only schedules. The
+  flying sheep has its comment back.
+
+### Changed
+
+- The crate setting's loudest option is now called **Cratyness**.
+- `Quality` and its options moved out of the Babylon-laden `world.ts` into `render/quality.ts`, so
+  the settings and the setup screen no longer reach into the renderer for a string union.
+- `README.md` lists `src/core/match.ts` and `bench/`; `AGENTS.md` describes the weapon hotkeys the
+  code actually implements.
+
 ## [1.57.0] — 2026-09-21
 
 ### Added

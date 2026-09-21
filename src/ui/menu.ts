@@ -5,12 +5,11 @@ import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
-import type { Quality } from '../render/world';
+import { QUALITY_OPTIONS, type Quality } from '../render/quality';
 import {
   ARSENAL_OPTIONS,
   CRATE_OPTIONS,
   GRAVITY_OPTIONS,
-  QUALITY_OPTIONS,
   makeTeam,
   quickMatch,
   randomSeed,

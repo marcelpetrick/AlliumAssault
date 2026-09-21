@@ -14,8 +14,9 @@
  *   node --cpu-prof --cpu-prof-dir=.profile ./node_modules/vitest/vitest.mjs run --config vitest.profile.config.ts
  */
 
-import { it } from 'vitest';
+import { expect, it } from 'vitest';
 import { WATER_LEVEL, WORLD_HEIGHT, WORLD_WIDTH } from '../src/core/constants';
+import { defined } from '../src/core/assert';
 import { contourRegion } from '../src/core/contour';
 import { FLAME_BITE_INTERVAL, FLAME_BITES } from '../src/core/fire';
 import { Game, type MatchConfig, type TeamConfig } from '../src/core/game';
@@ -38,6 +39,14 @@ function match(teams: TeamConfig[], overrides: Partial<MatchConfig> = {}): Game 
   return game;
 }
 
+/**
+ * The ceiling each scenario is checked against, in µs per call. They are deliberately about ten
+ * times the measured numbers in docs/PERFORMANCE.md: a development machine under load is several
+ * times slower than an idle one, so anything tighter would fail for reasons that are not the code.
+ * What they do catch is the change that makes a stage an order of magnitude dearer.
+ */
+const CEILING_FACTOR = 10;
+
 /** Run `work` for `seconds` and report the average microseconds one call took. */
 function measure(name: string, work: () => void, seconds = 1): { name: string; us: number; frame: string } {
   for (let k = 0; k < 200; k++) work();
@@ -53,6 +62,19 @@ function measure(name: string, work: () => void, seconds = 1): { name: string; u
 
 it('profiles one simulation step, stage by stage', () => {
   const rows: { name: string; us: number; frame: string }[] = [];
+  /** What each scenario cost when it was last written down; see docs/PERFORMANCE.md. */
+  const recorded: Readonly<Record<string, number>> = {
+    'idle turn, 8 buddies': 6.9,
+    'walking buddy': 5.8,
+    '12 projectiles in flight': 15.9,
+    '20 napalm patches burning': 18.7,
+    '16 buddies, 8 crates, mines, graves': 31.7,
+    'sudden death, water rising': 4.0,
+    'AI turn': 3.0,
+    'carve a crater + contour its chunk': 83.4,
+    '1000 terrain samples': 10.2,
+    '1000 samples with 8 platforms': 25.1,
+  };
 
   const idle = match([team('A', 4), team('B', 4)]);
   rows.push(
@@ -161,6 +183,12 @@ it('profiles one simulation step, stage by stage', () => {
       for (let k = 0; k < 1000; k++) withBoards.sample(10 + (k % 100), 20 + (k % 17) * 0.3);
     }),
   );
+
+  // Not a stopwatch on a shared machine: only an order-of-magnitude regression can trip these.
+  for (const row of rows) {
+    const ceiling = defined(recorded[row.name], `recorded cost for "${row.name}"`) * CEILING_FACTOR;
+    expect(row.us, `${row.name}: ${String(row.us)} µs against a ${String(ceiling)} µs ceiling`).toBeLessThan(ceiling);
+  }
 
   console.log('\nRules core — µs per call (a whole frame is 16,667 µs)\n');
   console.log(`${'scenario'.padEnd(38)}${'µs'.padStart(10)}${'frame'.padStart(10)}`);
