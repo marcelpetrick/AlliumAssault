@@ -145,10 +145,11 @@ export class Hud {
         case 'cratePickup': {
           const text = e.kind === 'health' || !e.weapon ? `+${e.amount} HP` : `+${e.amount} ${WEAPONS[e.weapon].icon} ${WEAPONS[e.weapon].name}`;
           const colour = e.kind === 'health' ? '#5ee27a' : '#ffd166';
-          // Where it was picked up, so a sheep scooping up a crate across the map is visible too.
-          this.float(text, e.x, e.y + 1.2, colour);
-          // And over the buddy that was rewarded, when that is somewhere else entirely.
-          if (buddy && Math.hypot(buddy.body.x - e.x, buddy.body.y - e.y) > 2) this.float(text, buddy.body.x, buddy.body.y + 1.6, colour);
+          // One reward, one number, and always over the buddy that was actually credited. A sheep
+          // that runs over a crate collects it for its launcher; printing it at the crate as well
+          // read as two pickups.
+          if (buddy) this.float(text, buddy.body.x, buddy.body.y + 1.6, colour);
+          else this.float(text, e.x, e.y + 1.2, colour);
           break;
         }
         case 'mineTriggered':

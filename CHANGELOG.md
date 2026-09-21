@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.58.2] — 2026-09-22
+
+### Fixed
+
+- **A crate collected by a sheep no longer floats its reward twice.** The HUD printed the pickup at
+  the crate and again over the buddy that was credited, which read as two crates rather than one.
+  Only the rewarded buddy's number remains, so what is on screen is what the rules did.
+
 ## [1.58.1] — 2026-09-22
 
 ### Fixed
