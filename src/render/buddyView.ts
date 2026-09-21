@@ -103,6 +103,10 @@ function createBulb(scene: Scene, material: StandardMaterial): Mesh {
 }
 
 /** How long a self-destruct countdown lasts, for scaling the panic animation. */
+/** Strokes a second of the drill's hammer action, and how far the bit travels on each one. */
+const JACKHAMMER_HZ = 11;
+const JACKHAMMER_THROW = 0.13;
+
 const PANIC_SECONDS = 3;
 
 export class BuddyView {
@@ -398,6 +402,29 @@ export class BuddyView {
     for (const [id, node] of Object.entries(this.weapons)) node.setEnabled(holding === id);
     this.weaponPivot.rotation.z = b.facing > 0 ? b.aim : Math.PI - b.aim;
     this.weaponPivot.rotation.x = b.facing > 0 ? 0 : Math.PI;
+    this.jackhammer(game !== null && isActive && game.phase === 'drilling', time);
+  }
+
+  /**
+   * The drill at work. A jackhammer is a reciprocating thing: the bit slams down and recoils, the
+   * tool kicks back up against it, and the whole buddy rattles. Without that it just hangs there
+   * while dust comes out of the ground, which reads as a bug rather than as digging.
+   */
+  private jackhammer(running: boolean, time: number): void {
+    const drill = defined(this.weapons.drill, 'drill model');
+    if (!running) {
+      drill.position.y = 0;
+      drill.rotation.x = 0;
+      return;
+    }
+    // A sawtooth, not a sine: the slam is abrupt and the recovery is slower, like the real thing.
+    const beat = (time * JACKHAMMER_HZ) % 1;
+    const stroke = beat < 0.25 ? beat / 0.25 : 1 - (beat - 0.25) / 0.75;
+    drill.position.y = -stroke * JACKHAMMER_THROW;
+    drill.rotation.x = time * 26;
+    this.root.position.y += (1 - stroke) * JACKHAMMER_THROW * 0.45;
+    this.root.position.x += Math.sin(time * JACKHAMMER_HZ * 2 * Math.PI) * 0.018;
+    this.root.rotation.z += Math.sin(time * 37) * 0.02;
   }
 
   dispose(): void {

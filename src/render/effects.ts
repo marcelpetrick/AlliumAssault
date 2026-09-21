@@ -38,6 +38,9 @@ interface BurstOptions {
   grow?: number;
 }
 
+/** The sheep is drawn half again as large as it was: at its old size it read as a dot in flight. */
+const SHEEP_SCALE = 1.5;
+
 const CHARGE_DOTS = 14;
 
 /**
@@ -845,7 +848,8 @@ export class Effects {
     this.sheep ??= this.createSheep(s.id);
     const view = this.sheep;
     view.node.position.set(s.body.x, s.body.y, 0);
-    view.node.scaling.x = s.facing;
+    // Only the model: the collision radius and the blast are the rules', and they stay put.
+    view.node.scaling.set(s.facing * SHEEP_SCALE, SHEEP_SCALE, SHEEP_SCALE);
     const airborne = !s.body.grounded;
     view.body.rotation.z = airborne ? Math.atan2(s.body.vy, Math.abs(s.body.vx) + 1e-3) * 0.5 : 0;
     for (const leg of view.legs) leg.scaling.y = airborne ? 0.6 : 1;
@@ -871,7 +875,8 @@ export class Effects {
     const view = this.flyer;
     const left = Math.cos(f.angle) < 0;
     view.node.position.set(f.x, f.y, 0);
-    view.node.scaling.set(left ? -1.4 : 1.4, 1.4, 1.4);
+    const fly = 1.4 * SHEEP_SCALE;
+    view.node.scaling.set(left ? -fly : fly, fly, fly);
     view.body.rotation.z = left ? Math.PI - f.angle : f.angle;
     view.body.rotation.x = Math.sin(time * 18) * 0.08;
   }

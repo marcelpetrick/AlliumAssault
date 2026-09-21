@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.59.3] — 2026-09-22
+
+### Changed
+
+- **The drill hammers like a jackhammer.** The bit drives down and recoils eleven times a second on
+  a sawtooth stroke — abrupt slam, slower recovery — the tool kicks back against it and the buddy
+  rattles with the whole thing. Before, it hung there while dust came out of the ground.
+- **The sheep is drawn half again as large**, so what bounds across the island reads as a sheep.
+  Only the model: its collision radius and its blast are the rules' and are untouched.
+
 ## [1.59.2] — 2026-09-22
 
 ### Added
