@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { DynamicTexture, Texture, type Scene } from '@babylonjs/core';
+import type { Scene } from '@babylonjs/core/scene';
+import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture';
+import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { mulberry32 } from '../core/rng';
 
 /** Tileable value noise on a size×size grid of random lattice values. */

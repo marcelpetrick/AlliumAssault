@@ -1,7 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, VertexBuffer, VertexData, type Scene } from '@babylonjs/core';
+import type { Scene } from '@babylonjs/core/scene';
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { defined } from '../core/assert';
 import type { Buddy, Game } from '../core/game';
 import { clamp } from '../core/math';

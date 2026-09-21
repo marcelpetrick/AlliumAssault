@@ -109,24 +109,25 @@ Status: ☐ open · ☑ done
 | T95  | Review all screenshots and recordings, re-capture what the recent work made outdated                      | ☑      | 1.54.0         |
 | T96  | Weapon bar over two rows for a better overview                                                            | ☑      | 1.54.0         |
 | T97  | Respect `prefers-reduced-motion` in the overlay animations                                                | ☑      | 1.54.0         |
-| T98  | Split `game.ts` and `effects.ts` into smaller modules (proposal, not scheduled)                           | ☐      |                |
+| T98  | Split `game.ts` into smaller modules; `effects.ts` follows when it is next touched                        | ☑      | 1.56.0         |
 | T99  | Minigun icon: a screw, not a gun — give it a firearm icon in the shotgun's style                          | ☑      | 1.54.0         |
 | T100 | Group the weapons thematically in the bar: launchers, thrown, guns, melee, sheep, air, digging, …         | ☑      | 1.54.0         |
 | T101 | Self-destruct: a Lemmings-style panic and countdown before the blast, in the spirit of the 1992 game      | ☑      | 1.54.0         |
 | T102 | Public release v1.55.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.55.0         |
 | T103 | Fix the map-dependent gravity test that failed on CI, and teach Dependabot the two version limits         | ☑      | 1.55.1         |
+| T104 | Profiling run across every stage of play, best-practice audit of the stack, then the fixes worth making   | ☑      | 1.56.0         |
+| T105 | Tidy the repository root: fewer Markdown files, the rest moved into folders and linked                    | ☐      |                |
 
 ## Current implementation plan
 
-The backlog is empty; v1.55.0 is released. T98 — splitting `game.ts` (1,571 lines) and `effects.ts` (1,348) into smaller
-modules — is the one piece of work left on the list, recorded as a proposal in
-[review.md](review.md#9--open--gamets-1571-lines-and-effectsts-1348-are-too-big): a large,
-mechanical refactor that touches everything and wants its own session and its own review. Finding 10
-of the same review, unit tests for the pure helpers inside `src/render` and `src/ui`, is best done
-the next time one of them changes.
+1. **T105 — tidy the root.** Eight Markdown files sit in the repository root. `README.md`,
+   `CHANGELOG.md` and `AGENTS.md` belong there; `CONTRIBUTING.md` and `SECURITY.md` are just as at
+   home in `.github/`, which GitHub reads as well; and `tasks.md`, `review.md` and
+   `touchdisplay_support_ideation.md` belong in `docs/`. Everything that links to them — the README
+   first — moves with them, and `docs/` gets an index so the pile is navigable.
 
-`npm run verify` — now including the coverage thresholds — stays green before every versioned,
-local commit, and nothing is pushed or tagged without being asked.
+2. `npm run verify` stays green before every versioned, local commit; nothing is pushed or tagged
+   without being asked.
 
 ## Answered questions
 
@@ -502,6 +503,38 @@ request was closed with that explanation.
 
 Requested on 2026-09-21 after the review batch. Pushed `master` and the single tag `v1.55.0`, which
 runs the release workflow — now gated on coverage as well — and deploys Pages from the same push.
+
+### T104 — Profiling, and a bundle four times smaller ☑
+
+Measured in 1.56.0 and written up in [docs/PERFORMANCE.md](docs/PERFORMANCE.md), which also says how
+to reproduce every number and which tools to reach for.
+
+**The rules core was profiled first, stage by stage**, with a new `npm run profile` (a Vitest run
+under `vitest.profile.config.ts`, kept away from the unit tests): an idle turn, a walking buddy,
+twelve projectiles, twenty burning napalm patches, sixteen buddies with crates, mines and graves, a
+Sudden Death flood, an AI turn, a crater with its chunk re-contoured, and terrain sampling with and
+without platforms. The answer was that there is nothing to win: the worst ordinary case is 31.7 µs
+per step, a fifth of one percent of a 16.7 ms frame. The core was left alone and the numbers checked
+in, so a future change that makes it ten times dearer is visible.
+
+**The browser was a different story.** A probe with nothing but an engine, a scene, a camera, a
+light, a box and a standard material built to 6.71 MB — against 6.89 MB for the whole game. The
+game's own code and every feature it uses was 180 kB; the rest was `@babylonjs/core`'s barrel, which
+re-exports the entire engine and defeats tree-shaking. Switching all twenty-seven imported symbols
+to their own modules cut the entry chunk from **6,889 kB to 1,510 kB, and the transfer from
+1,522 kB to 374 kB** — 78%. And it proved why the browser suite exists: part of Babylon's API is
+installed on `Scene.prototype` by a module whose only job is that side effect, so `createPickingRay`
+quietly vanished, the game still built and typechecked, and every weapon aimed by clicking the map
+did nothing. Seven tests failed; `import '@babylonjs/core/Culling/ray'` asks for it by name.
+
+### T98 — `game.ts` split, `effects.ts` deferred ☑
+
+Done in 1.56.0. `game.ts` opened with 250 lines of types, phase groups, tuning constants and pure
+helpers before the class began; they now live in `src/core/match.ts` — what a match is made of —
+while `game.ts` is the state machine that operates on them and re-exports every moved name, so not
+one import in `src`, `tests` or `e2e` had to change. `effects.ts` keeps its model factories for now,
+which leaves [finding 9](review.md#9--partly-fixed-1560--gamets-1571-lines-and-effectsts-1348-are-too-big)
+half open on purpose: splitting it is better done the next time it changes.
 
 ### T90–T101 — Review fixes, the weapon bar and the Lemmings moment ☑
 

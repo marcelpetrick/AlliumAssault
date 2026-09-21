@@ -1,21 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
-  Color3,
-  Color4,
-  DynamicTexture,
-  Mesh,
-  MeshBuilder,
-  ParticleSystem,
-  PointLight,
-  StandardMaterial,
-  TransformNode,
-  Vector3,
-  VertexData,
-  type Scene,
-  type Texture,
-} from '@babylonjs/core';
+import type { Scene } from '@babylonjs/core/scene';
+import { PointLight } from '@babylonjs/core/Lights/pointLight';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
+import { ParticleSystem } from '@babylonjs/core/Particles/particleSystem';
+import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture';
+import type { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import { MUZZLE_OFFSET } from '../core/constants';
 import { defined } from '../core/assert';
 import type { Flame } from '../core/fire';

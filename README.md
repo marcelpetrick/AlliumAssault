@@ -186,7 +186,8 @@ explosions subtract discs from it, and the renderer rebuilds only dirty 8×8-uni
 extruding the marching-squares contour into a bevelled 3D slab.
 
 Design documents: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (C4 model with Mermaid diagrams),
-[`docs/VISION.md`](docs/VISION.md), [`docs/PLAN.md`](docs/PLAN.md); the original
+[`docs/VISION.md`](docs/VISION.md), [`docs/PLAN.md`](docs/PLAN.md),
+[`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) (what was measured, and what it cost); the original
 research session is archived in [`docs/archive/`](docs/archive/).
 
 ## Testing
@@ -195,6 +196,7 @@ research session is archived in [`docs/archive/`](docs/archive/).
 npm run lint         # type-aware ESLint, Prettier, Stylelint, markdownlint, SPDX headers
 npm run typecheck    # TypeScript strict
 npm test             # Vitest: terrain, physics, every weapon's rules, crates, mines, the rope, settings, AI
+npm run profile      # measure the rules core stage by stage (docs/PERFORMANCE.md)
 npm run e2e          # Playwright in Google Chrome: menus, settings, every weapon, crates, tombstones, sceneries, sounds
 npm run coverage     # Vitest with v8 coverage of the game rules in src/core; HTML report in coverage/
 npm run verify       # all of the above plus production build

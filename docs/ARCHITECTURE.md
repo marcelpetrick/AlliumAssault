@@ -87,6 +87,7 @@ C4Component
 
   Container_Boundary(core, "Game core") {
     Component(game, "Game", "game.ts", "Match state machine, commands, weapon execution, damage, events")
+    Component(match, "Match vocabulary", "match.ts", "Config, buddies, teams, projectiles, phases, turn actions, events and tuning constants; re-exported by game.ts")
     Component(ai, "AiDriver and planAttack", "ai.ts", "Samples trajectories, scores blasts, drives Game commands")
     Component(terrain, "Terrain", "terrain.ts", "Density field, seeded generation, carve, spawn search, dirty chunks; also the arena: water level, gravity scale and placed platforms")
     Component(contour, "contourRegion", "contour.ts", "Marching squares: fill triangles and oriented edges")
@@ -97,6 +98,7 @@ C4Component
     Component(support, "rng, math, constants, assert", "rng.ts, math.ts, constants.ts, assert.ts", "Seeded streams, helpers, tuning values, invariants")
   }
 
+  Rel(game, match, "Is the state machine over")
   Rel(game, terrain, "Generates, carves, queries")
   Rel(game, physics, "Steps bodies and projectiles")
   Rel(game, weapons, "Reads definitions")

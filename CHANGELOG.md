@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.56.0] — 2026-09-21
+
+### Changed
+
+- **The bundle is a quarter of its size**: 6,889 kB down to 1,510 kB, and 1,522 kB down to 374 kB
+  over the wire. Babylon.js was imported from its package root, a barrel that re-exports the whole
+  engine and defeats tree-shaking — a probe with nothing but a box and a light still weighed
+  6.71 MB. Every Babylon symbol is now imported from its own module, and the one piece of the API
+  that lives on `Scene.prototype` rather than on a class — the picking ray the map-click weapons
+  aim with — is asked for by name.
+- `npm run profile` measures the rules core stage by stage, and `docs/PERFORMANCE.md` holds the
+  numbers, the method and the tools. The core needed no optimisation: its worst ordinary case costs
+  a fifth of one percent of a frame.
+- `game.ts` gave up its 250 lines of types, phases and tuning constants to `src/core/match.ts`; it
+  re-exports them, so no import anywhere had to change. It is now 1,392 lines and is only the turn
+  state machine.
+
 ## [1.55.1] — 2026-09-21
 
 ### Fixed

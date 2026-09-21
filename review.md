@@ -8,7 +8,8 @@ Areas: build and CI, architecture and layering, code, tests, documentation, lice
 
 Asked for after the release: what is missing, what is off, and what ordinary industry practice would
 add. Ten findings, each checked against the repository rather than assumed. Findings 1 to 8 were
-fixed in 1.54.0; the last two are recorded as work with their own scope.
+fixed in 1.54.0, finding 9 in part in 1.56.0; finding 10 is still recorded as work with its own
+scope.
 
 ## Findings
 
@@ -63,7 +64,7 @@ asked for.
 The teleport row appeared twice, from a documentation script that ran twice. Fixed, and the whole
 weapon table was regenerated from the weapon order so it cannot drift from the code again.
 
-### 9 — OPEN · `game.ts` (1,571 lines) and `effects.ts` (1,348) are too big
+### 9 — PARTLY FIXED (1.56.0) · `game.ts` (1,571 lines) and `effects.ts` (1,348) are too big
 
 Both are cohesive but well past the size where a reader can hold them in their head, and both grew
 another 200 lines today. `game.ts` splits cleanly along the turn state machine, weapon execution,
@@ -71,6 +72,13 @@ and the per-actor stepping (crates, mines, flames, graves); `effects.ts` splits 
 particle effects, persistent effects (fire, torch, drill) and the model views. Not done here: it is
 a large, mechanical, risky refactor that touches everything and deserves its own session and its own
 review, so it is recorded as **T98**.
+
+**Resolution (1.56.0).** `game.ts` gave up the 250 lines that came before the class — the config,
+the things a match contains, the phases, the turn actions, the events and the tuning constants — to
+`src/core/match.ts`, and re-exports all of them, so no import in `src`, `tests` or `e2e` changed.
+`game.ts` is now 1,392 lines and is only the state machine. `effects.ts` still stands at 1,345 and
+is the remaining half of the finding: splitting it is best done the next time it changes, which the
+profiling work in 1.56.0 deliberately did not force.
 
 ### 10 — OPEN · The renderer and the UI have no unit tests
 

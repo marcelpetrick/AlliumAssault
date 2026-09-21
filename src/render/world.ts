@@ -1,25 +1,24 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
-  CascadedShadowGenerator,
-  Color3,
-  Color4,
-  DefaultRenderingPipeline,
-  DirectionalLight,
-  FreeCamera,
-  GlowLayer,
-  HemisphericLight,
-  ImageProcessingConfiguration,
-  Matrix,
-  MeshBuilder,
-  Scene,
-  ShadowGenerator,
-  StandardMaterial,
-  Vector3,
-  type AbstractEngine,
-  type Mesh,
-} from '@babylonjs/core';
+import { Scene } from '@babylonjs/core/scene';
+import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera';
+import type { AbstractEngine } from '@babylonjs/core/Engines/abstractEngine';
+import { GlowLayer } from '@babylonjs/core/Layers/glowLayer';
+import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
+import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
+import { ImageProcessingConfiguration } from '@babylonjs/core/Materials/imageProcessingConfiguration';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
+import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import type { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CascadedShadowGenerator } from '@babylonjs/core/Lights/Shadows/cascadedShadowGenerator';
+import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
+import { DefaultRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline';
+// Deep imports keep the barrel out of the bundle, so the side effect that teaches Scene to build a
+// picking ray has to be asked for by name; without it clicking the map does nothing.
+import '@babylonjs/core/Culling/ray';
 import type { Game, GameEvent } from '../core/game';
 import { WEAPONS } from '../core/weapons';
 import { defined } from '../core/assert';

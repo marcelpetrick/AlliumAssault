@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Color3, MeshBuilder, StandardMaterial, type Mesh, type Scene } from '@babylonjs/core';
+import type { Scene } from '@babylonjs/core/scene';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import type { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import type { Point } from '../core/math';
 import { PLATFORM_LENGTH, PLATFORM_THICKNESS, type Platform, type Terrain } from '../core/terrain';
 

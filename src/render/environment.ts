@@ -1,19 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
-  Color3,
-  Matrix,
-  Mesh,
-  MeshBuilder,
-  Quaternion,
-  ShaderMaterial,
-  StandardMaterial,
-  Vector3,
-  VertexBuffer,
-  VertexData,
-  type Scene,
-} from '@babylonjs/core';
+import type { Scene } from '@babylonjs/core/scene';
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
+import { ShaderMaterial } from '@babylonjs/core/Materials/shaderMaterial';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Matrix, Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { createNoise2D } from 'simplex-noise';
 import { defined } from '../core/assert';
 import { mulberry32 } from '../core/rng';
