@@ -1,76 +1,96 @@
-# Code review — full codebase
+# Repository review — after v1.53.0
 
 ```text
-Base: master @ 8d53652 (only branch, so no merge-base to diff against)   Head: 8d53652
-Files reviewed: 43 source, test and script files   ~9,200 lines in src/
+Scope: the whole repository, not a branch diff — master is the only branch.
+Base:  v1.53.0 (163 commits, 16.7k lines)      Reviewed: 2026-09-21
+Areas: build and CI, architecture and layering, code, tests, documentation, licensing, media.
 ```
 
-Scope: the whole current game, as requested, rather than a branch diff — `master` is the only
-branch. Every finding below was checked against the file contents, and the four suspicions listed
-under "Checked and dropped" were measured rather than guessed at.
+Asked for after the release: what is missing, what is off, and what ordinary industry practice would
+add. Ten findings, each checked against the repository rather than assumed. Findings 1 to 8 were
+fixed in 1.54.0; the last two are recorded as work with their own scope.
 
 ## Findings
 
-```text
-#1  HIGH  Code  src/core/ai.ts:193
-    The AI's blowtorch plan sets aim: me.aim (typically 0.5 rad, about 29° up) while its
-    reachability test assumes a level tunnel — it only considers enemies within 1 unit of its own
-    height and within TORCH_SPEED * fuse horizontally. Since 1.30.0 the torch burns along the aim
-    line, so the AI digs up over the enemy it planned to reach. The torch plan must aim level.
-```
+### 1 — HIGH · The coverage gate never ran
 
-```text
-#2  MEDIUM  Architecture  src/core/game.ts:262
-    Game exposes projectiles, crates, graves, flames, drops, action, weapon, charge and the whole
-    turn state as public mutable fields, so "the renderer reads core state and never changes rules"
-    holds by convention only, and tests and E2E specs already reach in and mutate them. Expose the
-    collections as readonly views and keep mutation behind methods.
-```
+`npm run verify` and all three workflows ran `npm test`, which does not measure coverage, while the
+98% thresholds raised in 1.43.3 live in `vite.config.ts` and are only checked by `npm run coverage`.
+So the gate existed on paper and nothing enforced it — and branch coverage had already slipped to
+**97.97%**, below the threshold, without a single red run. Fixed: `verify`, CI, Pages and Release
+all run `npm run coverage`, and the branches that had slipped are covered again (98.1%).
 
-```text
-#3  LOW  Code  src/app.ts:413
-    Every pointermove calls world.setPointer(), which allocates a Matrix and builds a full picking
-    ray, although the result feeds only the strike cursor — which needs an aiming human turn with a
-    strike weapon selected. It ran in the title-screen demo and behind open menus too. Gate it.
-```
+### 2 — MEDIUM · Browser tests had no retry
 
-```text
-#4  LOW  Code  src/main.ts:125
-    document.getElementById('stage') as HTMLCanvasElement casts away a possible null, the exact
-    pattern the project invariant forbids ("no non-null assertions in src"), and dom.ts already has
-    queryAs() for it. A missing #stage would surface as a confusing Babylon error instead of a
-    clear one.
-```
+Two runs during the session failed on `net::ERR_NETWORK_CHANGED` — the machine's network changed
+under the browser — which says nothing about the game. A deterministic suite with `workers: 1` and
+no retries turns any such hiccup into a red build. Fixed: `retries: 1`.
 
-## Checked and dropped
+### 3 — MEDIUM · No community health files
 
-Measured, found harmless, and therefore not reported as findings:
+A public repository was missing `CONTRIBUTING.md`, `SECURITY.md`, `.editorconfig` and a Dependabot
+configuration. `AGENTS.md` carried the house rules, but only for agents. Fixed: all four added;
+`CONTRIBUTING.md` points at `AGENTS.md` rather than repeating it, `SECURITY.md` states the honest
+attack surface (a static site, one `localStorage` entry, no backend), and Dependabot proposes pinned
+updates weekly with grouped dev tooling.
 
-| Suspicion                                                       | Measurement                                                        |
-| --------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `findSpawnCandidates` scanning the whole map inside `beginTurn` | 1.16 ms per call — not a turn-start hitch                          |
-| Buddies spawning stacked when `pickSpawns` cannot separate them | 25 seeds × 16 buddies: every pair separated; the reseed loop works |
-| `Decorations.clearAround` scanning every prop per explosion     | one prop per column, about 145 in total                            |
-| The new napalm fire's particle load                             | ~23 % extra frame cost while burning, capped by the emit rate      |
+### 4 — MEDIUM · `docs/ARCHITECTURE.md` had drifted
 
-## Resolution
+It still said "nineteen weapon definitions" and knew nothing of the platform, the teleport, gravity,
+the Sudden Death flood, the map preview or the particle sweeper; the turn state machine had no
+`panicking` state and the intro timing was out of date. Fixed: components, state machine and rules
+list brought back in line with the code.
 
-| #   | Status                                                                                                                              | Version |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 1   | **Fixed:** the AI aims the blowtorch level; a unit test plans a torch attack with a raised aim left over and fails without the fix. | 1.32.2  |
-| 2   | **Open (accepted debt).** See below.                                                                                                | —       |
-| 3   | **Fixed:** the pointer is only picked while a human is aiming a strike weapon with no menu open.                                    | 1.32.2  |
-| 4   | **Fixed:** `queryAs(document, '#stage', HTMLCanvasElement)`.                                                                        | 1.32.2  |
+### 5 — LOW · A finished plan was still presented as current
 
-### Why #2 stays open
+`todo.md` (743 lines) was fully implemented and duplicated `tasks.md`, so two documents claimed to
+be the backlog. Fixed: moved to `docs/archive/todo-2026-09.md`, with the links in `tasks.md`
+repointed.
 
-A shallow `readonly` on the arrays would not actually close the hole: the elements stay mutable, so
-a renderer could still write `projectile.x`. Closing it properly means read-only view types threaded
-through `World`, `Effects`, `Hud` and `AiDriver`, plus replacing the direct mutation the unit tests
-and the E2E helpers rely on to set up scenarios. That is a refactor worth its own branch and its own
-verification pass, not a tail-end change. Recorded here so the next weapon does not widen it.
+### 6 — LOW · A shared link showed nothing
 
-## Verdict
+`index.html` had a title and a favicon but no description, no Open Graph tags and no theme colour,
+so the Pages link posted anywhere showed a bare URL. Fixed.
 
-Mergeable. #1 was a real regression from the directional blowtorch (1.30.0) and is fixed; #3 and #4
-are small and fixed alongside it. #2 is design debt with no defect behind it today.
+### 7 — LOW · Reduced motion was ignored
+
+The overlay pulses, slides and floats; `prefers-reduced-motion` was not honoured anywhere. Fixed for
+the overlay's own decoration, deliberately not for the game itself, which is the motion the player
+asked for.
+
+### 8 — LOW · A duplicated row in the README
+
+The teleport row appeared twice, from a documentation script that ran twice. Fixed, and the whole
+weapon table was regenerated from the weapon order so it cannot drift from the code again.
+
+### 9 — OPEN · `game.ts` (1,571 lines) and `effects.ts` (1,348) are too big
+
+Both are cohesive but well past the size where a reader can hold them in their head, and both grew
+another 200 lines today. `game.ts` splits cleanly along the turn state machine, weapon execution,
+and the per-actor stepping (crates, mines, flames, graves); `effects.ts` splits into one-shot
+particle effects, persistent effects (fire, torch, drill) and the model views. Not done here: it is
+a large, mechanical, risky refactor that touches everything and deserves its own session and its own
+review, so it is recorded as **T98**.
+
+### 10 — OPEN · The renderer and the UI have no unit tests
+
+`src/render` and `src/ui` are covered only by the browser suite, which is the right call for the
+scene and the DOM, but pure helpers inside them — the map preview's terrain sampling, the weapon
+bar's hotkey labels, the HUD's formatting — could be unit tested without a GPU. Worth doing when one
+of them next changes rather than as a sweep.
+
+## Checked and found sound
+
+- **Layering.** No file in `src/core` imports from `src/render` or `src/ui`; the rules really are
+  pure. The renderer reads state and events and never writes to the core.
+- **Type safety.** `strict`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`,
+  type-aware `typescript-eslint` in strict mode. No non-null assertions in `src/`; `defined()` and
+  `query()` carry the message instead. No `any`, no `TODO`, no `FIXME` anywhere in the tree.
+- **Supply chain.** Every dependency pinned exactly, `npm audit` clean, `overrides` used for a
+  patched transitive dependency, REUSE checked in CI by the official tool.
+- **Workflows.** Least-privilege `permissions`, `concurrency` groups, pinned Node, timeouts on every
+  job, Playwright artefacts uploaded on failure, actionlint on the workflows themselves.
+- **Determinism.** Terrain, spawns, crates, wind and AI aim all draw from seeded streams, so a seed
+  really does replay; the fixed-step simulation is independent of the frame rate.
+- **Build output.** 6.8 MB of JavaScript, 1.5 MB gzipped, which is Babylon.js and is cached after
+  the first load; nothing else ships.

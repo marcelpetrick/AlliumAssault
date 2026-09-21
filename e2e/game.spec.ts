@@ -48,7 +48,7 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
     polling: 'raf',
   });
 
-  await page.keyboard.press('Digit3');
+  await page.keyboard.press('Digit6');
   await waitFor(page, (s) => s.weapon === 'shotgun', 10_000);
   await page.keyboard.down('ArrowDown');
   await page.waitForFunction((name) => window.__allium.state().buddies.find((b) => b.name === name)!.aim < -1.3, start.activeBuddy, {

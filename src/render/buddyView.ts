@@ -94,6 +94,9 @@ function createBulb(scene: Scene, material: StandardMaterial): Mesh {
   return mesh;
 }
 
+/** How long a self-destruct countdown lasts, for scaling the panic animation. */
+const PANIC_SECONDS = 3;
+
 export class BuddyView {
   readonly root: TransformNode;
   private readonly body: TransformNode;
@@ -105,6 +108,8 @@ export class BuddyView {
   private readonly meshes: Mesh[] = [];
   private yaw = 0;
   private squash = 0;
+  /** Seconds left of a self-destruct countdown, for the panic shudder. */
+  private panicUntil = 0;
   private walkPhase = 0;
   private blinkIn = 2 + Math.random() * 3;
   private hurtTime = 0;
@@ -314,6 +319,11 @@ export class BuddyView {
     this.hurtTime = 0.45;
   }
 
+  /** Thumb on the detonator: the buddy shakes harder as its countdown runs out. */
+  onPanic(seconds: number): void {
+    this.panicUntil = Math.max(this.panicUntil, seconds);
+  }
+
   hide(): void {
     this.visible = false;
     this.root.setEnabled(false);
@@ -340,6 +350,15 @@ export class BuddyView {
       sy += stretch;
     }
     if (b.walking) this.walkPhase += dt * 13;
+    // Panic: a fast shudder that grows, and a swelling body, straight out of Lemmings.
+    if (this.panicUntil > 0) {
+      this.panicUntil = Math.max(0, this.panicUntil - dt);
+      const fear = 1 - this.panicUntil / PANIC_SECONDS;
+      this.root.position.x += Math.sin(time * 42) * 0.05 * (0.4 + fear);
+      this.root.position.y += Math.abs(Math.sin(time * 30)) * 0.04 * fear;
+      sx += 0.12 * fear;
+      sy += 0.18 * fear;
+    }
     const breathe = Math.sin(time * 2.4 + b.id) * 0.025;
     this.body.scaling.set(sx - breathe * 0.5, sy + breathe, sx - breathe * 0.5);
     this.body.position.y = -0.6 + (b.walking ? Math.abs(Math.sin(this.walkPhase)) * 0.09 : 0);

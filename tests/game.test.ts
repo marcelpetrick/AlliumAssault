@@ -185,14 +185,18 @@ describe('match flow', () => {
     expect(bat.distance).toBeGreaterThan(12);
   });
 
-  it('self-destruct kills the buddy with a blast that scales with its health', () => {
+  it('self-destruct panics first, then kills the buddy with a blast that scales with its health', () => {
     const blast = (hp: number, enemyX: number) => {
       const g = flatGame([40, enemyX], [team('A', 1), team('B', 1)]);
       toAiming(g);
       g.buddies[0].hp = hp;
       g.selectWeapon('selfdestruct');
       g.pressFire();
-      expect(g.buddies[0].alive).toBe(false);
+      // The Lemmings moment: a few seconds of panic with a countdown before anything happens.
+      expect(g.phase).toBe('panicking');
+      expect(g.buddies[0].alive).toBe(true);
+      expect(g.drainEvents().some((e) => e.type === 'panic' && e.seconds === 3)).toBe(true);
+      expect(runUntil(g, () => !g.buddies[0].alive, 6)).toBe(true);
       expect(g.phase).toBe('settling');
       return 100 - g.buddies[1].hp;
     };
@@ -953,8 +957,7 @@ describe('weapon hotkeys', () => {
     expect(weaponForKey(0, false)).toBe(WEAPON_ORDER[9]);
     expect(weaponForKey(1, true)).toBe(WEAPON_ORDER[10]);
     expect(weaponForKey(0, true)).toBe(WEAPON_ORDER[19]);
-    // Shift+9 keeps the weapon it had when the twentieth slot was appended behind it.
-    expect(weaponForKey(9, true)).toBe('rope');
+    expect(weaponForKey(9, true)).toBe(WEAPON_ORDER[18]);
     expect(weaponForKey(11, true)).toBeNull();
     // Past the twenty digit slots a weapon needs a letter key, and every one of them has to exist.
     for (const [code, id] of Object.entries(LETTER_KEYS)) {
@@ -1669,10 +1672,12 @@ describe('proximity mines', () => {
     expect(restingY).toBeGreaterThan(g.terrain.waterLevel);
   });
 
-  it('is bound to Shift+8, so no existing hotkey moved', () => {
-    expect(weaponForKey(8, true)).toBe('mine');
-    expect(weaponForKey(7, true)).toBe('napalm');
-    expect(weaponForKey(1, false)).toBe('bazooka');
+  it('sits with the other traps in the weapon order and can be selected by its key', () => {
+    const slot = WEAPON_ORDER.indexOf('mine');
+    expect(slot).toBeGreaterThan(-1);
+    expect(weaponForKey(slot === 19 ? 0 : slot - 9, true)).toBe('mine');
+    // Traps and last resorts live together at the end of the bar.
+    expect(WEAPON_ORDER.slice(slot)).toContain('selfdestruct');
     expect(SPECIAL_WEAPONS).toContain('mine');
   });
 });

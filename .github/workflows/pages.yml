@@ -34,7 +34,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      - run: npm run coverage
       - run: npm run build
 
       # Nothing goes live unless the game also passes the browser tests.

@@ -48,7 +48,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      # Coverage, not just the tests: this is where the enforced thresholds are checked.
+      - run: npm run coverage
       - run: npm run build
 
       - name: Install Google Chrome for Playwright

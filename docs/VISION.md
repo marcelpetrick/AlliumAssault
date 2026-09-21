@@ -118,7 +118,7 @@ Following the last control decision made in the 2D prototype:
 | Backspace                             | Back-flip (high jump)                                                       |
 | ↑ / ↓                                 | Aim                                                                         |
 | Space (hold/release)                  | Charge and fire; instant weapons fire on press; Space again detonates sheep |
-| 1–9, 0, Shift+1–9 / Tab               | Select weapon (or click the weapon bar)                                     |
+| 1–9, 0, Shift+1–0, T / Tab            | Select weapon (or click the weapon bar), grouped by kind                    |
 | ← / → while aiming a plane strike     | Choose the side the plane flies in from, without moving the buddy           |
 | ↑ / ↓ / ← / → on the rope             | Reel the rope in and out, swing left and right                              |
 | Click on the map                      | Call the air strike, napalm strike or concrete mule                         |

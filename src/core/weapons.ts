@@ -160,7 +160,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'shotgun',
     look: { fireSound: 'shot', muzzle: true },
     name: 'Shotgun',
-    icon: '🔫',
+    icon: '💥',
     blurb: 'Two instant shots along the aim line.',
     kind: 'hitscan',
     ammo: 2,
@@ -183,7 +183,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     look: { fireSound: 'spinup', shotSound: 'bullet', muzzle: true, muzzleEveryShot: true },
     special: true,
     name: 'Minigun',
-    icon: '🔩',
+    icon: '🔫',
     blurb: 'A long rattling burst of 14 bullets that shoves victims right across the map.',
     kind: 'hitscan',
     ammo: 1,
@@ -632,7 +632,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     look: { fireSound: 'alarm' },
     special: true,
     name: 'Self-Destruct',
-    icon: '💥',
+    icon: '☠️',
     blurb: 'The buddy blows itself up: damage equals its health, and the blast grows with it.',
     kind: 'self',
     ammo: 1,
@@ -695,28 +695,42 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
 };
 
-/** Weapons a player can select, in hotkey order (1, 2, 3, …). Fragments are not listed. */
+/**
+ * Weapons a player can select, grouped by what they are rather than by the order they were built:
+ * the launcher and the thrown family first, then the guns, the melee pair, the sheep, the three
+ * things called in from the sky, the two digging tools, getting about, building, and the two ways
+ * of blowing yourself up. Hotkeys follow the order — 1–9, 0, then Shift+1–9, Shift+0 — so this list
+ * is the one place where the order really is the user interface.
+ */
 export const WEAPON_ORDER: readonly WeaponId[] = [
+  // Launcher and the thrown family.
   'bazooka',
   'grenade',
-  'shotgun',
-  'punch',
   'cluster',
-  'sheep',
-  'airstrike',
-  'bat',
-  'torch',
-  'selfdestruct',
-  'minigun',
-  'holy',
   'banana',
+  'holy',
+  // Firearms.
+  'shotgun',
+  'minigun',
+  // Melee.
+  'punch',
+  'bat',
+  // Sheep.
+  'sheep',
   'flysheep',
-  'mule',
-  'drill',
+  // Called in from the sky.
+  'airstrike',
   'napalm',
-  'mine',
+  'mule',
+  // Digging.
+  'torch',
+  'drill',
+  // Getting about and building.
   'rope',
   'platform',
+  // Traps and last resorts.
+  'mine',
+  'selfdestruct',
   'teleport',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];

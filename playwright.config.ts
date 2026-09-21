@@ -8,6 +8,9 @@ export default defineConfig({
   timeout: 180_000,
   fullyParallel: false,
   workers: 1,
+  // One retry: the suite is deterministic, but the browser occasionally loses the dev server to a
+  // network change, and that says nothing about the game.
+  retries: 1,
   reporter: [['list']],
   outputDir: 'test-results',
   use: {

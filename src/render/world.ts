@@ -205,6 +205,12 @@ export class World {
           this.decorations.clearAround(e.x, e.y, 2);
           this.hold = { x: e.x, y: e.y + 1, until: this.time + 2.5 };
           break;
+        case 'panic': {
+          const panicking = this.game.buddies.find((b) => b.id === e.buddy);
+          this.buddyViews.get(e.buddy)?.onPanic(e.seconds);
+          if (panicking) this.hold = { x: panicking.body.x, y: panicking.body.y, until: this.time + 1 };
+          break;
+        }
         case 'scorch':
           this.buddyViews.get(e.buddy)?.onHurt();
           break;

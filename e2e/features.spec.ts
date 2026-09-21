@@ -279,7 +279,7 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
 
   // The clock keeps ticking while a sheep is being guided.
   const ticks = played(await state(page), 'tick');
-  await select(page, '6', 'sheep');
+  await select(page, '0', 'sheep');
   await page.evaluate(() => (window.__allium.app.game!.turnTimeLeft = 30));
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.phase === 'guiding', 10_000);
@@ -410,7 +410,7 @@ test('fire effects clean up: no flame meshes, particle systems or light left bur
   const before = await counts();
 
   // Set a patch of ground alight with a napalm strike and let it burn out again.
-  await select(page, 'Shift+7', 'napalm');
+  await select(page, 'Shift+3', 'napalm');
   const target = await page.evaluate(() => {
     const g = window.__allium.app.game!;
     const b = g.activeBuddy!;
@@ -521,12 +521,18 @@ test('HUD: weapon bar lists every weapon with ammo and follows the selection', a
   await expect(page.locator('.hint')).toContainText('release the sheep');
   await expect(page.locator('.weapon-name')).toContainText('Sheep ×1');
 
-  // All slots fit on one row at 1280 px, and the bar never overflows the viewport.
+  // Two rows of eleven at 1280 px, so the thematic groups stay readable, and no overflow.
   const box = (await page.locator('.weapons').boundingBox())!;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(1280);
-  const tops = await slots.evaluateAll((els) => new Set(els.map((el) => Math.round(el.getBoundingClientRect().top))).size);
-  expect(tops).toBe(1);
+  const rows = await slots.evaluateAll((els) => [...new Set(els.map((el) => Math.round(el.getBoundingClientRect().top)))].length);
+  expect(rows).toBe(2);
+  // And the first row really is the first eleven of the weapon order.
+  const firstRow = await slots.evaluateAll((els) => {
+    const top = Math.min(...els.map((el) => Math.round(el.getBoundingClientRect().top)));
+    return els.filter((el) => Math.round(el.getBoundingClientRect().top) === top).length;
+  });
+  expect(firstRow).toBe(11);
   expect(errors).toEqual([]);
 });
 

@@ -862,18 +862,23 @@ kbd {
   text-overflow: ellipsis;
 }
 
+/*
+ * Two rows of at most eleven, so the thematic groups stay visible at a glance instead of running
+ * off in one long strip: launcher and thrown things, guns and fists on the first row, the sheep,
+ * the air attacks, the tools and the traps on the second.
+ */
 .slots {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(11, auto);
+  grid-auto-rows: auto;
   justify-content: center;
   gap: 3px;
 }
 
-/* Twenty-one of these have to sit on one row at 1280 px without shrinking their text. */
 .slot {
   position: relative;
-  width: 38px;
-  height: 52px;
+  width: 44px;
+  height: 50px;
   padding: 4px 2px 2px;
   border-radius: 12px;
   display: flex;
@@ -1119,4 +1124,19 @@ kbd {
 .gravity-value {
   font-size: 15px;
   font-weight: 600;
+}
+
+/*
+ * Reduced motion: the game itself is the motion a player asked for, but the overlay's own
+ * decoration — pulsing timers, sliding banners, floating damage — is not, so it holds still.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hud *,
+  .menu *,
+  .banner,
+  .floater {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

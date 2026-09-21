@@ -6,6 +6,8 @@ import { Game } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { WEAPONS } from '../src/core/weapons';
 import { Terrain } from '../src/core/terrain';
+import { cratesPerTurn } from '../src/core/crates';
+import { hotkeyLabel, WEAPON_ORDER, weaponForKey } from '../src/core/weapons';
 import { FLAME_BITE_INTERVAL, FLAME_BITES } from '../src/core/fire';
 import { flatGame, runUntil, team } from './helpers';
 
@@ -379,5 +381,34 @@ describe('match endings', () => {
     expect(g.teams[0].ammo).toEqual(before);
     expect(b.hp).toBe(100);
     expect(g.drainEvents().some((e) => e.type === 'cratePickup' && e.weapon === null && e.kind === 'weapon')).toBe(true);
+  });
+});
+
+describe('small rules with an unused edge', () => {
+  it('drops a panicking buddy\u2019s countdown when the buddy is gone from the match', () => {
+    const g = flatGame([30, 90], [team('A', 1), team('B', 1)]);
+    aiming(g);
+    g.selectWeapon('selfdestruct');
+    g.pressFire();
+    expect(g.phase).toBe('panicking');
+    // No active buddy at all (never happens in play, but the step has to cope rather than throw).
+    g.activeBuddy = null;
+    g.step(1 / 60);
+    expect(g.action).toBeNull();
+  });
+
+  it('hands out no crates at all when the rate is zero or negative', () => {
+    expect(cratesPerTurn(0, () => 0)).toBe(0);
+    expect(cratesPerTurn(-1, () => 0)).toBe(0);
+    expect(cratesPerTurn(0.5, () => 0.9)).toBe(0);
+    expect(cratesPerTurn(0.5, () => 0.1)).toBe(1);
+    expect(cratesPerTurn(2, () => 0.9)).toBe(2);
+  });
+
+  it('labels a hotkey-less weapon slot and refuses keys that are not digits', () => {
+    // Nothing is bound past the letter keys, and the label says so rather than inventing one.
+    expect(hotkeyLabel(WEAPON_ORDER.length + 5)).toBe('\u00b7');
+    expect(weaponForKey(1.5, false)).toBeNull();
+    expect(weaponForKey(-1, true)).toBeNull();
   });
 });

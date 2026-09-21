@@ -93,15 +93,18 @@ export interface GameOverrides {
  * `drilling`: the active buddy drills straight down; no other input, no fall damage.
  * `firing`: a burst weapon is rattling off its bullets; no other input.
  */
-export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'drilling' | 'roping' | 'firing' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
+export type Phase =
+  'turnStart' | 'aiming' | 'guiding' | 'torching' | 'drilling' | 'roping' | 'firing' | 'panicking' | 'retreat' | 'settling' | 'deaths' | 'gameOver';
 
 /** Phases in which the turn timer counts down. */
 const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping'];
+/** Seconds a buddy panics with its thumb on the detonator before the blast. */
+const PANIC_TIME = 3;
 /** Weapons pointed with the mouse: they are used by clicking the map, never with the fire button. */
 export const MAP_WEAPONS: readonly WeaponKind[] = ['strike', 'platform', 'teleport'];
 
 /** Phases in which the active team is still playing its turn, so hurting its buddy ends it. */
-const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping', 'firing', 'retreat'];
+const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping', 'firing', 'panicking', 'retreat'];
 
 export interface Buddy {
   id: number;
@@ -182,6 +185,7 @@ export type GameEvent =
   | { type: 'cratePickup'; crate: number; buddy: number; kind: 'health' | 'weapon'; weapon: WeaponId | null; amount: number; x: number; y: number }
   | { type: 'airstrike'; weapon: WeaponId; plane: boolean; target: number; ground: number; dir: 1 | -1; altitude: number; startX: number; speed: number }
   | { type: 'suddenDeath'; turn: number }
+  | { type: 'panic'; buddy: number; seconds: number }
   | { type: 'waterRise'; level: number; x: number }
   | { type: 'platformPlaced'; weapon: WeaponId; x: number; y: number; angle: number }
   | { type: 'teleport'; weapon: WeaponId; buddy: number; fromX: number; fromY: number; x: number; y: number }
@@ -271,6 +275,19 @@ export interface DrillAction {
   hit: number[];
 }
 
+/**
+ * A buddy that has pressed its own detonator: it panics for a few seconds while a countdown runs
+ * over its head, then goes off. Straight out of Lemmings, where "Oh no!" was the last thing a
+ * lemming said before it took the wall with it.
+ */
+export interface PanicAction {
+  kind: 'panic';
+  buddy: number;
+  left: number;
+  /** Whole seconds already announced, so each tick is emitted once. */
+  ticked: number;
+}
+
 /** Burst weapon firing: bullets left and seconds until the next one. */
 export interface BurstAction {
   kind: 'burst';
@@ -286,7 +303,8 @@ export type TurnAction =
   | { kind: 'rope'; rope: Rope | null; paid: boolean }
   | TorchAction
   | DrillAction
-  | BurstAction;
+  | BurstAction
+  | PanicAction;
 
 export class Game {
   readonly terrain: Terrain;
@@ -981,6 +999,22 @@ export class Game {
         if (b?.alive && this.phase === 'firing') this.stepBurst(action, b, dt);
         else this.action = null;
         return;
+      case 'panic':
+        // Nothing can stop it now: even a buddy killed mid-panic still takes the hillside with it.
+        if (!b) {
+          this.action = null;
+          return;
+        }
+        action.left -= dt;
+        {
+          const seconds = Math.ceil(Math.max(0, action.left));
+          if (seconds < action.ticked || action.ticked === 0) {
+            action.ticked = seconds;
+            this.emit({ type: 'panic', buddy: b.id, seconds });
+          }
+        }
+        if (action.left <= 0) this.detonateBuddy(b);
+        return;
     }
   }
 
@@ -1384,7 +1418,7 @@ export class Game {
       this.startRetreat();
       return;
     } else if (def.kind === 'self') {
-      this.selfDestruct(b, def);
+      this.selfDestruct(b);
       return;
     } else if (def.kind === 'melee') {
       this.melee(b, def, dir);
@@ -1414,10 +1448,19 @@ export class Game {
   }
 
   /** The buddy explodes: damage equals its health and the blast radius grows with it. */
-  private selfDestruct(b: Buddy, def: WeaponDef): void {
-    const blast = selfDestructBlast(def, b.hp);
+  /** Press the detonator: the buddy panics, and PANIC_TIME later it takes the hillside with it. */
+  private selfDestruct(b: Buddy): void {
+    this.action = { kind: 'panic', buddy: b.id, left: PANIC_TIME, ticked: 0 };
+    this.setPhase('panicking');
+    this.emit({ type: 'panic', buddy: b.id, seconds: Math.ceil(PANIC_TIME) });
+  }
+
+  /** The blast itself, once the countdown has run out or the buddy was killed mid-panic. */
+  private detonateBuddy(b: Buddy): void {
+    const blast = selfDestructBlast(WEAPONS.selfdestruct, b.hp);
     b.alive = false;
     b.hp = 0;
+    this.action = null;
     this.emit({ type: 'death', buddy: b.id });
     this.explode(b.body.x, b.body.y, blast.radius, blast.damage, blast.force);
     this.raiseGrave(b);

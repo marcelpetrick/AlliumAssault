@@ -83,7 +83,7 @@ test('grenade: bounces audibly, then explodes after its fuse', async ({ page }) 
 test('shotgun: two instant shots with sound, each carving the ground', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '3', 'shotgun');
+  await select(page, '6', 'shotgun');
   await aim(page, -1.2);
   const before = await state(page);
 
@@ -106,7 +106,7 @@ test('shotgun: two instant shots with sound, each carving the ground', async ({ 
 test('garlic punch: 45 damage and launches the enemy upwards', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '4', 'punch');
+  await select(page, '8', 'punch');
   const puncher = await me(page);
   await faceEnemyUpClose(page);
   await page.keyboard.press('Space');
@@ -122,7 +122,7 @@ test('garlic punch: 45 damage and launches the enemy upwards', async ({ page }) 
 test('baseball bat: crack, 25 damage and a long flight for the enemy', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '8', 'bat');
+  await select(page, '9', 'bat');
   const batter = await me(page);
   await faceEnemyUpClose(page);
   const standing = (await state(page)).buddies.find((b) => b.name !== batter.name)!;
@@ -142,7 +142,7 @@ test('baseball bat: crack, 25 damage and a long flight for the enemy', async ({ 
 test('blowtorch: roaring flame walks the buddy forward through the rock', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '9', 'torch');
+  await select(page, 'Shift+5', 'torch');
   const start = await me(page);
   await aim(page, 0, 1);
   const before = await state(page);
@@ -175,7 +175,7 @@ test('blowtorch: roaring flame walks the buddy forward through the rock', async 
 test('blowtorch aimed upwards cuts its way up through the rock', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '9', 'torch');
+  await select(page, 'Shift+5', 'torch');
   // Put a block of rock up and ahead of the buddy, so the flame always has something to bite into.
   await page.evaluate(() => {
     const g = window.__allium.app.game!;
@@ -205,7 +205,7 @@ test('blowtorch aimed upwards cuts its way up through the rock', async ({ page }
 test('minigun: rattling burst of bullets that hurts and shoves the enemy', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+1', 'minigun');
+  await select(page, '7', 'minigun');
   const gunner = await me(page);
   await faceEnemyUpClose(page);
   await page.keyboard.press('Space');
@@ -222,7 +222,7 @@ test('minigun: rattling burst of bullets that hurts and shoves the enemy', async
 test('holy garlic grenade: comes to rest, sings, then an enormous blast', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+2', 'holy');
+  await select(page, '5', 'holy');
   await aim(page, 0.5, 1);
   const before = await state(page);
   await chargeAndRelease(page, 0.1);
@@ -273,7 +273,7 @@ test('holy garlic grenade on a hillside arms from rest and shows its countdown',
     b.body.vx = b.body.vy = 0;
   }, slope);
   await fastForward(page, 1);
-  await select(page, 'Shift+2', 'holy');
+  await select(page, '5', 'holy');
   await aim(page, 1.2, 1);
   await chargeAndRelease(page, 0.15);
   const armed = await page.evaluate(() => {
@@ -307,7 +307,7 @@ test('holy garlic grenade on a hillside arms from rest and shows its countdown',
 test('banana bomb: five bananas scatter and explode one after another', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+3', 'banana');
+  await select(page, '4', 'banana');
   await aim(page, 1.1, 1);
   const before = await state(page);
   await chargeAndRelease(page, 0.05);
@@ -337,7 +337,7 @@ test('banana bomb: five bananas scatter and explode one after another', async ({
 test('flying sheep: the arrow keys steer it for the whole flight, Space detonates', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+4', 'flysheep');
+  await select(page, 'Shift+1', 'flysheep');
   // Straight up, into open sky, so there is room to steer.
   await aim(page, 1.45, 1);
   const before = await state(page);
@@ -372,7 +372,7 @@ test('flying sheep: the arrow keys steer it for the whole flight, Space detonate
 test('concrete mule: a click drops it, it brays and smashes down repeatedly', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+5', 'mule');
+  await select(page, 'Shift+4', 'mule');
   const m = await me(page);
   const canvas = (await page.locator('#stage').boundingBox())!;
   const target = (await page.evaluate(([x, y]) => window.__allium.project(x, y), [m.x + 8, m.y] as const))!;
@@ -416,10 +416,10 @@ test('drill: Shift+6, grinding sound, the buddy drills straight down', async ({ 
   expect(errors).toEqual([]);
 });
 
-test('napalm strike: Shift+7 and a click, flames crackle, eat into the ground, then burn out', async ({ page }, info) => {
+test('napalm strike: Shift+3 and a click, flames crackle, eat into the ground, then burn out', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+7', 'napalm');
+  await select(page, 'Shift+3', 'napalm');
   const m = await me(page);
   const canvas = (await page.locator('#stage').boundingBox())!;
   const target = (await page.evaluate(([x, y]) => window.__allium.project(x, y), [m.x + 8, m.y] as const))!;
@@ -452,12 +452,17 @@ test('napalm strike: Shift+7 and a click, flames crackle, eat into the ground, t
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '0', 'selfdestruct');
+  await select(page, 'Shift+0', 'selfdestruct');
   const bomber = await me(page);
   await faceEnemyUpClose(page);
   const before = await state(page);
   await page.keyboard.press('Space');
+  // The Lemmings moment first: the alarm, "Oh no!" over its head and a shaking buddy, and it is
+  // still alive while the countdown beeps away.
   await waitForSound(page, 'alarm');
+  await expect(page.locator('.floater', { hasText: 'Oh no!' }).first()).toBeVisible();
+  expect((await state(page)).buddies.find((b) => b.name === bomber.name)!.alive).toBe(true);
+  await waitForSound(page, 'beep');
   await waitForSound(page, 'explosion', played(before, 'explosion') + 1);
   const s = await state(page);
   expect(s.buddies.find((b) => b.name === bomber.name)!.alive).toBe(false);
@@ -469,7 +474,7 @@ test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', 
 test('cluster bomb: red grenade bursts into five exploding bomblets', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '5', 'cluster');
+  await select(page, '3', 'cluster');
   await aim(page, 1.1);
   const before = await state(page);
   await chargeAndRelease(page, 0.05);
@@ -499,7 +504,7 @@ test('sheep: baa on release, hops away, Space blows it up', async ({ page }, inf
   const errors = await boot(page);
   await startDuel(page);
   const start = await me(page);
-  await select(page, '6', 'sheep');
+  await select(page, '0', 'sheep');
   await aim(page, 0, 1);
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.phase === 'guiding' && s.sheep !== null && (s.sound.played as Partial<Record<string, number>>).baa === 1, 10_000);
@@ -520,7 +525,7 @@ test('sheep: baa on release, hops away, Space blows it up', async ({ page }, inf
   expect(errors).toEqual([]);
 });
 
-test('rope: Shift+9 hooks the rock overhead, then reel, swing and let go', async ({ page }, info) => {
+test('rope: Shift+7 hooks the rock overhead, then reel, swing and let go', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
   const before = await state(page);
@@ -532,7 +537,7 @@ test('rope: Shift+9 hooks the rock overhead, then reel, swing and let go', async
     for (let x = me.body.x - 12; x <= me.body.x + 12; x += 0.8) g.terrain.addDisc(x, me.body.y + 13.3, 1.6);
     for (let y = me.body.y + 5.3; y <= me.body.y + 13.3; y += 0.6) g.terrain.addDisc(me.body.x + 4, y, 1.1);
   });
-  await select(page, 'Shift+9', 'rope');
+  await select(page, 'Shift+7', 'rope');
   await page.evaluate(() => {
     const g = window.__allium.app.game!;
     g.activeBuddy!.aim = Math.PI / 2 - 0.01;
@@ -632,10 +637,10 @@ test('teleport: T selects it, a click beams the buddy there and it falls from wh
   expect(errors).toEqual([]);
 });
 
-test('platform: Shift+0 previews a board, the wheel tilts it and a click sets it down', async ({ page }, info) => {
+test('platform: Shift+8 previews a board, the wheel tilts it and a click sets it down', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+0', 'platform');
+  await select(page, 'Shift+8', 'platform');
   const before = await state(page);
   // Find open air near the buddy that the board fits into, and where on screen that is.
   const target = await page.evaluate(() => {
@@ -676,11 +681,11 @@ test('platform: Shift+0 previews a board, the wheel tilts it and a click sets it
   expect(errors).toEqual([]);
 });
 
-test('proximity mine: Shift+8 drops it, it arms with a click and blows up whoever comes near', async ({ page }, info) => {
+test('proximity mine: Shift+9 drops it, it arms with a click and blows up whoever comes near', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
   const before = await state(page);
-  await select(page, 'Shift+8', 'mine');
+  await select(page, 'Shift+9', 'mine');
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.mines.length === 1, 10_000);
   expect((await state(page)).ammo!.mine).toBe(1);
@@ -736,7 +741,7 @@ test('proximity mine: Shift+8 drops it, it arms with a click and blows up whoeve
 test('air strike: the arrow keys pick the approach side and the buddy stays put', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '7', 'airstrike');
+  await select(page, 'Shift+2', 'airstrike');
   const before = await me(page);
   expect((await state(page)).choosingApproach).toBe(true);
 
@@ -776,7 +781,7 @@ test('air strike: the arrow keys pick the approach side and the buddy stays put'
 test('air strike: a drag pans the camera, a click calls the plane and five bombs', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, '7', 'airstrike');
+  await select(page, 'Shift+2', 'airstrike');
   const m = await me(page);
   const canvas = (await page.locator('#stage').boundingBox())!;
   const spot = (await page.evaluate(([x, y]) => window.__allium.project(x, y), [m.x + 7, m.y] as const))!;

@@ -2,6 +2,37 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.54.0] — 2026-09-21
+
+### Added
+
+- **Self-destruct takes its Lemmings moment.** Pressing the detonator no longer blows the buddy up
+  on the spot: it panics for three seconds with "Oh no!" and a ticking countdown over its head,
+  shaking and swelling, and only then takes the hillside with it. Nothing stops it once started.
+- `CONTRIBUTING.md`, `SECURITY.md`, `.editorconfig` and a Dependabot configuration.
+- Share metadata (description, Open Graph, theme colour), so a posted link shows the game.
+
+### Changed
+
+- **The weapon bar is two rows, grouped by kind**: launcher and thrown family, guns, fists, sheep,
+  what is called in from the sky, digging tools, getting about and building, traps and last
+  resorts. Every hotkey moved with it — 1–9, 0, then Shift+1–0, with Teleport on T.
+- **The minigun finally looks like a gun** instead of a screw; the shotgun took the blast icon and
+  self-destruct the skull.
+- The overlay's own animations hold still for `prefers-reduced-motion`.
+- All README screenshots and the GIF were re-captured on this version.
+
+### Fixed
+
+- **The coverage gate never ran**: `verify` and CI used `npm test`, so the 98% thresholds enforced
+  since 1.43.3 were checked by nothing, and branch coverage had slipped to 97.97%. All four gates
+  now run the coverage, and the gaps are covered again.
+- Browser tests retry once, so a network hiccup no longer fails an otherwise green run.
+- The teleport row appeared twice in the README; the whole weapon table is now generated from the
+  weapon order.
+- `docs/ARCHITECTURE.md` was two releases out of date; the finished `todo.md` moved to the archive
+  and `review.md` now holds the current review.
+
 ## [1.53.1] — 2026-09-21
 
 ### Added

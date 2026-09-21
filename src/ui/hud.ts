@@ -126,6 +126,13 @@ export class Hud {
           this.banner(team.name, `${buddy?.name ?? ''} is up${team.controller === 'ai' ? ' · 🤖' : ''}`, team.color);
           break;
         }
+        case 'panic':
+          // Lemmings again: "Oh no!", then the seconds ticking away over its head.
+          if (buddy) {
+            if (e.seconds >= 3) this.float('Oh no!', buddy.body.x, buddy.body.y + 2.1, '#ffd166');
+            else this.float(String(e.seconds), buddy.body.x, buddy.body.y + 2.4, '#ff5a3c');
+          }
+          break;
         case 'waterRise':
           this.float('🌊 rising', e.x, e.level + 2.4, '#7fd8ff');
           break;

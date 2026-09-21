@@ -306,6 +306,9 @@ export class App {
           if (fireSound) this.audio.play(fireSound);
           break;
         }
+        case 'panic':
+          this.audio.play(e.seconds >= 3 ? 'alarm' : 'beep');
+          break;
         case 'ignite':
           this.audio.play('ignite');
           break;

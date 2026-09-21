@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+version: 2
+updates:
+  # Dependencies are pinned exactly, so every update is a pull request that CI has to prove.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    groups:
+      dev-tooling:
+        patterns: ['eslint*', '@eslint/*', 'typescript*', 'prettier', 'stylelint*', 'markdownlint*', 'vite', 'vitest', '@vitest/*', '@playwright/*', '@types/*']
+    commit-message:
+      prefix: 'build(deps)'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: 'build(ci)'

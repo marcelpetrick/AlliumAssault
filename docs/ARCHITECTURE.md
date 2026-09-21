@@ -88,11 +88,11 @@ C4Component
   Container_Boundary(core, "Game core") {
     Component(game, "Game", "game.ts", "Match state machine, commands, weapon execution, damage, events")
     Component(ai, "AiDriver and planAttack", "ai.ts", "Samples trajectories, scores blasts, drives Game commands")
-    Component(terrain, "Terrain", "terrain.ts", "Density field, seeded generation, carve, spawn search, dirty chunks")
+    Component(terrain, "Terrain", "terrain.ts", "Density field, seeded generation, carve, spawn search, dirty chunks; also the arena: water level, gravity scale and placed platforms")
     Component(contour, "contourRegion", "contour.ts", "Marching squares: fill triangles and oriented edges")
     Component(physics, "Physics", "physics.ts", "stepBody for buddies, stepProjectile for shells")
-    Component(weapons, "Weapon table", "weapons.ts", "Nineteen weapon definitions by kind, fragments, arsenal flags, hotkey mapping")
-    Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts, fire.ts, rope.ts", "Hopping sheep, steerable flyer, strike drop planning, napalm flames, rope hook and swing")
+    Component(weapons, "Weapon table", "weapons.ts", "Twenty-one weapons by kind, grouped thematically; fragments, arsenal flags, digit and letter hotkeys")
+    Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts, fire.ts, rope.ts", "Hopping sheep, steerable flyer, strike drop planning, napalm flames that eat into the ground, rope hook and swing")
     Component(crates, "Crates and mines", "crates.ts, mines.ts", "Seeded crate contents and free land spots; mine arming, proximity and fuse")
     Component(support, "rng, math, constants, assert", "rng.ts, math.ts, constants.ts, assert.ts", "Seeded streams, helpers, tuning values, invariants")
   }
@@ -135,16 +135,17 @@ C4Component
   Container_Boundary(render, "3D renderer") {
     Component(world, "World", "world.ts", "Scene, lights, cascaded shadows, post-processing, camera director, event routing")
     Component(tv, "TerrainView", "terrainView.ts", "Rebuilds dirty 32×32-cell chunks into bevelled slabs")
+    Component(pv, "PlatformView", "platformView.ts", "Placed boards and the placement preview; the terrain owns their collision")
     Component(env, "Environment", "environment.ts", "Sky and water shaders, hills, thin-instanced pines, lollipops or snowy pines, clouds")
     Component(deco, "Decorations", "decorations.ts", "Thin-instanced ground props per scenery style: flowers, gumdrops, snowballs")
     Component(buddy, "BuddyView and BuddyKit", "buddyView.ts", "Lathe garlic models, faces, squash and stretch, weapons")
-    Component(fx, "Effects", "effects.ts", "Particles, shockwave, lights, tracers, projectile models, sheep, plane, crates, tombstones, flames, strike cursor")
+    Component(fx, "Effects", "effects.ts", "Particles, shockwave, lights, tracers, projectile models, sheep, plane, crates, tombstones, flames, flying earth, strike cursor; sweeps up one-shot systems")
     Component(themes, "Themes and textures", "themes.ts, textures.ts", "Palettes and procedural grain and normal maps")
   }
 
   Container_Boundary(ui, "UI overlay") {
-    Component(hud, "Hud", "hud.ts", "Turn card, timer, wind, weapon bar, team bars, name tags, floaters")
-    Component(menu, "Menu", "menu.ts, presets.ts, settings.ts", "Title, custom setup, help, about, pause, victory; persisted settings and text size")
+    Component(hud, "Hud", "hud.ts", "Turn card, timer, wind, gravity badge, two-row weapon bar, team bars, name tags, floaters")
+    Component(menu, "Menu", "menu.ts, presets.ts, settings.ts, mapPreview.ts", "Title, custom setup (gravity, crates, arsenal, seed with a live map preview), help, about, pause, victory; persisted settings and text size")
   }
 
   Container(core, "Game core", "src/core")
@@ -195,7 +196,7 @@ test hook swaps the real-time loop for exact frames, which is how the README GIF
 ```mermaid
 stateDiagram-v2
   [*] --> turnStart: beginTurn()
-  turnStart --> aiming: after 1.2 s (2.5 s when a crate teleports in)
+  turnStart --> aiming: after 1.2 s (+1.3 s for a crate, +1.4 s while the Sudden Death water climbs)
   aiming --> retreat: last shot of the weapon fired, strike called, self-destruct settles
   aiming --> guiding: sheep or flying sheep released
   guiding --> retreat: Space, impact, fuse or turn time detonates it
@@ -205,6 +206,9 @@ stateDiagram-v2
   drilling --> retreat: after 3 s
   aiming --> firing: minigun burst
   firing --> retreat: last bullet
+  aiming --> panicking: self-destruct triggered
+  panicking --> settling: three seconds of "Oh no!", then the blast
+  aiming --> retreat: platform placed or teleport used
   aiming --> settling: timer runs out, active buddy hurt or drowned, skipTurn()
   retreat --> settling: retreat timer ends or active buddy hurt
   settling --> deaths: everything at rest for 0.6 s (15 s cap)
@@ -221,7 +225,11 @@ Rules enforced here:
   running in all but `firing` (`COUNTDOWN_PHASES`), and hurting the active buddy in any of them ends
   the turn (`ACTION_PHASES`),
 - the active buddy takes no fall damage while drilling,
-- crates teleport in at turn starts from a seeded stream, so maps replay identically,
+- crates teleport in at turn starts from a seeded stream, so maps replay identically — one per turn
+  by chance, or a fixed number under "crate craziness",
+- Sudden Death raises the water one unit per turn start, never by the second, so sitting a turn out
+  never floods faster than playing it,
+- a buddy that dies during its own turn intro hands the turn straight on,
 - the turn only ends once the world has settled — projectiles, sheep, strike drops, crates,
   napalm flames and tombstones included,
 - death explosions are queued one at a time, so chain reactions resolve deterministically.
