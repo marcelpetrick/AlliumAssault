@@ -183,28 +183,29 @@ test('gravity: Moon is picked in the setup, shown in the HUD and floats the jump
   await expect(page.locator('.gravity')).toBeVisible();
   await info.attach('moon-gravity', { body: await page.screenshot(), contentType: 'image/png' });
 
-  // The same jump reaches higher than it does in the ordinary world.
-  const jump = async () => {
-    const start = await page.evaluate(() => {
-      const b = window.__allium.app.game!.activeBuddy!;
-      b.body.vx = b.body.vy = 0;
-      return b.body.y;
+  // The same jump reaches higher than it does in the ordinary world. The apex is measured inside
+  // the page, frame by frame, because polling it from here samples far too coarsely to compare.
+  const apex = () =>
+    page.evaluate(() => {
+      const app = window.__allium.app;
+      const b = app.game!.activeBuddy!;
+      b.body.vx = 0;
+      b.body.vy = 0;
+      const start = b.body.y;
+      app.game!.jump(false);
+      let top = start;
+      for (let k = 0; k < 240; k++) {
+        app.fastForward(1 / 60);
+        top = Math.max(top, b.body.y);
+      }
+      return top - start;
     });
-    await page.keyboard.press('Enter');
-    let top = start;
-    for (let k = 0; k < 12; k++) {
-      await fastForward(page, 0.1);
-      top = Math.max(top, await page.evaluate(() => window.__allium.app.game!.activeBuddy!.body.y));
-    }
-    await fastForward(page, 2);
-    return top - start;
-  };
-  const moon = await jump();
+  const moon = await apex();
   await page.evaluate(() => {
     window.__allium.app.game!.terrain.gravityScale = 1;
   });
-  const normal = await jump();
-  expect(moon).toBeGreaterThan(normal * 1.3);
+  const normal = await apex();
+  expect(moon).toBeGreaterThan(normal * 1.4);
   expect(errors).toEqual([]);
 });
 

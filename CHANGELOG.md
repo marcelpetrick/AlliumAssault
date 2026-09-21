@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.52.1] — 2026-09-21
+
+### Added
+
+- `touchdisplay_support_ideation.md`: a design study for playing the whole game on a touchscreen —
+  an optional, translucent control overlay that is off by default, what each of the three hard
+  inputs (aim, charge, pick a spot) becomes, and what building it would cost. No code yet.
+
 ## [1.52.0] — 2026-09-21
 
 ### Changed

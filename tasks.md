@@ -98,14 +98,11 @@ Status: ☐ open · ☑ done
 | T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☑      | 1.51.0         |
 | T85 | Napalm: flames burn longer and eat into the ground                                                        | ☑      | 1.49.0         |
 | T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☑      | 1.52.0         |
-| T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☐      |                |
+| T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☑      | 1.52.1         |
 
 ## Current implementation plan
 
-1. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
-   translucent on-screen controls that are off by default — and write it up in
-   `touchdisplay_support_ideation.md`. Ideation only, no implementation (T87).
-2. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
+1. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
    each versioned, local commit. Do not push or tag without being asked.
 
 ## Answered questions
@@ -463,6 +460,22 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T87 — Touch-display ideation ☑
+
+Written in 1.52.1 to [touchdisplay_support_ideation.md](touchdisplay_support_ideation.md); no code
+was changed. It starts from an inventory of every input the game needs — how often it is used and
+how precise it has to be — and finds that only three are hard on glass: aiming, charging, and
+picking a spot on the map. The proposal is a landscape layout with a four-way pad under the left
+thumb (walk and aim, held exactly like the arrow keys), a FIRE button that charges while held with
+the charge drawn as a ring around it, JUMP above it, the existing weapon bar grown into a scrolling
+strip with a grid behind it, and camera panning and pinch-zoom on the map itself. The map weapons
+become tap-a-marker, adjust, confirm, because a mis-tap costs a turn where a mis-click never did.
+The overlay is off by default, offered once when a touch is first seen, and settable to Off / On /
+Auto beside the text size. The document also covers handedness, safe areas, haptics, the browser
+details (`touch-action`, `dvh`, a PWA manifest), how the flows would be tested with Playwright's
+touch emulation, a three-phase estimate of five to eight days, and four open questions for the
+decision.
 
 ### T86 — Sound audit ☑
 
