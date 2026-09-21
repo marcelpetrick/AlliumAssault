@@ -18,11 +18,12 @@ export interface Flame {
 
 /**
  * A flame eats into what it burns on: a bite every so often, each a small disc of rock, and only
- * a few of them, so a patch of napalm leaves a charred hollow about a unit deep.
+ * a few of them. Deliberately shallow — two thirds of what it used to take — so a napalm strike
+ * leaves a carpet of fire a buddy has to cross rather than a trench it can shelter in.
  */
 export const FLAME_BITE_INTERVAL = 1.1;
-export const FLAME_BITE_RADIUS = 0.3;
-export const FLAME_BITES = 4;
+export const FLAME_BITE_RADIUS = 0.24;
+export const FLAME_BITES = 3;
 
 /** Horizontal spacing of the flames a napalm canister spreads. */
 const FLAME_SPACING = 0.8;

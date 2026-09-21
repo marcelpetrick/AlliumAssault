@@ -779,10 +779,11 @@ describe('match flow', () => {
     g.flames.push({ id: 995, x: 60, y: surface + 0.1, life: 6, bite: FLAME_BITE_INTERVAL, bitesLeft: FLAME_BITES });
     expect(g.terrain.isSolid(60, surface - 0.3)).toBe(true);
     runUntil(g, () => g.flames.length === 0, 10);
-    // The rock under it is gone and the flame followed it down — a dent, not a mineshaft.
+    // The rock under it is gone and the flame followed it down — a scorched carpet, not a trench:
+    // three shallow bites rather than four deep ones, so what is left is ankle-deep.
     expect(g.terrain.isSolid(60, surface - 0.3)).toBe(false);
-    expect(g.terrain.isSolid(60, surface - 1.2)).toBe(false);
-    expect(g.terrain.isSolid(60, surface - 2.2)).toBe(true);
+    expect(g.terrain.isSolid(60, surface - 0.7)).toBe(false);
+    expect(g.terrain.isSolid(60, surface - 1.1)).toBe(true);
   });
 
   it('napalm is carried far by the wind', () => {

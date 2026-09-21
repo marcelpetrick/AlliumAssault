@@ -618,12 +618,14 @@ export class Effects {
         this.groundFire.set(flame.id, meshes);
       }
       const pulse = 1 + Math.sin(time * 12 + flame.id * 2.3) * 0.18;
-      const height = (1.65 + Math.sin(flame.id * 7) * 0.2) * pulse;
+      // Lower and narrower than the old pillars: a carpet of fire spread across the ground reads
+      // as something to run across, where a wall of flame read as something that had dug in.
+      const height = (1.1 + Math.sin(flame.id * 7) * 0.16) * pulse;
       meshes.outer.position.set(flame.x, flame.y + height * 0.5, -0.65);
-      meshes.outer.scaling.set(0.78, height, 0.78);
+      meshes.outer.scaling.set(0.58, height, 0.58);
       meshes.outer.rotation.z = Math.sin(time * 6 + flame.id) * 0.12;
       meshes.inner.position.set(flame.x, flame.y + height * 0.34, -0.82);
-      meshes.inner.scaling.set(0.38, height * 0.68, 0.38);
+      meshes.inner.scaling.set(0.28, height * 0.68, 0.28);
       meshes.inner.rotation.z = meshes.outer.rotation.z;
     }
     const atRandomFlame = (position: Vector3, spread: number, lift: number): void => {

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.60.1] — 2026-09-22
+
+### Changed
+
+- **Napalm lays a carpet instead of digging a trench.** Three shallow bites out of the ground rather
+  than four deep ones — about two thirds of the depth — and flames drawn lower and narrower. What a
+  napalm strike leaves behind is now ground a buddy has to cross, not a ditch it can shelter in.
+
 ## [1.60.0] — 2026-09-22
 
 ### Added
