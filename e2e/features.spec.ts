@@ -98,6 +98,37 @@ test('crates: a flying sheep collects one for the buddy that launched it, across
   expect(errors).toEqual([]);
 });
 
+test('explosions throw earth out of the ground, and nothing when they go off in the air', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  const chunks = () => page.evaluate(() => window.__allium.app.world!.scene.meshes.filter((m) => m.name.startsWith('chunk-')).length);
+  expect(await chunks()).toBe(0);
+
+  // High above the island: a blast with no ground around it throws nothing about.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.explode(g.activeBuddy!.body.x, g.terrain.height - 4, 3, 0, 0);
+    window.__allium.stepFrames(2, 1 / 60);
+  });
+  expect(await chunks()).toBe(0);
+
+  // In the hillside: lumps of earth fly, then disappear again.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const b = g.activeBuddy!;
+    g.explode(b.body.x + 6, b.body.y - 1.2, 3.4, 0, 0);
+    window.__allium.stepFrames(6, 1 / 60);
+  });
+  const flying = await chunks();
+  expect(flying).toBeGreaterThan(1);
+  await info.attach('earth-chunks', { body: await page.screenshot(), contentType: 'image/png' });
+  await page.evaluate(() => {
+    window.__allium.stepFrames(90, 1 / 30);
+  });
+  expect(await chunks()).toBe(0);
+  expect(errors).toEqual([]);
+});
+
 test('crate craziness: two crates teleport in every turn', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page, { crates: 2 });

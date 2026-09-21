@@ -93,7 +93,7 @@ Status: ☐ open · ☑ done
 | T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
 | T80 | Public release v1.44.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.44.0         |
 | T81 | Turn timer: the number overlaps the ring at larger text sizes — make it fit, and keep it pretty           | ☑      | 1.47.2         |
-| T82 | Explosions: thinner and more translucent, with chunks of earth thrown out of the crater                   | ☐      |                |
+| T82 | Explosions: thinner and more translucent, with chunks of earth thrown out of the crater                   | ☑      | 1.50.0         |
 | T83 | Sudden Death: show the rising water with the camera, and end a turn the moment the active buddy drowns    | ☑      | 1.48.0         |
 | T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☐      |                |
 | T85 | Napalm: flames burn longer and eat into the ground                                                        | ☑      | 1.49.0         |
@@ -102,16 +102,14 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Rework the explosion look: fewer, more translucent particles, plus chunks of earth thrown out of
-   a crater in the ground (T82).
-2. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
+1. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
    lands like any other body (T84).
-3. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
+2. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
    one, add teleport and platform sounds, and write the choices down (T86).
-4. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
+3. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
    translucent on-screen controls that are off by default — and write it up in
    `touchdisplay_support_ideation.md`. Ideation only, no implementation (T87).
-5. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
+4. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
    each versioned, local commit. Do not push or tag without being asked.
 
 ## Answered questions
@@ -469,6 +467,22 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T82 — Thinner explosions that throw earth ☑
+
+Done in 1.50.0. Since the fire effects were strengthened, a blast was a wall of sprites: it hid the
+buddies, the crater and everything else behind it. The fire and smoke bursts now use about half the
+particles and are drawn see-through (alpha 0.62 and 0.4 instead of 1 and 0.75), and the fireball
+fades from 0.5 rather than 0.8, so the blast reads as a flash of fire with the world visible through
+it.
+
+In exchange the ground itself takes part: a blast that finds rock around it throws up to sixteen
+tumbling lumps of earth in the scenery's own dirt colour, ballistic, spinning, shrinking away after
+a second or two. They are meshes rather than particles on purpose — a handful of solid, spinning
+pieces reads as "the ground came apart" in a way a sprite cloud never does. How many depends on how
+much ground the blast actually found: the renderer samples two rings just outside the fresh crater,
+so a blast in mid-air throws nothing, one on a hillside throws a few and one buried in rock throws
+the lot. A browser test checks both ends of that and that the lumps clean themselves up.
 
 ### T85 — Napalm burns longer and eats into the ground ☑
 

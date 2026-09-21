@@ -66,7 +66,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 
 - **Smooth 3D world** — Babylon.js 9: rounded terrain slabs, cascaded soft shadows, bloom, ACES
   tone mapping, animated water, parallax hills with forests, drifting clouds, particle explosions.
-- **Destructible terrain** — every explosion carves a round, scorched crater; props on the ground
+- **Destructible terrain** — every explosion carves a round, scorched crater and throws tumbling
+  lumps of earth out of it; props on the ground
   get blown away.
 - **Worms-style rules** — 2–4 teams of 1–4 buddies, rotating turns, turn timer, 5 s retreat,
   wind, knockback, fall damage, drowning, death explosions, last team standing wins.

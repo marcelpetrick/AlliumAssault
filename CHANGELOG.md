@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.50.0] — 2026-09-21
+
+### Changed
+
+- Explosions are half as dense and see-through, so the buddies and the crater stay visible through
+  the blast, and a blast that bites into rock now throws tumbling lumps of earth out of the ground.
+  A blast in mid-air throws none.
+
 ## [1.49.0] — 2026-09-21
 
 ### Changed

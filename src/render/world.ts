@@ -168,7 +168,7 @@ export class World {
     for (const e of events) {
       switch (e.type) {
         case 'explosion':
-          this.effects.explosion(e.x, e.y, e.radius, this.theme.dirt);
+          this.effects.explosion(e.x, e.y, e.radius, this.theme.dirt, this.groundShare(e.x, e.y, e.radius));
           this.decorations.clearAround(e.x, e.y, e.radius);
           if (e.radius > 1.5) this.hold = { x: e.x, y: e.y, until: this.time + 1.8 };
           break;
@@ -233,6 +233,25 @@ export class World {
       this.hold = { x: attention.x, y: attention.y, until: this.time + this.game.introTime };
       this.manualUntil = -1;
     }
+  }
+
+  /**
+   * How much ground a blast found around it, 0 to 1. The crater is already carved by the time the
+   * event arrives, so this samples two rings just outside it: a blast in mid-air finds nothing, one
+   * on a hillside finds about half, one buried in rock finds it all.
+   */
+  private groundShare(x: number, y: number, radius: number): number {
+    const t = this.game.terrain;
+    const rings = [radius + 0.4, radius + 1.2];
+    const steps = 8;
+    let solid = 0;
+    for (const reach of rings) {
+      for (let k = 0; k < steps; k++) {
+        const angle = (k / steps) * Math.PI * 2;
+        if (t.isSolid(x + Math.cos(angle) * reach, y + Math.sin(angle) * reach)) solid++;
+      }
+    }
+    return solid / (rings.length * steps);
   }
 
   update(dt: number): void {

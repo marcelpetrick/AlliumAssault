@@ -130,6 +130,8 @@ export class Effects {
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
+  /** Shared material of the earth lumps, built the first time a blast throws some. */
+  private earthMaterial: StandardMaterial | null = null;
 
   constructor(
     private readonly scene: Scene,
@@ -217,13 +219,19 @@ export class Effects {
     }
   }
 
-  explosion(x: number, y: number, radius: number, debris: Color3): void {
+  /**
+   * `solid` is how much rock the blast found where it went off, 0 to 1: a blast in the open throws
+   * no earth about, one inside a hill throws plenty.
+   */
+  explosion(x: number, y: number, radius: number, debris: Color3, solid = 0): void {
     const r = radius / 2.8;
     const at = new Vector3(x, y, -0.6);
     this.fireball(x, y, radius);
+    // Half as many fire and smoke particles as before, and see-through: a dense wall of sprites hid
+    // the buddies, the crater and the flying earth behind it.
     this.burst(at, {
-      count: Math.round(80 * r) + 10,
-      colors: [new Color4(1, 0.9, 0.45, 1), new Color4(1, 0.45, 0.08, 1), new Color4(0.35, 0.05, 0, 0)],
+      count: Math.round(42 * r) + 6,
+      colors: [new Color4(1, 0.9, 0.45, 0.62), new Color4(1, 0.45, 0.08, 0.5), new Color4(0.35, 0.05, 0, 0)],
       size: [0.7 * r + 0.3, 1.9 * r + 0.4],
       life: [0.22, 0.5],
       power: [2.5 * r, 9 * r],
@@ -233,8 +241,8 @@ export class Effects {
       grow: 1.6,
     });
     this.burst(at, {
-      count: Math.round(40 * r) + 6,
-      colors: [new Color4(0.42, 0.4, 0.38, 0.75), new Color4(0.25, 0.24, 0.24, 0.6), new Color4(0.15, 0.15, 0.15, 0)],
+      count: Math.round(22 * r) + 4,
+      colors: [new Color4(0.42, 0.4, 0.38, 0.4), new Color4(0.25, 0.24, 0.24, 0.3), new Color4(0.15, 0.15, 0.15, 0)],
       size: [1.2 * r + 0.3, 2.8 * r + 0.4],
       life: [0.9, 1.9],
       power: [0.8, 3 * r],
@@ -243,6 +251,7 @@ export class Effects {
       additive: false,
       grow: 2,
     });
+    if (solid > 0.05) this.earthChunks(x, y, radius, debris, solid);
     this.burst(at, {
       count: Math.round(45 * r) + 5,
       colors: [Color4.FromColor3(debris, 1), Color4.FromColor3(debris.scale(0.6), 1), Color4.FromColor3(debris.scale(0.4), 0)],
@@ -1156,6 +1165,51 @@ export class Effects {
   }
 
   /** Solid emissive geometry makes the impact readable even between sparse particle frames. */
+  /**
+   * Lumps of earth thrown out of a crater: small tumbling boxes in the scenery's own dirt colour,
+   * ballistic and short-lived. They are meshes rather than particles because a handful of solid,
+   * spinning pieces reads as "the ground just came apart" in a way a sprite cloud never does.
+   */
+  private earthChunks(x: number, y: number, radius: number, dirt: Color3, solid: number): void {
+    const material = (this.earthMaterial ??= this.dirtMaterial());
+    material.diffuseColor = dirt;
+    const count = Math.min(16, Math.round((3 + radius * 2.2) * solid));
+    for (let k = 0; k < count; k++) {
+      const size = 0.16 + Math.random() * 0.24 * Math.min(2, radius / 2.5);
+      const chunk = MeshBuilder.CreateBox(`chunk-${k}`, { width: size, height: size * (0.6 + Math.random() * 0.6), depth: size }, this.scene);
+      chunk.material = material;
+      chunk.isPickable = false;
+      chunk.position.set(x + (Math.random() - 0.5) * radius * 0.6, y + (Math.random() - 0.5) * radius * 0.4, (Math.random() - 0.5) * 0.9);
+      const angle = Math.PI * (0.15 + Math.random() * 0.7);
+      const speed = 5 + Math.random() * (5 + radius * 2.2);
+      const velocity = new Vector3(Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1), Math.sin(angle) * speed, 0);
+      const spin = new Vector3(Math.random() * 8 - 4, Math.random() * 8 - 4, Math.random() * 8 - 4);
+      const life = 1.1 + Math.random() * 0.8;
+      let age = 0;
+      this.transients.push({
+        update: (dt) => {
+          age += dt;
+          velocity.y -= 25 * dt;
+          chunk.position.addInPlace(velocity.scale(dt));
+          chunk.rotation.addInPlace(spin.scale(dt));
+          // Shrink away at the end instead of blinking out.
+          const left = 1 - age / life;
+          if (left < 0.3) chunk.scaling.setAll(Math.max(0.01, left / 0.3));
+          return age < life;
+        },
+        dispose: () => {
+          chunk.dispose();
+        },
+      });
+    }
+  }
+
+  private dirtMaterial(): StandardMaterial {
+    const material = new StandardMaterial('earthChunk', this.scene);
+    material.specularColor = new Color3(0.08, 0.08, 0.08);
+    return material;
+  }
+
   private fireball(x: number, y: number, radius: number): void {
     const outer = MeshBuilder.CreateSphere('blastOuter', { diameter: 1, segments: 12 }, this.scene);
     const inner = MeshBuilder.CreateSphere('blastCore', { diameter: 1, segments: 12 }, this.scene);
@@ -1176,8 +1230,8 @@ export class Effects {
         const size = Math.max(radius, 0.8) * (0.32 + t * 0.85);
         outer.scaling.setAll(size);
         inner.scaling.setAll(size * (0.55 + t * 0.08));
-        outerMat.alpha = 0.8 * (1 - t);
-        innerMat.alpha = 0.95 * (1 - t * t);
+        outerMat.alpha = 0.5 * (1 - t);
+        innerMat.alpha = 0.7 * (1 - t * t);
         return t < 1;
       },
       dispose: () => {
