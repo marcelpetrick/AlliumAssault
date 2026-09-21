@@ -199,10 +199,11 @@ distance to the surface. Physics queries the field directly (smooth normals, no 
 explosions subtract discs from it, and the renderer rebuilds only dirty 8×8-unit chunks by
 extruding the marching-squares contour into a bevelled 3D slab.
 
-Design documents: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (C4 model with Mermaid diagrams),
-[`docs/VISION.md`](docs/VISION.md), [`docs/PLAN.md`](docs/PLAN.md),
-[`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) (what was measured, and what it cost); the original
-research session is archived in [`docs/archive/`](docs/archive/).
+Everything written down about the project is indexed in [`docs/`](docs/README.md): the
+[architecture](docs/ARCHITECTURE.md) as a C4 model with Mermaid diagrams, the
+[vision](docs/VISION.md), what was [measured](docs/PERFORMANCE.md) and what it cost, every
+[request and its status](docs/tasks.md), and the latest [review](docs/review.md). Contributing and
+the security policy are in [`.github/`](.github/).
 
 ## Testing
 

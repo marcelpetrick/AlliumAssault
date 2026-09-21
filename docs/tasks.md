@@ -116,7 +116,7 @@ Status: ☐ open · ☑ done
 | T102 | Public release v1.55.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.55.0         |
 | T103 | Fix the map-dependent gravity test that failed on CI, and teach Dependabot the two version limits         | ☑      | 1.55.1         |
 | T104 | Profiling run across every stage of play, best-practice audit of the stack, then the fixes worth making   | ☑      | 1.56.0         |
-| T105 | Tidy the repository root: fewer Markdown files, the rest moved into folders and linked                    | ☐      |                |
+| T105 | Tidy the repository root: fewer Markdown files, the rest moved into folders and linked                    | ☑      | 1.66.1         |
 | T106 | Graphics setting in the setup: Full or Low, saved, with `?quality=low` still forcing Low                  | ☑      | 1.57.0         |
 | T107 | Full project review (code, architecture, documentation), then fix every finding                           | ☑      | 1.57.1         |
 | T108 | Teleport: show a blue cross at the cursor, so the player sees where the buddy will arrive                 | ☑      | 1.59.0         |
@@ -630,7 +630,7 @@ the one on screen: the scene is built once, with the budget it was given.
 
 ### T104 — Profiling, and a bundle four times smaller ☑
 
-Measured in 1.56.0 and written up in [docs/PERFORMANCE.md](docs/PERFORMANCE.md), which also says how
+Measured in 1.56.0 and written up in [docs/PERFORMANCE.md](PERFORMANCE.md), which also says how
 to reproduce every number and which tools to reach for.
 
 **The rules core was profiled first, stage by stage**, with a new `npm run profile` (a Vitest run
@@ -769,7 +769,7 @@ decision.
 
 ### T86 — Sound audit ☑
 
-Done in 1.52.0, and written up in [docs/SOUND.md](docs/SOUND.md), which now holds the principles,
+Done in 1.52.0, and written up in [docs/SOUND.md](SOUND.md), which now holds the principles,
 the full action-to-sound table and the reasoning for every change. The audit listed every action
 and weapon against what it actually played and found six borrowed voices:
 

@@ -15,7 +15,7 @@ The old code and branch have been removed; only `master` remains.
 ## 2. Requirements mapping
 
 > Historical: the original v2.0 requirements. Later requests are tracked in section 6 and in
-> [`tasks.md`](../tasks.md).
+> [`tasks.md`](tasks.md).
 
 | Requirement (user)                  | Implementation                                                                          |
 | ----------------------------------- | --------------------------------------------------------------------------------------- |
@@ -84,7 +84,7 @@ The AI moved into 0.3.0 because the headless AI-vs-AI match is the strongest cor
 ## 6. Current work
 
 Every request, its status, design notes and the version that delivered it are tracked in
-[`tasks.md`](../tasks.md), updated with every commit. This section is the plan for the batch in
+[`tasks.md`](tasks.md), updated with every commit. This section is the plan for the batch in
 progress.
 
 ### 6.1 Open requests (batch after v1.17.5)

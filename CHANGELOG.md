@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.66.1] — 2026-09-22
+
+### Changed
+
+- **The repository root holds three Markdown files instead of eight.** `README.md`, `CHANGELOG.md`
+  and `AGENTS.md` stay where a visitor and a tool expect them. `CONTRIBUTING.md` and `SECURITY.md`
+  moved to `.github/`, which is where GitHub looks for them anyway; `tasks.md`, `review.md` and the
+  touch-display study moved into `docs/`, which now has an index listing every document and what it
+  is for.
+
 ## [1.66.0] — 2026-09-22
 
 ### Added
