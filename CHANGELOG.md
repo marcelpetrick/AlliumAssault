@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.47.2] — 2026-09-21
+
+### Fixed
+
+- The turn timer's caption no longer runs through the ring at Large and Huge text size: the ring
+  holds only the number, the caption sits below it, and the digits have equal width so the clock
+  stops jittering as it counts down.
+
 ## [1.47.1] — 2026-09-21
 
 ### Changed

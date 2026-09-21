@@ -44,8 +44,11 @@ export class Hud {
       <div class="hud-top">
         <div class="turn-card glass-card"><span class="turn-stripe"></span><div><div class="turn-team"></div><div class="turn-buddy"></div></div></div>
         <div class="timer glass-card">
-          <svg viewBox="0 0 60 60"><circle class="track" cx="30" cy="30" r="26"/><circle class="progress" cx="30" cy="30" r="26" stroke-dasharray="${RING}"/></svg>
-          <span class="timer-value"></span><span class="timer-caption"></span>
+          <div class="timer-ring">
+            <svg viewBox="0 0 60 60"><circle class="track" cx="30" cy="30" r="26"/><circle class="progress" cx="30" cy="30" r="26" stroke-dasharray="${RING}"/></svg>
+            <span class="timer-value"></span>
+          </div>
+          <span class="timer-caption"></span>
         </div>
         <div class="hud-right">
           <div class="wind glass-card"><div class="wind-label">Wind</div><div class="wind-bar"><span class="wind-mid"></span><div class="wind-fill"></div></div></div>

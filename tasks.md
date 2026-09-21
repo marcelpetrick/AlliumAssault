@@ -92,10 +92,30 @@ Status: ☐ open · ☑ done
 | T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☑      | 1.43.1         |
 | T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
 | T80 | Public release v1.44.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.44.0         |
+| T81 | Turn timer: the number overlaps the ring at larger text sizes — make it fit, and keep it pretty           | ☑      | 1.47.2         |
+| T82 | Explosions: thinner and more translucent, with chunks of earth thrown out of the crater                   | ☐      |                |
+| T83 | Sudden Death: show the rising water with the camera, and end a turn the moment the active buddy drowns    | ☐      |                |
+| T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☐      |                |
+| T85 | Napalm: flames burn longer and eat into the ground                                                        | ☐      |                |
+| T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☐      |                |
+| T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☐      |                |
 
 ## Current implementation plan
 
-1. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+1. Make Sudden Death readable: the camera shows the water climbing at the start of a turn, and a
+   turn ends the moment the active buddy drowns instead of running the clock out (T83).
+2. Napalm burns longer and eats into the ground it burns on (T85).
+3. Rework the explosion look: fewer, more translucent particles, plus chunks of earth thrown out of
+   a crater in the ground (T82).
+4. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
+   lands like any other body (T84).
+5. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
+   one, add teleport and platform sounds, and write the choices down (T86).
+6. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
+   translucent on-screen controls that are off by default — and write it up in
+   `touchdisplay_support_ideation.md`. Ideation only, no implementation (T87).
+7. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
+   each versioned, local commit. Do not push or tag without being asked.
 
 ## Answered questions
 
@@ -452,6 +472,17 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T81 — Turn timer fits its ring ☑
+
+Fixed in 1.47.2. The caption sat inside the circle, 13 px from its bottom, where the ring's arc cuts
+across the line: at Large and Huge text "TURN" — and worse, "RETREAT" — ran straight through the
+green arc, and the number, nudged up by a negative margin, grazed the top of it. The card is now a
+small column: the ring holds the number and nothing else, the caption sits underneath it where no
+arc can reach it, and the digits use tabular figures so the number no longer jitters as the clock
+counts down. A browser test measures it at all three text sizes, in both the turn and the retreat
+phase: every corner of the number stays inside the ring's inner radius and the caption starts below
+the ring.
 
 ### T36 — Banana bomb range ☑
 

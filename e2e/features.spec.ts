@@ -393,6 +393,64 @@ test('fire effects clean up: no flame meshes, particle systems or light left bur
   expect(errors).toEqual([]);
 });
 
+for (const size of ['normal', 'large', 'huge'] as const) {
+  test(`HUD: the turn timer's number and caption clear the ring at ${size} text size`, async ({ page }, info) => {
+    const errors = await boot(page);
+    await page.evaluate((textSize) => {
+      localStorage.setItem('allium.settings', JSON.stringify({ textSize }));
+    }, size);
+    await page.reload();
+    await page.waitForFunction(() => '__allium' in window && window.__allium.ready, null, { timeout: 60_000 });
+    // 90 seconds is the widest the number ever gets, and "retreat" the longest caption.
+    await startDuel(page, { turnTime: 90, retreatTime: 9 });
+    for (const phase of ['turn', 'retreat'] as const) {
+      if (phase === 'retreat') {
+        await page.evaluate(() => {
+          const g = window.__allium.app.game!;
+          g.selectWeapon('bazooka');
+          g.pressFire();
+          for (let k = 0; k < 900 && g.phase !== 'retreat'; k++) window.__allium.app.fastForward(1 / 60);
+        });
+        await waitFor(page, (s) => s.phase === 'retreat', 30_000);
+      }
+      // The HUD text follows on the next rendered frame, so wait for the caption itself.
+      await expect(page.locator('.timer-caption')).toHaveText(phase, { timeout: 30_000 });
+      const fit = await page.evaluate(() => {
+        const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+        const ring = box('.timer-ring');
+        const value = box('.timer-value');
+        const caption = box('.timer-caption');
+        const stroke = (ring.width / 60) * 5;
+        const radius = ring.width / 2 - stroke;
+        const cx = ring.left + ring.width / 2;
+        const cy = ring.top + ring.height / 2;
+        const corners = [
+          [value.left, value.top],
+          [value.right, value.top],
+          [value.left, value.bottom],
+          [value.right, value.bottom],
+        ];
+        return {
+          text: document.querySelector('.timer-caption')!.textContent,
+          insideRing: corners.every(([x, y]) => Math.hypot(x - cx, y - cy) <= radius),
+          captionBelow: caption.top >= ring.bottom - 1,
+          captionWidthFits: caption.width > 0,
+        };
+      });
+      expect({ size, phase, ...fit }).toEqual({
+        size,
+        phase,
+        text: phase,
+        insideRing: true,
+        captionBelow: true,
+        captionWidthFits: true,
+      });
+    }
+    await info.attach(`timer-${size}`, { body: await page.locator('.timer').screenshot(), contentType: 'image/png' });
+    expect(errors).toEqual([]);
+  });
+}
+
 test('HUD: weapon bar lists every weapon with ammo and follows the selection', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

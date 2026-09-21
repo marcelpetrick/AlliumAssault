@@ -602,18 +602,27 @@ kbd {
   color: var(--muted);
 }
 
+/* The ring holds the number and nothing else; the caption sits below it, where no arc can cross it. */
 .timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 12px 8px;
+  border-radius: 20px;
+}
+
+.timer-ring {
   position: relative;
-  width: 74px;
-  height: 74px;
-  border-radius: 50%;
+  width: 62px;
+  height: 62px;
   display: grid;
   place-items: center;
 }
 
 .timer svg {
   position: absolute;
-  inset: 6px;
+  inset: 0;
   transform: rotate(-90deg);
 }
 
@@ -641,10 +650,12 @@ kbd {
 }
 
 .timer-value {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1;
-  margin-top: -6px;
+
+  /* Digits of equal width, so the number does not jitter as the clock counts down. */
+  font-variant-numeric: tabular-nums;
 }
 
 .timer.urgent .timer-value {
@@ -653,8 +664,6 @@ kbd {
 }
 
 .timer-caption {
-  position: absolute;
-  bottom: 13px;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
