@@ -95,6 +95,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   trajectories to find its shots.
 - **Five sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice); seeded maps you can share.
+- **Map preview** — the setup screen draws the island the current seed produces, in the colours of
+  the chosen scenery, so you can roll the dice until you like the map before starting.
 - **Comfortable setup** — text size Normal / Large / Huge, and the last match settings are
   remembered in the browser for the next game (Reset all restores the defaults).
 - **Synthesized sound** — every effect generated with Web Audio, no asset files: charge whoosh,

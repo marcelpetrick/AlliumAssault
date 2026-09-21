@@ -1083,3 +1083,20 @@ kbd {
   font-size: 13px;
   color: var(--muted);
 }
+
+/* Map preview: the island the current seed makes, next to the other setup options. */
+.preview-field {
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+
+.map-preview {
+  display: block;
+  width: 100%;
+  max-width: 384px;
+  height: auto;
+  margin-top: 4px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 10px;
+  background: rgb(0 0 0 / 25%);
+}

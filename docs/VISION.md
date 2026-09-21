@@ -134,8 +134,8 @@ Following the last control decision made in the 2D prototype:
 - **Sceneries:** Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice).
 - **UI:** polished HTML/CSS overlay — title screen, match setup (teams, colours, controller,
-  buddies, turn time, wind, crates, arsenal, text size, map seed, scenery; remembered for the next
-  game, Reset all), HUD (timer, wind, compact weapon bar, team health), help, about, pause and
+  buddies, turn time, wind, crates, arsenal, text size, map seed with a live map preview, scenery;
+  remembered for the next game, Reset all), HUD (timer, wind, compact weapon bar, team health), help, about, pause and
   victory screens.
 - **Comedy:** comic R.I.P. tombstones, a hallelujah choir, bleating sheep, a braying mule.
 

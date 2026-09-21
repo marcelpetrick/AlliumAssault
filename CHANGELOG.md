@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.45.0] — 2026-09-21
+
+### Added
+
+- **Map preview in the setup screen.** The island the current seed produces is drawn next to the
+  seed field in the colours of the chosen scenery, so you can roll the dice until you like the map
+  instead of finding out once the match has started. It uses the same terrain generation as the
+  match, and follows both the seed and the scenery.
+
 ## [1.44.1] — 2026-09-21
 
 ### Fixed

@@ -17,6 +17,7 @@ import {
   TURN_OPTIONS,
   WIND_OPTIONS,
 } from './presets';
+import { drawMapPreview } from './mapPreview';
 import { applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
 
 export type Screen = 'title' | 'setup' | 'help' | 'about' | 'pause' | 'victory';
@@ -77,6 +78,8 @@ export class Menu {
   private savedMatch: MatchConfig;
   private textSize: TextSize;
   private helpReturn: Screen = 'title';
+  /** Pending repaint of the map preview while the seed is being typed. */
+  private previewTimer = 0;
 
   constructor(
     uiRoot: HTMLElement,
@@ -194,6 +197,9 @@ export class Menu {
             <div><label class="field-label">Map seed</label>
               <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
             </div>
+            <div class="preview-field"><label class="field-label">Map preview</label>
+              <canvas class="map-preview" data-preview width="384" height="192" aria-label="Preview of the map this seed generates"></canvas>
+            </div>
           </section>
           <label class="field-label">Scenery</label>
           <section class="themes">
@@ -210,6 +216,13 @@ export class Menu {
           </footer>
         </div>
       </div>`;
+    this.paintPreview();
+  }
+
+  /** Draw the island the current seed and scenery produce, whenever the setup screen is on. */
+  private paintPreview(): void {
+    const canvas = this.el.querySelector('canvas[data-preview]');
+    if (canvas instanceof HTMLCanvasElement) drawMapPreview(canvas, this.draft.seed, this.draft.theme);
   }
 
   showAbout(): void {
@@ -322,7 +335,14 @@ export class Menu {
 
   private onInput(e: Event): void {
     const input = e.target as HTMLInputElement;
-    if (input.dataset.field === 'seed') this.draft.seed = input.value.trim() || randomSeed();
+    if (input.dataset.field === 'seed') {
+      this.draft.seed = input.value.trim() || randomSeed();
+      // Generating a map costs a few milliseconds, so wait for a pause in the typing.
+      window.clearTimeout(this.previewTimer);
+      this.previewTimer = window.setTimeout(() => {
+        this.paintPreview();
+      }, 250);
+    }
     if (input.dataset.field === 'team-name') this.draft.teams[Number(input.dataset.team)].name = input.value || 'Team';
     this.persist();
   }

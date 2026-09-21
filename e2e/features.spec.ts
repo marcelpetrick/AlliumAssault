@@ -124,6 +124,48 @@ test('tombstones: a buddy that dies leaves a comic tombstone with its name', asy
   expect(errors).toEqual([]);
 });
 
+test('setup: the map preview shows the seed\u2019s island and follows the seed and scenery', async ({ page }, info) => {
+  const errors = await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  const preview = page.locator('canvas.map-preview');
+  await expect(preview).toBeVisible();
+  // A drawn preview: the pixels are not all the same colour.
+  const fingerprint = () =>
+    page.evaluate(() => {
+      const canvas = document.querySelector<HTMLCanvasElement>('canvas.map-preview')!;
+      const ctx = canvas.getContext('2d')!;
+      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let sum = 0;
+      const colours = new Set<number>();
+      for (let k = 0; k < data.length; k += 4) {
+        const rgb = (data[k] << 16) | (data[k + 1] << 8) | data[k + 2];
+        sum = (sum * 31 + rgb) % 2147483647;
+        if (colours.size < 64) colours.add(rgb);
+      }
+      return { sum, colours: colours.size };
+    });
+  const first = await fingerprint();
+  expect(first.colours).toBeGreaterThan(3);
+  await info.attach('map-preview', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // A different seed draws a different island.
+  const seed = page.locator('input[data-field="seed"]');
+  await seed.fill('another-island');
+  await expect.poll(async () => (await fingerprint()).sum, { timeout: 15_000 }).not.toBe(first.sum);
+  const second = await fingerprint();
+
+  // The same seed in another scenery keeps the shape but changes the colours.
+  await page.getByRole('button', { name: 'Frosty Peaks' }).click();
+  await expect.poll(async () => (await fingerprint()).sum, { timeout: 15_000 }).not.toBe(second.sum);
+  expect(await seed.inputValue()).toBe('another-island');
+
+  // And the match that starts really is the previewed seed.
+  await page.getByRole('button', { name: /Start Battle/ }).click();
+  await waitFor(page, (s) => !s.demo && s.phase === 'aiming', 60_000);
+  expect(await page.evaluate(() => window.__allium.app.game!.config.seed)).toBe('another-island');
+  expect(errors).toEqual([]);
+});
+
 for (const scenery of ['Candy Shop', 'Frosty Peaks']) {
   test(`scenery "${scenery}" can be picked in the setup and renders a match`, async ({ page }, info) => {
     const errors = await boot(page);

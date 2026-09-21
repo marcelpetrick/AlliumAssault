@@ -86,7 +86,7 @@ Status: ☐ open · ☑ done
 | T72 | Raise the water continuously once Sudden Death begins                                                     | ☑      | 1.42.0         |
 | T73 | Include Rope in the starting arsenal even when special weapons require crates                             | ☑      | 1.41.0         |
 | T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☑      | 1.43.0         |
-| T75 | Map preview for the chosen seed in the setup screen                                                       | ☐      |                |
+| T75 | Map preview for the chosen seed in the setup screen                                                       | ☑      | 1.45.0         |
 | T76 | Three gravity options in the menu, with today's gravity as the default                                    | ☐      |                |
 | T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☐      |                |
 | T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☑      | 1.43.1         |
@@ -95,14 +95,12 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
-   scenery changes, so the map is visible before the match starts (T75).
-2. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
+1. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
    scales the gravity used by buddies, projectiles and everything else that falls, and reaches the
    core through the match configuration (T76).
-3. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
-4. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-5. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+2. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
+3. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+4. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -131,6 +129,17 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
+
+### T75 — Map preview in the setup screen ☑
+
+Added in 1.45.0. Players picked a seed blind and only saw the island once the match had started.
+`src/ui/mapPreview.ts` draws it on a plain 2D canvas next to the seed field: it generates the map
+with the very `generateTerrain` the match uses, so the picture cannot drift from what is played,
+and paints it as a silhouette in the chosen scenery's rock, grass and water colours — caves,
+overhangs and floating ledges included. Generated maps are cached (24 seeds), typing a seed repaints
+after a 250 ms pause, and picking another scenery recolours the same island. Browser test: the
+preview is drawn, changes with the seed, changes again with the scenery, and the match that starts
+really uses the previewed seed.
 
 ### T69 — Second fire review: a real particle leak ☑
 
