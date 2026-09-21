@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.47.1] — 2026-09-21
+
+### Changed
+
+- Closed the report of a short-ranged banana bomb: measured at four aim angles it matches or beats
+  the grenade at every one of them, and a unit test now guards that. No balance change.
+
 ## [1.47.0] — 2026-09-21
 
 ### Added

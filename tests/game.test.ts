@@ -1041,6 +1041,41 @@ describe('gravity setting', () => {
   });
 });
 
+describe('throwing range', () => {
+  /** How far the first blast of a charged throw lands from the buddy. */
+  const blastRange = (weapon: WeaponId, aim: number) => {
+    const g = flatGame([20, 110], [team('A', 1), team('B', 1)], { turnTime: 60 });
+    toAiming(g);
+    g.selectWeapon(weapon);
+    g.buddies[0].aim = aim;
+    g.face(1);
+    const from = g.buddies[0].body.x;
+    g.pressFire();
+    expect(runUntil(g, () => g.projectiles.length > 0, 3)).toBe(true);
+    let blast = 0;
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) if (e.type === 'explosion' && !blast) blast = e.x - from;
+        return blast !== 0;
+      },
+      12,
+    );
+    return blast;
+  };
+
+  // Players reported the banana bomb as short-ranged (T36). It shares the grenade's speeds, so a
+  // full charge must carry it just as far; this guards that from an accidental nerf.
+  it('throws the banana bomb as far as the grenade at the same aim and charge', () => {
+    for (const aim of [0.35, 0.6, 0.79]) {
+      const banana = blastRange('banana', aim);
+      const grenade = blastRange('grenade', aim);
+      expect({ aim, short: banana < grenade - 2 }).toEqual({ aim, short: false });
+      expect(banana).toBeGreaterThan(40);
+    }
+  });
+});
+
 describe('crates', () => {
   const crateGame = (crates: number) => flatGame([20, 100], [team('A', 1), team('B', 1)], { crates, turnTime: 1 });
   const nextTurn = (g: Game) => {

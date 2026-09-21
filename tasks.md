@@ -45,7 +45,7 @@ Status: ☐ open · ☑ done
 | T33 | New screenshots and screen recordings for the README                                                      | ☑      | 1.26.2         |
 | T34 | More README badges, like Cullendula                                                                       | ☑      | 1.26.1         |
 | T35 | Crate drops: teleport sound and a short camera pan to the new crate                                       | ☑      | 1.18.5         |
-| T36 | Banana bomb throw range reported as tiny                                                                  | ☐      |                |
+| T36 | Banana bomb throw range reported as tiny                                                                  | ☑      | 1.47.1         |
 | T38 | Napalm strike: burning ground for 1–2 s, flames make buddies jump, water puts them out, strong wind drift | ☑      | 1.21.0         |
 | T39 | Bigger font option, persisted settings restored for the next game, Reset all button                       | ☑      | 1.24.0         |
 | T40 | About screen: author, tech stack, OSS licenses, GitHub Pages, free to play                                | ☑      | 1.25.0         |
@@ -95,8 +95,7 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-2. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+1. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -454,12 +453,25 @@ Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
 
-### T36 — Banana bomb range ☐
+### T36 — Banana bomb range ☑
 
-- Reported: even at full charge the banana bomb only flies a short distance.
-- Checked: at full charge and 43° aim it flies 63.5 units in Chrome with real keys, the same as
-  the grenade (63.6); the core simulation agrees (first bounce 38 units out for both). Not
-  reproduced yet — need the situation (aim angle, map, how it was charged).
+Closed in 1.47.1 as not a defect, with the measurements to back it. The banana bomb shares the
+grenade's launch speeds (6 to 30), gravity scale and wind influence, so a full charge has to carry
+it the same distance. Measured on flat ground without wind, from the buddy to the first blast:
+
+| Aim | Banana Bomb | Grenade | Bazooka |
+| --- | ----------- | ------- | ------- |
+| 20° | 49.8        | 46.6    | 48.7    |
+| 34° | 65.7        | 61.5    | 68.2    |
+| 45° | 61.4        | 61.0    | 72.4    |
+| 57° | 48.1        | 48.0    | 65.6    |
+
+The banana bomb matches or beats the grenade at every angle, and its bananalets scatter another ten
+units beyond the blast; the earlier Chrome measurement with real keys (63.5 against 63.6) agrees.
+A unit test now guards it against an accidental nerf. What the report probably felt is the arc:
+both are lobbed weapons and fall well short of the bazooka above 45°. Anyone wanting longer throws
+can now pick Moon gravity ([T76](#t76--gravity-setting-)), which carries the same throw 75.8 units
+instead of 61.4.
 
 ### Batch plan
 
