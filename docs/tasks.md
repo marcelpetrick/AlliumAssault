@@ -138,6 +138,7 @@ Status: ☐ open · ☑ done
 | T124 | AI: Normal and Hard hunt crates — walk to them, and take the rope when walking will not do                | ☑      | 1.64.0         |
 | T125 | AI: stop leaning on the concrete mule — spread the choice across the arsenal it actually has              | ☑      | 1.64.0         |
 | T126 | Bug: a crate collected by a sheep floats its reward twice — once at the crate, once over the buddy        | ☑      | 1.58.2         |
+| T127 | Public release v1.67.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.67.0         |
 
 ## Current implementation plan
 

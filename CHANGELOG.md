@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.67.0] — 2026-09-22
+
+### Added
+
+- **Release 1.67.0.** Ships the night's work: a full review of the project with all eleven findings
+  fixed, the flamethrower and the Ming vase, mystery boxes, an end-of-match statistics screen, four
+  languages, a teleport cursor you can aim with, a punch that can open a ceiling, an AI that varies
+  its arsenal and ropes its way to crates, and a repository root with three Markdown files in it.
+
 ## [1.66.2] — 2026-09-22
 
 ### Fixed
