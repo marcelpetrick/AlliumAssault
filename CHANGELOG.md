@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.44.1] — 2026-09-21
+
+### Fixed
+
+- Explosion, napalm and trail particle systems could get stuck in the scene forever: their effect
+  stopped reporting ready, so their particles never aged and Babylon never disposed of them. Every
+  one-shot system is now swept up once its last particle should have died, and the napalm and
+  blowtorch flames are emptied after they fade, so nothing hangs in the air over cold ground.
+
 ## [1.44.0] — 2026-09-21
 
 Public release. Everything below has been in the changelog since 1.41.0; this is the summary that

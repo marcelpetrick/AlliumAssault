@@ -244,6 +244,60 @@ test('the drill digs down through a cave and cushions the fall through it', asyn
   expect(errors).toEqual([]);
 });
 
+test('fire effects clean up: no flame meshes, particle systems or light left burning', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  const counts = () =>
+    page.evaluate(() => {
+      const scene = window.__allium.app.world!.scene;
+      return {
+        systems: scene.particleSystems.length,
+        // A stopped system keeps reporting "started", so count the particles it still draws.
+        particles: scene.particleSystems.reduce((sum, ps) => sum + (ps as unknown as { particles: unknown[] }).particles.length, 0),
+        flameMeshes: scene.meshes.filter((mesh) => mesh.name.startsWith('groundFlame')).length,
+        light: scene.getLightByName('napalmLight')?.intensity ?? 0,
+        flames: window.__allium.app.game!.flames.length,
+      };
+    });
+  const before = await counts();
+
+  // Set a patch of ground alight with a napalm strike and let it burn out again.
+  await select(page, 'Shift+7', 'napalm');
+  const target = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const b = g.activeBuddy!;
+    return window.__allium.project(b.body.x + 8, b.body.y);
+  });
+  expect(target).not.toBeNull();
+  const canvas = await page.locator('#stage').boundingBox();
+  expect(canvas).not.toBeNull();
+  await page.mouse.click(canvas!.x + target!.x, canvas!.y + target!.y);
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 10 && !app.game!.flames.length; k++) app.fastForward(1 / 60);
+  });
+  await expect.poll(async () => (await counts()).flameMeshes, { timeout: 20_000 }).toBeGreaterThan(0);
+  expect((await counts()).light).toBeGreaterThan(0);
+
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 15 && app.game!.flames.length; k++) app.fastForward(1 / 60);
+  });
+  // Let the one-shot bursts run out their lifetime and be disposed of.
+  await page.evaluate(() => {
+    window.__allium.stepFrames(180, 1 / 30);
+  });
+  const after = await counts();
+  expect(after.flames).toBe(0);
+  expect(after.flameMeshes).toBe(0);
+  expect(after.light).toBe(0);
+  // The two napalm systems stay allocated for the next fire; every one-shot burst is gone and
+  // not a single particle is left being drawn.
+  expect(after.systems).toBeLessThanOrEqual(before.systems + 2);
+  expect(after.particles).toBe(0);
+  expect(errors).toEqual([]);
+});
+
 test('HUD: weapon bar lists every weapon with ammo and follows the selection', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

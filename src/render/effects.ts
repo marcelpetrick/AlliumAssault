@@ -18,6 +18,7 @@ import {
 } from '@babylonjs/core';
 import { MUZZLE_OFFSET } from '../core/constants';
 import { defined } from '../core/assert';
+import type { Flame } from '../core/fire';
 import type { Game } from '../core/game';
 import { WEAPONS, type WeaponLook } from '../core/weapons';
 import { createSoftDotTexture } from './textures';
@@ -41,6 +42,18 @@ interface BurstOptions {
 }
 
 const CHARGE_DOTS = 14;
+
+/**
+ * Grace period on top of a one-shot system's longest particle life. Babylon disposes such a system
+ * itself once its last particle dies, but a system whose effect stops reporting ready — which does
+ * happen when a burst is created while the page is not rendering — never ages another particle and
+ * would stay in the scene, drawn and paid for, until the match ends. Anything still around this
+ * long after its last particle should have died is swept up.
+ */
+const BURST_GRACE = 1;
+
+/** Seconds the napalm flames and their smoke are given to fade out after the last patch burns out. */
+const FIRE_FADE = 3;
 
 interface ProjectileView {
   node: TransformNode;
@@ -101,6 +114,19 @@ export class Effects {
   private fireSmoke: ParticleSystem | null = null;
   private fireLight: PointLight | null = null;
   private readonly groundFire = new Map<number, { outer: Mesh; inner: Mesh }>();
+  /**
+   * The burning patches of the current frame. The two napalm particle systems are built once and
+   * pick their start positions from here, so they must not close over the flames of the frame
+   * that happened to create them.
+   */
+  private burning: readonly Flame[] = [];
+  /** One-shot systems with the time by which they must be gone; see BURST_GRACE. */
+  private readonly expiring: { ps: ParticleSystem; at: number }[] = [];
+  /** Clock time at which the last flame went out, so the fire systems can be emptied afterwards. */
+  private fireOutAt: number | null = null;
+  /** The same for the blowtorch flame, which is also kept between turns. */
+  private torchOutAt: number | null = null;
+  private clock = 0;
   private readonly reticle: Mesh;
   private readonly chargeDots: Mesh[] = [];
   private readonly materials: Record<string, StandardMaterial>;
@@ -326,6 +352,7 @@ export class Effects {
       if (view.trail) {
         view.trail.emitter = view.node.position.clone();
         view.trail.stop();
+        this.retire(view.trail, view.trail.maxLifeTime);
       }
       view.node.dispose();
       this.projectiles.delete(id);
@@ -424,8 +451,11 @@ export class Effects {
       this.flame?.stop();
       this.torchBody?.outer.setEnabled(false);
       this.torchBody?.inner.setEnabled(false);
+      this.torchOutAt ??= this.clock;
+      if (this.clock - this.torchOutAt > FIRE_FADE) this.flame?.reset();
       return;
     }
+    this.torchOutAt = null;
     this.torchBody ??= {
       outer: this.flameCone('torchOuter', this.materials.flameOuter),
       inner: this.flameCone('torchInner', this.materials.flameInner),
@@ -524,6 +554,7 @@ export class Effects {
    */
   updateFlames(game: Game, time: number): void {
     const flames = game.flames;
+    this.burning = flames;
     const live = new Set(flames.map((flame) => flame.id));
     for (const [id, meshes] of this.groundFire) {
       if (live.has(id)) continue;
@@ -535,8 +566,16 @@ export class Effects {
       this.fire?.stop();
       this.fireSmoke?.stop();
       if (this.fireLight) this.fireLight.intensity = 0;
+      this.fireOutAt ??= this.clock;
+      // The two fire systems are kept for the next blaze, so their last particles have to go by
+      // hand: a stalled effect would otherwise leave flames hanging in the air over cold ground.
+      if (this.clock - this.fireOutAt > FIRE_FADE) {
+        this.fire?.reset();
+        this.fireSmoke?.reset();
+      }
       return;
     }
+    this.fireOutAt = null;
     for (const flame of flames) {
       let meshes = this.groundFire.get(flame.id);
       if (!meshes) {
@@ -556,7 +595,7 @@ export class Effects {
       meshes.inner.rotation.z = meshes.outer.rotation.z;
     }
     const atRandomFlame = (position: Vector3, spread: number, lift: number): void => {
-      const f = game.flames[Math.floor(Math.random() * game.flames.length)] ?? { x: 0, y: -100 };
+      const f = this.burning[Math.floor(Math.random() * this.burning.length)] ?? { x: 0, y: -100 };
       position.set(f.x + (Math.random() - 0.5) * spread, f.y + Math.random() * lift, -0.4 + (Math.random() - 0.5) * 0.8);
     };
     if (!this.fire) {
@@ -814,6 +853,8 @@ export class Effects {
   }
 
   update(dt: number): void {
+    this.clock += dt;
+    this.sweepBursts();
     for (let k = this.planes.length - 1; k >= 0; k--) {
       const p = this.planes[k];
       p.age += dt;
@@ -1188,6 +1229,21 @@ export class Effects {
     return cone;
   }
 
+  /** Retire a one-shot system by hand if Babylon has not disposed of it in time. */
+  private retire(ps: ParticleSystem, longestLife: number): void {
+    this.expiring.push({ ps, at: this.clock + longestLife + BURST_GRACE });
+  }
+
+  private sweepBursts(): void {
+    for (let k = this.expiring.length - 1; k >= 0; k--) {
+      const { ps, at } = this.expiring[k];
+      const gone = !this.scene.particleSystems.includes(ps);
+      if (!gone && this.clock < at) continue;
+      if (!gone) ps.dispose();
+      this.expiring.splice(k, 1);
+    }
+  }
+
   private burst(at: Vector3, o: BurstOptions): void {
     const ps = new ParticleSystem('burst', o.count, this.scene);
     ps.particleTexture = this.dot;
@@ -1210,6 +1266,7 @@ export class Effects {
     ps.targetStopDuration = 0.1;
     ps.disposeOnStop = true;
     ps.start();
+    this.retire(ps, o.life[1]);
   }
 
   private ring(x: number, y: number, radius: number): void {

@@ -80,7 +80,7 @@ Status: ☐ open · ☑ done
 | T66 | Implement the reviewed AI improvements                                                                    | ☑      | 1.37.0         |
 | T67 | Public release v1.40.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.40.0         |
 | T68 | Investigate Firefox fire visibility and strengthen explosion, napalm and blowtorch effects                | ☑      | 1.40.1         |
-| T69 | Review fire effects again, including lifecycle and browser behavior                                       | ☐      |                |
+| T69 | Review fire effects again, including lifecycle and browser behavior                                       | ☑      | 1.44.1         |
 | T70 | Raise enforced core test coverage above 98% for statements, branches, functions and lines                 | ☑      | 1.43.3         |
 | T71 | Expand E2E movement, landing and drill fall scenarios                                                     | ☑      | 1.43.2         |
 | T72 | Raise the water continuously once Sudden Death begins                                                     | ☑      | 1.42.0         |
@@ -95,16 +95,14 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
-   issue, and verify that the new meshes leave no active objects after their effects end (T69).
-2. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
+1. Draw the terrain of the chosen seed into the setup screen, regenerated whenever the seed or the
    scenery changes, so the map is visible before the match starts (T75).
-3. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
+2. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
    scales the gravity used by buddies, projectiles and everything else that falls, and reaches the
    core through the match configuration (T76).
-4. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
-5. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-6. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+3. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
+4. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+5. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -133,6 +131,29 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
+
+### T69 — Second fire review: a real particle leak ☑
+
+Fixed in 1.44.1. Measured in Chrome instead of eyeballed: a probe counted the scene's particle
+systems around a napalm strike. Seven one-shot bursts turned into 26 systems that were still there
+nine seconds and ninety-six rendered frames later, each holding two to seventy particles that never
+aged a single step. Their `isReady()` had flipped to false, and Babylon's `animate()` returns
+early for a system that is not ready, so `disposeOnStop` never fired: they stayed in the scene,
+drawn and paid for, until the match ended. It happens when bursts are created while the page is
+not rendering — the AI's turn, a background tab, a `fastForward` — so an ordinary long match
+accumulates them.
+
+Three fixes: every one-shot system (explosion bursts and projectile trails) is now registered with
+the time by which it must be gone — its longest particle life plus a second — and `Effects.update`
+disposes whatever Babylon has not; the two napalm systems and the blowtorch flame, which are kept
+between uses, are `reset()` three seconds after their last flame goes out, so frozen particles
+cannot hang in the air over cold ground; and the napalm particles now read the flames of the
+current frame instead of the ones captured when the systems were built.
+
+A browser test covers it: a strike, the burn, and afterwards no ground-flame meshes, no napalm
+light, no leftover one-shot systems and not one particle still drawn. Firefox is not in the
+Playwright setup, so its check remains the manual one from T68; nothing in the fix is
+browser-specific.
 
 ### T80 — Public release v1.44.0 ☑
 
