@@ -141,106 +141,24 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. **T107 — the review and its fixes.** A full review of the project as it stands — code,
-   architecture and documentation, up to ten findings each — then every finding fixed one by one,
-   each with the tests that prove it, and a public release at the end.
+Everything on the list above is done and released. The night of 2026-09-22 took T107 through T126:
+a full review of the project and its eleven findings, four new or reworked weapons and effects, the
+mystery crate, the statistics screen, four languages, two AI habits broken, and a repository root
+with three Markdown files in it instead of eight.
 
-2. **T108 — the teleport cursor.** The air strike and the platform both draw where they will act;
-   the teleport does not, so the player clicks blind. A blue cross follows the mouse while the
-   teleport is selected, marking the spot the buddy will arrive at.
+What is left for next time, in no particular order:
 
-3. **T109 — the statistics screen.** When a match ends — a winner, or a draw when the last teams
-   go together — the victory screen leads to a scoreboard. A per-team table (damage dealt and
-   taken, buddies lost, shots fired, accuracy) and a row of awards: most valuable buddy, biggest
-   single hit, own goal, deadeye and butterfingers, the match's favourite weapon, how much of the
-   island was blasted away, crates hoarded, drownings, and who came through untouched. The numbers
-   are collected in `src/core` so they can be unit tested; damage is attributed to whoever caused
-   the blast, which means threading the culprit through `explode()` and `damage()`.
+1. **Split `effects.ts`.** It is the remaining half of
+   [finding 9](review.md#9--partly-fixed-1560--gamets-1571-lines-and-effectsts-1348-are-too-big):
+   1,345 lines of model factories that want to be three files. Best done the next time it changes
+   for another reason.
 
-4. **T110–T112 — the setup screen and what it remembers.** The settings already survive a
-   reload, but nothing says which version wrote them; the store gets a schema version and an
-   explicit migration so a config from an older build still opens, and the field-by-field
-   validation stays as the last line of defence. In the screen itself the map seed moves up beside
-   the preview it feeds, and Start Battle is pinned so the options can never scroll over it.
+2. **Unit tests for the pure helpers in `src/render` and `src/ui`** — finding 10 of the same review.
+   The scene and the DOM belong to the browser suite, but the map preview's sampling, the hotkey
+   labels and the HUD's formatting do not need a GPU.
 
-5. **T113 — one text scale.** Text size is meant to scale the whole overlay, but parts of it are
-   written in fixed pixels, so at Large and Huge the menu grows while the HUD stays put and the
-   screen looks mismatched. Every font size in the overlay is expressed in the same scaled unit,
-   and the browser suite checks a menu and a HUD element grow by the same factor in all three modes.
-
-6. **T114 — the flamethrower.** A nozzle that sprays burning fuel for three seconds. Up and down
-   steer it while it runs; each gob is a little projectile that wind and gravity carry, and where it
-   lands it goes on burning, so a sweep lays a carpet of fire across the ground. Damage is
-   mediocre on purpose — the point is to drive a buddy out of cover and across the flames rather
-   than to kill it outright. New weapon kind, a new turn action and phase, a held model, a spray
-   effect, a roaring sound, unit tests and a browser test.
-
-7. **T115 — the boxing glove.** The punch gets a glove the buddy actually wears, and teeth: aimed
-   upwards it drives a shaft straight through the rock overhead, so a buddy boxed in under a ledge
-   can punch its own way out. Terrain damage follows the aim rather than the blast, and the glove
-   is a held model like every other weapon's.
-
-8. **T116 — the jackhammer.** The drill currently hangs under the buddy and only the dust says it
-   is working. It gets a real reciprocating action: the bit hammers up and down, the buddy shakes
-   with it, and the whole thing sinks as the shaft deepens.
-
-9. **T117 — the mystery crate.** A third kind of crate, a clown box with a question mark on its
-   side, whose contents are rolled when it is opened rather than when it drops: health, a weapon,
-   or a mine that arms itself on the spot and catches whoever was greedy. Seeded like everything
-   else, so the same map plays the same way twice.
-
-10. **T118 — four languages.** Every string the player reads — menus, HUD, hints, banners, weapon
-    names and blurbs, the statistics screen — moves into a catalogue with one entry per language:
-    English as the default and the fallback, German, Croatian written the way it is spoken in Split,
-    and Mandarin. The choice sits with the other preferences, is persisted, and is picked up from
-    the browser's own language the first time. A test walks every screen in every language and
-    fails on a missing key.
-
-11. **T119 — a bigger sheep.** The hopping sheep and the flying sheep are drawn half again as
-    large, so what bounds across the island actually looks like a sheep. Only the model grows; the
-    collision radius and the blast stay where the rules put them.
-
-12. **T120 — a flame carpet, not a trench.** The napalm strike currently eats a visible trench out
-    of the ground. The flames are drawn smaller and take two thirds of the bite they took, so what
-    is left behind is a charred carpet a buddy has to cross rather than a ditch it can hide in.
-
-13. **T121 — the Ming vase.** A cluster weapon in the banana's family, but rare and enormous: one
-    vase per match, a blue-and-white porcelain lob that bursts for heavy damage and throws shards
-    that each hit nearly as hard as a grenade. It looks like what it is — a glazed vase with a
-    painted band — right up to the moment it stops being one.
-
-14. **T122 — the home run.** A bat that connects sends its victim across the island, and the crowd
-    should know: a synthesized stadium roar — crack, then a swell of cheering — plays on the hit,
-    not on the swing, so a miss stays silent.
-
-15. **T123 — burning crates.** A crate that goes up in someone else's blast leaves two or three
-    flames behind it, burning for a couple of seconds rather than the long napalm burn — enough to
-    make the spot worth stepping around on the way past, not enough to hold up the turn.
-
-16. **T124 — the AI goes shopping.** Normal and Hard weigh a crate against the shot they would
-    otherwise take: a health crate is worth most when they are hurt, a weapon crate when the
-    arsenal is thin. They walk to one when the ground allows it, and when it does not — a ledge, a
-    gap, an island — they fire the rope and swing across. Easy keeps ignoring crates, because
-    that is what makes it Easy.
-
-17. **T125 — a broader AI arsenal.** The AI reaches for the concrete mule far too often, because
-    its score beats everything else from almost anywhere. Scoring gains a spread: a weapon the AI
-    has already used this match is worth less than one it has not, limited-ammo weapons are held
-    back for shots that earn them, and the mule in particular has to clearly beat the alternative
-    rather than merely match it. A unit test plays a long match and checks the AI used at least a
-    handful of different weapons.
-
-18. **T126 — one reward, one number.** A crate a sheep runs over floats "+25 HP" twice: the HUD
-    prints it at the crate and again over the buddy that was actually credited, which reads as two
-    pickups. Only the rewarded buddy's number stays, so what the player sees is what the rules did.
-
-19. **T105 — tidy the root.** Eight Markdown files sit in the repository root. `README.md`,
-    `CHANGELOG.md` and `AGENTS.md` belong there; `CONTRIBUTING.md` and `SECURITY.md` are just as at
-    home in `.github/`, which GitHub reads as well; and `tasks.md`, `review.md` and
-    `touchdisplay_support_ideation.md` belong in `docs/`. Everything that links to them — the README
-    first — moves with them, and `docs/` gets an index so the pile is navigable.
-
-20. `npm run verify` stays green before every versioned, local commit.
+3. `npm run verify` stays green before every versioned, local commit; nothing is pushed or tagged
+   without being asked.
 
 ## Answered questions
 
