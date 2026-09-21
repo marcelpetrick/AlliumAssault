@@ -79,8 +79,8 @@ export interface WeaponDef {
   knock?: 'uppercut' | 'swing';
   /**
    * Special weapons can be restricted to crates by the match's arsenal setting. The basic ones —
-   * bazooka, grenade, shotgun, punch, cluster bomb, baseball bat, blowtorch and drill — are never
-   * restricted: every team has them from turn one under every arsenal.
+   * bazooka, grenade, shotgun, punch, cluster bomb, baseball bat, blowtorch, drill and rope — are
+   * never restricted: every team has them from turn one under every arsenal.
    */
   special?: boolean;
   /** Hitscan bursts: bullets fired one after another, `interval` seconds apart, fanning by `spread` radians. */
@@ -606,7 +606,6 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   rope: {
     id: 'rope',
     look: { fireSound: 'hookShot' },
-    special: true,
     name: 'Rope',
     icon: '🪝',
     blurb: 'Space shoots the hook; hang, ↑↓ reel, ←→ swing, Space lets go. Land, then fire a weapon.',

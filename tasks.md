@@ -80,6 +80,28 @@ Status: ☐ open · ☑ done
 | T66 | Implement the reviewed AI improvements                                                                    | ☑      | 1.37.0         |
 | T67 | Public release v1.40.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.40.0         |
 | T68 | Investigate Firefox fire visibility and strengthen explosion, napalm and blowtorch effects                | ☑      | 1.40.1         |
+| T69 | Review fire effects again, including lifecycle and browser behavior                                       | ☐      |                |
+| T70 | Raise enforced core test coverage above 98% for statements, branches, functions and lines                 | ☐      |                |
+| T71 | Expand E2E movement, landing and drill fall scenarios                                                     | ☐      |                |
+| T72 | Raise the water continuously once Sudden Death begins                                                     | ☐      |                |
+| T73 | Include Rope in the starting arsenal even when special weapons require crates                             | ☑      | 1.41.0         |
+| T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☐      |                |
+
+## Current implementation plan
+
+1. Make Rope a basic starting weapon across arsenal modes without changing its hotkey or ammo;
+   check crate contents and the HUD (T73).
+2. Add Sudden Death flooding to the core simulation and water renderer. Verify trigger timing,
+   rise rate, drowning in a sheltered hole, the disabled setting and the browser presentation (T72).
+3. Add a platform as a persistent solid collider and 3D board. Mouse movement places a preview,
+   the wheel rotates it, and left click commits it. Reject blocked or submerged positions, consume
+   one of two starting uses, then let buddies walk, jump and land on it (T74).
+4. Add browser scenarios for ordinary and hard landings, jumping and a drill-cushioned fall (T71).
+5. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
+   more than 98% in each of the four Vitest metrics without excluding reachable code (T70).
+6. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
+   issue, and verify that the new meshes leave no active objects after their effects end (T69).
+7. Review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -91,6 +113,14 @@ Status: ☐ open · ☑ done
   asset paths, so no server is needed (T8).
 
 ## Details
+
+### T73 — Rope in the starting arsenal ☑
+
+Implemented in 1.41.0. The rope is a way to get around, not firepower, so locking it behind crates
+left the "Find in crates" arsenal without any traversal tool for most of a match. Dropping
+`special` from its weapon definition makes it basic like the bazooka or the drill: three per team
+from turn one under every arsenal setting. `CRATE_WEAPONS` derives from the same flag, so crates
+now hand out the nine offensive specials only. Hotkey (Shift+9), ammo and behaviour are unchanged.
 
 ### T68 — Fire visibility and browser review ☑
 

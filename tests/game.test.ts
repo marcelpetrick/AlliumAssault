@@ -847,7 +847,7 @@ describe('sudden death', () => {
 });
 
 describe('starting arsenal', () => {
-  const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill'];
+  const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill', 'rope'];
 
   it('hands every team the basic weapons from turn one, under every arsenal setting', () => {
     for (const arsenal of ['all', 'crates', 'infinite'] as const) {

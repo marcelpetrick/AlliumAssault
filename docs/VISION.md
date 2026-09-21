@@ -59,7 +59,7 @@ Nineteen weapons. _Special_ weapons can be restricted to crates with the arsenal
 | Drill                         | 2    | Drills straight down 3 s, obeys gravity, no fall damage while drilling                                               |
 | Napalm Strike (special)       | 1    | Click a target: wind-blown napalm sets the ground aflame for about 5 s; flames make buddies hop, water puts them out |
 | Proximity Mine (special)      | 2    | Dropped at the buddy's feet; arms after 1.5 s, then goes off 1 s after any living buddy comes within 2 units         |
-| Rope (special)                | 3    | Hook into rock within 24 units, then hang, reel, swing and let go; a miss costs nothing                              |
+| Rope                          | 3    | Hook into rock within 24 units, then hang, reel, swing and let go; a miss costs nothing                              |
 
 ## Rope
 

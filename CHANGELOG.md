@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.41.0] — 2026-09-21
+
+### Changed
+
+- **Rope is a basic weapon.** Every team now starts with its three ropes under every arsenal
+  setting, including "Find in crates", where the map previously offered no way to get around until
+  a crate happened to hold one. Crates hand out the offensive special weapons instead. The hotkey
+  (Shift+9), the ammo and the rope itself are unchanged.
+
 ## [1.40.1] — 2026-09-21
 
 ### Fixed
