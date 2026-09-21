@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.55.1] — 2026-09-21
+
+### Fixed
+
+- The gravity browser test measured a jump on whatever island the setup screen's random seed
+  produced, so a ceiling above the buddy could make the Moon jump look no higher than a normal one;
+  it failed on CI for exactly that reason. It now flattens the ground first and measures on known
+  terrain.
+- Dependabot no longer proposes TypeScript 7 (typescript-eslint requires `<6.1.0`) or `@types/node`
+  26 (the runtime is Node 24); both majors are ignored with the reasoning written down.
+
 ## [1.55.0] — 2026-09-21
 
 Public release. It carries everything from 1.53.1 and 1.54.0: the thematically grouped two-row

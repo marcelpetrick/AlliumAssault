@@ -114,6 +114,7 @@ Status: ☐ open · ☑ done
 | T100 | Group the weapons thematically in the bar: launchers, thrown, guns, melee, sheep, air, digging, …         | ☑      | 1.54.0         |
 | T101 | Self-destruct: a Lemmings-style panic and countdown before the blast, in the spirit of the 1992 game      | ☑      | 1.54.0         |
 | T102 | Public release v1.55.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.55.0         |
+| T103 | Fix the map-dependent gravity test that failed on CI, and teach Dependabot the two version limits         | ☑      | 1.55.1         |
 
 ## Current implementation plan
 
@@ -482,6 +483,20 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T103 — A test that depended on the map, and two Dependabot limits ☑
+
+Fixed in 1.55.1. The first CI run after the release caught something the local runs never did: the
+gravity test starts a match from the setup screen, which carries a _random_ seed, so the jump it
+measured happened on a different island every time — and on CI the buddy jumped into a ceiling,
+making the Moon jump only 1.18× the normal one instead of the expected 1.4×. It now flattens the
+ground and places the buddies before measuring, which is what the other movement tests already did.
+Ran ten times locally without a wobble.
+
+At the same time Dependabot, newly configured, proposed TypeScript 7.0.2 and `@types/node` 26 — the
+two updates that were deliberately held back hours earlier — and `npm ci` failed on the peer
+conflict. Both majors are now on its ignore list with the reason written next to them, and the pull
+request was closed with that explanation.
 
 ### T102 — Public release v1.55.0 ☑
 

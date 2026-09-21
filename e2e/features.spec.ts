@@ -183,16 +183,21 @@ test('gravity: Moon is picked in the setup, shown in the HUD and floats the jump
   await expect(page.locator('.gravity')).toBeVisible();
   await info.attach('moon-gravity', { body: await page.screenshot(), contentType: 'image/png' });
 
-  // The same jump reaches higher than it does in the ordinary world. The apex is measured inside
-  // the page, frame by frame, because polling it from here samples far too coarsely to compare.
+  // The same jump reaches higher than it does in the ordinary world. The setup screen picks a
+  // random seed, so the test flattens the ground first — a jump under an overhang measures the
+  // ceiling, not the gravity — and measures the apex inside the page, frame by frame, because
+  // polling it from here samples far too coarsely to compare.
   const apex = () =>
     page.evaluate(() => {
       const app = window.__allium.app;
-      const b = app.game!.activeBuddy!;
-      b.body.vx = 0;
-      b.body.vy = 0;
+      const g = app.game!;
+      const b = g.activeBuddy!;
+      g.terrain.fill((_x, y) => 20 - y);
+      Object.assign(b.body, { x: 40, y: 20.65, vx: 0, vy: 0, grounded: true });
+      g.buddies.filter((other) => other !== b).forEach((other) => Object.assign(other.body, { x: 100, y: 20.65 }));
+      app.fastForward(0.2);
       const start = b.body.y;
-      app.game!.jump(false);
+      g.jump(false);
       let top = start;
       for (let k = 0; k < 240; k++) {
         app.fastForward(1 / 60);
