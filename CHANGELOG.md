@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.46.0] — 2026-09-21
+
+### Added
+
+- **Gravity setting** — Moon, Normal or Heavy in the setup screen. Lighter gravity gives floaty
+  jumps, longer throws and gentle landings; heavier gravity does the opposite. Normal is the
+  default and is exactly the world the game had before. Everything that falls uses it, the AI
+  included, and the HUD shows the pull whenever it is not the ordinary one.
+
 ## [1.45.0] — 2026-09-21
 
 ### Added

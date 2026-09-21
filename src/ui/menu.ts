@@ -8,6 +8,7 @@ import { THEME_IDS, THEMES } from '../render/themes';
 import {
   ARSENAL_OPTIONS,
   CRATE_OPTIONS,
+  GRAVITY_OPTIONS,
   makeTeam,
   quickMatch,
   randomSeed,
@@ -189,6 +190,10 @@ export class Menu {
             <div><label class="field-label">Arsenal</label>${segmented(
               ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })),
               'arsenal',
+            )}</div>
+            <div><label class="field-label">Gravity</label>${segmented(
+              GRAVITY_OPTIONS.map((g) => ({ label: g.label, value: g.value, on: g.value === (d.gravity ?? 1) })),
+              'gravity',
             )}</div>
             <div><label class="field-label">Sudden Death</label>${segmented(
               SUDDEN_DEATH_OPTIONS.map((o) => ({ label: o.label, value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
@@ -450,6 +455,9 @@ export class Menu {
         break;
       case 'sudden-death':
         d.suddenDeath = Number(value);
+        break;
+      case 'gravity':
+        d.gravity = Number(value);
         break;
       case 'arsenal':
         d.arsenal = value as Arsenal;

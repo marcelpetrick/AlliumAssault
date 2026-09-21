@@ -978,6 +978,69 @@ describe('platform', () => {
   });
 });
 
+describe('gravity setting', () => {
+  const apex = (g: Game) => {
+    const b = g.buddies[0];
+    toAiming(g);
+    const start = b.body.y;
+    g.jump();
+    let top = start;
+    for (let k = 0; k < 180; k++) {
+      g.step(1 / 60);
+      top = Math.max(top, b.body.y);
+    }
+    return top - start;
+  };
+
+  it('defaults to the ordinary world and scales jumps with the setting', () => {
+    const normal = flatGame([20, 100], [team('A', 1), team('B', 1)]);
+    expect(normal.terrain.gravityScale).toBe(1);
+    const moon = flatGame([20, 100], [team('A', 1), team('B', 1)], { gravity: 0.55 });
+    const heavy = flatGame([20, 100], [team('A', 1), team('B', 1)], { gravity: 1.5 });
+    const jumps = [apex(moon), apex(normal), apex(heavy)];
+    expect(jumps[0]).toBeGreaterThan(jumps[1] * 1.4);
+    expect(jumps[2]).toBeLessThan(jumps[1]);
+  });
+
+  it('throws a grenade further on the moon than in a heavy world', () => {
+    // Same buddy, same aim, same full charge: only the pull differs.
+    const range = (gravity: number) => {
+      const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { gravity });
+      toAiming(g);
+      g.selectWeapon('grenade');
+      g.buddies[0].aim = 0.7;
+      g.face(1);
+      g.pressFire();
+      expect(runUntil(g, () => g.projectiles.length > 0, 3)).toBe(true);
+      const from = g.buddies[0].body.x;
+      let last = g.projectiles[0].x;
+      runUntil(
+        g,
+        () => {
+          last = g.projectiles[0]?.x ?? last;
+          return g.projectiles.length === 0;
+        },
+        20,
+      );
+      return last - from;
+    };
+    expect(range(0.55)).toBeGreaterThan(range(1.5) * 1.3);
+  });
+
+  it('hurts less on a long fall under low gravity', () => {
+    const damage = (gravity: number) => {
+      const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { gravity });
+      toAiming(g);
+      const b = g.buddies[0];
+      b.body.y += 18;
+      b.body.grounded = false;
+      runUntil(g, () => b.body.grounded, 10);
+      return 100 - b.hp;
+    };
+    expect(damage(0.55)).toBeLessThan(damage(1.5));
+  });
+});
+
 describe('crates', () => {
   const crateGame = (crates: number) => flatGame([20, 100], [team('A', 1), team('B', 1)], { crates, turnTime: 1 });
   const nextTurn = (g: Game) => {

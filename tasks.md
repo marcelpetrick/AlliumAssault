@@ -87,7 +87,7 @@ Status: ☐ open · ☑ done
 | T73 | Include Rope in the starting arsenal even when special weapons require crates                             | ☑      | 1.41.0         |
 | T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☑      | 1.43.0         |
 | T75 | Map preview for the chosen seed in the setup screen                                                       | ☑      | 1.45.0         |
-| T76 | Three gravity options in the menu, with today's gravity as the default                                    | ☐      |                |
+| T76 | Three gravity options in the menu, with today's gravity as the default                                    | ☑      | 1.46.0         |
 | T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☐      |                |
 | T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☑      | 1.43.1         |
 | T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
@@ -95,12 +95,9 @@ Status: ☐ open · ☑ done
 
 ## Current implementation plan
 
-1. Add a gravity setting with three steps — Moon, Normal (the default, unchanged) and Heavy — that
-   scales the gravity used by buddies, projectiles and everything else that falls, and reaches the
-   core through the match configuration (T76).
-2. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
-3. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-4. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+1. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
+2. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+3. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -129,6 +126,19 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
+
+### T76 — Gravity setting ☑
+
+Added in 1.46.0. `MatchConfig.gravity` carries a multiplier that the match hands to
+`Terrain.gravityScale`, next to the water level: the arena's pull belongs to the arena, and every
+piece of physics already receives the terrain, so buddies, projectiles, crates, mines, tombstones,
+ropes, falling bombs and the AI's own trajectory simulation all read the same number without a new
+parameter anywhere. The setup screen offers Moon (0.55), Normal (1, exactly the world the game has
+always had) and Heavy (1.5), the choice is persisted with the other settings, and the HUD shows a
+badge whenever the pull is not the ordinary one. Unit tests: default 1, jumps scale with the
+setting, a grenade flies more than 30% further on the moon than in the heavy world, and a long fall
+costs less health. Browser test: the setting picked in the menu reaches the match, shows in the HUD
+and floats the jump.
 
 ### T75 — Map preview in the setup screen ☑
 

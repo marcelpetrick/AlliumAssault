@@ -31,6 +31,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 | Hazards      | Water at the bottom = instant death; fall damage above a speed threshold                |
 | Wind         | New random wind each turn, shown in HUD; affects projectiles per weapon                 |
 | Victory      | Last team with living buddies wins; draw if none survive                                |
+| Gravity      | Moon, Normal or Heavy: scales the pull on everything that falls                         |
 | Crates       | Optional random health and weapon crates (see below)                                    |
 | Arsenal      | All weapons, special weapons from crates only, or infinite supplies                     |
 | Sudden Death | Off, or turn 10 / 20 / 30: 1 HP for everybody, then the water climbs a unit per turn    |
@@ -134,7 +135,8 @@ Following the last control decision made in the 2D prototype:
 - **Sceneries:** Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice).
 - **UI:** polished HTML/CSS overlay — title screen, match setup (teams, colours, controller,
-  buddies, turn time, wind, crates, arsenal, text size, map seed with a live map preview, scenery;
+  buddies, turn time, wind, crates, gravity, arsenal, text size, map seed with a live map preview,
+  scenery;
   remembered for the next game, Reset all), HUD (timer, wind, compact weapon bar, team health), help, about, pause and
   victory screens.
 - **Comedy:** comic R.I.P. tombstones, a hallelujah choir, bleating sheep, a braying mule.

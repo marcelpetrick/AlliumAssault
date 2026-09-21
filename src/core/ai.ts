@@ -95,7 +95,7 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
   const ax = game.wind * WIND_ACCEL * def.windInfluence;
   let rest = 0;
   for (let t = 0; t < 7; t += dt) {
-    const hit = stepProjectile(game.terrain, p, dt, ax, -GRAVITY * def.gravityScale, def.restitution, hitTest, 0.3);
+    const hit = stepProjectile(game.terrain, p, dt, ax, -GRAVITY * game.terrain.gravityScale * def.gravityScale, def.restitution, hitTest, 0.3);
     if (hit === 'terrain' || hit === 'target') return { x: p.x, y: p.y };
     if (hit === 'water' || hit === 'out') return null;
     if (def.fuse > 0 && t + dt >= def.fuse) return { x: p.x, y: p.y };
@@ -178,7 +178,8 @@ function shovedOut(game: Game, target: Buddy, vx: number, vy: number): boolean {
   if (Math.abs(vx) < MIN_SHOVE) return false;
   const t = game.terrain;
   // Time to come down a metre below where it started, which is where the ground normally is.
-  const flight = (vy + Math.sqrt(Math.max(0, vy * vy + 2 * GRAVITY))) / GRAVITY;
+  const pull = GRAVITY * t.gravityScale;
+  const flight = (vy + Math.sqrt(Math.max(0, vy * vy + 2 * pull))) / pull;
   const land = target.body.x + vx * flight;
   if (land < 0 || land > t.width) return true;
   return surfaceAt(t, land) <= t.waterLevel + 0.2;

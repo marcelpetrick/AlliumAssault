@@ -124,6 +124,41 @@ test('tombstones: a buddy that dies leaves a comic tombstone with its name', asy
   expect(errors).toEqual([]);
 });
 
+test('gravity: Moon is picked in the setup, shown in the HUD and floats the jumps', async ({ page }, info) => {
+  const errors = await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.getByRole('button', { name: 'Moon', exact: true }).click();
+  await page.getByRole('button', { name: /Start Battle/ }).click();
+  await waitFor(page, (s) => !s.demo && s.phase === 'aiming', 60_000);
+  expect(await page.evaluate(() => window.__allium.app.game!.terrain.gravityScale)).toBe(0.55);
+  await expect(page.locator('.gravity')).toBeVisible();
+  await info.attach('moon-gravity', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // The same jump reaches higher than it does in the ordinary world.
+  const jump = async () => {
+    const start = await page.evaluate(() => {
+      const b = window.__allium.app.game!.activeBuddy!;
+      b.body.vx = b.body.vy = 0;
+      return b.body.y;
+    });
+    await page.keyboard.press('Enter');
+    let top = start;
+    for (let k = 0; k < 12; k++) {
+      await fastForward(page, 0.1);
+      top = Math.max(top, await page.evaluate(() => window.__allium.app.game!.activeBuddy!.body.y));
+    }
+    await fastForward(page, 2);
+    return top - start;
+  };
+  const moon = await jump();
+  await page.evaluate(() => {
+    window.__allium.app.game!.terrain.gravityScale = 1;
+  });
+  const normal = await jump();
+  expect(moon).toBeGreaterThan(normal * 1.3);
+  expect(errors).toEqual([]);
+});
+
 test('setup: the map preview shows the seed\u2019s island and follows the seed and scenery', async ({ page }, info) => {
   const errors = await boot(page);
   await page.getByRole('button', { name: /Custom Match/ }).click();

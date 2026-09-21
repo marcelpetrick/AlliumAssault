@@ -50,6 +50,15 @@ export const SUDDEN_DEATH_OPTIONS = [
   { label: 'Turn 20', value: 20 },
   { label: 'Turn 30', value: 30 },
 ];
+/**
+ * The arena's pull as a multiple of the standard one. Normal is the world the game has always had;
+ * Moon makes for floaty jumps, long throws and gentle landings, Heavy for the opposite.
+ */
+export const GRAVITY_OPTIONS = [
+  { label: 'Moon', value: 0.55 },
+  { label: 'Normal', value: 1 },
+  { label: 'Heavy', value: 1.5 },
+];
 export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },
   { label: 'Normal', value: DEFAULT_CRATE_CHANCE },

@@ -48,6 +48,11 @@ export class Terrain {
   readonly dirty = new Set<number>();
   revision = 0;
   /**
+   * The arena's pull, as a multiple of the standard one. The setup screen offers a lighter and a
+   * heavier world; everything that falls — buddies, projectiles, crates, bombs — reads it here.
+   */
+  gravityScale = 1;
+  /**
    * Placed boards. They are solid for every terrain query but live outside the density field, so
    * blasts cannot cut them and the rock mesh never has to be rebuilt for them.
    */

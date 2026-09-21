@@ -54,7 +54,7 @@ export function strikeWindShift(t: Terrain, def: WeaponDef, target: number, wind
   const bomb = WEAPONS[weapon];
   const ground = groundBelow(t, target);
   const altitude = Math.min(WORLD_HEIGHT + 4, ground + CLEARANCE);
-  const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * bomb.gravityScale));
+  const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * t.gravityScale * bomb.gravityScale));
   return 0.5 * wind * WIND_ACCEL * bomb.windInfluence * fall * fall;
 }
 
@@ -75,7 +75,7 @@ export function planStrike(t: Terrain, def: WeaponDef, target: number, dir: 1 | 
   const altitude = Math.min(WORLD_HEIGHT + 4, ground + CLEARANCE);
   const bombVx = dir * PLANE_SPEED * BOMB_CARRY;
   const ax = windAimed ? wind * WIND_ACCEL * bomb.windInfluence : 0;
-  const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * bomb.gravityScale));
+  const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * t.gravityScale * bomb.gravityScale));
   const drift = bombVx * fall + 0.5 * ax * fall * fall;
   const center = target - drift;
   const drops: StrikeDrop[] = [];

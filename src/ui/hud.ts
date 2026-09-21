@@ -49,6 +49,7 @@ export class Hud {
         </div>
         <div class="hud-right">
           <div class="wind glass-card"><div class="wind-label">Wind</div><div class="wind-bar"><span class="wind-mid"></span><div class="wind-fill"></div></div></div>
+          <div class="gravity glass-card" hidden><div class="wind-label">Gravity</div><div class="gravity-value"></div></div>
           <div class="approach glass-card" hidden><div class="wind-label">Approach</div><div class="approach-arrow"></div></div>
           <div class="hud-menu glass-card">
             <button class="hud-button" data-menu="help" title="How to Play" aria-label="Help">❔ Help</button>
@@ -181,6 +182,10 @@ export class Hud {
     fill.style.width = `${Math.abs(g.wind) * 50}%`;
     fill.style.left = g.wind < 0 ? `${50 - Math.abs(g.wind) * 50}%` : '50%';
     fill.classList.toggle('left', g.wind < 0);
+    // Only worth screen space when the world does not pull as usual.
+    const pull = g.terrain.gravityScale;
+    query(this.el, '.gravity').hidden = pull === 1;
+    if (pull !== 1) this.text('.gravity-value', pull < 1 ? `🌙 ${String(Math.round(pull * 100))}%` : `⬇ ${String(Math.round(pull * 100))}%`);
 
     // Bottom: weapons, team bars, hints.
     const human = g.isHumanTurn;

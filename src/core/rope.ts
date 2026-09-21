@@ -156,7 +156,7 @@ function stepAttached(t: Terrain, rope: Rope, b: Body, dt: number, reel: number,
     // How fast the buddy is allowed to move away from the pivot right now.
     const payOut = (allowance - before) / h;
 
-    stepFree(t, b, h, swing * SWING_ACCEL, -GRAVITY);
+    stepFree(t, b, h, swing * SWING_ACCEL, -GRAVITY * t.gravityScale);
     b.vx *= Math.exp(-SWING_DRAG * h);
     b.vy *= Math.exp(-SWING_DRAG * h);
 

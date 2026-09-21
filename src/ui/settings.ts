@@ -3,7 +3,7 @@
 
 import type { AiLevel, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { THEME_IDS } from '../render/themes';
-import { ARSENAL_OPTIONS, CRATE_OPTIONS, quickMatch, randomSeed, SUDDEN_DEATH_OPTIONS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
+import { ARSENAL_OPTIONS, CRATE_OPTIONS, GRAVITY_OPTIONS, quickMatch, randomSeed, SUDDEN_DEATH_OPTIONS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
 
 export type TextSize = 'normal' | 'large' | 'huge';
 
@@ -90,6 +90,11 @@ export function parseSettings(raw: string): Settings | null {
       m.suddenDeath,
       SUDDEN_DEATH_OPTIONS.map((o) => o.value),
       d.suddenDeath ?? 0,
+    ),
+    gravity: pick(
+      m.gravity,
+      GRAVITY_OPTIONS.map((g) => g.value),
+      d.gravity ?? 1,
     ),
     theme: pick(m.theme, THEME_IDS, d.theme),
   };

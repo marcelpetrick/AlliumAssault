@@ -54,7 +54,7 @@ export function stepBody(t: Terrain, b: Body, dt: number, walk: number | null): 
   }
   const stick = wasGrounded && walk === null && Math.hypot(b.vx, b.vy) < 1.5;
   if (stick) b.vy = Math.max(b.vy, 0);
-  else b.vy -= GRAVITY * dt;
+  else b.vy -= GRAVITY * t.gravityScale * dt;
 
   const travel = Math.hypot(b.vx, b.vy) * dt;
   const steps = Math.max(1, Math.ceil(travel / (b.radius * 0.4)));

@@ -73,6 +73,8 @@ export interface MatchConfig {
    * off. Counted in buddy turns, the same unit the victory screen reports.
    */
   suddenDeath?: number;
+  /** The arena's pull as a multiple of the standard one; missing or 1 is the ordinary world. */
+  gravity?: number;
   theme: string;
 }
 
@@ -350,6 +352,7 @@ export class Game {
       if (attempt >= 8 || overrides.terrain) break;
     }
     this.terrain = defined(terrain, 'generated terrain');
+    this.terrain.gravityScale = config.gravity ?? 1;
     this.windRng = rngFor(config.seed, 'wind');
     this.crateRng = rngFor(config.seed, 'crates');
 
@@ -703,7 +706,8 @@ export class Game {
               this.buddies.some((b) => b.alive && (b.id !== p.owner || p.age > 0.3) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + p.radius) ||
               this.crates.some((c) => Math.hypot(c.body.x - x, c.body.y - y) < c.body.radius + p.radius)
           : undefined;
-      const hit = stepProjectile(this.terrain, p, dt, this.wind * WIND_ACCEL * def.windInfluence, -GRAVITY * def.gravityScale, def.restitution, hitTest);
+      const pull = -GRAVITY * this.terrain.gravityScale * def.gravityScale;
+      const hit = stepProjectile(this.terrain, p, dt, this.wind * WIND_ACCEL * def.windInfluence, pull, def.restitution, hitTest);
       if (p.bounces > bounces) this.emit({ type: 'bounce', x: p.x, y: p.y, speed: Math.hypot(p.vx, p.vy) });
       if (def.restFuse !== undefined && !p.armed) {
         p.rest = Math.hypot(p.vx, p.vy) < REST_SPEED ? (p.rest ?? 0) + dt : 0;

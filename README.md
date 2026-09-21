@@ -95,6 +95,9 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   trajectories to find its shots.
 - **Five sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice); seeded maps you can share.
+- **Gravity** — Moon, Normal (the usual world) or Heavy, chosen in the setup screen: lighter
+  gravity means floaty jumps, long throws and gentle landings, heavier gravity the opposite. The
+  HUD shows the pull whenever it is not the ordinary one.
 - **Map preview** — the setup screen draws the island the current seed produces, in the colours of
   the chosen scenery, so you can roll the dice until you like the map before starting.
 - **Comfortable setup** — text size Normal / Large / Huge, and the last match settings are
