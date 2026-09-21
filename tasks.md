@@ -90,7 +90,7 @@ Status: ☐ open · ☑ done
 | T76 | Three gravity options in the menu, with today's gravity as the default                                    | ☑      | 1.46.0         |
 | T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☑      | 1.47.0         |
 | T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☑      | 1.43.1         |
-| T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
+| T79 | Dependency review and update (`/updateDependencies`)                                                      | ☑      | 1.52.2         |
 | T80 | Public release v1.44.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.44.0         |
 | T81 | Turn timer: the number overlaps the ring at larger text sizes — make it fit, and keep it pretty           | ☑      | 1.47.2         |
 | T82 | Explosions: thinner and more translucent, with chunks of earth thrown out of the crater                   | ☑      | 1.50.0         |
@@ -99,11 +99,16 @@ Status: ☐ open · ☑ done
 | T85 | Napalm: flames burn longer and eat into the ground                                                        | ☑      | 1.49.0         |
 | T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☑      | 1.52.0         |
 | T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☑      | 1.52.1         |
+| T88 | Python script charting lines of code and coverage over the commits, embedded in the README                | ☐      |                |
+| T89 | Public release v1.53.0: push, tag, GitHub release and Pages deployment                                    | ☐      |                |
 
 ## Current implementation plan
 
-1. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
-   each versioned, local commit. Do not push or tag without being asked.
+1. Review today's whole diff, then push and publish the release (T89).
+2. Last, and only then: the history chart (T88) — lines of code per commit straight from git, and
+   coverage sampled at every tenth commit so the measuring stays cheap, cached between runs and
+   embedded at the bottom of the README.
+3. `npm run verify` stays green before every versioned, local commit.
 
 ## Answered questions
 
@@ -460,6 +465,20 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T79 — Dependency review ☑
+
+Run in 1.52.2. Every dependency was already pinned to an exact version, so only the versions moved:
+Babylon.js 9.26.2 → 9.27.1, ESLint 10.10.0 → 10.11.0, Prettier 3.9.7 → 3.9.8, markdownlint-cli2
+0.23.2 → 0.23.3 and `@types/node` 24.13.5 → 24.13.6. Two newer releases were deliberately not taken:
+
+- **TypeScript 7.0.2** — typescript-eslint 8.70.0 declares `typescript >=4.8.4 <6.1.0`, so the whole
+  type-aware lint setup would stop working. Staying on 6.0.3, the latest of the supported line.
+- **`@types/node` 26.x** — the runtime, and CI, are Node 24; types for a newer runtime would describe
+  APIs that are not there. Staying on the latest 24.x.
+
+`npm run verify` — lint, typecheck, unit tests, build and the 58 browser tests — passed on the new
+versions with no code changes needed.
 
 ### T87 — Touch-display ideation ☑
 

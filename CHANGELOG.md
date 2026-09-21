@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.52.2] — 2026-09-21
+
+### Changed
+
+- Dependencies updated to their latest stable releases: Babylon.js 9.27.1, ESLint 10.11.0,
+  Prettier 3.9.8, markdownlint-cli2 0.23.3 and `@types/node` 24.13.6. TypeScript stays on 6.0.3
+  (typescript-eslint requires `<6.1.0`) and `@types/node` on the 24.x line to match the Node 24
+  runtime.
+
 ## [1.52.1] — 2026-09-21
 
 ### Added
