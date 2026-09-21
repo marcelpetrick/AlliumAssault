@@ -88,16 +88,15 @@ Status: ☐ open · ☑ done
 | T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☑      | 1.43.0         |
 | T75 | Map preview for the chosen seed in the setup screen                                                       | ☑      | 1.45.0         |
 | T76 | Three gravity options in the menu, with today's gravity as the default                                    | ☑      | 1.46.0         |
-| T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☐      |                |
+| T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☑      | 1.47.0         |
 | T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☑      | 1.43.1         |
 | T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
 | T80 | Public release v1.44.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.44.0         |
 
 ## Current implementation plan
 
-1. Add "Crate craziness" to the crate setting: two fresh crates every turn (T77).
-2. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
-3. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+1. Re-examine the banana bomb's reported short range with the new gravity setting in hand (T36).
+2. Run `/updateDependencies` (T79), then review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -126,6 +125,16 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
+
+### T77 — Crate craziness ☑
+
+Added in 1.47.0. The crate setting used to be a chance per turn; it now reads as crates per turn,
+which is the same thing below 1 and a guaranteed count from 1 upwards, so the new "Craziness" option
+is simply the value 2: two fresh crates at the start of every turn. The cap on crates lying about
+scales with it — four per crate a turn brings, so four as before and eight under Craziness — and a
+turn that finds no free spot left simply drops fewer. Unit test: two crates and two spawn events per
+turn, growing to the bigger cap and no further, all on real ground clear of the buddies. Browser
+test: two crates teleport in with their sound on the second turn, two more on the third.
 
 ### T76 — Gravity setting ☑
 

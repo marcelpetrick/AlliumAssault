@@ -32,7 +32,7 @@ import {
 import { clamp, lerp, type Point } from './math';
 import { createBody, glideBody, GRAVITY, stepBody, stepProjectile, type Body } from './physics';
 import { rngFor, type Rng } from './rng';
-import { CRATE_BLAST, CRATE_HEAL, DEFAULT_CRATE_CHANCE, MAX_CRATES, rollCrate, type Crate } from './crates';
+import { CRATE_BLAST, CRATE_HEAL, crateLimit, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
 import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './mines';
 import { spreadFlames, type Flame } from './fire';
 import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
@@ -61,7 +61,10 @@ export interface MatchConfig {
   retreatTime: number;
   /** Maximum wind strength, 0..1. */
   windMax: number;
-  /** Chance per turn (0..1) that a crate teleports onto the map; missing means no crates. */
+  /**
+   * Crates per turn: below 1 the chance of one crate teleporting in, from 1 upwards that many
+   * crates every turn ("crate craziness"). Missing means no crates.
+   */
   crates?: number;
   /**
    * 'all': every weapon with its normal ammo (default); 'crates': special weapons only come from
@@ -881,17 +884,24 @@ export class Game {
   }
 
   /** At a turn start, maybe teleport a new crate onto a free land spot; true if one arrived. */
-  private maybeDropCrate(): boolean {
+  /** Crates for the turn that is starting; returns how many actually landed. */
+  private dropCrates(): number {
     // Special weapons must be findable when the arsenal restricts them to crates.
     const configured = this.config.crates ?? 0;
-    const chance = configured > 0 ? configured : this.config.arsenal === 'crates' ? DEFAULT_CRATE_CHANCE : 0;
-    if (chance <= 0 || this.turn <= 1 || this.crates.length >= MAX_CRATES || this.crateRng() >= chance) return false;
-    const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body), ...this.graves.map((g) => g.body)];
-    const crate = rollCrate(this.terrain, this.crateRng, this.nextId++, occupied);
-    if (!crate) return false;
-    this.crates.push(crate);
-    this.emit({ type: 'crateSpawn', crate: crate.id, x: crate.body.x, y: crate.body.y });
-    return true;
+    const rate = configured > 0 ? configured : this.config.arsenal === 'crates' ? DEFAULT_CRATE_CHANCE : 0;
+    if (rate <= 0 || this.turn <= 1) return 0;
+    const wanted = cratesPerTurn(rate, this.crateRng);
+    const limit = crateLimit(rate);
+    let dropped = 0;
+    for (let k = 0; k < wanted && this.crates.length < limit; k++) {
+      const occupied = [...this.buddies.filter((b) => b.alive).map((b) => b.body), ...this.crates.map((c) => c.body), ...this.graves.map((g) => g.body)];
+      const crate = rollCrate(this.terrain, this.crateRng, this.nextId++, occupied);
+      if (!crate) break;
+      this.crates.push(crate);
+      this.emit({ type: 'crateSpawn', crate: crate.id, x: crate.body.x, y: crate.body.y });
+      dropped++;
+    }
+    return dropped;
   }
 
   /** Advance the weapon action in progress, dropping it if its buddy or phase is gone. */
@@ -1251,7 +1261,7 @@ export class Game {
     this.turn++;
     this.raiseWater();
     const suddenDeath = this.checkSuddenDeath();
-    this.introTime = this.maybeDropCrate() ? INTRO_TIME + CRATE_INTRO_TIME : INTRO_TIME;
+    this.introTime = this.dropCrates() > 0 ? INTRO_TIME + CRATE_INTRO_TIME : INTRO_TIME;
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;

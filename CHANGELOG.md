@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.47.0] — 2026-09-21
+
+### Added
+
+- **Crate craziness** — a fourth crate setting that drops two fresh crates at the start of every
+  turn instead of rolling for one, with room for eight on the map at a time.
+
 ## [1.46.0] — 2026-09-21
 
 ### Added

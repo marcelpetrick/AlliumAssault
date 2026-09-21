@@ -98,6 +98,24 @@ test('crates: a flying sheep collects one for the buddy that launched it, across
   expect(errors).toEqual([]);
 });
 
+test('crate craziness: two crates teleport in every turn', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page, { crates: 2 });
+  expect((await state(page)).crates).toHaveLength(0);
+  await page.evaluate(() => {
+    window.__allium.app.game!.skipTurn();
+  });
+  await waitFor(page, (s) => s.turn === 2 && s.crates.length === 2, 30_000);
+  await waitForSound(page, 'teleport');
+  await waitFor(page, (s) => s.phase === 'aiming', 30_000);
+  await info.attach('crate-craziness', { body: await page.screenshot(), contentType: 'image/png' });
+  await page.evaluate(() => {
+    window.__allium.app.game!.skipTurn();
+  });
+  await waitFor(page, (s) => s.turn === 3 && s.crates.length === 4, 30_000);
+  expect(errors).toEqual([]);
+});
+
 test('tombstones: a buddy that dies leaves a comic tombstone with its name', async ({ page }, info) => {
   const errors = await boot(page);
   const start = await startDuel(page, {

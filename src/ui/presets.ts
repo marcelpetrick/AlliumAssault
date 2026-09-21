@@ -63,6 +63,8 @@ export const CRATE_OPTIONS = [
   { label: 'Off', value: 0 },
   { label: 'Normal', value: DEFAULT_CRATE_CHANCE },
   { label: 'Lots', value: 0.7 },
+  // From 1 upwards the value is a guaranteed number of crates per turn instead of a chance.
+  { label: 'Craziness', value: 2 },
 ];
 
 export const randomSeed = (): string => Math.random().toString(36).slice(2, 8);

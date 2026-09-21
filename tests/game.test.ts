@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { NO_KNOWLEDGE, planAttack, scoreBlast, simulateShot } from '../src/core/ai';
 import { Game, REST_SPEED, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
-import { CRATE_RADIUS, CRATE_WEAPONS } from '../src/core/crates';
+import { crateLimit, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES } from '../src/core/crates';
 import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
 import { SUDDEN_DEATH_WATER_RISE } from '../src/core/constants';
@@ -1058,6 +1058,27 @@ describe('crates', () => {
     expect(g.crates).toHaveLength(0);
     for (let k = 0; k < 8; k++) nextTurn(g);
     expect(g.crates).toHaveLength(4);
+    for (const c of g.crates) {
+      expect(c.body.y).toBeCloseTo(20.45, 0);
+      for (const b of g.buddies) expect(Math.abs(b.body.x - c.body.x)).toBeGreaterThan(2);
+    }
+  });
+
+  it('crate craziness brings two crates every turn, up to a bigger cap', () => {
+    const g = crateGame(2);
+    toAiming(g);
+    expect(g.crates).toHaveLength(0);
+    nextTurn(g);
+    expect(g.crates).toHaveLength(2);
+    const spawns = g.drainEvents().filter((e) => e.type === 'crateSpawn');
+    expect(spawns).toHaveLength(2);
+    nextTurn(g);
+    expect(g.crates).toHaveLength(4);
+    for (let k = 0; k < 8; k++) nextTurn(g);
+    // Four crates per crate a turn brings: twice the usual for craziness, and never more.
+    expect(g.crates).toHaveLength(crateLimit(2));
+    expect(crateLimit(2)).toBe(2 * MAX_CRATES);
+    // Still real crate spots: on the ground and clear of the buddies.
     for (const c of g.crates) {
       expect(c.body.y).toBeCloseTo(20.45, 0);
       for (const b of g.buddies) expect(Math.abs(b.body.x - c.body.x)).toBeGreaterThan(2);

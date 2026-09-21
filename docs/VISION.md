@@ -32,7 +32,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 | Wind         | New random wind each turn, shown in HUD; affects projectiles per weapon                 |
 | Victory      | Last team with living buddies wins; draw if none survive                                |
 | Gravity      | Moon, Normal or Heavy: scales the pull on everything that falls                         |
-| Crates       | Optional random health and weapon crates (see below)                                    |
+| Crates       | Optional health and weapon crates: Off / Normal / Lots / Craziness (see below)          |
 | Arsenal      | All weapons, special weapons from crates only, or infinite supplies                     |
 | Sudden Death | Off, or turn 10 / 20 / 30: 1 HP for everybody, then the water climbs a unit per turn    |
 
@@ -99,8 +99,9 @@ once, and a mine falls when the ground beneath it is blasted away.
 
 ## Crates
 
-From the second turn on a crate may teleport onto free land at a turn start (Off / Normal / Lots,
-at most four on the map). Health crates heal the collecting buddy by 25 HP; weapon crates add one
+From the second turn on crates teleport onto free land at a turn start: Normal and Lots roll for a
+single crate, Craziness brings two every turn. At most four crates lie about per crate a turn
+brings, so four normally and eight under Craziness. Health crates heal the collecting buddy by 25 HP; weapon crates add one
 more of a special weapon to its team. Crates explode when caught in a blast. A sheep or Super Sheep
 sweeping over a crate collects it for the buddy that launched it — touching a crate never detonates
 the sheep, and a launcher that is dead or already out of health collects nothing.

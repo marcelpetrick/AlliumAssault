@@ -77,7 +77,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
   through every turn until somebody walks into them. Rock between a mine and a buddy shields it, and
   a blast sets mines off in a chain.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
-  25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots in the setup. A hopping
+  25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots / Craziness (two fresh
+  crates every single turn, up to eight on the map) in the setup. A hopping
   sheep or a Super Sheep that runs over a crate collects it for the buddy that launched it, without
   going off.
 - **Arsenal setting** — start with every weapon, find the special weapons (sheep, air strike,
