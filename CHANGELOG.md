@@ -2,6 +2,37 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.53.0] — 2026-09-21
+
+Public release. Everything below has been in the changelog since 1.44.1; this is the summary that
+ships with the release.
+
+### Added
+
+- **Teleport** (T, one per match): click a free spot and the buddy appears there, then falls, lands
+  hard or drowns from there like anybody else.
+- **Gravity setting** — Moon, Normal or Heavy — and **Crate craziness**, which drops two crates
+  every single turn.
+- **Map preview** in the setup screen: the island the current seed makes, in the scenery's colours.
+- The Sudden Death flood is shown by the camera as it climbs, and a buddy it drowns during its own
+  turn intro no longer holds the match up for its whole clock.
+- Explosions throw tumbling lumps of earth out of the ground they bite into.
+- `docs/SOUND.md` and `touchdisplay_support_ideation.md`.
+
+### Changed
+
+- **Every action has its own sound.** Thrown weapons no longer borrow the bazooka's launch roar,
+  the blowtorch lights its gas, the platform knocks in wood, teleport warps, small blasts pop and
+  Sudden Death has its own siren.
+- Explosions are half as dense and see-through, so the buddies and the crater stay visible.
+- Napalm burns for nine seconds and eats a charred dent into the ground.
+- Dependencies updated to their latest stable releases.
+
+### Fixed
+
+- One-shot particle systems could pile up in the scene forever; they are now swept up.
+- The turn timer's caption no longer runs through its ring at larger text sizes.
+
 ## [1.52.2] — 2026-09-21
 
 ### Changed

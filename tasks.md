@@ -100,15 +100,14 @@ Status: ☐ open · ☑ done
 | T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☑      | 1.52.0         |
 | T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☑      | 1.52.1         |
 | T88 | Python script charting lines of code and coverage over the commits, embedded in the README                | ☐      |                |
-| T89 | Public release v1.53.0: push, tag, GitHub release and Pages deployment                                    | ☐      |                |
+| T89 | Public release v1.53.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.53.0         |
 
 ## Current implementation plan
 
-1. Review today's whole diff, then push and publish the release (T89).
-2. Last, and only then: the history chart (T88) — lines of code per commit straight from git, and
+1. Last, and only then: the history chart (T88) — lines of code per commit straight from git, and
    coverage sampled at every tenth commit so the measuring stays cheap, cached between runs and
    embedded at the bottom of the README.
-3. `npm run verify` stays green before every versioned, local commit.
+2. `npm run verify` stays green before every versioned, local commit.
 
 ## Answered questions
 
@@ -465,6 +464,16 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T89 — Public release v1.53.0 ☑
+
+Requested on 2026-09-21 once the batch from T81 to T87 was finished and reviewed. The diff since
+v1.44.0 — thirteen commits — was read through before pushing: the teleport's refusals, the crate
+loop's per-crate occupancy, the gravity multiplier reaching every falling thing, the particle
+sweeper and the new sounds all checked against their tests. Pushed `master`, then the single tag
+`v1.53.0`, which runs `.github/workflows/release.yml`: verify, zip the static build with its
+checksum, publish the GitHub release from the 1.53.0 changelog section. Pages deploys from the same
+push. T88 stays open by request, to be done after the release.
 
 ### T79 — Dependency review ☑
 
