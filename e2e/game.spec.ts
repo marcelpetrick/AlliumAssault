@@ -523,3 +523,90 @@ test('the Graphics setting picks the renderer budget, persists, and yields to ?q
   expect((await state(page)).shadows).toBe(false);
   expect(errors).toEqual([]);
 });
+
+test('setup screen: the map seed sits in the same row as the preview it feeds', async ({ page }) => {
+  const errors = await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  const boxes = await page.evaluate(() => {
+    const seed = document.querySelector('.seed input')!.getBoundingClientRect();
+    const preview = document.querySelector('.map-preview')!.getBoundingClientRect();
+    return { seed: { top: seed.top, bottom: seed.bottom, right: seed.right }, preview: { top: preview.top, bottom: preview.bottom, left: preview.left } };
+  });
+  // Same row: their vertical extents overlap, and the seed is to the left of the picture it makes.
+  expect(boxes.seed.top).toBeLessThan(boxes.preview.bottom);
+  expect(boxes.preview.top).toBeLessThan(boxes.seed.bottom);
+  expect(boxes.seed.right).toBeLessThanOrEqual(boxes.preview.left + 1);
+  expect(errors).toEqual([]);
+});
+
+test('setup screen: Start Battle stays on screen at every text size', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await page.addStyleTag({ content: '*, *::before, *::after { animation: none !important; transition: none !important; }' });
+  for (const size of ['normal', 'large', 'huge'] as const) {
+    await page.getByRole('button', { name: /Custom Match/ }).click();
+    await page.locator(`[data-action="text-size"][data-value="${size}"]`).click();
+    // Scroll the options as far as they go: the pinned footer must not go with them.
+    await page.evaluate(() => {
+      const panel = document.querySelector('.panel.wide')!;
+      panel.scrollTop = panel.scrollHeight;
+    });
+    const start = page.getByRole('button', { name: /Start Battle/ });
+    await expect(start).toBeInViewport({ ratio: 0.9 });
+    const box = (await start.boundingBox())!;
+    expect(box.y, `Start Battle is off the bottom at ${size} text`).toBeLessThan(720);
+    expect(box.y + box.height).toBeLessThanOrEqual(721);
+    await page.getByRole('button', { name: /Back/ }).click();
+  }
+  expect(errors).toEqual([]);
+});
+
+test('text size scales the whole overlay by one factor: menu, HUD and name tags together', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await page.addStyleTag({ content: '*, *::before, *::after { animation: none !important; transition: none !important; }' });
+
+  /** Rendered heights of one element per region, so a region left out of the scaling is visible. */
+  const heights = async () => {
+    await startDuel(page);
+    const h = await page.evaluate(() => {
+      const box = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().height ?? 0;
+      // Single-line elements only: a block that wraps grows by its line count, not by the scale.
+      return { hudTop: box('.turn-buddy'), hudBottom: box('.slot-key'), tag: box('.tag-name'), caption: box('.timer-caption') };
+    });
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: /Quit to title/ }).click();
+    await waitFor(page, (s) => s.demo && s.screen === 'title', 10_000);
+    return h;
+  };
+
+  const pickSize = async (size: string) => {
+    await page.getByRole('button', { name: /Custom Match/ }).click();
+    await page.locator(`[data-action="text-size"][data-value="${size}"]`).click();
+    const menu = await page.evaluate(() => document.querySelector('.setup-screen .field-label')!.getBoundingClientRect().height);
+    await page.getByRole('button', { name: /Back/ }).click();
+    return menu;
+  };
+
+  const base = { menu: await pickSize('normal'), ...(await heights()) };
+  for (const [size, factor] of [
+    ['large', 1.25],
+    ['huge', 1.5],
+  ] as const) {
+    const scaled = { menu: await pickSize(size), ...(await heights()) };
+    for (const key of ['menu', 'hudTop', 'hudBottom', 'tag', 'caption'] as const) {
+      expect(base[key], `${key} must have a size to compare`).toBeGreaterThan(0);
+      const grew = scaled[key] / base[key];
+      // Every region grows by the same factor. The slack is for line boxes, which round to whole
+      // pixels — on a 12px caption that is worth a few percent. A region left out of the scaling
+      // reads 1.0 and is nowhere near it, which is the mistake this test exists to catch.
+      expect(grew, `${key} grew ${grew.toFixed(3)}× at ${size}, not ${String(factor)}×`).toBeGreaterThan(factor * 0.93);
+      expect(grew, `${key} grew ${grew.toFixed(3)}× at ${size}, not ${String(factor)}×`).toBeLessThan(factor * 1.07);
+    }
+  }
+  expect(errors).toEqual([]);
+});

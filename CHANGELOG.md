@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.58.1] — 2026-09-22
+
+### Fixed
+
+- **Start Battle is pinned to the bottom of the setup panel.** The options are taller than any
+  viewport — nearly twice the screen at Huge text — so the button that starts the match used to
+  scroll away under them. It now sits on a blurred bar at the foot of the panel, wherever the
+  options have been scrolled to.
+- **The map seed sits beside the picture it makes.** Seed and preview were two independent cells in
+  a wrapping grid and could land rows apart; they now share a row of their own, so typing a seed
+  and seeing the island it produces is one motion.
+
+### Added
+
+- A browser test that measures the menu, the HUD, the weapon bar and the buddy name tags at every
+  text size and fails unless they all grow by the same factor — the guarantee behind the Text size
+  setting, now checked rather than assumed.
+
 ## [1.58.0] — 2026-09-22
 
 ### Added

@@ -207,11 +207,13 @@ export class Menu {
               SUDDEN_DEATH_OPTIONS.map((o) => ({ label: o.label, value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
               'sudden-death',
             )}</div>
-            <div><label class="field-label">Map seed</label>
-              <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
-            </div>
-            <div class="preview-field"><label class="field-label">Map preview</label>
-              <canvas class="map-preview" data-preview width="384" height="192" aria-label="Preview of the map this seed generates"></canvas>
+            <div class="map-field">
+              <div class="seed-field"><label class="field-label">Map seed</label>
+                <div class="seed"><input data-field="seed" value="${esc(d.seed)}" maxlength="24" spellcheck="false" /><button data-action="dice" title="Random seed">🎲</button></div>
+              </div>
+              <div class="preview-field"><label class="field-label">Map preview</label>
+                <canvas class="map-preview" data-preview width="384" height="192" aria-label="Preview of the map this seed generates"></canvas>
+              </div>
             </div>
           </section>
           <label class="field-label">Scenery</label>

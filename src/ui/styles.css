@@ -170,12 +170,23 @@ button.icon {
   justify-self: start;
 }
 
+/*
+ * Pinned to the bottom of the scrolling panel. The setup screen has more options than fits any
+ * viewport — more so at Large and Huge text — and Start Battle must never be the thing that
+ * scrolled away. The negative margins cancel the panel's own padding so the bar reaches its edges.
+ */
 .panel-foot {
+  position: sticky;
+  z-index: 2;
+  bottom: -26px;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-top: 22px;
+  margin: 22px -30px -26px;
+  padding: 14px 30px 22px;
+  background: linear-gradient(to top, var(--glass-strong) 72%, rgb(0 0 0 / 0%));
+  backdrop-filter: blur(10px);
 }
 
 .lead {
@@ -1098,7 +1109,23 @@ kbd {
   color: var(--muted);
 }
 
-/* Map preview: the island the current seed makes, next to the other setup options. */
+/*
+ * The seed and the picture it makes belong together, so they share one row of their own however
+ * the rest of the options wrap: type a seed, see the island, roll the dice, see the next one.
+ */
+.map-field {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.seed-field {
+  flex: 0 0 auto;
+}
+
+/* Map preview: the island the current seed makes, beside the seed that makes it. */
 .preview-field {
   flex: 1 1 260px;
   min-width: 220px;
