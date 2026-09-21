@@ -92,7 +92,7 @@ C4Component
     Component(terrain, "Terrain", "terrain.ts", "Density field, seeded generation, carve, spawn search, dirty chunks; also the arena: water level, gravity scale and placed platforms")
     Component(contour, "contourRegion", "contour.ts", "Marching squares: fill triangles and oriented edges")
     Component(physics, "Physics", "physics.ts", "stepBody for buddies, stepProjectile for shells")
-    Component(weapons, "Weapon table", "weapons.ts", "Twenty-one weapons by kind, grouped thematically; fragments, arsenal flags, digit and letter hotkeys")
+    Component(weapons, "Weapon table", "weapons.ts", "Twenty-two weapons by kind, grouped thematically; fragments, arsenal flags, digit and letter hotkeys")
     Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts, fire.ts, rope.ts", "Hopping sheep, steerable flyer, strike drop planning, napalm flames that eat into the ground, rope hook and swing")
     Component(crates, "Crates and mines", "crates.ts, mines.ts", "Seeded crate contents and free land spots; mine arming, proximity and fuse")
     Component(support, "rng, math, constants, assert", "rng.ts, math.ts, constants.ts, assert.ts", "Seeded streams, helpers, tuning values, invariants")

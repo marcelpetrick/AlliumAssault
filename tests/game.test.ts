@@ -480,6 +480,43 @@ describe('match flow', () => {
     expect(g.projectiles.length).toBe(0);
   });
 
+  it('the Ming vase is one per match, bursts enormously and throws eight shards', () => {
+    const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    // The rarest thing in the arsenal: exactly one, and it is a special, so crates can restrict it.
+    expect(WEAPONS.ming.ammo).toBe(1);
+    expect(WEAPONS.ming.special).toBe(true);
+    expect(g.teams[0].ammo.ming).toBe(1);
+    g.selectWeapon('ming');
+    expect(g.weapon).toBe('ming');
+    g.buddies[0].aim = 1;
+    g.pressFire();
+    g.simulate(0.2);
+    g.releaseFire();
+    expect(g.teams[0].ammo.ming).toBe(0);
+
+    let shards = 0;
+    const blasts: number[] = [];
+    runUntil(
+      g,
+      () => {
+        shards = Math.max(shards, g.projectiles.filter((p) => p.weapon === 'shard').length);
+        for (const e of g.drainEvents()) if (e.type === 'explosion') blasts.push(e.radius);
+        return blasts.length >= 9;
+      },
+      14,
+    );
+    // The vase itself, then one shard at a time.
+    expect(shards).toBe(8);
+    expect(blasts.length).toBeGreaterThanOrEqual(9);
+    // Its first blast is the largest thing in the game short of the holy grenade.
+    expect(Math.max(...blasts)).toBeGreaterThanOrEqual(WEAPONS.ming.radius);
+    expect(WEAPONS.ming.radius).toBeGreaterThan(WEAPONS.banana.radius);
+    // And every shard hits appreciably harder than a banana fragment does.
+    expect(WEAPONS.shard.damage).toBeGreaterThan(WEAPONS.bananalet.damage);
+    expect(WEAPONS.shard.radius).toBeGreaterThan(WEAPONS.bananalet.radius);
+  });
+
   it('banana bomb bursts into five bouncing bananas that explode one by one', () => {
     const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
     toAiming(g);
@@ -1270,6 +1307,7 @@ describe('weapon voices', () => {
     cluster: 'throw',
     holy: 'throw',
     banana: 'throw',
+    ming: 'throw',
     shotgun: 'shot',
     minigun: 'spinup',
     torch: 'torchLight',

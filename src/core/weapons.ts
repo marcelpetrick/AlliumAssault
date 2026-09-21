@@ -27,7 +27,9 @@ export type WeaponId =
   | 'napalm'
   | 'napalmbomb'
   | 'platform'
-  | 'teleport';
+  | 'teleport'
+  | 'ming'
+  | 'shard';
 export type WeaponKind =
   'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine' | 'rope' | 'platform' | 'teleport';
 
@@ -37,7 +39,7 @@ export type WeaponKind =
  */
 export interface WeaponLook {
   /** Model of the projectile in flight: rockets and bombs point along their flight, the rest tumble. */
-  projectile?: 'rocket' | 'bomb' | 'grenade' | 'redGrenade' | 'holyGrenade' | 'banana' | 'smallBanana' | 'bomblet' | 'mule';
+  projectile?: 'rocket' | 'bomb' | 'grenade' | 'redGrenade' | 'holyGrenade' | 'banana' | 'smallBanana' | 'bomblet' | 'mule' | 'vase' | 'shard';
   /** Sound while in flight: rockets whistle, lobbed things whoosh. */
   flight?: 'rocket' | 'lob';
   /** Sound when the weapon is used. */
@@ -316,6 +318,50 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 13,
     range: 0,
     cluster: { weapon: 'bananalet', count: 5, speed: 12, stagger: 0.25 },
+  },
+  ming: {
+    id: 'ming',
+    look: { projectile: 'vase', flight: 'lob', fireSound: 'throw' },
+    special: true,
+    name: 'Ming Vase',
+    icon: '🏺',
+    blurb: 'One per match. Six hundred years of porcelain, thrown once: an enormous blast and eight shards that each hit like a grenade.',
+    kind: 'projectile',
+    ammo: 1,
+    charge: true,
+    shots: 1,
+    minSpeed: 6,
+    maxSpeed: 28,
+    windInfluence: 0.28,
+    gravityScale: 1,
+    restitution: 0.25,
+    fuse: 2.6,
+    radius: 5,
+    damage: 70,
+    force: 20,
+    range: 0,
+    cluster: { weapon: 'shard', count: 8, speed: 15, stagger: 0.18 },
+  },
+  shard: {
+    id: 'shard',
+    look: { projectile: 'shard', flight: 'lob' },
+    name: 'Porcelain Shard',
+    icon: '🏺',
+    blurb: 'Ming vase fragment; razor-edged porcelain that goes off where it lands.',
+    kind: 'projectile',
+    ammo: 0,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0.22,
+    gravityScale: 1,
+    restitution: 0.2,
+    fuse: 1.2,
+    radius: 3.2,
+    damage: 38,
+    force: 13,
+    range: 0,
   },
   bananalet: {
     id: 'bananalet',
@@ -734,13 +780,15 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   'mine',
   'selfdestruct',
   'teleport',
+  // The heirloom, and last: the rarest thing in the arsenal.
+  'ming',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);
 
 /** Weapons past the twenty digit slots carry a letter key of their own. */
-export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport' };
+export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport', KeyV: 'ming' };
 
 /**
  * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 and Shift+0 the ten

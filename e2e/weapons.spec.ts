@@ -500,6 +500,38 @@ test('cluster bomb: red grenade bursts into five exploding bomblets', async ({ p
   expect(errors).toEqual([]);
 });
 
+test('Ming vase: V throws it once, it shatters into eight shards and takes the hillside with it', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'KeyV', 'ming');
+  await aim(page, 1.1);
+  const before = await state(page);
+  expect(before.ammo!.ming).toBe(1);
+  await chargeAndRelease(page, 0.05);
+  await waitFor(page, (s) => s.projectiles === 1, 10_000);
+  // One per match, and it is gone the moment it leaves the buddy's hands.
+  expect((await state(page)).ammo!.ming).toBe(0);
+  await info.attach('ming-vase', { body: await page.screenshot(), contentType: 'image/png' });
+
+  const shards = await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 6; k++) {
+      app.fastForward(1 / 60);
+      const pieces = app.game!.projectiles.filter((p) => p.weapon === 'shard').length;
+      if (pieces) return pieces;
+    }
+    return 0;
+  });
+  expect(shards).toBe(8);
+  await fastForward(page, 6);
+  const after = await state(page);
+  expect(after.projectiles).toBe(0);
+  // The vase plus its shards: a great many bangs, and a visibly rearranged island.
+  expect(played(after, 'explosion') - played(before, 'explosion')).toBeGreaterThanOrEqual(5);
+  expect(after.terrainRevision).toBeGreaterThan(before.terrainRevision);
+  expect(errors).toEqual([]);
+});
+
 test('sheep: baa on release, hops away, Space blows it up', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.61.0] — 2026-09-22
+
+### Added
+
+- **The Ming Vase** (V, one per match, special). A blue-and-white porcelain heirloom, lobbed once:
+  it bursts for a five-unit blast — larger than anything but the holy grenade — and throws eight
+  razor shards that each land harder than a banana fragment. It is drawn as what it is, a glazed
+  vase with a cobalt band, right up to the moment it stops being one.
+
 ## [1.60.1] — 2026-09-22
 
 ### Changed

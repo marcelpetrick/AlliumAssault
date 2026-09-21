@@ -26,6 +26,8 @@ export class BuddyKit {
   readonly olive: StandardMaterial;
   readonly wood: StandardMaterial;
   readonly glove: StandardMaterial;
+  readonly porcelain: StandardMaterial;
+  readonly cobalt: StandardMaterial;
   readonly bomb: StandardMaterial;
   readonly bananaSkin: StandardMaterial;
 
@@ -47,6 +49,8 @@ export class BuddyKit {
     this.olive = mat('olive', '#58703a', 0.3);
     this.wood = mat('wood', '#7a4e2c', 0.1);
     this.glove = mat('glove', '#e0322f', 0.5, 0.1);
+    this.porcelain = mat('porcelain', '#f4f2ec', 0.35, 0.05);
+    this.cobalt = mat('cobalt', '#1f4fa8', 0.3, 0.06);
     this.bomb = mat('bomb', '#2f4a2a', 0.6);
     this.bananaSkin = mat('bananaSkin', '#ffd83a', 0.2, 0.15);
   }
@@ -297,6 +301,12 @@ export class BuddyView {
       platform: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('heldPlank', { width: 0.9, height: 0.12, depth: 0.5 }, scene), kit.wood, [0.55, 0.02, 0], false],
         [MeshBuilder.CreateBox('heldPlankEnd', { width: 0.1, height: 0.2, depth: 0.5 }, scene), kit.metal, [0.95, 0.02, 0], false],
+      ]),
+      // Carried in both hands, the way you carry something irreplaceable.
+      ming: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateSphere('heldVase', { diameterX: 0.36, diameterY: 0.42, diameterZ: 0.36, segments: 12 }, scene), kit.porcelain, [0.58, 0.02, 0], false],
+        [MeshBuilder.CreateCylinder('heldVaseNeck', { height: 0.16, diameterTop: 0.16, diameterBottom: 0.11, tessellation: 12 }, scene), kit.porcelain, [0.58, 0.28, 0], false],
+        [MeshBuilder.CreateTorus('heldVaseBand', { diameter: 0.38, thickness: 0.06, tessellation: 14 }, scene), kit.cobalt, [0.58, 0.04, 0], false],
       ]),
       // A boxing glove, not a red ball: a rounded fist with a thumb, a laced wrist and a second
       // glove held back at the chin, the way a boxer actually stands.

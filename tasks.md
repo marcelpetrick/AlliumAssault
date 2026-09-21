@@ -119,25 +119,25 @@ Status: ☐ open · ☑ done
 | T105 | Tidy the repository root: fewer Markdown files, the rest moved into folders and linked                    | ☐      |                |
 | T106 | Graphics setting in the setup: Full or Low, saved, with `?quality=low` still forcing Low                  | ☑      | 1.57.0         |
 | T107 | Full project review (code, architecture, documentation), then fix every finding                           | ☑      | 1.57.1         |
-| T108 | Teleport: show a blue cross at the cursor, so the player sees where the buddy will arrive                 | ☐      |                |
+| T108 | Teleport: show a blue cross at the cursor, so the player sees where the buddy will arrive                 | ☑      | 1.59.0         |
 | T109 | End-of-match statistics screen: damage, favourite weapon, best and worst, and funnier awards              | ☐      |                |
 | T110 | Settings: a versioned, robust store in the browser that still loads a config written by an older build    | ☑      | 1.58.0         |
-| T111 | Setup screen: put the map seed in the same row as the map preview                                         | ☐      |                |
-| T112 | Setup screen: keep Start Battle visible instead of letting the options scroll over it                     | ☐      |                |
-| T113 | One text scale for the whole game: menus, setup and HUD grow together, in every size mode                 | ☐      |                |
+| T111 | Setup screen: put the map seed in the same row as the map preview                                         | ☑      | 1.58.1         |
+| T112 | Setup screen: keep Start Battle visible instead of letting the options scroll over it                     | ☑      | 1.58.1         |
+| T113 | One text scale for the whole game: menus, setup and HUD grow together, in every size mode                 | ☑      | 1.58.1         |
 | T114 | Flamethrower: three seconds of burning fuel, steered with up/down, blown by wind, leaves a fire carpet    | ☐      |                |
-| T115 | Garlic punch: boxing gloves on the buddy, and an upward punch that knocks a hole in the ceiling           | ☐      |                |
-| T116 | Drill: a jackhammer animation while it runs, instead of a bit that just hangs there                       | ☐      |                |
+| T115 | Garlic punch: boxing gloves on the buddy, and an upward punch that knocks a hole in the ceiling           | ☑      | 1.59.1         |
+| T116 | Drill: a jackhammer animation while it runs, instead of a bit that just hangs there                       | ☑      | 1.59.3         |
 | T117 | Mystery crate: a clown box with a question mark, random contents — a goodie, or a mine that arms itself   | ☐      |                |
 | T118 | Languages: English (default), German, Croatian in a Split accent, and Mandarin, chosen in the setup       | ☐      |                |
-| T119 | Scale the sheep weapon model up by 50%, so it reads as a sheep rather than a dot                          | ☐      |                |
-| T120 | Napalm strike: smaller flames that dig only two thirds as deep — a carpet, not a trench                   | ☐      |                |
-| T121 | Ming vase: a very rare cluster weapon — a blue-and-white porcelain vase that shatters into shards         | ☐      |                |
-| T122 | Baseball bat: a stadium home-run roar when the swing connects and the victim sails away                   | ☐      |                |
-| T123 | A crate caught in a blast leaves two or three short-lived flames where it burst                           | ☐      |                |
+| T119 | Scale the sheep weapon model up by 50%, so it reads as a sheep rather than a dot                          | ☑      | 1.59.3         |
+| T120 | Napalm strike: smaller flames that dig only two thirds as deep — a carpet, not a trench                   | ☑      | 1.60.1         |
+| T121 | Ming vase: a very rare cluster weapon — a blue-and-white porcelain vase that shatters into shards         | ☑      | 1.61.0         |
+| T122 | Baseball bat: a stadium home-run roar when the swing connects and the victim sails away                   | ☑      | 1.59.2         |
+| T123 | A crate caught in a blast leaves two or three short-lived flames where it burst                           | ☑      | 1.60.0         |
 | T124 | AI: Normal and Hard hunt crates — walk to them, and take the rope when walking will not do                | ☐      |                |
 | T125 | AI: stop leaning on the concrete mule — spread the choice across the arsenal it actually has              | ☐      |                |
-| T126 | Bug: a crate collected by a sheep floats its reward twice — once at the crate, once over the buddy        | ☐      |                |
+| T126 | Bug: a crate collected by a sheep floats its reward twice — once at the crate, once over the buddy        | ☑      | 1.58.2         |
 
 ## Current implementation plan
 

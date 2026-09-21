@@ -171,6 +171,8 @@ export class Effects {
       medRed: mat('fxMedRed', '#e12b2b', 0.4),
       sheepFace: mat('fxSheepFace', '#2b2522'),
       reticle: mat('fxReticle', '#ff3b3b', 1),
+      porcelain: mat('fxPorcelain', '#f4f2ec', 0.05),
+      cobalt: mat('fxCobalt', '#1f4fa8', 0.06),
       beacon: mat('fxBeacon', '#3fa9ff', 1),
       beaconBad: mat('fxBeaconBad', '#ff3b3b', 1),
       tracer: mat('fxTracer', '#ffe27a', 1),
@@ -980,10 +982,39 @@ export class Effects {
         return this.createBanana(0.9);
       case 'bomblet':
         return this.createBomblet();
+      case 'vase':
+        return this.createVase(1);
+      case 'shard':
+        return this.createVase(0.42);
       case 'grenade':
       case undefined:
         return this.createGrenade(this.materials.bomb);
     }
+  }
+
+  /**
+   * Blue-and-white porcelain: a swelling body on a foot, a narrow neck and a flared lip, with a
+   * painted band around the belly. A shard is the same vase at less than half the size, which
+   * reads as a broken-off piece of it rather than as a different object.
+   */
+  private createVase(scale: number): ProjectileView {
+    const node = new TransformNode('vase', this.scene);
+    const part = (mesh: Mesh, material: StandardMaterial, y: number) => {
+      mesh.material = material;
+      mesh.position.y = y * scale;
+      mesh.scaling.setAll(scale);
+      mesh.parent = node;
+      mesh.isPickable = false;
+      return mesh;
+    };
+    part(MeshBuilder.CreateSphere('vaseBody', { diameterX: 0.44, diameterY: 0.5, diameterZ: 0.44, segments: 14 }, this.scene), this.materials.porcelain, 0);
+    part(MeshBuilder.CreateCylinder('vaseFoot', { height: 0.1, diameterTop: 0.2, diameterBottom: 0.26, tessellation: 14 }, this.scene), this.materials.porcelain, -0.26);
+    part(MeshBuilder.CreateCylinder('vaseNeck', { height: 0.2, diameterTop: 0.2, diameterBottom: 0.14, tessellation: 14 }, this.scene), this.materials.porcelain, 0.32);
+    part(MeshBuilder.CreateTorus('vaseLip', { diameter: 0.22, thickness: 0.05, tessellation: 14 }, this.scene), this.materials.porcelain, 0.42);
+    // The cobalt band, the thing that makes it a Ming vase and not a pot.
+    part(MeshBuilder.CreateTorus('vaseBand', { diameter: 0.45, thickness: 0.07, tessellation: 16 }, this.scene), this.materials.cobalt, 0.02);
+    part(MeshBuilder.CreateTorus('vaseBandLow', { diameter: 0.36, thickness: 0.04, tessellation: 16 }, this.scene), this.materials.cobalt, -0.16);
+    return { node, trail: null };
   }
 
   /** Cartoon tombstone: rounded slab with "R.I.P." and the name, a team-coloured ribbon and a sprout. */

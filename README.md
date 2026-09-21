@@ -34,7 +34,7 @@ browser and start a Quick Match.
 </table>
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
-garlic buddies. Destructible islands, wind, twenty-one weapons from bazookas and banana bombs to
+garlic buddies. Destructible islands, wind, twenty-two weapons from bazookas and banana bombs to
 a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones,
 Sudden Death and five sceneries — rendered with real-time 3D graphics in your browser.
 
@@ -159,6 +159,7 @@ and the two ways of taking others with you.
 | ⇧9  | 🛞 Proximity Mine      | 2    | Space drops it at your feet; it arms after 1.5 s and blows up the first buddy within 2 units — friend, foe or the one who laid it (40 dmg)  |
 | ⇧0  | ☠️ Self-Destruct       | 1    | "Oh no!": the buddy panics for three seconds, then blows itself up — damage equals its health, blast radius health ÷ 10                     |
 | T   | 🌀 Teleport            | 1    | Press T, then click any free spot: the buddy appears there and falls, lands hard or drowns from there like anybody else. One per match      |
+| V   | 🏺 Ming Vase           | 1    | Six hundred years of porcelain, thrown once: an enormous blast and eight razor shards that each hit like a grenade. One per match           |
 
 ## Architecture
 
@@ -168,7 +169,7 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── weapons.ts   weapon table (21 weapons by kind), arsenal flags, hotkey mapping
+│   ├── weapons.ts   weapon table (22 weapons by kind), arsenal flags, hotkey mapping
 │   ├── match.ts     what a match is made of: config, buddies, teams, phases, turn actions, events
 │   ├── game.ts      the state machine over them: turns, weapon execution, damage, crates, mines, flames
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep
