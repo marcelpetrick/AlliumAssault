@@ -91,6 +91,7 @@ Status: ☐ open · ☑ done
 | T77 | Crate craziness: an arsenal-style option that drops two new crates every turn                             | ☐      |                |
 | T78 | Sudden Death water: one rise at the start of each turn instead of a continuous flood                      | ☑      | 1.43.1         |
 | T79 | Dependency review and update (`/updateDependencies`)                                                      | ☐      |                |
+| T80 | Public release v1.44.0: push, tag, GitHub release and Pages deployment                                    | ☑      | 1.44.0         |
 
 ## Current implementation plan
 
@@ -132,6 +133,14 @@ its cached surface heights. Each board's cosine and sine are resolved once at pl
 0.3 units of clearance along the whole plank, keeps it inside the map and above the water, and
 refuses spots occupied by a buddy, a crate or a mine. `PlatformView` draws the placed boards and the
 preview; the terrain owns the collision.
+
+### T80 — Public release v1.44.0 ☑
+
+Requested on 2026-09-21 in the middle of the backlog, so the rope, the flood, the platform and the
+new tests reach players before the rest is finished. Pushed `master`, then pushed the single tag
+`v1.44.0`, which runs `.github/workflows/release.yml`: verify, zip the static build with its
+checksum, and publish a GitHub release whose notes come from the 1.44.0 changelog section. Pages
+deploys from the same push. The open tasks T36, T69, T71 follow-ups and T75–T79 stay open.
 
 ### T70 — Core coverage above 98%, enforced ☑
 

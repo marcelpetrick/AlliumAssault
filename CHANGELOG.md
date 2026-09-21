@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.44.0] — 2026-09-21
+
+Public release. Everything below has been in the changelog since 1.41.0; this is the summary that
+ships with the release.
+
+### Added
+
+- **Platform** (Shift+0, two per team). A five-unit wooden board placed with the mouse: the preview
+  follows the cursor and shows green where it fits and red where it does not, the wheel tilts it up
+  to 60°, and a left click sets it down. Boards are solid for buddies, projectiles and the AI, and
+  explosions cannot cut them.
+- **Sudden Death floods the map.** From the turn after the strike the water climbs one world unit
+  at the start of every turn, so caves and low ground go under and a stalled match is decided.
+
+### Changed
+
+- **Rope is a basic weapon**: three per team from turn one under every arsenal setting, including
+  "Find in crates". Crates hand out the offensive special weapons instead.
+- The rules core is covered to 99.8% of statements, 98.2% of branches, 100% of functions and 99.9%
+  of lines, enforced at 98% in all four; browser tests now also cover jumping, hard landings and
+  the drill's fall cushion.
+
 ## [1.43.3] — 2026-09-21
 
 ### Changed
