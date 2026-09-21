@@ -26,8 +26,10 @@ export type WeaponId =
   | 'rope'
   | 'napalm'
   | 'napalmbomb'
-  | 'platform';
-export type WeaponKind = 'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine' | 'rope' | 'platform';
+  | 'platform'
+  | 'teleport';
+export type WeaponKind =
+  'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flyer' | 'drill' | 'mine' | 'rope' | 'platform' | 'teleport';
 
 /**
  * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and
@@ -39,7 +41,7 @@ export interface WeaponLook {
   /** Sound while in flight: rockets whistle, lobbed things whoosh. */
   flight?: 'rocket' | 'lob';
   /** Sound when the weapon is used. */
-  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk' | 'hookShot';
+  fireSound?: 'fire' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk' | 'hookShot' | 'teleport';
   /** Sound of each hitscan bullet. */
   shotSound?: 'bullet';
   /** Sound when a melee weapon connects. */
@@ -648,6 +650,28 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 22,
     range: 0,
   },
+  teleport: {
+    id: 'teleport',
+    look: { fireSound: 'teleport' },
+    special: true,
+    name: 'Teleport',
+    icon: '🌀',
+    blurb: 'Click anywhere on the map to appear there — and then fall, land or drown like anybody else. One per match.',
+    kind: 'teleport',
+    ammo: 1,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 0,
+    damage: 0,
+    force: 0,
+    range: 0,
+  },
   platform: {
     id: 'platform',
     look: { fireSound: 'clunk' },
@@ -693,16 +717,21 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   'mine',
   'rope',
   'platform',
+  'teleport',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);
+
+/** Weapons past the twenty digit slots carry a letter key of their own. */
+export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport' };
 
 /**
  * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 and Shift+0 the ten
  * after them. Returns the weapon for a digit key, or null when that key is unused.
  */
 export function weaponForKey(digit: number, shift: boolean): WeaponId | null {
+  if (!Number.isInteger(digit) || digit < 0 || digit > 9) return null;
   const index = shift ? (digit === 0 ? 19 : 9 + digit) : digit === 0 ? 9 : digit - 1;
   return WEAPON_ORDER[index] ?? null;
 }
@@ -712,5 +741,9 @@ export function hotkeyLabel(index: number): string {
   if (index < 9) return String(index + 1);
   if (index === 9) return '0';
   if (index === 19) return '⇧0';
-  return `⇧${index - 9}`;
+  if (index < 19) return `⇧${index - 9}`;
+  // Past the digits: whatever letter key the weapon was given, or nothing but Tab.
+  const id = WEAPON_ORDER[index];
+  const letter = Object.entries(LETTER_KEYS).find(([, weapon]) => weapon === id)?.[0];
+  return letter ? letter.slice(3) : '·';
 }

@@ -38,7 +38,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 
 ## Weapons
 
-Twenty weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
+Twenty-one weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
 
 | Weapon                        | Ammo | Behaviour                                                                                                    |
 | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------ |
@@ -62,6 +62,7 @@ Twenty weapons. _Special_ weapons can be restricted to crates with the arsenal s
 | Proximity Mine (special)      | 2    | Dropped at the buddy's feet; arms after 1.5 s, then goes off 1 s after any living buddy comes within 2 units |
 | Rope                          | 3    | Hook into rock within 24 units, then hang, reel, swing and let go; a miss costs nothing                      |
 | Platform                      | 2    | A solid five-unit board set in open air with the mouse; tilt with the wheel, click to place                  |
+| Teleport (special)            | 1    | Click a free spot to appear there; ordinary physics from the moment of arrival — fall damage, water and all  |
 
 ## Rope
 

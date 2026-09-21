@@ -3,7 +3,7 @@
 
 import type { Game, GameEvent, Phase } from '../core/game';
 import { query, queryAs } from './dom';
-import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from '../core/weapons';
+import { hotkeyLabel, LETTER_KEYS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from '../core/weapons';
 import type { World } from '../render/world';
 
 interface Floater {
@@ -291,6 +291,7 @@ export class Hud {
       return `Click on the map to drop the ${def.name.toLowerCase()}${side} · Esc menu`;
     }
     if (def.kind === 'platform' && g.phase === 'aiming') return 'Move the mouse to place the board · wheel tilts it · left-click sets it · Esc menu';
+    if (def.kind === 'teleport' && g.phase === 'aiming') return 'Left-click anywhere to beam there — mind the drop · Esc menu';
     if (g.phase === 'firing') return 'Rat-a-tat-tat! 🔩';
     if (g.phase === 'drilling') return 'Drilling down… ⛏️';
     if (g.phase === 'torching') return 'Burning through the rock… 🔥';
@@ -312,7 +313,12 @@ export class Hud {
               : def.kind === 'mine'
                 ? 'Space to drop the mine, then run'
                 : 'Space to strike';
-    return `${use} · ↑↓ aim · Enter jump · 1–0, ⇧1–⇧${WEAPON_ORDER.length - 10} weapons · Esc menu`;
+    // Digits and shifted digits cover the first twenty slots; anything past them has a letter key.
+    const letters = Object.entries(LETTER_KEYS)
+      .map(([code]) => code.slice(3))
+      .join(', ');
+    const keys = WEAPON_ORDER.length > 20 ? `1–0, ⇧1–⇧0, ${letters}` : `1–0, ⇧1–⇧${WEAPON_ORDER.length - 10}`;
+    return `${use} · ↑↓ aim · Enter jump · ${keys} weapons · Esc menu`;
   }
 
   private banner(title: string, sub: string, color: string): void {

@@ -41,7 +41,7 @@ import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { ropePath, shootRope, stepRope, type Rope } from './rope';
 import { PLANE_SPEED, planStrike } from './strike';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Platform, type Terrain } from './terrain';
-import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
+import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId, type WeaponKind } from './weapons';
 
 export type Controller = 'human' | 'ai';
 export type Arsenal = 'all' | 'crates' | 'infinite';
@@ -97,6 +97,9 @@ export type Phase = 'turnStart' | 'aiming' | 'guiding' | 'torching' | 'drilling'
 
 /** Phases in which the turn timer counts down. */
 const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping'];
+/** Weapons pointed with the mouse: they are used by clicking the map, never with the fire button. */
+export const MAP_WEAPONS: readonly WeaponKind[] = ['strike', 'platform', 'teleport'];
+
 /** Phases in which the active team is still playing its turn, so hurting its buddy ends it. */
 const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'roping', 'firing', 'retreat'];
 
@@ -181,6 +184,7 @@ export type GameEvent =
   | { type: 'suddenDeath'; turn: number }
   | { type: 'waterRise'; level: number; x: number }
   | { type: 'platformPlaced'; weapon: WeaponId; x: number; y: number; angle: number }
+  | { type: 'teleport'; weapon: WeaponId; buddy: number; fromX: number; fromY: number; x: number; y: number }
   | { type: 'gameOver'; winner: number | null };
 
 export interface InputState {
@@ -546,7 +550,7 @@ export class Game {
     if (this.phase !== 'aiming' || !this.activeBuddy?.alive || !team || this.charge !== null) return;
     // Ammo is consumed on the first shot, so a multi-shot weapon may finish with zero ammo left.
     const midUse = this.shotsLeft < def.shots;
-    if ((team.ammo[this.weapon] <= 0 && !midUse) || def.kind === 'strike' || def.kind === 'platform') return;
+    if ((team.ammo[this.weapon] <= 0 && !midUse) || MAP_WEAPONS.includes(def.kind)) return;
     if (def.charge) this.charge = 0;
     else this.fire(1);
   }
@@ -607,6 +611,35 @@ export class Game {
     team.ammo[def.id] -= 1;
     this.shotsLeft = 0;
     this.emit({ type: 'platformPlaced', weapon: def.id, ...platform });
+    this.startRetreat();
+    return true;
+  }
+
+  /**
+   * Beam the active buddy to the clicked spot. It arrives with no speed and no support, so from
+   * that moment ordinary physics has it: it falls, lands hard or drowns like anybody else. A spot
+   * inside rock or off the map is refused, and refusing costs neither the turn nor the use.
+   */
+  teleportTo(x: number, y: number): boolean {
+    const b = this.activeBuddy;
+    const team = this.activeTeamData;
+    const def = WEAPONS[this.weapon];
+    if (this.phase !== 'aiming' || !b?.alive || !team || def.kind !== 'teleport' || team.ammo[def.id] <= 0 || this.charge !== null) return false;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    if (x < 1 || x > this.terrain.width - 1 || y < 0 || y > this.terrain.height - 1) return false;
+    // It must fit: the destination and the buddy's own girth around it have to be free of rock.
+    if (this.terrain.distance(x, y) < b.body.radius) return false;
+    const from = { x: b.body.x, y: b.body.y };
+    b.body.x = x;
+    b.body.y = y;
+    b.body.vx = 0;
+    b.body.vy = 0;
+    b.body.grounded = false;
+    b.body.restTime = 0;
+    b.body.impact = 0;
+    team.ammo[def.id] -= 1;
+    this.shotsLeft = 0;
+    this.emit({ type: 'teleport', weapon: def.id, buddy: b.id, fromX: from.x, fromY: from.y, x, y });
     this.startRetreat();
     return true;
   }

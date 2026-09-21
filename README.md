@@ -111,20 +111,20 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 
 ## Controls
 
-| Key                       | Action                                                                                            |
-| ------------------------- | ------------------------------------------------------------------------------------------------- |
-| ← →                       | Walk                                                                                              |
-| Enter                     | Jump forward                                                                                      |
-| Backspace                 | Back-flip (high jump)                                                                             |
-| ↑ ↓                       | Aim                                                                                               |
-| Space                     | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–0 / Tab   | Choose weapon (or click it in the weapon bar)                                                     |
-| Mouse wheel / drag        | Zoom / pan camera; the wheel tilts a platform while one is being placed                           |
-| Click                     | Call a strike, drop the concrete mule, or set a platform at that spot                             |
-| ← → (air/napalm strike)   | Choose the side the plane flies in from; the buddy stays put while choosing                       |
-| ↑ ↓ ← → (on the rope)     | Reel in and out, swing left and right                                                             |
-| Arrow keys (flying sheep) | Steer the flying sheep towards that direction                                                     |
-| M / Esc                   | Mute / pause menu (Esc also closes help and about); the HUD's Help and Pause buttons do the same  |
+| Key                        | Action                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| ← →                        | Walk                                                                                              |
+| Enter                      | Jump forward                                                                                      |
+| Backspace                  | Back-flip (high jump)                                                                             |
+| ↑ ↓                        | Aim                                                                                               |
+| Space                      | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
+| 1–9, 0, Shift+1–0, T / Tab | Choose weapon (or click it in the weapon bar)                                                     |
+| Mouse wheel / drag         | Zoom / pan camera; the wheel tilts a platform while one is being placed                           |
+| Click                      | Call a strike, drop the concrete mule, set a platform or teleport to that spot                    |
+| ← → (air/napalm strike)    | Choose the side the plane flies in from; the buddy stays put while choosing                       |
+| ↑ ↓ ← → (on the rope)      | Reel in and out, swing left and right                                                             |
+| Arrow keys (flying sheep)  | Steer the flying sheep towards that direction                                                     |
+| M / Esc                    | Mute / pause menu (Esc also closes help and about); the HUD's Help and Pause buttons do the same  |
 
 ## Weapons
 
@@ -150,6 +150,8 @@ Append `?quality=low` to the URL on weak GPUs (disables shadows, bloom and MSAA)
 | 🛞 Proximity Mine      | 2    | Space drops it at your feet; it arms after 1.5 s and blows up the first buddy within 2 units — friend, foe or the one who laid it (40 dmg)  |
 | 🪝 Rope                | 3    | Space shoots a hook up to 24 units into rock; hang, ↑↓ reel, ←→ swing, Space lets go with your momentum. Land first, then fire a weapon     |
 | 🪵 Platform            | 2    | Move the mouse to place a five-unit board in open air, the wheel tilts it up to 60°, a left click sets it; solid, indestructible, no damage |
+| 🌀 Teleport            | 1    | Press T, then click any free spot: the buddy appears there and falls, lands hard or drowns from there like anybody else. One per match      |
+| 🌀 Teleport            | 1    | Press T, then click any free spot: the buddy appears there and falls, lands hard or drowns from there like anybody else. One per match      |
 
 ## Architecture
 
@@ -159,7 +161,7 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── weapons.ts   weapon table (20 weapons by kind), arsenal flags, hotkey mapping
+│   ├── weapons.ts   weapon table (21 weapons by kind), arsenal flags, hotkey mapping
 │   ├── game.ts      match state machine, turns, weapon execution, damage, crates, mines, flames, tombstones
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep
 │   ├── strike.ts    air strike, napalm and concrete mule drop planning

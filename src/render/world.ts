@@ -208,6 +208,11 @@ export class World {
         case 'scorch':
           this.buddyViews.get(e.buddy)?.onHurt();
           break;
+        case 'teleport':
+          this.effects.teleport(e.fromX, e.fromY);
+          this.effects.teleport(e.x, e.y);
+          this.hold = { x: e.x, y: e.y, until: this.time + 1.2 };
+          break;
         case 'crateSpawn':
           this.effects.teleport(e.x, e.y);
           crateArrived = { x: e.x, y: e.y };

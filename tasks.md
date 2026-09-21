@@ -95,21 +95,19 @@ Status: ☐ open · ☑ done
 | T81 | Turn timer: the number overlaps the ring at larger text sizes — make it fit, and keep it pretty           | ☑      | 1.47.2         |
 | T82 | Explosions: thinner and more translucent, with chunks of earth thrown out of the crater                   | ☑      | 1.50.0         |
 | T83 | Sudden Death: show the rising water with the camera, and end a turn the moment the active buddy drowns    | ☑      | 1.48.0         |
-| T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☐      |                |
+| T84 | Teleport: one use per match, click anywhere, arrive under ordinary physics (fall damage, water)           | ☑      | 1.51.0         |
 | T85 | Napalm: flames burn longer and eat into the ground                                                        | ☑      | 1.49.0         |
 | T86 | Sound audit: one sound per action, fix the borrowed ones, add teleport and platform, document the choices | ☐      |                |
 | T87 | Ideation for touch-display support, written to `touchdisplay_support_ideation.md` (no code yet)           | ☐      |                |
 
 ## Current implementation plan
 
-1. Add the Teleport weapon: one use, click a spot, the buddy appears there and then falls, drowns or
-   lands like any other body (T84).
-2. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
+1. Audit every sound: list each action and weapon, give each its own voice instead of a borrowed
    one, add teleport and platform sounds, and write the choices down (T86).
-3. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
+2. Design touch-display play — how a whole match works with no keyboard and no mouse, optional
    translucent on-screen controls that are off by default — and write it up in
    `touchdisplay_support_ideation.md`. Ideation only, no implementation (T87).
-4. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
+3. Run `/updateDependencies` (T79), then review today's whole diff and run `npm run verify` before
    each versioned, local commit. Do not push or tag without being asked.
 
 ## Answered questions
@@ -467,6 +465,20 @@ design is original. Renaming is a one-line change in `src/core/weapons.ts`.
 Order: T27 flying sheep steering (a fix players hit now) → T28 volume → T29 infinite supplies →
 T31 tombstones → T30 sceneries. One commit per task with tests, then a review of the batch, the
 full E2E suite, and a push and release once approved.
+
+### T84 — Teleport ☑
+
+Added in 1.51.0 as the twenty-first weapon: one use per match, or more from crates, since it is
+flagged special. Press **T** — the twenty digit slots were full, so weapons past them now carry a
+letter key, and `LETTER_KEYS` maps the code to the weapon for both the keyboard handler and the
+weapon bar's label — then click any free spot. The buddy appears there with no speed and no support,
+which is the whole point: from that moment it is an ordinary body, so it falls, takes the usual fall
+damage, lands on a platform or drowns exactly like anyone else. A spot inside rock, too tight for
+the buddy's girth, or off the map is refused and costs neither the use nor the turn; the fire button
+does nothing, as for the other mouse-pointed weapons, which now share a `MAP_WEAPONS` list instead
+of three separate comparisons. The renderer shimmers at both ends and holds the camera on the
+arrival. Unit tests cover the beam, the ammo, the turn end, the fall damage, drowning and every
+refusal; the browser test presses T, clicks, and watches the buddy arrive and fall.
 
 ### T82 — Thinner explosions that throw earth ☑
 

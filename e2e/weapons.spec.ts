@@ -592,6 +592,45 @@ test('rope: Shift+9 hooks the rock overhead, then reel, swing and let go', async
   expect(errors).toEqual([]);
 });
 
+test('teleport: T selects it, a click beams the buddy there and it falls from where it lands', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'KeyT', 'teleport');
+  const before = await state(page);
+  const start = before.buddies.find((b) => b.name === before.activeBuddy)!;
+  // Somewhere in the open air well away from the buddy, and where on screen that is.
+  const target = await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    const world = window.__allium.app.world!;
+    const b = g.activeBuddy!;
+    for (const dx of [14, -14, 18, -18, 10, -10]) {
+      const x = b.body.x + dx;
+      const y = b.body.y + 9;
+      if (g.terrain.distance(x, y) < 1.2) continue;
+      const screen = world.project(x, y);
+      if (screen && screen.x > 40 && screen.y > 40 && screen.x < innerWidth - 40 && screen.y < innerHeight - 120) return { x, y, screen };
+    }
+    return null;
+  });
+  expect(target).not.toBeNull();
+  const box = await page.locator('canvas').boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.click(box!.x + target!.screen.x, box!.y + target!.screen.y);
+  await waitForSound(page, 'teleport');
+  const arrived = await state(page);
+  const moved = arrived.buddies.find((b) => b.name === start.name)!;
+  expect(Math.abs(moved.x - target!.x)).toBeLessThan(2);
+  expect(arrived.ammo!.teleport).toBe(0);
+  expect(arrived.phase).toBe('retreat');
+  await info.attach('teleport', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // Ordinary physics from there: it falls to the ground below, or into the water.
+  await fastForward(page, 3);
+  const landed = (await state(page)).buddies.find((b) => b.name === start.name)!;
+  expect(landed.alive ? landed.y : 0).toBeLessThan(target!.y);
+  expect(errors).toEqual([]);
+});
+
 test('platform: Shift+0 previews a board, the wheel tilts it and a click sets it down', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

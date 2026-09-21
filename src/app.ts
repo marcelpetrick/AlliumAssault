@@ -5,8 +5,8 @@ import { Engine } from '@babylonjs/core';
 import pkg from '../package.json';
 import { Audio, type FlightSound } from './audio';
 import { FLYER_SPEED } from './core/flyer';
-import { Game, type GameEvent, type MatchConfig } from './core/game';
-import { weaponForKey, WEAPONS } from './core/weapons';
+import { Game, MAP_WEAPONS, type GameEvent, type MatchConfig } from './core/game';
+import { LETTER_KEYS, weaponForKey, WEAPONS } from './core/weapons';
 import { THEMES } from './render/themes';
 import { World, type Quality } from './render/world';
 import { Hud } from './ui/hud';
@@ -300,7 +300,8 @@ export class App {
         case 'suddenDeath':
           this.audio.play('alarm');
           break;
-        case 'platformPlaced': {
+        case 'platformPlaced':
+        case 'teleport': {
           const { fireSound } = WEAPONS[e.weapon].look;
           if (fireSound) this.audio.play(fireSound);
           break;
@@ -412,11 +413,16 @@ export class App {
         case 'Tab':
           game.cycleWeapon();
           break;
-        default:
+        default: {
           if (/^Digit[0-9]$/.test(e.code)) {
             const id = weaponForKey(Number(e.code.slice(5)), e.shiftKey);
             if (id) game.selectWeapon(id);
+            break;
           }
+          // Weapons past the twenty digit slots have a letter key of their own.
+          const letter = LETTER_KEYS[e.code];
+          if (letter && !e.shiftKey) game.selectWeapon(letter);
+        }
       }
     });
     window.addEventListener('keyup', (e) => {
@@ -470,8 +476,7 @@ export class App {
   private targetingMap(): boolean {
     const game = this.game;
     if (!game || this.demo || this.paused || this.menu.screen) return false;
-    const kind = WEAPONS[game.weapon].kind;
-    return game.isHumanTurn && game.phase === 'aiming' && (kind === 'strike' || kind === 'platform');
+    return game.isHumanTurn && game.phase === 'aiming' && MAP_WEAPONS.includes(WEAPONS[game.weapon].kind);
   }
 
   private targetingPlatform(): boolean {
@@ -484,11 +489,12 @@ export class App {
     const game = this.game;
     if (!game || !this.world || this.demo || this.paused || this.menu.screen || !game.isHumanTurn) return;
     const kind = WEAPONS[game.weapon].kind;
-    if (kind !== 'strike' && kind !== 'platform') return;
+    if (!MAP_WEAPONS.includes(kind)) return;
     const at = this.world.pick(cssX, cssY);
     if (!at) return;
     if (kind === 'strike') game.strike(at.x);
-    else game.placePlatform({ ...at, angle: this.world.platformAngle });
+    else if (kind === 'platform') game.placePlatform({ ...at, angle: this.world.platformAngle });
+    else game.teleportTo(at.x, at.y);
   }
 
   state() {

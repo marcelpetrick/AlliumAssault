@@ -6,8 +6,9 @@ import { NO_KNOWLEDGE, planAttack, scoreBlast, simulateShot } from '../src/core/
 import { Game, REST_SPEED, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { crateLimit, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES } from '../src/core/crates';
-import { hotkeyLabel, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
+import { hotkeyLabel, LETTER_KEYS, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
 import { mulberry32 } from '../src/core/rng';
+import { defined } from '../src/core/assert';
 import { FLAME_BITE_INTERVAL, FLAME_BITES } from '../src/core/fire';
 import { SUDDEN_DEATH_WATER_RISE } from '../src/core/constants';
 import { MINE_ARM_TIME, MINE_FUSE, MINE_TRIGGER_RANGE, placeMine } from '../src/core/mines';
@@ -955,7 +956,14 @@ describe('weapon hotkeys', () => {
     // Shift+9 keeps the weapon it had when the twentieth slot was appended behind it.
     expect(weaponForKey(9, true)).toBe('rope');
     expect(weaponForKey(11, true)).toBeNull();
-    WEAPON_ORDER.forEach((id, k) => {
+    // Past the twenty digit slots a weapon needs a letter key, and every one of them has to exist.
+    for (const [code, id] of Object.entries(LETTER_KEYS)) {
+      const weapon = defined(id, `letter key ${code}`);
+      expect(WEAPON_ORDER).toContain(weapon);
+      expect(hotkeyLabel(WEAPON_ORDER.indexOf(weapon))).toBe(code.slice(3));
+    }
+    expect(WEAPON_ORDER.slice(20).every((id) => Object.values(LETTER_KEYS).includes(id))).toBe(true);
+    WEAPON_ORDER.slice(0, 20).forEach((id, k) => {
       const label = hotkeyLabel(k);
       const shift = label.startsWith('⇧');
       expect(weaponForKey(Number(label.replace('⇧', '')), shift)).toBe(id);
@@ -1120,6 +1128,71 @@ describe('throwing range', () => {
       expect({ aim, short: banana < grenade - 2 }).toEqual({ aim, short: false });
       expect(banana).toBeGreaterThan(40);
     }
+  });
+});
+
+describe('teleport', () => {
+  const ready = () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { arsenal: 'all', turnTime: 45 });
+    toAiming(g);
+    g.selectWeapon('teleport');
+    return g;
+  };
+
+  it('beams the buddy to the clicked spot, once per match, and ends the turn', () => {
+    const g = ready();
+    expect(g.teams[0].ammo.teleport).toBe(1);
+    const b = g.buddies[0];
+    expect(g.teleportTo(70, 30)).toBe(true);
+    expect(b.body.x).toBe(70);
+    expect(b.body.y).toBe(30);
+    expect(g.teams[0].ammo.teleport).toBe(0);
+    expect(g.phase).toBe('retreat');
+    const arrival = g.drainEvents().find((e) => e.type === 'teleport');
+    expect(arrival).toMatchObject({ buddy: b.id, x: 70, y: 30 });
+    // It arrives standing still and unsupported: from here on it is an ordinary falling body.
+    expect(b.body.vx).toBe(0);
+    expect(b.body.vy).toBe(0);
+    expect(b.body.grounded).toBe(false);
+  });
+
+  it('lets the buddy fall from where it arrives, with the usual fall damage', () => {
+    const g = ready();
+    const b = g.buddies[0];
+    expect(g.teleportTo(70, 45)).toBe(true);
+    expect(runUntil(g, () => b.body.grounded, 10)).toBe(true);
+    expect(b.body.y).toBeLessThan(21.5);
+    expect(b.hp).toBeLessThan(100);
+  });
+
+  it('drowns a buddy that beams itself over the water', () => {
+    const g = ready();
+    const b = g.buddies[0];
+    // A shaft down past the waterline, and a jump straight into it.
+    g.terrain.carve(70, 6, 5);
+    expect(g.teleportTo(70, 10)).toBe(true);
+    expect(runUntil(g, () => !b.alive, 10)).toBe(true);
+    expect(g.drainEvents().some((e) => e.type === 'drown' && e.buddy === b.id)).toBe(true);
+  });
+
+  it('refuses rock, spots off the map and a second use, and never costs the turn for it', () => {
+    const g = ready();
+    for (const [x, y] of [
+      [70, 10],
+      [-5, 30],
+      [200, 30],
+      [70, Number.NaN],
+    ]) {
+      expect({ x, y, ok: g.teleportTo(x, y) }).toEqual({ x, y, ok: false });
+    }
+    expect(g.teams[0].ammo.teleport).toBe(1);
+    expect(g.phase).toBe('aiming');
+    // The fire button does nothing at all: this one is pointed with the mouse.
+    g.pressFire();
+    expect(g.charge).toBeNull();
+    expect(g.phase).toBe('aiming');
+    expect(g.teleportTo(70, 30)).toBe(true);
+    expect(g.teleportTo(60, 30)).toBe(false);
   });
 });
 

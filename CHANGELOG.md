@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.51.0] — 2026-09-21
+
+### Added
+
+- **Teleport** (T, one per match, more from crates). Click any free spot and the buddy appears
+  there — with no speed and no ground under it, so it falls, lands hard or drowns from there like
+  anybody else. Spots inside rock or off the map are refused for free.
+
 ## [1.50.0] — 2026-09-21
 
 ### Changed
