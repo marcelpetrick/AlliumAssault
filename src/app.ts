@@ -496,6 +496,8 @@ export class App {
       lastStrike: this.lastStrike,
       winner: g?.winner ?? null,
       terrainRevision: g?.terrain.revision ?? 0,
+      waterLevel: g?.terrain.waterLevel ?? 0,
+      waterRising: g?.waterRising ?? false,
       projectiles: g?.projectiles.length ?? 0,
       sheep: g?.sheep ? { x: g.sheep.body.x, y: g.sheep.body.y } : null,
       graves: (g?.graves ?? []).map((grave) => ({ name: grave.name, x: grave.body.x, y: grave.body.y })),

@@ -843,6 +843,25 @@ describe('sudden death', () => {
     toTurn(g, 6);
     expect(g.buddies[0].hp).toBe(100);
     expect(g.buddies[1].hp).toBe(100);
+    expect(g.waterRising).toBe(false);
+    expect(g.terrain.waterLevel).toBe(3);
+  });
+
+  it('raises the water from the sudden-death turn and floods a sheltered cave', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)], { suddenDeath: 2, turnTime: 1 });
+    const buddy = g.buddies[0];
+    // A rock roof over the buddy does not block the flood.
+    g.terrain.carve(buddy.body.x, 5, 2.5);
+    buddy.body.y = 3.3;
+    buddy.body.vy = 0;
+    buddy.body.grounded = true;
+    const initial = g.terrain.waterLevel;
+    toTurn(g, 2);
+    expect(g.waterRising).toBe(true);
+    expect(g.terrain.waterLevel).toBeGreaterThan(initial);
+    expect(g.terrain.isSolid(buddy.body.x, 9)).toBe(true);
+    expect(runUntil(g, () => !buddy.alive, 30)).toBe(true);
+    expect(g.drainEvents().some((e) => e.type === 'drown' && e.buddy === buddy.id)).toBe(true);
   });
 });
 

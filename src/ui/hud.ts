@@ -123,7 +123,7 @@ export class Hud {
           break;
         }
         case 'suddenDeath':
-          this.banner('Sudden Death!', 'Every buddy is down to 1 HP — one hit decides it', '#ff5a3c');
+          this.banner('Sudden Death!', '1 HP each — the water is rising!', '#ff5a3c');
           break;
         case 'damage':
           if (buddy) this.float(`−${e.amount}`, buddy.body.x, buddy.body.y + 1.6, g.teams[buddy.team].config.color);

@@ -4,6 +4,8 @@
 export const WORLD_WIDTH = 128;
 export const WORLD_HEIGHT = 64;
 export const WATER_LEVEL = 3;
+/** Sudden Death floods low ground by one world unit about every eight seconds. */
+export const SUDDEN_DEATH_WATER_RISE = 0.12;
 
 export const BUDDY_RADIUS = 0.6;
 export const MUZZLE_OFFSET = BUDDY_RADIUS + 0.45;

@@ -43,7 +43,7 @@ export const ARSENAL_OPTIONS: { label: string; value: Arsenal }[] = [
   { label: 'Find in crates', value: 'crates' },
   { label: 'Infinite supplies', value: 'infinite' },
 ];
-/** Turn on which Sudden Death drops everybody to 1 HP; 0 is off. */
+/** Turn on which Sudden Death drops everybody to 1 HP and starts the flood; 0 is off. */
 export const SUDDEN_DEATH_OPTIONS = [
   { label: 'Off', value: 0 },
   { label: 'Turn 10', value: 10 },

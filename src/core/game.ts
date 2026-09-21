@@ -24,6 +24,7 @@ import {
   TORCH_SPEED,
   WALK_SPEED,
   WATER_LEVEL,
+  SUDDEN_DEATH_WATER_RISE,
   WIND_ACCEL,
   WORLD_HEIGHT,
   WORLD_WIDTH,
@@ -325,6 +326,8 @@ export class Game {
   charge: number | null = null;
   shotsLeft = 0;
   winner: number | null = null;
+  /** Sudden Death keeps flooding the map until the match ends. */
+  waterRising = false;
 
   private events: GameEvent[] = [];
   private readonly windRng: Rng;
@@ -584,6 +587,9 @@ export class Game {
   step(dt = 1 / 60): void {
     this.time += dt;
     this.phaseTime += dt;
+    if (this.waterRising && this.phase !== 'gameOver') {
+      this.terrain.waterLevel = Math.min(this.terrain.height - 1, this.terrain.waterLevel + SUDDEN_DEATH_WATER_RISE * dt);
+    }
     const active = this.activeBuddy;
 
     if (this.acting && !this.isHumanTurn) this.ai.get(this.activeTeam)?.update(this, dt);
@@ -1174,9 +1180,9 @@ export class Game {
   }
 
   /**
-   * Sudden Death: on the configured turn every living buddy drops to 1 HP, so from then on the
-   * next hit of any kind decides it. It strikes once per match, and 1 rather than 0 keeps it out
-   * of the death phase: nobody dies from the strike itself.
+   * Sudden Death: on the configured turn every living buddy drops to 1 HP and the water starts
+   * rising. It strikes once per match, and 1 rather than 0 keeps it out of the death phase:
+   * nobody dies from the strike itself.
    * Returns true when it struck, so the turn can announce it after the usual turn banner.
    */
   private checkSuddenDeath(): boolean {
@@ -1185,6 +1191,7 @@ export class Game {
     for (const b of this.buddies) {
       if (b.alive) b.hp = SUDDEN_DEATH_HP;
     }
+    this.waterRising = true;
     return true;
   }
 

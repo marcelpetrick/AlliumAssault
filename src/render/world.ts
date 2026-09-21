@@ -258,7 +258,7 @@ export class World {
     this.effects.updateAim(g, this.time);
     this.effects.update(dt);
     this.updateCamera(dt);
-    this.environment.update(this.time, this.camera.position, dt);
+    this.environment.update(this.time, this.camera.position, dt, g.terrain.waterLevel);
   }
 
   render(): void {

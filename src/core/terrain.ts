@@ -31,7 +31,7 @@ export class Terrain {
   constructor(
     readonly width: number,
     readonly height: number,
-    readonly waterLevel: number,
+    public waterLevel: number,
   ) {
     this.nx = Math.round(width / CELL) + 1;
     this.ny = Math.round(height / CELL) + 1;

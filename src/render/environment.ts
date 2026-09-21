@@ -105,6 +105,7 @@ void main() {
 /** Sky dome, animated water, rolling background hills with trees, and drifting clouds. */
 export class Environment {
   private readonly water: ShaderMaterial;
+  private readonly waterMesh: Mesh;
   private readonly clouds: Mesh[] = [];
   private readonly meshes: Mesh[] = [];
 
@@ -140,6 +141,7 @@ export class Environment {
 
     const water = MeshBuilder.CreateGround('water', { width: 900, height: 420, subdivisions: 160 }, scene);
     water.position.set(worldWidth / 2, waterLevel, 170);
+    this.waterMesh = water;
     this.water = new ShaderMaterial(
       'waterMat',
       scene,
@@ -166,7 +168,8 @@ export class Environment {
     this.buildClouds(worldWidth);
   }
 
-  update(time: number, eye: Vector3, dt: number): void {
+  update(time: number, eye: Vector3, dt: number, waterLevel: number): void {
+    this.waterMesh.position.y = waterLevel;
     this.water.setFloat('time', time);
     this.water.setVector3('eye', eye);
     for (const cloud of this.clouds) {

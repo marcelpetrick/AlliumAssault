@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.42.0] — 2026-09-21
+
+### Added
+
+- **Sudden Death floods the map.** From the Sudden Death turn the water rises by one world unit
+  every eight seconds and never stops, so caves and low ground go under and a stalled match is
+  decided. Everything that can drown — buddies, mines, crates, projectiles, sheep, tombstones and
+  burning napalm — already reads the live water level, and the water surface follows it on screen.
+
 ## [1.41.0] — 2026-09-21
 
 ### Changed

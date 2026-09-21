@@ -83,25 +83,21 @@ Status: ☐ open · ☑ done
 | T69 | Review fire effects again, including lifecycle and browser behavior                                       | ☐      |                |
 | T70 | Raise enforced core test coverage above 98% for statements, branches, functions and lines                 | ☐      |                |
 | T71 | Expand E2E movement, landing and drill fall scenarios                                                     | ☐      |                |
-| T72 | Raise the water continuously once Sudden Death begins                                                     | ☐      |                |
+| T72 | Raise the water continuously once Sudden Death begins                                                     | ☑      | 1.42.0         |
 | T73 | Include Rope in the starting arsenal even when special weapons require crates                             | ☑      | 1.41.0         |
 | T74 | Add a two-use placeable platform with move, rotate and click-to-set controls                              | ☐      |                |
 
 ## Current implementation plan
 
-1. Make Rope a basic starting weapon across arsenal modes without changing its hotkey or ammo;
-   check crate contents and the HUD (T73).
-2. Add Sudden Death flooding to the core simulation and water renderer. Verify trigger timing,
-   rise rate, drowning in a sheltered hole, the disabled setting and the browser presentation (T72).
-3. Add a platform as a persistent solid collider and 3D board. Mouse movement places a preview,
+1. Add a platform as a persistent solid collider and 3D board. Mouse movement places a preview,
    the wheel rotates it, and left click commits it. Reject blocked or submerged positions, consume
    one of two starting uses, then let buddies walk, jump and land on it (T74).
-4. Add browser scenarios for ordinary and hard landings, jumping and a drill-cushioned fall (T71).
-5. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
+2. Add browser scenarios for ordinary and hard landings, jumping and a drill-cushioned fall (T71).
+3. Measure the current core coverage, add behavior-focused tests for uncovered rules, then enforce
    more than 98% in each of the four Vitest metrics without excluding reachable code (T70).
-6. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
+4. Recheck the fire rendering and particle lifecycle in Chrome and Firefox; fix any reproducible
    issue, and verify that the new meshes leave no active objects after their effects end (T69).
-7. Review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
+5. Review the diff and run `npm run verify` before each versioned, local commit. Do not push or tag.
 
 ## Answered questions
 
@@ -113,6 +109,19 @@ Status: ☐ open · ☑ done
   asset paths, so no server is needed (T8).
 
 ## Details
+
+### T72 — Rising water in Sudden Death ☑
+
+Implemented in 1.42.0. Sudden Death used to be a single strike; a match between two careful players
+could still crawl on. `Game.waterRising` is set when the strike lands and, from then until the match
+ends, every step raises `Terrain.waterLevel` by 0.12 units per second (one world unit per eight
+seconds, capped one unit below the map ceiling). The water level was already read live by everything
+that can drown — buddies, mines, crates, projectiles, sheep, flyers, graves, napalm flames, the rope
+hook, the camera floor and the AI's judgement of safe ground — so a roof over a hole shelters nobody
+and no separate flood logic was needed. The renderer moves the water plane to the current level each
+frame. Unit test: the flood starts on the configured turn, does not start before it, and drowns a
+buddy sitting in a sheltered cave. E2E: the banner, the siren, a rising `waterLevel` and the water
+mesh following it in the browser.
 
 ### T73 — Rope in the starting arsenal ☑
 
