@@ -798,3 +798,34 @@ test('setup screen: buddies can be renamed, and the names come back next time', 
   expect((await state(page)).buddies.map((b) => b.name)).toContain('Knoblauch');
   expect(errors).toEqual([]);
 });
+
+test('title screen: About is a real button, the same size as the others', async ({ page }) => {
+  const errors = await boot(page);
+  const buttons = page.locator('.title-buttons button');
+  expect(await buttons.count()).toBe(4);
+
+  const boxes = await buttons.evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el);
+      return { text: el.textContent.trim(), width: Math.round(r.width), height: Math.round(r.height), font: s.fontSize, border: s.borderTopColor };
+    }),
+  );
+  const about = boxes.find((b) => b.text.includes('About'))!;
+  const help = boxes.find((b) => b.text.includes('How to Play'))!;
+
+  // The same button as the one above it, not a muted link tucked underneath.
+  expect(about.width).toBe(help.width);
+  expect(about.height).toBe(help.height);
+  expect(about.font).toBe(help.font);
+  // A visible border is what separates a button from a link here.
+  expect(about.border).not.toBe('rgba(0, 0, 0, 0)');
+  expect(about.border).toBe(help.border);
+  // Every button in the stack is the same width, whatever its label.
+  expect(new Set(boxes.map((b) => b.width)).size).toBe(1);
+
+  // And it still does what it always did.
+  await page.getByRole('button', { name: /About/ }).click();
+  await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

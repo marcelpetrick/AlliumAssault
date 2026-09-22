@@ -134,7 +134,7 @@ export class Menu {
           <button class="primary big" data-action="quick">${t('title.quick')} <small>${t('title.quickSub')}</small></button>
           <button class="glass big" data-action="setup">${t('title.custom')}</button>
           <button class="glass big" data-action="help">${t('title.help')}</button>
-          <button class="ghost" data-action="about">${t('title.about')}</button>
+          <button class="glass big" data-action="about">${t('title.about')}</button>
         </div>
         <footer class="version">v${this.version} · ${t('title.sound')} ${this.actions.isMuted() ? t('title.off') : t('title.on')} (M)</footer>
       </div>`;

@@ -116,6 +116,10 @@ button.big {
   font-size: 20px;
   padding: 16px 28px;
   min-width: 300px;
+
+  /* Fixed, so a glyph with taller metrics than its neighbours — ℹ next to ⚙ and ❔ — does not
+     make its button three pixels taller than the rest of the stack. */
+  line-height: 1.2;
 }
 
 button small {

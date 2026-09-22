@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.72.2] — 2026-09-22
+
+### Changed
+
+- **About is a real button on the title screen.** It was a ghost button — transparent, borderless,
+  muted text — tucked under three full-size ones, so it read as a footnote rather than a choice. It
+  is now the same 300×58 button as Custom Match and How to Play. Big buttons also got a fixed line
+  height, because `ℹ` has taller metrics than `⚙` and `❔` and was making its own button three
+  pixels taller than the rest of the stack.
+
 ## [1.72.1] — 2026-09-22
 
 ### Changed
