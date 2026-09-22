@@ -2,6 +2,39 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.74.0] — 2026-09-22
+
+Public release. The headline is that the interface is now genuinely translated — the last one said
+it was, and was not.
+
+### Languages
+
+- **The setup screen's options were English in every language.** Choosing Mandarin translated the
+  label above each control but not the buttons under it: 风力 above `Off / Light / Normal / Strong`,
+  补给箱 above `Cratyness`. The option values come from data modules rather than from markup, so the
+  sweep that found the other screens never saw them. Wind, crates, sudden death, gravity, arsenal,
+  graphics, text size, turn time, the Human/AI choice on each team card and all five scenery names
+  now follow the setting.
+- The About screen described each dependency's job in English beside its name — "(3D engine)",
+  "(terrain)", "(unit tests)". The name stays as its makers spell it; the job is translated.
+- **A test now walks every screen in Mandarin and fails on any English left in it** — setup, title,
+  help, About, the HUD and the pause menu, text and screen-reader labels alike. It is the check that
+  would have caught all of the above, and running it is what found the About screen.
+
+### The title screen
+
+- **About is a real button.** It was a ghost button — transparent, borderless, muted — under three
+  full-size ones, so it read as a footnote rather than a choice. Big buttons also gained a fixed
+  line height, because `ℹ` has taller metrics than `⚙` and `❔` and was making its own button three
+  pixels taller than its neighbours.
+
+### Keeping the documents honest
+
+- The weapon count is stated in five documents and was wrong twice in two days. A test now holds it
+  to the weapon order, in both the digit and the spelled-out form. Records — the changelog, the task
+  list, the archive — are exempt, because they describe what was true when they were written.
+- `typescript-eslint` 8.70.1. Everything else was already on its latest stable release.
+
 ## [1.73.2] — 2026-09-22
 
 ### Added

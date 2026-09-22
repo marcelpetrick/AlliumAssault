@@ -147,6 +147,7 @@ Status: ☐ open · ☑ done
 | T133 | Rename the buddies in a team, the way the team itself can be renamed, and remember the names                    | ☑      | 1.71.0         |
 | T134 | Setup screen: a bigger map-seed field and a bigger dice button                                                  | ☑      | 1.71.0         |
 | T135 | Public release v1.72.0: push, tag, GitHub release and Pages deployment                                          | ☑      | 1.72.0         |
+| T136 | Public release v1.74.0: the translation fixes, the About button and the documentation guards                    | ☑      | 1.74.0         |
 
 ## Current implementation plan
 
