@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.74.3] — 2026-09-22
+
+### Fixed
+
+- **The air-strike crosshair was not under the mouse.** The click was picked on the gameplay plane
+  but the reticle was drawn 0.8 in front of it to clear the terrain, and moving a point towards the
+  camera moves it across the screen too — by about fourteen pixels near the edges of the view, where
+  it was worst. The marker now travels along the view ray instead of straight forward, so it stays
+  on the pixel the click will use. Same for the teleport cross.
+- **Both cursors also lagged the camera by a frame.** They were placed before the camera was moved
+  for that frame, and the world point was only taken again when the mouse itself moved, so panning
+  or the zoom easing in at the start of a turn slid the marker off the pointer until you wiggled it.
+
 ## [1.74.2] — 2026-09-22
 
 ### Changed

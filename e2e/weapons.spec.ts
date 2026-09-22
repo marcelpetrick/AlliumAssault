@@ -951,6 +951,38 @@ test('air strike: the arrow keys pick the approach side and the buddy stays put'
   expect(errors).toEqual([]);
 });
 
+test('air strike: the crosshair sits under the mouse, at the edges of the view too', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, 'Shift+2', 'airstrike');
+  const canvas = (await page.locator('#stage').boundingBox())!;
+
+  // The reticle is drawn 0.8 in front of the gameplay plane so it clears the terrain. Pulling it
+  // towards the camera also slides it across the screen unless it is kept on the view ray, and the
+  // further from the centre the mouse is, the further it used to slide.
+  const spots = [
+    { x: canvas.width * 0.5, y: canvas.height * 0.5 },
+    { x: canvas.width * 0.12, y: canvas.height * 0.3 },
+    { x: canvas.width * 0.88, y: canvas.height * 0.3 },
+    { x: canvas.width * 0.15, y: canvas.height * 0.8 },
+    { x: canvas.width * 0.85, y: canvas.height * 0.75 },
+  ];
+  const drifts: number[] = [];
+  for (const spot of spots) {
+    await page.mouse.move(canvas.x + spot.x, canvas.y + spot.y);
+    await page.evaluate(() => {
+      window.__allium.stepFrames(2, 1 / 60);
+    });
+    const at = await page.evaluate(() => window.__allium.strikeCursorScreen());
+    expect(at).not.toBeNull();
+    drifts.push(Math.hypot(at!.x - spot.x, at!.y - spot.y));
+  }
+  await info.attach('crosshair', { body: await page.screenshot(), contentType: 'image/png' });
+  // Two pixels covers the rounding in projecting back and forth; the bug was tens of pixels.
+  expect(Math.max(...drifts)).toBeLessThan(2);
+  expect(errors).toEqual([]);
+});
+
 test('air strike: a drag pans the camera, a click calls the plane and five bombs', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);

@@ -27,8 +27,9 @@ import { hashString } from '../core/rng';
 import { PLATFORM_MAX_ANGLE } from '../core/terrain';
 import { BuddyKit, BuddyView } from './buddyView';
 import { Decorations } from './decorations';
-import { Effects } from './effects';
+import { Effects, STRIKE_CURSOR_Z, TELEPORT_CURSOR_Z } from './effects';
 import { Environment } from './environment';
+import { onViewRay } from './geometry';
 import { PlatformView } from './platformView';
 import { TerrainView } from './terrainView';
 import type { Theme } from './themes';
@@ -63,6 +64,8 @@ export class World {
   private strikeView: { distance: number; forced: number; until: number } | null = null;
   /** World point under the mouse, for the air strike cursor and the platform preview. */
   private pointer: { x: number; y: number } | null = null;
+  /** Where the mouse is in CSS pixels, so the world point can be taken again when the camera moves. */
+  private pointerCss: { x: number; y: number } | null = null;
   /** Tilt of the next platform, turned by the mouse wheel while one is being placed. */
   platformAngle = 0;
   private shakeAmount = 0;
@@ -270,7 +273,6 @@ export class World {
     this.time += dt;
     const g = this.game;
     this.terrainView.update();
-    this.updatePlatforms();
     for (const view of this.buddyViews.values()) view.update(g, dt, this.time);
 
     const active = g.activeBuddy;
@@ -292,10 +294,6 @@ export class World {
     this.effects.updateTorch(g, this.time);
     this.effects.updateDrill(g, this.theme.dirt);
     this.effects.updateFlames(g, this.time);
-    const targeting = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'strike';
-    this.effects.setStrikeCursor(targeting ? this.pointer : null, this.time);
-    const beaming = g.phase === 'aiming' && g.isHumanTurn && WEAPONS[g.weapon].kind === 'teleport' ? this.pointer : null;
-    this.effects.setTeleportCursor(beaming, beaming !== null && g.canTeleportTo(beaming.x, beaming.y), this.time);
     if (this.strikeView && this.time > this.strikeView.until) {
       // Only undo the forced zoom; if the player zoomed in the meantime, keep their choice.
       if (this.goalDistance === this.strikeView.forced) this.goalDistance = this.strikeView.distance;
@@ -304,7 +302,21 @@ export class World {
     this.effects.updateAim(g, this.time);
     this.effects.update(dt);
     this.updateCamera(dt);
+    // Everything the mouse points at is placed after the camera has moved, or it lags a frame behind.
+    this.refreshPointer();
+    this.updatePlatforms();
+    this.updateCursors();
     this.environment.update(this.time, this.camera.position, dt, g.terrain.waterLevel);
+  }
+
+  /** Put the two map cursors where the mouse is, on the ray rather than on the plane. */
+  private updateCursors(): void {
+    const g = this.game;
+    const aiming = g.phase === 'aiming' && g.isHumanTurn;
+    const targeting = aiming && WEAPONS[g.weapon].kind === 'strike';
+    this.effects.setStrikeCursor(targeting ? this.markerAt(STRIKE_CURSOR_Z) : null, this.time);
+    const beaming = aiming && WEAPONS[g.weapon].kind === 'teleport' ? this.pointer : null;
+    this.effects.setTeleportCursor(beaming && this.markerAt(TELEPORT_CURSOR_Z), beaming !== null && g.canTeleportTo(beaming.x, beaming.y), this.time);
   }
 
   render(): void {
@@ -365,7 +377,36 @@ export class World {
 
   /** Track the mouse for the air strike cursor; null when it left the canvas. */
   setPointer(cssX: number | null, cssY = 0): void {
+    this.pointerCss = cssX === null ? null : { x: cssX, y: cssY };
     this.pointer = cssX === null ? null : this.pick(cssX, cssY);
+  }
+
+  /**
+   * Take the world point under the mouse again. The camera eases towards its target every frame, so
+   * the answer from the last mouse move is stale as soon as it stops moving: without this the
+   * crosshair slides away from the cursor whenever the view pans, and only snaps back on a wiggle.
+   */
+  private refreshPointer(): void {
+    if (this.pointerCss) this.pointer = this.pick(this.pointerCss.x, this.pointerCss.y);
+  }
+
+  /**
+   * Where to draw a cursor that must sit under the mouse while being pulled `z` towards the camera
+   * to clear the terrain. The click still lands on the gameplay plane at `this.pointer`; only the
+   * marker travels along the view ray, which is what keeps the two in the same place on screen.
+   */
+  private markerAt(z: number): { x: number; y: number } | null {
+    return this.pointer && onViewRay(this.camera.globalPosition, this.pointer, z);
+  }
+
+  /**
+   * Where the strike crosshair actually lands on screen, in CSS pixels. Only the browser suite can
+   * answer whether the marker is under the mouse, and it needs the real projection of the real
+   * mesh to do it — not the point the click will use.
+   */
+  strikeCursorScreen(): { x: number; y: number } | null {
+    const at = this.effects.strikeCursorAt();
+    return at && this.project(at.x, at.y, at.z);
   }
 
   /** World position → CSS pixels relative to the canvas, or null when behind the camera. */

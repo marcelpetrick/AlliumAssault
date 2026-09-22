@@ -42,6 +42,14 @@ interface BurstOptions {
 /** The sheep is drawn half again as large as it was: at its old size it read as a dot in flight. */
 const SHEEP_SCALE = 1.5;
 
+/**
+ * How far in front of the gameplay plane the two map cursors are drawn, so they stay visible over
+ * the terrain. Exported because a marker off the plane is no longer under the mouse unless the
+ * point it is drawn at is moved along the view ray to match — see `onViewRay` in `geometry.ts`.
+ */
+export const STRIKE_CURSOR_Z = -0.8;
+export const TELEPORT_CURSOR_Z = -0.6;
+
 const CHARGE_DOTS = 14;
 
 /**
@@ -793,7 +801,6 @@ export class Effects {
     });
   }
 
-  /** Crosshair where a click would call the air strike; null hides it. */
   /**
    * Mark where a teleport would put the buddy down. `ok` is the game's own answer to whether the
    * spot is free, so the colour on screen and what the click does can never disagree.
@@ -801,17 +808,25 @@ export class Effects {
   setTeleportCursor(at: { x: number; y: number } | null, ok: boolean, time: number): void {
     this.teleportCursor.setEnabled(at !== null);
     if (!at) return;
-    this.teleportCursor.position.set(at.x, at.y, -0.6);
+    this.teleportCursor.position.set(at.x, at.y, TELEPORT_CURSOR_Z);
     this.teleportCursor.rotation.z = time * 1.6;
     this.teleportCursor.scaling.setAll(ok ? 1 + Math.sin(time * 6) * 0.07 : 0.8);
     const material = ok ? this.materials.beacon : this.materials.beaconBad;
     for (const mesh of this.teleportCursor.getChildMeshes()) mesh.material = material;
   }
 
+  /** Where the strike crosshair is standing right now, for the test that checks it is under the mouse. */
+  strikeCursorAt(): { x: number; y: number; z: number } | null {
+    if (!this.strikeCursor.isEnabled()) return null;
+    const p = this.strikeCursor.position;
+    return { x: p.x, y: p.y, z: p.z };
+  }
+
+  /** Crosshair where a click would call the air strike; null hides it. */
   setStrikeCursor(at: { x: number; y: number } | null, time: number): void {
     this.strikeCursor.setEnabled(!!at);
     if (!at) return;
-    this.strikeCursor.position.set(at.x, at.y, -0.8);
+    this.strikeCursor.position.set(at.x, at.y, STRIKE_CURSOR_Z);
     this.strikeCursor.scaling.setAll(1 + Math.sin(time * 5) * 0.1);
   }
 

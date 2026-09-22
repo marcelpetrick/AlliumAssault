@@ -24,6 +24,8 @@ const hook = {
   setManual: (manual: boolean) => (app.manual = manual),
   /** World position → CSS pixels relative to the canvas, for real mouse clicks in tests. */
   project: (x: number, y: number) => app.world?.project(x, y) ?? null,
+  /** Where the air-strike crosshair is drawn, in the same CSS pixels the mouse moves in. */
+  strikeCursorScreen: () => app.world?.strikeCursorScreen() ?? null,
 };
 export type AlliumHook = typeof hook;
 (window as unknown as { __allium: typeof hook }).__allium = hook;
