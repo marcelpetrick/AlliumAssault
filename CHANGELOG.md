@@ -2,6 +2,52 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.68.0] — 2026-09-22
+
+Public release. Everything below since 1.55.1, in one page.
+
+### Weapons and things on the map
+
+- **Flamethrower** (F, two per match): three seconds of lit fuel out of a nozzle you keep steering
+  with up and down while it runs. Wind and gravity carry the gobs, and where they land the ground
+  goes on burning — a carpet to drive somebody across rather than a gun to kill them with.
+- **Ming Vase** (V, one per match): six hundred years of porcelain, thrown once, for an enormous
+  blast and eight shards that each land like a grenade.
+- **Mystery boxes**: a clown box with a question mark, rolled when it is opened rather than when it
+  drops. Health, a special weapon, or a live mine armed on the spot under whoever was greedy.
+- Crates caught in a blast leave their contents burning; napalm lays a shallow carpet instead of
+  digging a trench; the garlic punch wears a real boxing glove and, thrown steeply upwards, knocks
+  a shaft through the ceiling; the drill hammers like a jackhammer; the sheep is half again as
+  large; and a connecting baseball bat brings a stadium with it.
+
+### Seeing what you are doing
+
+- **A blue cross marks where a teleport will put you**, red where the buddy would not fit — the
+  cursor asks the game the same question the click does.
+- **A statistics screen** at the end of a match: damage dealt and taken per team, own goals, shots
+  and accuracy, a line per buddy, and twelve awards from Most Valuable Buddy to Butterfingers.
+  Damage is attributed through chained crates and mines, so it credits whoever actually did it.
+- **Four languages** — English, German, Croatian as it is spoken in Split, and Mandarin — chosen in
+  the setup screen, guessed from the browser the first time, and covering every menu, hint, banner
+  and weapon.
+- The setup screen keeps **Start Battle** on screen however far the options scroll, and puts the map
+  seed beside the picture it makes.
+
+### The opposition
+
+- The AI **stops leaning on the concrete mule**: what a weapon costs to reach for grows with use and
+  with scarcity, and a cluster weapon is priced by its whole payload, so a match now sees six to
+  eight different weapons instead of two.
+- Normal and Hard **go shopping**: when a crate is somewhere walking cannot reach and there is rock
+  overhead, they fire the rope, swing across and drop onto it.
+
+### Under it
+
+- A quarter of the bundle it was: 6,889 kB down to 1,510 kB, and 374 kB over the wire.
+- Settings carry a schema version and migrate, so a config written by an older build still opens.
+- 244 unit tests and 68 browser tests; 99.6% of the rules core's statements and 98.1% of its
+  branches, above the thresholds the build enforces.
+
 ## [1.67.1] — 2026-09-22
 
 ### Fixed
@@ -17,10 +63,8 @@ All notable changes to this project are documented here. Versions follow SemVer.
 
 ### Added
 
-- **Release 1.67.0.** Ships the night's work: a full review of the project with all eleven findings
-  fixed, the flamethrower and the Ming vase, mystery boxes, an end-of-match statistics screen, four
-  languages, a teleport cursor you can aim with, a punch that can open a ceiling, an AI that varies
-  its arsenal and ropes its way to crates, and a repository root with three Markdown files in it.
+- Nothing of its own: the version bump that closed the batch below. The release it was meant to
+  carry went out as 1.68.0, after two more fixes the browser suite turned up.
 
 ## [1.66.2] — 2026-09-22
 
