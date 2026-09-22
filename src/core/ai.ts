@@ -556,7 +556,8 @@ const ROPE_LAUNCH_AIM = 1.15;
  * see it too — a health crate is worth most to a buddy that needs the health, and worth a little
  * even at full health because over-healing is allowed. What is inside a weapon crate only shows
  * once it is opened, so it is valued by how thin the team's stock of special weapons is. A mystery
- * box could be either, and is valued as the plain average of the two.
+ * box shows nothing at all — not even which of the two it is — so it is worth a flat middling
+ * amount and no more.
  */
 function crateValue(game: Game, me: Buddy, crate: Crate): number {
   if (crate.kind === 'mystery') return CRATE_WORTH;
@@ -599,8 +600,6 @@ export interface CrateGoal {
   crate: Crate;
   value: number;
   route: CrateRoute;
-  /** World units between the buddy and the crate. */
-  distance: number;
   /** Rough seconds the trip will take, so the turn can budget for the shot afterwards. */
   seconds: number;
 }
@@ -629,7 +628,7 @@ function crateGoal(game: Game, me: Buddy, seconds: number): CrateGoal | null {
     // Swinging is slower and riskier than walking, and it spends a rope.
     const value = crateValue(game, me, c) - dx * CRATE_DISTANCE_COST - (route === 'rope' ? ROPE_TRIP_COST : 0);
     const trip = route === 'walk' ? dx / WALK_SPEED : ROPE_FETCH_TIME;
-    if (!best || value > best.value) best = { crate: c, value, route, distance: dx, seconds: trip };
+    if (!best || value > best.value) best = { crate: c, value, route, seconds: trip };
   }
   return best;
 }

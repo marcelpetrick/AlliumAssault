@@ -148,18 +148,18 @@ Status: ☐ open · ☑ done
 | T134 | Setup screen: a bigger map-seed field and a bigger dice button                                                  | ☑      | 1.71.0         |
 | T135 | Public release v1.72.0: push, tag, GitHub release and Pages deployment                                          | ☑      | 1.72.0         |
 | T136 | Public release v1.74.0: the translation fixes, the About button and the documentation guards                    | ☑      | 1.74.0         |
-| T137 | Bug: background trees are scattered below the waterline and stand in the sea                                    | ☐      |                |
-| T138 | Walled landscape option: an indestructible wall round the level, no falling out, no aircraft                    | ☐      |                |
-| T139 | A tooltip on the walled-landscape option explaining what it turns on and off                                    | ☐      |                |
-| T140 | Gravity: check it is applied at all, then Moon at half, a normal default, and a superheavy                      | ☐      |                |
-| T141 | Ming vase shards should go off on contact, not on a timer — they are contact bombs                              | ☐      |                |
-| T142 | Air-strike marker does not sit under the mouse: it is drawn nearer the camera than it is picked                 | ☐      |                |
-| T143 | README: state every weapon's damage explicitly, fragments and payloads separately                               | ☐      |                |
-| T144 | Shorten the retreat window after firing from five seconds to three                                              | ☐      |                |
-| T145 | AI stands beside a crate without taking it; every difficulty should hunt crates                                 | ☐      |                |
-| T146 | "French Attack": wave a white flag, fire nothing, hand the turn to the next buddy                               | ☐      |                |
-| T147 | Strike planes fly through hills and floating islands; make them clear the map                                   | ☐      |                |
-| T148 | Group the French Attack, rope, drill and platform together on the weapon bar                                    | ☐      |                |
+| T137 | Bug: background trees are scattered below the waterline and stand in the sea                                    | ☑      | 1.74.1         |
+| T138 | Walled landscape option: an indestructible wall round the level, no falling out, no aircraft                    | ☑      | 1.78.0         |
+| T139 | A tooltip on the walled-landscape option explaining what it turns on and off                                    | ☑      | 1.78.0         |
+| T140 | Gravity: check it is applied at all, then Moon at half, a normal default, and a superheavy                      | ☑      | 1.75.0         |
+| T141 | Ming vase shards should go off on contact, not on a timer — they are contact bombs                              | ☑      | 1.74.2         |
+| T142 | Air-strike marker does not sit under the mouse: it is drawn nearer the camera than it is picked                 | ☑      | 1.74.3         |
+| T143 | README: state every weapon's damage explicitly, fragments and payloads separately                               | ☑      | 1.77.0         |
+| T144 | Shorten the retreat window after firing from five seconds to three                                              | ☑      | 1.74.4         |
+| T145 | AI stands beside a crate without taking it; every difficulty should hunt crates                                 | ☑      | 1.76.0         |
+| T146 | "French Attack": wave a white flag, fire nothing, hand the turn to the next buddy                               | ☑      | 1.77.0         |
+| T147 | Strike planes fly through hills and floating islands; make them clear the map                                   | ☑      | 1.76.1         |
+| T148 | Group the French Attack, rope, drill and platform together on the weapon bar                                    | ☑      | 1.77.0         |
 | T149 | A clip of every weapon in action on its own page, `docs/weapons_preview.md`                                     | ☐      |                |
 
 ## Current implementation plan

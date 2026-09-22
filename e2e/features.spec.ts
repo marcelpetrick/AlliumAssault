@@ -241,7 +241,7 @@ test('gravity: Moon is picked in the setup, shown in the HUD and floats the jump
   await page.getByRole('button', { name: 'Moon', exact: true }).click();
   await page.getByRole('button', { name: /Start Battle/ }).click();
   await waitFor(page, (s) => !s.demo && s.phase === 'aiming', 60_000);
-  expect(await page.evaluate(() => window.__allium.app.game!.terrain.gravityScale)).toBe(0.55);
+  expect(await page.evaluate(() => window.__allium.app.game!.terrain.gravityScale)).toBe(0.5);
   await expect(page.locator('.gravity')).toBeVisible();
   await info.attach('moon-gravity', { body: await page.screenshot(), contentType: 'image/png' });
 

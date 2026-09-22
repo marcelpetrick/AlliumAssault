@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.78.1] — 2026-09-22
+
+### Fixed
+
+- The browser test for Moon gravity still asserted the old 0.55 multiplier, so it failed against
+  the true half that 1.75.0 introduced. Caught by the full suite, not by the unit tests.
+
+### Internal
+
+- Corrected a comment in the crate valuation that claimed a mystery box is worth the average of the
+  two things it might hold; it is worth a flat middling amount, which is what the code does. Dropped
+  a field from the crate goal that nothing reads any more.
+
 ## [1.78.0] — 2026-09-22
 
 ### The walled landscape
