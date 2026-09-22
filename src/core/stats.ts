@@ -54,6 +54,32 @@ export interface TeamRecord {
   survivors: number;
 }
 
+/**
+ * Every award the match can hand out. Named rather than free-form so the interface can be held to
+ * having words for all of them: a `t()` call built from an id nobody translated would otherwise
+ * blank the whole scoreboard at the moment somebody finally won a match.
+ */
+export const AWARD_IDS = [
+  'mvp',
+  'biggest',
+  'kills',
+  'owngoal',
+  'deadeye',
+  'butterfingers',
+  'crates',
+  'swim',
+  'blasted',
+  'martyr',
+  'untouched',
+  'pacifist',
+  'worst',
+  'favourite',
+  'handy',
+  'ground',
+  'length',
+] as const;
+export type AwardId = (typeof AWARD_IDS)[number];
+
 /** Whether an award is something to be pleased about, to regret, or merely a fact of the match. */
 export type Tone = 'good' | 'bad' | 'neutral';
 
@@ -63,7 +89,7 @@ export type Tone = 'good' | 'bad' | 'neutral';
  * language it is speaking. The core has no business holding English.
  */
 export interface Award {
-  id: string;
+  id: AwardId;
   icon: string;
   /**
    * Who earned it — names as the roster spells them, joined for a shared award. For an award about
@@ -276,7 +302,7 @@ function awardsFor(
   tools: readonly WeaponUse[],
 ): Award[] {
   const out: Award[] = [];
-  const add = (id: string, icon: string, who: string | null, values: Record<string, number | string>, tone: Tone): void => {
+  const add = (id: AwardId, icon: string, who: string | null, values: Record<string, number | string>, tone: Tone): void => {
     if (who) out.push({ id, icon, who, values, tone });
   };
 

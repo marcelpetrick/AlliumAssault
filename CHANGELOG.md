@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.71.1] — 2026-09-22
+
+### Fixed
+
+- **An award without words would have blanked the whole scoreboard.** The screen built its
+  catalogue keys from the award id with a cast, so a new award nobody had translated would have
+  reached `t()` with a key that has no English behind it and thrown in the middle of rendering. The
+  award ids are a named union now and the cast is gone, which means the compiler checks that every
+  award has a title and a detail in every language — remove one and the build fails, in all three
+  catalogues at once.
+
 ## [1.71.0] — 2026-09-22
 
 ### Added

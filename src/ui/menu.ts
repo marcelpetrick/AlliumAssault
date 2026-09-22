@@ -8,7 +8,7 @@ import { defined } from '../core/assert';
 import { WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
-import { LANGUAGES, t, type Language, type TextKey } from './i18n';
+import { LANGUAGES, t, type Language } from './i18n';
 import { weaponBlurb, weaponName } from './i18nWeapons';
 import {
   ARSENAL_OPTIONS,
@@ -380,8 +380,8 @@ export class Menu {
     const card = (a: Award) => {
       // An award about a weapon carries its id; everything else carries names already.
       const who = typeof a.values.weapon === 'string' ? weaponName(a.values.weapon as WeaponId) : a.who;
-      return `<div class="award ${a.tone}"><span class="award-icon">${a.icon}</span><div><b>${esc(t(`award.${a.id}.title` as TextKey))}</b>
-        <div class="award-who">${esc(who)}</div><small>${esc(t(`award.${a.id}.detail` as TextKey, a.values))}</small></div></div>`;
+      return `<div class="award ${a.tone}"><span class="award-icon">${a.icon}</span><div><b>${esc(t(`award.${a.id}.title`))}</b>
+        <div class="award-who">${esc(who)}</div><small>${esc(t(`award.${a.id}.detail`, a.values))}</small></div></div>`;
     };
     const uses = (list: readonly { weapon: WeaponId; uses: number }[]) =>
       list
