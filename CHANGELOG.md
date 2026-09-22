@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.69.1] — 2026-09-22
+
+### Added
+
+- **`docs/I18N.md`**: how the four languages work — the two modules and why they are split, adding a
+  string, adding a language, the rule that the core may never hold a player-facing sentence (with
+  the scoreboard as the worked example of what happens when it does), where the language is stored,
+  and what each test enforces. Linked from the docs index and from `AGENTS.md`, which now carries
+  the rule itself.
+
 ## [1.69.0] — 2026-09-22
 
 ### Fixed

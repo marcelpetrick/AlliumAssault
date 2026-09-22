@@ -10,6 +10,7 @@ repository root are the ones a visitor and a tool expect there: [`README.md`](..
 | [`ARCHITECTURE.md`](ARCHITECTURE.md)                 | The C4 model, in Mermaid: context, containers, components, and how a frame flows through them |
 | [`PERFORMANCE.md`](PERFORMANCE.md)                   | What was measured, how to measure it again, and what was done about it                        |
 | [`SOUND.md`](SOUND.md)                               | Every synthesized sound and how it is made — there are no audio files                         |
+| [`I18N.md`](I18N.md)                                 | How the four languages work: adding a string, adding a language, what the tests enforce       |
 | [`tasks.md`](tasks.md)                               | Every request ever made, its status, and the version it landed in                             |
 | [`review.md`](review.md)                             | The latest code and architecture review, with how each finding was resolved                   |
 | [`PLAN.md`](PLAN.md)                                 | The original v2 plan; historical, kept because it explains why the rewrite looks like this    |

@@ -141,7 +141,7 @@ Status: ☐ open · ☑ done
 | T127 | Public release v1.67.0: push, tag, GitHub release and Pages deployment                                          | ☑      | 1.67.0         |
 | T128 | Aim while charging: up and down adjust the shot during the charge, for last-minute corrections                  | ☐      |                |
 | T129 | Translate every user-visible string: the statistics screen still shows English in all four languages            | ☑      | 1.69.0         |
-| T130 | A short document on how the project's i18n works and how to add a string or a language                          | ☐      |                |
+| T130 | A short document on how the project's i18n works and how to add a string or a language                          | ☑      | 1.69.1         |
 | T131 | Statistics: more colour, green for good and red for bad, blunders, favourite weapons, deaths by cause, tool use | ☑      | 1.69.0         |
 | T132 | Check the blowtorch actually burns a buddy it walks into — it should                                            | ☑      | 1.68.3         |
 | T133 | Rename the buddies in a team, the way the team itself can be renamed, and remember the names                    | ☐      |                |

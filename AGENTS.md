@@ -29,7 +29,7 @@ entirely in the browser as a static site: local hot-seat and human-vs-AI.
 | `scripts/`                | `spdx.mjs` (SPDX check and fixer), `capture-media.mjs` (README screenshots and GIF), `history_chart.py` (README growth and coverage chart)                                                                          |                                                                  |
 | `.github/`                | Workflows, Dependabot, `CONTRIBUTING.md`, `SECURITY.md` — where GitHub looks for them                                                                                                                               |                                                                  |
 | `REUSE.toml`, `LICENSES/` | REUSE annotations for files without headers, license texts                                                                                                                                                          |                                                                  |
-| `docs/`                   | `README-index`, `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `PERFORMANCE.md`, `SOUND.md`, `archive/`                                                                                                  |                                                                  |
+| `docs/`                   | `README-index`, `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `PERFORMANCE.md`, `SOUND.md`, `I18N.md`, `archive/`                                                                                       |                                                                  |
 | `docs/tasks.md`           | Every request with status and version                                                                                                                                                                               | Update in every commit: add new requests, tick off finished ones |
 | `docs/review.md`          | Latest code and architecture review with resolutions                                                                                                                                                                |                                                                  |
 
@@ -68,6 +68,10 @@ python3 scripts/history_chart.py                 # redraw the README history cha
   `stepAction`; a new phase goes into `COUNTDOWN_PHASES`/`ACTION_PHASES`); held model in `buddyView.ts`, projectile model in
   `effects.ts`, sounds in `app.ts`/`audio.ts`; README and VISION tables; unit test and E2E test.
   The AI picks up projectile, strike and melee weapons from their kind.
+- **Player-facing text:** every string a player reads goes through `t()` from `src/ui/i18n.ts`, and
+  every weapon name through `weaponName()`. `src/core` must never hold a sentence: where the rules
+  need to say something they emit an id and its numbers, and the interface phrases it. A new key
+  goes into all four catalogues — the tests check. See [docs/I18N.md](docs/I18N.md).
 - **Invariants:** no non-null assertions in `src` — use `defined()` from `src/core/assert.ts` or
   `query()` from `src/ui/dom.ts`, which fail with a clear message.
 - **Babylon imports:** always from the symbol's own module (`@babylonjs/core/Meshes/meshBuilder`),
