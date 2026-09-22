@@ -55,10 +55,16 @@ export const SUDDEN_DEATH_OPTIONS: { key: TextKey; value: number }[] = [
  * The arena's pull as a multiple of the standard one. Normal is the world the game has always had;
  * Moon makes for floaty jumps, long throws and gentle landings, Heavy for the opposite.
  */
+/**
+ * Multipliers on the physics constant. Normal is the default and the one the weapon table is
+ * balanced around; Moon is exactly half of it, and superheavy is the other end, where a bazooka
+ * barely clears a hill and every shot is a lob.
+ */
 export const GRAVITY_OPTIONS: { key: TextKey; value: number }[] = [
-  { key: 'opt.moon', value: 0.55 },
+  { key: 'opt.moon', value: 0.5 },
   { key: 'opt.normal', value: 1 },
   { key: 'opt.heavy', value: 1.5 },
+  { key: 'opt.superheavy', value: 2.5 },
 ];
 export const CRATE_OPTIONS: { key: TextKey; value: number }[] = [
   { key: 'opt.off', value: 0 },

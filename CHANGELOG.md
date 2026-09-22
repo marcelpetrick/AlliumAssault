@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.75.0] — 2026-09-22
+
+### Gravity
+
+The setting was not broken — it reaches the physics and always did, and tests now say so. What was
+wrong is that Moon was not half of anything, and there was nothing at the heavy end worth picking.
+
+- **Moon is exactly half gravity**, where it read 0.55 before.
+- **Superheavy joins the list** at two and a half times normal: a fully charged bazooka crosses
+  barely a third of the map and everything is a lob.
+- Normal remains the default and the setting the weapon table is balanced around. For the record, a
+  full-power bazooka at 45° carries about 72 units at normal on a 128-unit map, and more than the
+  whole map on Moon — which is what "everything is flying" looks like, and why Moon is a choice
+  rather than the default.
+
 ## [1.74.4] — 2026-09-22
 
 ### Changed

@@ -2410,3 +2410,53 @@ describe('AI', () => {
     expect(g.turn).toBeGreaterThan(2);
   });
 });
+
+describe('gravity', () => {
+  /** How far a fully charged bazooka carries at 45 degrees, in world units. */
+  function bazookaRange(gravity: number): number {
+    const g = flatGame([20, 110], [team('A', 1), team('B', 1)], { gravity, windMax: 0 });
+    runUntil(g, () => g.phase === 'aiming', 5);
+    g.selectWeapon('bazooka');
+    const me = g.buddies[0];
+    me.aim = Math.PI / 4;
+    const from = me.body.x;
+    g.pressFire();
+    // Holding to the top of the charge fires by itself, at full power.
+    runUntil(g, () => g.projectiles.length > 0, 5);
+    const shot = defined(g.projectiles[0], 'projectile');
+    let far = 0;
+    runUntil(
+      g,
+      () => {
+        far = Math.max(far, Math.abs(shot.x - from));
+        return g.projectiles.length === 0;
+      },
+      20,
+    );
+    return far;
+  }
+
+  it('is applied: the setting reaches the terrain the physics reads', () => {
+    for (const gravity of [0.5, 1, 1.5, 2.5]) {
+      const g = flatGame([20, 110], [team('A', 1), team('B', 1)], { gravity });
+      expect(g.terrain.gravityScale).toBe(gravity);
+    }
+    // Left out of the config, the match plays at normal gravity rather than at zero.
+    expect(flatGame([20, 110], [team('A', 1), team('B', 1)]).terrain.gravityScale).toBe(1);
+  });
+
+  it('carries a shot further the lighter it is, in the order the options are listed', () => {
+    const ranges = [0.5, 1, 1.5, 2.5].map(bazookaRange);
+    for (let i = 1; i < ranges.length; i++) expect(ranges[i]).toBeLessThan(ranges[i - 1]);
+  });
+
+  it('is balanced around normal, where a full-power shot crosses well under the map', () => {
+    const width = flatGame([20, 110], [team('A', 1), team('B', 1)]).terrain.width;
+    // Normal has to leave room to miss; moon is the setting where a shot leaves the island, which
+    // is the whole point of choosing it and the reason it is not the default.
+    expect(bazookaRange(1)).toBeLessThan(width * 0.7);
+    expect(bazookaRange(0.5)).toBeGreaterThan(width);
+    // Superheavy is the other extreme: a full charge barely crosses a third of the map.
+    expect(bazookaRange(2.5)).toBeLessThan(width * 0.4);
+  });
+});
