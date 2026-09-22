@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.68.3] — 2026-09-22
+
+### Added
+
+- Tests for what the blowtorch does to a buddy. It already burnt anyone it walked into for 15 and
+  shoved them upwards, and it already made no distinction between friend and foe — but only the
+  close-range case was covered, so none of that was guaranteed. Now the whole three-second walk is:
+  caught at four units and at eight, untouched at twelve, shoved as it burns, and a teammate in the
+  way burns exactly like an enemy.
+
 ## [1.68.2] — 2026-09-22
 
 ### Fixed

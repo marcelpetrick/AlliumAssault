@@ -374,6 +374,53 @@ describe('match flow', () => {
     expect(g.buddies[1].hp).toBe(85);
   });
 
+  it('blowtorch burns anybody it walks into over the whole three seconds, and shoves them', () => {
+    // It carries itself about six units in three seconds; anybody inside that is caught, and
+    // anybody past it is not. Aimed level, on flat ground, so only the walk decides.
+    const reach = (gap: number) => {
+      const g = flatGame([40, 40 + gap], [team('A', 1), team('B', 1)]);
+      toAiming(g);
+      const [me, victim] = [g.buddies[0], g.buddies[1]];
+      me.facing = 1;
+      me.aim = 0;
+      g.selectWeapon('torch');
+      g.pressFire();
+      // The shove is only visible in the frame it happens, so it is caught as the damage lands.
+      let launched = false;
+      runUntil(
+        g,
+        () => {
+          if (victim.hp < 100 && !launched) launched = victim.body.vy > 0;
+          return g.phase !== 'torching';
+        },
+        6,
+      );
+      return { hp: victim.hp, launched, walked: me.body.x - 40 };
+    };
+    expect(reach(4).hp).toBe(100 - WEAPONS.torch.damage);
+    expect(reach(8).hp).toBe(100 - WEAPONS.torch.damage);
+    // The flame shoves as well as burns: always upwards, never straight into the ground.
+    expect(reach(4).launched).toBe(true);
+    // Out of walking range in three seconds, so untouched.
+    expect(reach(12).hp).toBe(100);
+    expect(reach(4).walked).toBeGreaterThan(4);
+  });
+
+  it('blowtorch does not care whose side it burns', () => {
+    const g = flatGame([40, 100, 42.5], [team('A', 2), team('B', 1)]);
+    toAiming(g);
+    const [torcher, mate] = g.teams[0].buddies;
+    mate.body.x = 42.5;
+    mate.body.vx = mate.body.vy = 0;
+    torcher.facing = 1;
+    torcher.aim = 0;
+    g.selectWeapon('torch');
+    g.pressFire();
+    runUntil(g, () => g.phase !== 'torching', 6);
+    // A flame is a flame. Burning your own team ends your turn, like any other self-inflicted hurt.
+    expect(mate.hp).toBe(100 - WEAPONS.torch.damage);
+  });
+
   it('minigun fires a 14-bullet burst that damages and shoves the enemy far away', () => {
     const g = flatGame([40, 48], [team('A', 1), team('B', 1)]);
     toAiming(g);
