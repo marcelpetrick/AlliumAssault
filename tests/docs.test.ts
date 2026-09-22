@@ -62,6 +62,47 @@ describe('the README weapon table', () => {
   });
 });
 
+describe('the weapon count in prose', () => {
+  /** How the documents spell the numbers they are likely to reach. */
+  const WORDS: Record<number, string> = {
+    20: 'twenty',
+    21: 'twenty-one',
+    22: 'twenty-two',
+    23: 'twenty-three',
+    24: 'twenty-four',
+    25: 'twenty-five',
+    26: 'twenty-six',
+  };
+
+  /**
+   * "Twenty-three weapons" is written in five documents and is wrong the moment a weapon is added.
+   * The README's table is checked row by row above; this catches the sentences around it.
+   */
+  it('matches the weapon order everywhere it is stated', () => {
+    const expected = WEAPON_ORDER.length;
+    const word = WORDS[expected];
+    expect(word, `no spelling known for ${String(expected)} — add it to WORDS`).toBeDefined();
+    const wrong: string[] = [];
+    for (const path of documents()) {
+      for (const [i, line] of readFileSync(path, 'utf8').split('\n').entries()) {
+        // A changelog, a task list, the archive and the LinkedIn notes all record what was true
+        // when they were written — "hotkeys for 15 weapons" was correct in 1.26, and "four weapons
+        // to seventeen" is the story of a particular week. Correcting those would be a lie. This
+        // applies to the documents that describe the game as it is now.
+        if (path.endsWith('CHANGELOG.md') || path.endsWith('tasks.md') || path.includes('archive') || path.includes('linkedin')) continue;
+        for (const m of line.matchAll(/(\d+)\s+weapons\b/gi)) {
+          if (Number(m[1]) !== expected) wrong.push(`${path}:${String(i + 1)} says ${m[1]}, not ${String(expected)}`);
+        }
+        for (const m of line.matchAll(/([A-Za-z]+(?:-[a-z]+)?)\s+weapons\b/gi)) {
+          const said = m[1].toLowerCase();
+          if (Object.values(WORDS).includes(said) && said !== word) wrong.push(`${path}:${String(i + 1)} says "${m[1]}", not "${word}"`);
+        }
+      }
+    }
+    expect(wrong).toEqual([]);
+  });
+});
+
 describe('every document', () => {
   /**
    * A table row repeated is the one documentation bug a reader always notices and a diff never

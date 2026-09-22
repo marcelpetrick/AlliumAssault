@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.73.2] — 2026-09-22
+
+### Added
+
+- A test that checks the weapon count wherever a document states it in prose — "twenty-three
+  weapons", "23 weapons by kind" — against the weapon order itself. It is written in five places and
+  is wrong the moment a weapon is added. The changelog, the task list, the archive and the LinkedIn
+  notes are exempt: they record what was true when they were written, and correcting those would be
+  a lie.
+
+### Fixed
+
+- `docs/I18N.md` claimed 188 interface strings; there are 220. The number is gone rather than
+  corrected — a count in prose only goes stale again.
+
 ## [1.73.1] — 2026-09-22
 
 ### Fixed
