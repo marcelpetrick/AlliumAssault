@@ -36,6 +36,28 @@ export interface StrikePlan {
   drops: StrikeDrop[];
 }
 
+/** How finely the flight path is sampled when looking for the highest thing on it. */
+const PEAK_STEP = 1;
+
+/** The highest ground on the map, remembered per terrain revision: the scan is not free. */
+const peaks = new WeakMap<Terrain, { revision: number; peak: number }>();
+
+/**
+ * How high a strike plane flies.
+ *
+ * The clearance is measured from the highest ground anywhere on the map, not from the ground under
+ * the target. The plane crosses the whole level to reach its target, so a tall spire or one of the
+ * floating islands somewhere else on the way is something it would otherwise fly straight through.
+ */
+export function planeAltitude(t: Terrain): number {
+  const cached = peaks.get(t);
+  if (cached?.revision === t.revision) return cached.peak + CLEARANCE;
+  let peak = t.waterLevel;
+  for (let x = 0; x <= t.width; x += PEAK_STEP) peak = Math.max(peak, groundBelow(t, x));
+  peaks.set(t, { revision: t.revision, peak });
+  return peak + CLEARANCE;
+}
+
 /** Height of the first rock below the sky at x, or the water surface. */
 export function groundBelow(t: Terrain, x: number): number {
   for (let y = t.height; y > t.waterLevel; y -= 0.25) {
@@ -53,7 +75,7 @@ export function strikeWindShift(t: Terrain, def: WeaponDef, target: number, wind
   if (windAimed || !plane) return 0;
   const bomb = WEAPONS[weapon];
   const ground = groundBelow(t, target);
-  const altitude = Math.min(WORLD_HEIGHT + 4, ground + CLEARANCE);
+  const altitude = planeAltitude(t);
   const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * t.gravityScale * bomb.gravityScale));
   return 0.5 * wind * WIND_ACCEL * bomb.windInfluence * fall * fall;
 }
@@ -72,7 +94,7 @@ export function planStrike(t: Terrain, def: WeaponDef, target: number, dir: 1 | 
     const drops = Array.from({ length: count }, (_, k) => ({ x: target + (k - (count - 1) / 2) * spacing, delay: DROP_DELAY + k * 0.3 }));
     return { target, dir, ground, altitude, startX: target, bombVx: 0, drops };
   }
-  const altitude = Math.min(WORLD_HEIGHT + 4, ground + CLEARANCE);
+  const altitude = planeAltitude(t);
   const bombVx = dir * PLANE_SPEED * BOMB_CARRY;
   const ax = windAimed ? wind * WIND_ACCEL * bomb.windInfluence : 0;
   const fall = Math.sqrt((2 * (altitude - ground)) / (GRAVITY * t.gravityScale * bomb.gravityScale));

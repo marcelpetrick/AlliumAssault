@@ -887,6 +887,34 @@ describe('match flow', () => {
     expect(g.buddies[0].hp).toBe(100);
   });
 
+  it('still lands its bombs on the target when a spire elsewhere pushes the plane higher', () => {
+    const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    // A tall rock the plane would have flown through; it now flies over, and further to fall.
+    g.terrain.addDisc(15, 48, 9);
+    g.selectWeapon('airstrike');
+    g.pressFire();
+    const craters: number[] = [];
+    let altitude = 0;
+    g.strike(70);
+    runUntil(
+      g,
+      () => {
+        for (const e of g.drainEvents()) {
+          if (e.type === 'airstrike') altitude = e.altitude;
+          if (e.type === 'explosion') craters.push(e.x);
+        }
+        return craters.length >= 5;
+      },
+      10,
+    );
+    // Over the spire, not through it.
+    expect(altitude).toBeGreaterThan(48 + 9);
+    // And the longer fall is allowed for: the spread is still centred on what was aimed at.
+    const center = craters.reduce((a, b) => a + b, 0) / craters.length;
+    expect(Math.abs(center - 70)).toBeLessThan(2);
+  });
+
   it('arrow keys choose the side an air strike plane flies in from, without walking the buddy', () => {
     for (const weapon of ['airstrike', 'napalm'] as const) {
       const g = flatGame([30, 70], [team('A', 1), team('B', 1)]);

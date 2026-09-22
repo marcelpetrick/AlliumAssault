@@ -158,6 +158,7 @@ Status: ☐ open · ☑ done
 | T144 | Shorten the retreat window after firing from five seconds to three                                              | ☐      |                |
 | T145 | AI stands beside a crate without taking it; every difficulty should hunt crates                                 | ☐      |                |
 | T146 | "French Attack": wave a white flag, fire nothing, hand the turn to the next buddy                               | ☐      |                |
+| T147 | Strike planes fly through hills and floating islands; make them clear the map | ☐ | |
 
 ## Current implementation plan
 

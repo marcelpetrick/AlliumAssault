@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.76.1] — 2026-09-22
+
+### Fixed
+
+- **Strike planes flew through the landscape.** The flight altitude was measured from the ground
+  directly under the target, so a hill or one of the floating islands anywhere else on the crossing
+  was something the plane went straight through. Clearance is now measured from the highest ground
+  on the map. The bombs fall further as a result, which the release timing already allows for, so
+  they still land where they were aimed.
+
 ## [1.76.0] — 2026-09-22
 
 ### The AI goes shopping
