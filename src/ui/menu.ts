@@ -261,8 +261,10 @@ export class Menu {
   showAbout(): void {
     this.screen = 'about';
     const dep = (name: string) => esc(DEPENDENCY_VERSIONS[name] ?? '');
-    const row = (name: string, version: string, license: string, url: string) =>
-      `<tr><td><a href="${url}" target="_blank" rel="noopener">${name}</a></td><td>${version}</td><td>${license}</td></tr>`;
+    // The product name stays as its makers spell it; what it does for us is ours to say, so it is
+    // translated and sits outside the link.
+    const row = (name: string, role: TextKey | null, version: string, license: string, url: string) =>
+      `<tr><td><a href="${url}" target="_blank" rel="noopener">${name}</a>${role ? ` <span class="role">(${esc(t(role))})</span>` : ''}</td><td>${version}</td><td>${license}</td></tr>`;
     this.el.innerHTML = `
       <div class="screen">
         <div class="panel about">
@@ -276,14 +278,14 @@ export class Menu {
           <h3>${t('about.stack')}</h3>
           <table class="licenses">
             <tr><th>${t('about.component')}</th><th>${t('about.version')}</th><th>${t('about.license')}</th></tr>
-            ${row('Babylon.js (3D engine)', dep('@babylonjs/core'), 'Apache-2.0', 'https://www.babylonjs.com/')}
-            ${row('simplex-noise (terrain)', dep('simplex-noise'), 'MIT', 'https://github.com/jwagner/simplex-noise.js')}
-            ${row('Fredoka font', 'Google Fonts', 'OFL-1.1', 'https://fonts.google.com/specimen/Fredoka')}
-            ${row('TypeScript', dep('typescript'), 'Apache-2.0', 'https://www.typescriptlang.org/')}
-            ${row('Vite (build)', dep('vite'), 'MIT', 'https://vite.dev/')}
-            ${row('Vitest (unit tests)', dep('vitest'), 'MIT', 'https://vitest.dev/')}
-            ${row('Playwright (browser tests)', dep('@playwright/test'), 'Apache-2.0', 'https://playwright.dev/')}
-            ${row('ESLint + typescript-eslint', dep('eslint'), 'MIT', 'https://eslint.org/')}
+            ${row('Babylon.js', 'about.role3d', dep('@babylonjs/core'), 'Apache-2.0', 'https://www.babylonjs.com/')}
+            ${row('simplex-noise', 'about.roleTerrain', dep('simplex-noise'), 'MIT', 'https://github.com/jwagner/simplex-noise.js')}
+            ${row('Fredoka', 'about.roleFont', 'Google Fonts', 'OFL-1.1', 'https://fonts.google.com/specimen/Fredoka')}
+            ${row('TypeScript', null, dep('typescript'), 'Apache-2.0', 'https://www.typescriptlang.org/')}
+            ${row('Vite', 'about.roleBuild', dep('vite'), 'MIT', 'https://vite.dev/')}
+            ${row('Vitest', 'about.roleUnitTests', dep('vitest'), 'MIT', 'https://vitest.dev/')}
+            ${row('Playwright', 'about.roleBrowserTests', dep('@playwright/test'), 'Apache-2.0', 'https://playwright.dev/')}
+            ${row('ESLint + typescript-eslint', null, dep('eslint'), 'MIT', 'https://eslint.org/')}
           </table>
           <p class="fine">${t('about.fine')}</p>
         </div>

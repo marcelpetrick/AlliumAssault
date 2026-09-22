@@ -867,3 +867,63 @@ test('languages: the setup screen options change too, not only their labels', as
   expect(langs).toContain('Deutsch');
   expect(errors).toEqual([]);
 });
+
+test('languages: no English survives anywhere in the interface in Mandarin', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.locator('[data-action="language"][data-value="zh"]').click();
+
+  /** Product names, proper nouns, key caps and the player's own data all stay in Latin script. */
+  const allowed =
+    /^(Allium|Assault|Marcel|Petrick|GitHub|Pages|Babylon|simplex|noise|Fredoka|Google|Fonts|TypeScript|Vite|Vitest|Playwright|ESLint|typescript|eslint|MIT|Apache|OFL|GPL|Web|Audio|API|Team17|Worms|Enter|Space|Backspace|Tab|Esc|English|Deutsch|Hrvatski|Garlic|Gang|Clove|Crew|Bulb|Brigade|Stink|Squad|Clovis|Allie|Sprout|Chive|Ramson|Scape|Red|Roasters|Blue|Bulbs|Ruby|Blu|com|it|mail|https?|www|io|js|ts)$/i;
+
+  /** Every word and every screen-reader label under `selector`, as rendered. */
+  const englishIn = async (selector: string) => {
+    const texts = await page.evaluate((sel) => {
+      const root = document.querySelector(sel);
+      if (!root) return ['MISSING ELEMENT: ' + sel];
+      const out: string[] = [];
+      const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = walk.nextNode())) {
+        const text = (node.textContent ?? '').trim();
+        if (text) out.push(text);
+      }
+      for (const el of root.querySelectorAll('[aria-label],[title],[placeholder]')) {
+        for (const attr of ['aria-label', 'title', 'placeholder']) {
+          const value = el.getAttribute(attr);
+          if (value) out.push(value);
+        }
+      }
+      return out;
+    }, selector);
+    // A translatable word is plain letters. Anything carrying a dot, a slash, a hyphen or an @ is a
+    // URL, an email, a product identifier (`Babylon.js`, `simplex-noise`) or a licence id, so `/`
+    // is not a separator here — splitting on it would turn a URL's path into words.
+    return [...new Set(texts.flatMap((t) => t.split(/[\s·—:()×,|+]+/)))].filter((w) => /^[A-Za-z]{3,}$/.test(w) && !allowed.test(w));
+  };
+
+  // The setup screen, which is where the gap was: labels translated, options not.
+  expect(await englishIn('.setup-screen'), 'setup screen').toEqual([]);
+
+  await page.locator('[data-action="title"]').first().click();
+  expect(await englishIn('.title-screen'), 'title screen').toEqual([]);
+
+  await page.getByRole('button', { name: /玩法说明/ }).click();
+  expect(await englishIn('.panel'), 'help screen').toEqual([]);
+  await page.locator('[data-action="help-back"]').click();
+
+  await page.getByRole('button', { name: /关于/ }).click();
+  expect(await englishIn('.panel.about'), 'about screen').toEqual([]);
+  await page.locator('[data-action="title"]').first().click();
+
+  await startDuel(page);
+  expect(await englishIn('.hud'), 'HUD').toEqual([]);
+  await page.keyboard.press('Escape');
+  expect(await englishIn('.panel.narrow'), 'pause menu').toEqual([]);
+  expect(errors).toEqual([]);
+});

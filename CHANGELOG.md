@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.73.1] — 2026-09-22
+
+### Fixed
+
+- The last English on the About screen: the licence table described each dependency's job in
+  English — "(3D engine)", "(terrain)", "(unit tests)" — beside a name its makers chose. The name
+  stays as spelt; what it does for us is now translated.
+
+### Added
+
+- **A test that walks every screen in Mandarin and fails on any English left in it**: the setup
+  screen, title, help, About, the HUD and the pause menu, text and screen-reader labels alike.
+  Product names, URLs, licence identifiers, key caps and the player's own team and buddy names are
+  allowed through; everything else must be translated. This is the check that would have caught the
+  untranslated options two releases ago.
+
 ## [1.73.0] — 2026-09-22
 
 ### Fixed
