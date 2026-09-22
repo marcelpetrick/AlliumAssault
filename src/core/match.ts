@@ -51,6 +51,11 @@ export interface MatchConfig {
   suddenDeath?: number;
   /** The arena's pull as a multiple of the standard one; missing or 1 is the ordinary world. */
   gravity?: number;
+  /**
+   * An indestructible wall round the arena: nothing falls off the sides, and aircraft stay away.
+   * Sudden Death still floods it, so drowning becomes the only way out.
+   */
+  walled?: boolean;
   theme: string;
 }
 

@@ -5,6 +5,7 @@ import type { Scene } from '@babylonjs/core/scene';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { createNoise2D } from 'simplex-noise';
 import { contourRegion } from '../core/contour';
@@ -19,6 +20,9 @@ export const TERRAIN_DEPTH = 3.2;
 const BULGE = 0.9;
 const BULGE_K = 1.4;
 const WALL_RINGS = [-TERRAIN_DEPTH, -TERRAIN_DEPTH + 0.5, TERRAIN_DEPTH - 0.5, TERRAIN_DEPTH];
+/** The walled arena's barriers: how thick they stand and how far above the map they reach. */
+const BARRIER_THICKNESS = 1.6;
+const BARRIER_HEADROOM = 26;
 
 /**
  * Renders the density field as chunked 3D slabs: a pillowy front face from the
@@ -27,6 +31,7 @@ const WALL_RINGS = [-TERRAIN_DEPTH, -TERRAIN_DEPTH + 0.5, TERRAIN_DEPTH - 0.5, T
  */
 export class TerrainView {
   private readonly chunks = new Map<number, Mesh>();
+  private readonly barriers: Mesh[] = [];
   private readonly material: StandardMaterial;
   private readonly strata = createNoise2D(mulberry32(7));
   private readonly speck = createNoise2D(mulberry32(8));
@@ -45,7 +50,30 @@ export class TerrainView {
     mat.specularPower = 24;
     mat.backFaceCulling = false;
     this.material = mat;
+    if (terrain.walled) this.buildBarriers();
     this.update();
+  }
+
+  /**
+   * The two slabs that make a walled arena look walled. They are decoration: the wall that stops
+   * things is in `Terrain.sample()`, which every collision goes through, so the mesh only has to
+   * stand where that wall already is.
+   */
+  private buildBarriers(): void {
+    const t = this.terrain;
+    const height = t.height - t.waterLevel + BARRIER_HEADROOM;
+    const barrier = new StandardMaterial('barrier', this.scene);
+    barrier.diffuseColor = this.theme.dirt.scale(0.55);
+    barrier.emissiveColor = this.theme.dirt.scale(0.12);
+    barrier.specularColor = new Color3(0.1, 0.1, 0.12);
+    for (const side of [-1, 1]) {
+      const wall = MeshBuilder.CreateBox('barrier', { width: BARRIER_THICKNESS, height, depth: TERRAIN_DEPTH * 2 }, this.scene);
+      wall.position.set(side < 0 ? -BARRIER_THICKNESS / 2 : t.width + BARRIER_THICKNESS / 2, t.waterLevel + height / 2, 0);
+      wall.material = barrier;
+      wall.isPickable = false;
+      this.onChunk(wall);
+      this.barriers.push(wall);
+    }
   }
 
   update(): void {
@@ -56,6 +84,7 @@ export class TerrainView {
 
   dispose(): void {
     for (const mesh of this.chunks.values()) mesh.dispose();
+    for (const wall of this.barriers) wall.dispose();
     this.material.dispose(true, true);
   }
 

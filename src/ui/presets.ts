@@ -56,6 +56,15 @@ export const SUDDEN_DEATH_OPTIONS: { key: TextKey; value: number }[] = [
  * Moon makes for floaty jumps, long throws and gentle landings, Heavy for the opposite.
  */
 /**
+ * The arena either lets you fall off it or it does not. Values are 0 and 1 rather than booleans so
+ * the segmented control, which speaks in data attributes, can carry them like every other option.
+ */
+export const WALLED_OPTIONS: { key: TextKey; value: number }[] = [
+  { key: 'opt.open', value: 0 },
+  { key: 'opt.walled', value: 1 },
+];
+
+/**
  * Multipliers on the physics constant. Normal is the default and the one the weapon table is
  * balanced around; Moon is exactly half of it, and superheavy is the other end, where a bazooka
  * barely clears a hill and every shot is a lob.

@@ -707,3 +707,42 @@ test('sudden death: 1 HP, siren, banner and rising visible water', async ({ page
     .toBeCloseTo(flooded.waterLevel, 2);
   expect(errors).toEqual([]);
 });
+
+test('walled landscape: the option seals the arena, grounds the planes and carries a tooltip', async ({ page }, info) => {
+  const errors = await boot(page, '/');
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+
+  // Open by default, and the label explains both halves of what the switch does.
+  await expect(page.locator('[data-action="walled"][data-value="0"]')).toHaveClass(/on/);
+  const hint = await page.locator('label[title]', { hasText: 'Walled Landscape' }).getAttribute('title');
+  expect(hint).toContain('wall');
+  expect(hint).toMatch(/air strike|aircraft/i);
+  expect(hint).toMatch(/sudden death/i);
+
+  await page.locator('[data-action="walled"][data-value="1"]').click();
+  await expect(page.locator('[data-action="walled"][data-value="1"]')).toHaveClass(/on/);
+  // Kept for the next visit, like every other match setting.
+  expect(await page.evaluate(() => (JSON.parse(localStorage.getItem('allium.settings') ?? '{}') as { match?: { walled?: boolean } }).match?.walled)).toBe(true);
+
+  await startDuel(page, { walled: true, turnTime: 45 });
+  await info.attach('walled', { body: await page.screenshot(), contentType: 'image/png' });
+
+  // The aircraft are grounded; everything thrown by hand is untouched.
+  const ammo = (await state(page)).ammo!;
+  expect(ammo.airstrike).toBe(0);
+  expect(ammo.napalm).toBe(0);
+  expect(ammo.mule).toBeGreaterThan(0);
+
+  // And nothing leaves the map, however hard it is thrown at the edge.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game;
+    if (g) g.buddies[0].body.vx = -300;
+  });
+  await page.evaluate(() => {
+    window.__allium.stepFrames(120, 1 / 60);
+  });
+  const buddies = (await state(page)).buddies;
+  expect(buddies.every((b) => b.x > -1)).toBe(true);
+  expect(buddies.some((b) => b.hp > 0)).toBe(true);
+  expect(errors).toEqual([]);
+});

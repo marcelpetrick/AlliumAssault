@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.78.0] — 2026-09-22
+
+### The walled landscape
+
+A new switch on the setup screen, off by default, with a tooltip that explains both halves of what
+it does — because it changes two things at once.
+
+- **An indestructible wall down each side.** Nothing leaves the map: no buddy knocked off the edge,
+  no grenade sailing into the sea, no corpse sliding away. Shots bounce off it and stay in play.
+- **No aircraft.** Air strike and napalm are unavailable while it is on, and a supply crate that
+  would have held one hands out something else instead. The concrete mule stays: it falls out of
+  the sky by itself, with no plane involved.
+- **Sudden Death still floods it**, which with the sides sealed makes drowning the only way out.
+
+The wall lives in `Terrain.sample()`, the one place every collision in the game already asks about
+rock, so it is solid for buddies, projectiles, crates, mines and corpses alike — and being outside
+the density field, no blast can cut a hole in it.
+
 ## [1.77.0] — 2026-09-22
 
 ### The French Attack

@@ -1629,6 +1629,96 @@ describe('the French Attack', () => {
   });
 });
 
+describe('the walled landscape', () => {
+  const walled = (overrides = {}) => flatGame([20, 100], [team('A', 1), team('B', 1)], { walled: true, turnTime: 45, ...overrides });
+
+  it('reads as solid rock past either edge of the map, and only when it is switched on', () => {
+    const open = flatGame([20, 100], [team('A', 1), team('B', 1)]);
+    expect(open.terrain.isSolid(-2, 30)).toBe(false);
+    expect(open.terrain.isSolid(open.terrain.width + 2, 30)).toBe(false);
+    const g = walled();
+    expect(g.terrain.isSolid(-2, 30)).toBe(true);
+    expect(g.terrain.isSolid(g.terrain.width + 2, 30)).toBe(true);
+    // High above the ground as well: the wall is a wall, not a kerb.
+    expect(g.terrain.isSolid(-2, g.terrain.height - 1)).toBe(true);
+  });
+
+  it('cannot be blown open', () => {
+    const g = walled();
+    g.terrain.carve(0, 30, 12);
+    expect(g.terrain.isSolid(-2, 30)).toBe(true);
+  });
+
+  it('keeps a buddy on the map however hard it is hit', () => {
+    const g = walled();
+    toAiming(g);
+    const me = g.buddies[0];
+    // Straight at the wall, far faster than any blast could throw it.
+    me.body.vx = -400;
+    runUntil(g, () => false, 4);
+    expect(me.alive).toBe(true);
+    expect(me.body.x).toBeGreaterThan(-1);
+  });
+
+  it('bounces a shot off the wall instead of losing it over the edge', () => {
+    const g = walled();
+    toAiming(g);
+    g.projectiles.push({ id: 8001, weapon: 'grenade', x: 6, y: 30, vx: -60, vy: 0, radius: 0.15, bounces: 0, fuse: 99, age: 0, owner: 0 });
+    const shot = g.projectiles[0];
+    runUntil(g, () => shot.vx > 0, 3);
+    expect(shot.vx).toBeGreaterThan(0);
+    expect(shot.x).toBeGreaterThan(-1);
+  });
+
+  it('grounds the aircraft, and only the aircraft', () => {
+    const g = walled({ arsenal: 'all' });
+    const ammo = g.teams[0].ammo;
+    expect(ammo.airstrike).toBe(0);
+    expect(ammo.napalm).toBe(0);
+    // The mule falls out of the sky on its own; no plane is involved, so it stays.
+    expect(ammo.mule).toBeGreaterThan(0);
+    expect(ammo.bazooka).toBe(Infinity);
+    expect(WEAPONS.mule.strike?.plane).toBe(false);
+  });
+
+  it('will not let a grounded strike be selected or called', () => {
+    const g = walled();
+    toAiming(g);
+    g.selectWeapon('airstrike');
+    expect(g.weapon).not.toBe('airstrike');
+    const revision = g.terrain.revision;
+    g.strike(60);
+    expect(g.terrain.revision).toBe(revision);
+  });
+
+  it('hands out something else when a crate would have held an aircraft', () => {
+    const g = walled();
+    toAiming(g);
+    const before = { ...g.teams[0].ammo };
+    g.crates.push({ id: 8100, kind: 'weapon', weapon: 'airstrike', body: createBody(g.buddies[0].body.x, g.buddies[0].body.y, CRATE_RADIUS) });
+    runUntil(g, () => g.crates.length === 0, 5);
+    expect(g.teams[0].ammo.airstrike).toBe(0);
+    // Something was still given: a box that opens into nothing is worse than no box.
+    const gained = WEAPON_IDS.filter((id) => g.teams[0].ammo[id] > before[id]);
+    expect(gained).toHaveLength(1);
+    expect(WEAPONS[gained[0]].strike?.plane).not.toBe(true);
+  });
+
+  it('still floods for Sudden Death, so drowning is the way out that is left', () => {
+    const g = walled({ suddenDeath: 1, turnTime: 1 });
+    const level = g.terrain.waterLevel;
+    runUntil(g, () => g.waterRising, 60);
+    runUntil(g, () => g.terrain.waterLevel > level, 30);
+    expect(g.terrain.waterLevel).toBeGreaterThan(level);
+  });
+
+  it('leaves an open map exactly as it was', () => {
+    const g = flatGame([20, 100], [team('A', 1), team('B', 1)]);
+    expect(g.terrain.walled).toBe(false);
+    expect(g.teams[0].ammo.airstrike).toBeGreaterThan(0);
+  });
+});
+
 describe('crates', () => {
   const crateGame = (crates: number) => flatGame([20, 100], [team('A', 1), team('B', 1)], { crates, turnTime: 1 });
   const nextTurn = (g: Game) => {

@@ -14,6 +14,7 @@ import {
   ARSENAL_OPTIONS,
   CRATE_OPTIONS,
   GRAVITY_OPTIONS,
+  WALLED_OPTIONS,
   makeTeam,
   quickMatch,
   randomSeed,
@@ -220,6 +221,10 @@ export class Menu {
             <div><label class="field-label">${t('setup.gravity')}</label>${segmented(
               GRAVITY_OPTIONS.map((g) => ({ label: t(g.key), value: g.value, on: g.value === (d.gravity ?? 1) })),
               'gravity',
+            )}</div>
+            <div><label class="field-label" title="${t('setup.walledHint')}">${t('setup.walled')} ⓘ</label>${segmented(
+              WALLED_OPTIONS.map((o) => ({ label: t(o.key), value: o.value, on: (o.value === 1) === (d.walled ?? false) })),
+              'walled',
             )}</div>
             <div><label class="field-label">${t('setup.suddenDeath')}</label>${segmented(
               SUDDEN_DEATH_OPTIONS.map((o) => ({ label: t(o.key, { n: o.value }), value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
@@ -592,6 +597,9 @@ export class Menu {
         break;
       case 'sudden-death':
         d.suddenDeath = Number(value);
+        break;
+      case 'walled':
+        d.walled = value === '1';
         break;
       case 'gravity':
         d.gravity = Number(value);

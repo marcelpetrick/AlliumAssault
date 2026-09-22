@@ -53,6 +53,13 @@ export class Terrain {
    */
   gravityScale = 1;
   /**
+   * An indestructible wall down each side of the arena. When the setup screen switches it on,
+   * nothing leaves the map sideways — buddy, projectile, crate or corpse. Like the boards it lives
+   * outside the density field, so no blast can cut a hole in it, and because every collision in the
+   * game goes through `sample()` there is nothing else to teach about it.
+   */
+  walled = false;
+  /**
    * Placed boards. They are solid for every terrain query but live outside the density field, so
    * blasts cannot cut them and the rock mesh never has to be rebuilt for them.
    */
@@ -76,9 +83,17 @@ export class Terrain {
     return this.boards;
   }
 
-  /** Bilinear field sample, merged with the placed boards; everything outside the grid is air. */
+  /**
+   * Bilinear field sample, merged with the placed boards and the side walls; everything else
+   * outside the grid is air.
+   */
   sample(x: number, y: number): number {
     let density = this.bilinear(this.field, x, y, -MAX_DIST);
+    if (this.walled) {
+      // How far past the edge of the map this point is: positive outside, and so read as rock.
+      const wall = Math.min(Math.max(-x, x - this.width), MAX_DIST);
+      if (wall > density) density = wall;
+    }
     for (const b of this.boards) {
       const dx = x - b.x;
       const dy = y - b.y;

@@ -138,6 +138,7 @@ export function parseSettings(raw: string): Settings | null {
       SUDDEN_DEATH_OPTIONS.map((o) => o.value),
       d.suddenDeath ?? 0,
     ),
+    walled: typeof m.walled === 'boolean' ? m.walled : (d.walled ?? false),
     gravity: pick(
       m.gravity,
       GRAVITY_OPTIONS.map((g) => g.value),

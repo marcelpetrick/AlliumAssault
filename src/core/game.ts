@@ -34,7 +34,18 @@ import { clamp, lerp, type Point } from './math';
 import { createBody, glideBody, GRAVITY, stepBody, stepProjectile } from './physics';
 import { rngFor, type Rng } from './rng';
 import { MatchStats, type Blame, type MatchSummary, type StatsRoster } from './stats';
-import { CRATE_BLAST, CRATE_FIRE, CRATE_HEAL, crateLimit, openMystery, cratesPerTurn, DEFAULT_CRATE_CHANCE, rollCrate, type Crate } from './crates';
+import {
+  CRATE_BLAST,
+  CRATE_FIRE,
+  CRATE_HEAL,
+  crateLimit,
+  openMystery,
+  cratesPerTurn,
+  CRATE_WEAPONS,
+  DEFAULT_CRATE_CHANCE,
+  rollCrate,
+  type Crate,
+} from './crates';
 import { mineSees, MINE_TRIGGER_RANGE, placeMine, stepMine, type Mine } from './mines';
 import { FLAME_BITE_INTERVAL, FLAME_BITE_RADIUS, spreadFlames, type Flame } from './fire';
 import { FLYER_RADIUS, stepFlyer, type Flyer } from './flyer';
@@ -91,6 +102,16 @@ import {
 
 /** Everything a match is made of lives in `match.ts`; `game.ts` stays its single entry point. */
 export * from './match';
+
+/**
+ * May this weapon be used in this arena? A walled level has an indestructible roof of sorts: the
+ * only things ruled out are the ones that arrive by aircraft, because a plane crossing a sealed
+ * box is the one thing that could still reach in from outside it. Everything else, the concrete
+ * mule included, drops from the buddy's own hands and stays.
+ */
+function grounded(id: WeaponId, walled: boolean): boolean {
+  return !walled || WEAPONS[id].strike?.plane !== true;
+}
 
 export class Game {
   readonly terrain: Terrain;
@@ -172,6 +193,8 @@ export class Game {
     }
     this.terrain = defined(terrain, 'generated terrain');
     this.terrain.gravityScale = config.gravity ?? 1;
+    const walled = config.walled ?? false;
+    this.terrain.walled = walled;
     this.groundAtStart = this.terrain.solidFraction();
     this.windRng = rngFor(config.seed, 'wind');
     this.crateRng = rngFor(config.seed, 'crates');
@@ -183,7 +206,7 @@ export class Game {
       config: cfg,
       buddies: [],
       cursor: 0,
-      ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, startingAmmo(config.arsenal, id)])) as Record<WeaponId, number>,
+      ammo: Object.fromEntries(WEAPON_IDS.map((id) => [id, grounded(id, walled) ? startingAmmo(config.arsenal, id) : 0])) as Record<WeaponId, number>,
       weapon: 'bazooka',
     }));
     let slot = 0;
@@ -755,7 +778,9 @@ export class Game {
     // always plays the same joke.
     const prize = crate.kind === 'mystery' ? openMystery(this.crateRng) : null;
     const kind = prize ? prize.kind : crate.kind === 'health' ? 'health' : 'weapon';
-    const weapon = prize?.kind === 'weapon' ? prize.weapon : crate.weapon;
+    const rolled = prize?.kind === 'weapon' ? prize.weapon : crate.weapon;
+    // A walled arena has no sky traffic, so a box must not hand out a weapon that needs a plane.
+    const weapon = rolled && !grounded(rolled, this.terrain.walled) ? this.groundedSubstitute(rolled) : rolled;
     let amount = 1;
     if (kind === 'health') {
       amount = CRATE_HEAL;
@@ -770,6 +795,16 @@ export class Game {
     }
     this.statsRecorder.collected(b.id, this.roster());
     this.emit({ type: 'cratePickup', crate: crate.id, buddy: b.id, kind, weapon, amount, x, y, mystery: crate.kind === 'mystery' });
+  }
+
+  /**
+   * Something else from the crate pool the walls do not rule out, chosen from the match's own crate
+   * stream so the same seed still plays out the same way. Falls back to the bazooka, which is
+   * always allowed, in the impossible case that nothing else is.
+   */
+  private groundedSubstitute(instead: WeaponId): WeaponId {
+    const pool = CRATE_WEAPONS.filter((id) => id !== instead && grounded(id, this.terrain.walled));
+    return pool[Math.floor(this.crateRng() * pool.length)] ?? 'bazooka';
   }
 
   private removeCrate(crate: Crate): void {
