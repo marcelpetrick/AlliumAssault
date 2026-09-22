@@ -2,6 +2,41 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.72.0] — 2026-09-22
+
+Public release. What is new since 1.68.0.
+
+### The scoreboard
+
+- **It speaks all four languages.** It never did: the core built its award titles as English
+  sentences, where no catalogue could reach them. Awards now carry an id and their numbers, and the
+  interface supplies the words — and the compiler refuses to build if an award is missing words in
+  any language.
+- **It says more, in colour.** Green for what went well, red for what did not. Blunders have their
+  own board beside the honours. New counts: how many drowned, how many were blown up, how many
+  pressed their own detonator; every weapon ranked by use; and the tools ranked separately.
+- Two new awards: most knocked out, and tool of the match.
+
+### Playing
+
+- **The aim answers while a shot is charging** — at 45% of the usual speed, so it is a last-minute
+  correction rather than a second chance to aim.
+- **Buddies can be renamed**, the way the team already could, and the names are remembered for the
+  next match.
+- The map-seed field and its dice button are half again as large.
+
+### Also
+
+- The help screen's key map and the whole About screen were untranslated too. Both follow the
+  setting now.
+- `docs/I18N.md` explains how the translations work and the rule behind them: the core may never
+  hold a player-facing sentence.
+- The README listed the flamethrower twice. It does not now, and four tests hold the weapon table to
+  the code and sweep every document for a repeated row.
+- `docs/ARCHITECTURE.md` is back in step with the code after the 1.56–1.68 run.
+- Tests that pin down what the blowtorch does to a buddy it walks into, which was correct all along
+  but only guaranteed at point-blank range.
+
 ## [1.71.1] — 2026-09-22
 
 ### Fixed

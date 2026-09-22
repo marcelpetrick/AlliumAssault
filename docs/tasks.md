@@ -146,7 +146,7 @@ Status: ☐ open · ☑ done
 | T132 | Check the blowtorch actually burns a buddy it walks into — it should                                            | ☑      | 1.68.3         |
 | T133 | Rename the buddies in a team, the way the team itself can be renamed, and remember the names                    | ☑      | 1.71.0         |
 | T134 | Setup screen: a bigger map-seed field and a bigger dice button                                                  | ☑      | 1.71.0         |
-| T135 | Public release: push, tag, GitHub release and Pages deployment                                                  | ☐      |                |
+| T135 | Public release v1.72.0: push, tag, GitHub release and Pages deployment                                          | ☑      | 1.72.0         |
 
 ## Current implementation plan
 
