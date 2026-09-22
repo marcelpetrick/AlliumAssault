@@ -308,6 +308,12 @@ export interface FlamerAction {
   emitted: number;
 }
 
+/**
+ * How much of the ordinary aim speed is left once the shot is charging. A last-minute correction,
+ * not a second chance to aim: at full speed the charge would stop being a commitment.
+ */
+export const CHARGE_AIM_FACTOR = 0.45;
+
 /** How fast up and down swing the nozzle, in radians a second. */
 export const NOZZLE_SPEED = 1.15;
 /** The nozzle reaches further down than the aim normally allows: you can hose your own feet. */

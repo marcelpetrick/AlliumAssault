@@ -57,6 +57,33 @@ test('bazooka: charge whoosh while holding Space, whistling rocket, explosion an
   expect(errors).toEqual([]);
 });
 
+test('bazooka: the aim can still be corrected while the shot is charging', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await select(page, '1', 'bazooka');
+  await aim(page, 0.3);
+  const start = await state(page);
+  const before = start.buddies.find((b) => b.name === start.activeBuddy)!.aim;
+
+  // Hold Space, then nudge up: the last-minute correction a player reaches for.
+  await page.keyboard.down('Space');
+  await waitFor(page, (s) => s.charge !== null, 5000);
+  await page.keyboard.down('ArrowUp');
+  // stepFrames, not fastForward: only the real frame path reads the keys that are held down.
+  await page.evaluate(() => {
+    window.__allium.stepFrames(12, 1 / 60);
+  });
+  const during = await state(page);
+  const lifted = during.buddies.find((b) => b.name === during.activeBuddy)!.aim;
+  expect(during.charge, 'still charging').not.toBeNull();
+  expect(lifted, 'the aim did not answer while charging').toBeGreaterThan(before);
+
+  await page.keyboard.up('ArrowUp');
+  await page.keyboard.up('Space');
+  await waitFor(page, (s) => s.projectiles > 0 || s.phase !== 'aiming', 10_000);
+  expect(errors).toEqual([]);
+});
+
 test('grenade: bounces audibly, then explodes after its fuse', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);

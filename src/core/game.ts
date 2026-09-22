@@ -62,6 +62,7 @@ import {
   SCORCH_DAMAGE,
   SCORCH_HOP,
   SMASH_REBOUND,
+  CHARGE_AIM_FACTOR,
   NOZZLE_MAX,
   NOZZLE_MIN,
   NOZZLE_SPEED,
@@ -489,9 +490,13 @@ export class Game {
 
     if (this.acting && !this.isHumanTurn) this.ai.get(this.activeTeam)?.update(this, dt);
 
-    if (active && this.phase === 'aiming' && this.charge === null) {
+    if (active && this.phase === 'aiming') {
       const dir = Number(this.input.up) - Number(this.input.down);
-      active.aim = clamp(active.aim + dir * AIM_SPEED * dt, AIM_MIN, AIM_MAX);
+      // The aim keeps answering while the shot charges, but more slowly: holding Space is meant to
+      // be a commitment, and at full speed you could swing a quarter turn without letting go. Slow
+      // enough to be a correction, fast enough to fix the two degrees you noticed too late.
+      const speed = this.charge === null ? AIM_SPEED : AIM_SPEED * CHARGE_AIM_FACTOR;
+      active.aim = clamp(active.aim + dir * speed * dt, AIM_MIN, AIM_MAX);
       // Holding both keys leaves the chosen side alone, like holding both walk keys stands still.
       if (this.choosingApproach && this.input.left !== this.input.right) this.strikeDir = this.input.left ? 1 : -1;
     }

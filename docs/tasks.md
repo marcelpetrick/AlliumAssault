@@ -139,7 +139,7 @@ Status: ☐ open · ☑ done
 | T125 | AI: stop leaning on the concrete mule — spread the choice across the arsenal it actually has                    | ☑      | 1.64.0         |
 | T126 | Bug: a crate collected by a sheep floats its reward twice — once at the crate, once over the buddy              | ☑      | 1.58.2         |
 | T127 | Public release v1.67.0: push, tag, GitHub release and Pages deployment                                          | ☑      | 1.67.0         |
-| T128 | Aim while charging: up and down adjust the shot during the charge, for last-minute corrections                  | ☐      |                |
+| T128 | Aim while charging: up and down adjust the shot during the charge, for last-minute corrections                  | ☑      | 1.70.0         |
 | T129 | Translate every user-visible string: the statistics screen still shows English in all four languages            | ☑      | 1.69.0         |
 | T130 | A short document on how the project's i18n works and how to add a string or a language                          | ☑      | 1.69.1         |
 | T131 | Statistics: more colour, green for good and red for bad, blunders, favourite weapons, deaths by cause, tool use | ☑      | 1.69.0         |

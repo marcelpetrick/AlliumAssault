@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { NO_KNOWLEDGE, planAttack, scoreBlast, simulateShot } from '../src/core/ai';
-import { Game, REST_SPEED, type GameEvent } from '../src/core/game';
+import { CHARGE_AIM_FACTOR, Game, REST_SPEED, type GameEvent } from '../src/core/game';
 import { createBody } from '../src/core/physics';
 import { crateLimit, CRATE_FIRE, CRATE_RADIUS, CRATE_WEAPONS, MAX_CRATES, MYSTERY_ODDS, openMystery } from '../src/core/crates';
 import { hotkeyLabel, LETTER_KEYS, SPECIAL_WEAPONS, WEAPON_IDS, WEAPON_ORDER, WEAPONS, weaponForKey, type WeaponId } from '../src/core/weapons';
@@ -150,6 +150,59 @@ describe('match flow', () => {
     expect(g.phase).toBe('aiming');
     g.pressFire();
     expect(g.phase).toBe('retreat');
+  });
+
+  it('lets the aim be corrected while the shot is charging, but more slowly', () => {
+    const charging = (hold: number) => {
+      const g = flatGame([40, 90], [team('A', 1), team('B', 1)], { turnTime: 45 });
+      toAiming(g);
+      const b = g.buddies[0];
+      b.aim = 0.5;
+      g.selectWeapon('bazooka');
+      g.pressFire();
+      expect(g.charge).not.toBeNull();
+      g.input.up = true;
+      g.simulate(hold);
+      return { aim: b.aim, charge: g.charge };
+    };
+    const held = charging(0.3);
+    // The shot is still charging, and the aim has moved with it.
+    expect(held.charge).not.toBeNull();
+    expect(held.aim).toBeGreaterThan(0.5);
+
+    // Slower than aiming freely: a correction, not a second chance to aim.
+    const free = flatGame([40, 90], [team('A', 1), team('B', 1)], { turnTime: 45 });
+    toAiming(free);
+    free.buddies[0].aim = 0.5;
+    free.input.up = true;
+    free.simulate(0.3);
+    const freeMoved = free.buddies[0].aim - 0.5;
+    const heldMoved = held.aim - 0.5;
+    expect(heldMoved).toBeLessThan(freeMoved);
+    expect(heldMoved).toBeCloseTo(freeMoved * CHARGE_AIM_FACTOR, 2);
+  });
+
+  it('fires a charged shot along the aim it was corrected to', () => {
+    const shoot = (correct: boolean) => {
+      const g = flatGame([40, 90], [team('A', 1), team('B', 1)], { turnTime: 45, windMax: 0 });
+      toAiming(g);
+      const b = g.buddies[0];
+      b.facing = 1;
+      b.aim = 0.3;
+      g.selectWeapon('bazooka');
+      g.pressFire();
+      if (correct) g.input.up = true;
+      g.simulate(0.4);
+      g.input.up = false;
+      g.releaseFire();
+      const shot = g.drainEvents().find((e) => e.type === 'fire');
+      return { aim: b.aim, dy: shot?.type === 'fire' ? shot.dy : 0 };
+    };
+    const flat = shoot(false);
+    const lifted = shoot(true);
+    // The correction reached the shot itself, not just the buddy's pose.
+    expect(lifted.aim).toBeGreaterThan(flat.aim);
+    expect(lifted.dy).toBeGreaterThan(flat.dy);
   });
 
   it('punch launches an adjacent enemy upwards', () => {

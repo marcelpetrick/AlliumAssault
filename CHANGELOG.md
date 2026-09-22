@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.70.0] — 2026-09-22
+
+### Added
+
+- **The aim answers while a shot is charging.** Up and down used to do nothing once Space was held,
+  which is exactly the moment a player notices the shot is two degrees off. They work now, at 45% of
+  the ordinary speed: enough to fix the two degrees, not enough to swing a quarter turn without
+  letting go — holding Space should still be a commitment. The key map says so.
+
 ## [1.69.1] — 2026-09-22
 
 ### Added
