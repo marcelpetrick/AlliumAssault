@@ -668,6 +668,58 @@ describe('match flow', () => {
     expect(WEAPONS.shard.radius).toBeGreaterThan(WEAPONS.bananalet.radius);
   });
 
+  it('the vase shards are contact bombs: no fuse, no bounce, off on the first thing they touch', () => {
+    // Set by the weapon table rather than by Game, so assert the table says what the behaviour needs.
+    expect(WEAPONS.shard.restitution).toBeNull();
+    expect(WEAPONS.shard.fuse).toBe(0);
+
+    const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    // Drop one shard straight onto the enemy: it must go off on touching it, not after a fuse.
+    const enemy = g.buddies[1];
+    g.projectiles.push({
+      id: 9001,
+      weapon: 'shard',
+      x: enemy.body.x,
+      y: enemy.body.y + 6,
+      vx: 0,
+      vy: 0,
+      radius: 0.3,
+      bounces: 0,
+      fuse: WEAPONS.shard.fuse,
+      age: 0,
+      owner: 1,
+    });
+    const before = enemy.hp;
+    const start = g.time;
+    runUntil(g, () => g.projectiles.length === 0, 3);
+    expect(enemy.hp).toBeLessThan(before);
+    // Falling six units takes well under a second; the old 1.2 s fuse would have outlasted it.
+    expect(g.time - start).toBeLessThan(1.2);
+  });
+
+  it('a shard goes off on a crate rather than resting against it', () => {
+    const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
+    toAiming(g);
+    g.crates.length = 0;
+    g.crates.push({ id: 9100, kind: 'health', weapon: null, body: createBody(65, g.buddies[1].body.y, CRATE_RADIUS) });
+    g.projectiles.push({
+      id: 9002,
+      weapon: 'shard',
+      x: 65,
+      y: g.buddies[1].body.y + 5,
+      vx: 0,
+      vy: 0,
+      radius: 0.3,
+      bounces: 0,
+      fuse: WEAPONS.shard.fuse,
+      age: 0,
+      owner: 0,
+    });
+    runUntil(g, () => g.projectiles.length === 0, 3);
+    expect(g.crates).toHaveLength(0);
+  });
+
   it('banana bomb bursts into five bouncing bananas that explode one by one', () => {
     const g = flatGame([40, 90], [team('A', 1), team('B', 1)]);
     toAiming(g);

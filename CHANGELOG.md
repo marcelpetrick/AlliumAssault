@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.74.2] — 2026-09-22
+
+### Changed
+
+- **The Ming vase's shards are contact bombs.** They carried a 1.2-second fuse and bounced first,
+  so the eight of them skittered away from the vase and went off wherever they happened to stop.
+  They now explode on the first thing they touch — rock, buddy or crate — like the cluster bomb's
+  bomblets, which is what a shower of razor-edged porcelain ought to do.
+
 ## [1.74.1] — 2026-09-22
 
 ### Fixed
