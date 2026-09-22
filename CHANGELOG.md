@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.72.1] — 2026-09-22
+
+### Changed
+
+- `typescript-eslint` 8.70.0 → 8.70.1. Every other dependency was already on its latest stable
+  release. TypeScript stays at 6.0.3 and `@types/node` at 24.13.6: the newer majors of both are
+  held back on purpose, and both pins are the newest release inside the range they are allowed —
+  `typescript-eslint` still declares `typescript >=4.8.4 <6.1.0`, and the runtime here and in CI is
+  Node 24.
+
 ## [1.72.0] — 2026-09-22
 
 Public release. What is new since 1.68.0.
