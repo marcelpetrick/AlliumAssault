@@ -3,6 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { defaultSettings, parseSettings, SETTINGS_VERSION } from '../src/ui/settings';
+import { quickMatch } from '../src/ui/presets';
 
 describe('persisted settings', () => {
   it('write the schema version, so a later build knows what it is reading', () => {
@@ -114,5 +115,17 @@ describe('persisted settings', () => {
       expect(t.buddyNames.every((n) => typeof n === 'string')).toBe(true);
     }
     expect(parseSettings(JSON.stringify({ match: { ...defaults.match, teams: [good] } }))!.match.teams).toHaveLength(2);
+  });
+});
+
+describe('match defaults', () => {
+  it('gives three seconds to retreat after firing, not five', () => {
+    expect(quickMatch().retreatTime).toBe(3);
+    expect(defaultSettings().match.retreatTime).toBe(3);
+  });
+
+  it('keeps the retreat window inside the range the settings store will accept back', () => {
+    const stored = JSON.stringify({ version: SETTINGS_VERSION, ...defaultSettings() });
+    expect(parseSettings(stored)?.match.retreatTime).toBe(3);
   });
 });

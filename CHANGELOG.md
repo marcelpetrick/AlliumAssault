@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.74.4] — 2026-09-22
+
+### Changed
+
+- **Three seconds to retreat after firing, down from five.** Five was long enough to walk out of
+  your own blast and most of the way to somewhere better, which made the retreat window a second
+  turn. The setting still runs from one to ten for anyone who liked it the old way.
+
 ## [1.74.3] — 2026-09-22
 
 ### Fixed

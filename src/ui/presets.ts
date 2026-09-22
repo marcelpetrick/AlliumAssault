@@ -98,7 +98,8 @@ export function quickMatch(): MatchConfig {
     seed: randomSeed(),
     teams: [human, makeTeam(1, 'ai', 'normal', 3, human.buddyNames)],
     turnTime: 45,
-    retreatTime: 5,
+    // Long enough to walk clear of your own blast, short enough that it is not a second turn.
+    retreatTime: 3,
     windMax: 0.7,
     crates: 0.35,
     arsenal: 'all',
