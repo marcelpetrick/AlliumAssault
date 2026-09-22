@@ -34,7 +34,7 @@ browser and start a Quick Match.
 </table>
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
-garlic buddies. Destructible islands, wind, twenty-three weapons from bazookas and banana bombs to
+garlic buddies. Destructible islands, wind, twenty-four weapons from bazookas and banana bombs to
 a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones,
 Sudden Death and five sceneries — rendered with real-time 3D graphics in your browser.
 
@@ -142,31 +142,32 @@ Grouped the way the weapon bar groups them: the launcher and the thrown family, 
 fists, the sheep, what is called in from the sky, the digging tools, getting about and building,
 and the two ways of taking others with you.
 
-| Key | Weapon                 | Ammo | Behaviour                                                                                                                                       |
-| --- | ---------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | 🚀 Bazooka             | ∞    | Charged shot, strong wind drift, explodes on contact (50 dmg)                                                                                   |
-| 2   | 💣 Grenade             | ∞    | Charged throw, bounces, 3 s fuse, little wind drift (50 dmg)                                                                                    |
-| 3   | 🧨 Cluster Bomb        | 3    | Red grenade, 3 s fuse (25 dmg), bursts into five bomblets of 10 dmg each                                                                        |
-| 4   | 🍌 Banana Bomb         | 1    | 3 s fuse (40 dmg), then five bouncing bananas explode one after another (30 dmg each)                                                           |
-| 5   | ✨ Holy Garlic Grenade | 1    | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later (100 dmg, radius 7)                                                                  |
-| 6   | 💥 Shotgun             | 2    | Two instant shots along the aim line (22 dmg each)                                                                                              |
-| 7   | 🔫 Minigun             | 1    | Burst of 14 bullets (5 dmg each) whose kicks shove the victim far across the map                                                                |
-| 8   | 👊 Garlic Punch        | ∞    | Close-range uppercut that launches the victim (45 dmg)                                                                                          |
-| 9   | 🏏 Baseball Bat        | 2    | Home run: 25 dmg, knocks the victim far along the aim line (at least 20° upwards)                                                               |
-| 0   | 🐑 Sheep               | 1    | Space releases it, it hops forward in small 45° leaps; Space again detonates it (75 dmg), at the latest after 10 s                              |
-| ⇧1  | 🦸 Flying Sheep        | 1    | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates (75 dmg); explodes on impact or after 15 s                   |
-| ⇧2  | ✈️ Air Strike          | 1    | Click on the map: a plane drops five bombs around that spot (25 dmg each)                                                                       |
-| ⇧3  | 🌋 Napalm Strike       | 1    | Click on the map: a plane drops napalm the wind carries far; the ground burns about 9 s, eats a dent into itself, hops buddies for 3 dmg        |
-| ⇧4  | 🫏 Concrete Mule       | 1    | Click on the map: it drops from the sky and explodes on up to six impacts as it smashes downwards (35 dmg each)                                 |
-| ⇧5  | 🔥 Blowtorch           | 2    | Burns a tunnel along the aim line for 3 s and rides it — aim up to climb, down to dig in; falls where the rock ends (15 dmg)                    |
-| ⇧6  | ⛏️ Drill               | 2    | Drills straight down for 3 s; no fall damage while drilling (15 dmg to buddies in the way)                                                      |
-| ⇧7  | 🪝 Rope                | 3    | Space shoots a hook up to 24 units into rock; hang, ↑↓ reel, ←→ swing, Space lets go with your momentum. Land first, then fire a weapon         |
-| ⇧8  | 🪵 Platform            | 2    | Move the mouse to place a five-unit board in open air, the wheel tilts it up to 60°, a left click sets it; solid, indestructible, no damage     |
-| ⇧9  | 🛞 Proximity Mine      | 2    | Space drops it at your feet; it arms after 1.5 s and blows up the first buddy within 2 units — friend, foe or the one who laid it (40 dmg)      |
-| ⇧0  | ☠️ Self-Destruct       | 1    | "Oh no!": the buddy panics for three seconds, then blows itself up — damage equals its health, blast radius health ÷ 10                         |
-| T   | 🌀 Teleport            | 1    | Press T, then click any free spot: the buddy appears there and falls, lands hard or drowns from there like anybody else. One per match          |
-| V   | 🏺 Ming Vase           | 1    | Six hundred years of porcelain, thrown once: an enormous blast and eight razor shards that each hit like a grenade. One per match               |
-| F   | 🧯 Flamethrower        | 2    | Three seconds of burning fuel out of a nozzle. Up and down steer it while it runs; wind and gravity carry the gobs and the ground keeps burning |
+| Key | Weapon                 | Ammo | Damage                                     | Behaviour                                                                                                                               |
+| --- | ---------------------- | ---- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 🚀 Bazooka             | ∞    | 50 on contact                              | Charged shot, strong wind drift, explodes on whatever it touches                                                                        |
+| 2   | 💣 Grenade             | ∞    | 50 on the blast                            | Charged throw, bounces, 3 s fuse, little wind drift                                                                                     |
+| 3   | 🧨 Cluster Bomb        | 3    | 25 for the burst, then 10 per bomblet (×5) | Red grenade, 3 s fuse, then five bomblets that go off on contact                                                                        |
+| 4   | 🍌 Banana Bomb         | 1    | 40 for the burst, then 30 per banana (×5)  | 3 s fuse, then five bouncing bananas explode one after another                                                                          |
+| 5   | ✨ Holy Garlic Grenade | 1    | 100 over a radius of 7                     | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later                                                                              |
+| 6   | 💥 Shotgun             | 2    | 22 per shot (×2)                           | Two instant shots along the aim line                                                                                                    |
+| 7   | 🔫 Minigun             | 1    | 5 per bullet (×14)                         | A burst whose kicks shove the victim far across the map                                                                                 |
+| 8   | 👊 Garlic Punch        | ∞    | 45 and a launch                            | Close-range uppercut; jump into a ceiling and it punches through the rock                                                               |
+| 9   | 🏏 Baseball Bat        | 2    | 25 and a long flight                       | Home run: knocks the victim along the aim line, at least 20° upwards                                                                    |
+| 0   | 🐑 Sheep               | 1    | 75 for the blast                           | Space releases it, it hops forward in small 45° leaps; Space again detonates it, at the latest after 10 s                               |
+| ⇧1  | 🦸 Flying Sheep        | 1    | 75 for the blast                           | Takes off along the aim; the arrow keys steer it the whole flight, Space detonates; explodes on impact or after 15 s                    |
+| ⇧2  | ✈️ Air Strike          | 1    | 25 per bomb (×5)                           | Click on the map: a plane flies over the landscape and drops five bombs around that spot                                                |
+| ⇧3  | 🌋 Napalm Strike       | 1    | 5 per firebomb (×4), then 3 per flame bite | Click on the map: a plane drops napalm the wind carries far; the ground burns about 9 s and eats a dent into itself                     |
+| ⇧4  | 🫏 Concrete Mule       | 1    | 35 per impact, up to six                   | Click on the map: it drops from the sky and explodes again on each impact as it smashes downwards                                       |
+| ⇧5  | 🔥 Blowtorch           | 2    | 15 to anyone in the tunnel                 | Burns a tunnel along the aim line for 3 s and rides it — aim up to climb, down to dig in; falls where the rock ends                     |
+| ⇧6  | ⛏️ Drill               | 2    | 15 to anyone in the way                    | Jackhammers straight down for 3 s; no fall damage while drilling                                                                        |
+| ⇧7  | 🪝 Rope                | 3    | —                                          | Space shoots a hook up to 24 units into rock; hang, ↑↓ reel, ←→ swing, Space lets go with your momentum. Land first, then fire a weapon |
+| ⇧8  | 🪵 Platform            | 2    | —                                          | Move the mouse to place a five-unit board in open air, the wheel tilts it up to 60°, a left click sets it; solid and indestructible     |
+| ⇧9  | 🏳️ French Attack       | ∞    | —                                          | Wave the white flag: nothing is fired and the turn passes straight to the next buddy. Always available                                  |
+| ⇧0  | 🛞 Proximity Mine      | 2    | 40 for the blast                           | Space drops it at your feet; it arms after 1.5 s and blows up the first buddy within 2 units — friend, foe or the one who laid it       |
+| T   | 🌀 Teleport            | 1    | —                                          | Press T, then click any free spot: the buddy appears there and falls, lands hard or drowns from there like anybody else. One per match  |
+| K   | ☠️ Self-Destruct       | 1    | Its own health, up to 100                  | "Oh no!": the buddy panics for three seconds, then blows itself up; blast radius is its health ÷ 10                                     |
+| V   | 🏺 Ming Vase           | 1    | 70 for the burst, then 38 per shard (×8)   | Six hundred years of porcelain, thrown once; the shards are contact bombs. One per match                                                |
+| F   | 🧯 Flamethrower        | 2    | 7 per burning gob                          | Three seconds of fuel out of a nozzle. Up and down steer it while it runs; wind and gravity carry the gobs and the ground keeps burning |
 
 ## Architecture
 
@@ -176,7 +177,7 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── weapons.ts   weapon table (23 weapons by kind), arsenal flags, hotkey mapping
+│   ├── weapons.ts   weapon table (24 weapons by kind), arsenal flags, hotkey mapping
 │   ├── match.ts     what a match is made of: config, buddies, teams, phases, turn actions, events
 │   ├── game.ts      the state machine over them: turns, weapon execution, damage, crates, mines, flames
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep

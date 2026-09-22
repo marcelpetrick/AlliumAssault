@@ -4,7 +4,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { hotkeyLabel, WEAPON_ORDER, WEAPONS } from '../src/core/weapons';
+import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponId } from '../src/core/weapons';
 
 /** Every Markdown file in the repository, minus the ones nobody wrote by hand. */
 function documents(dir = '.'): string[] {
@@ -17,18 +17,18 @@ function documents(dir = '.'): string[] {
   });
 }
 
-/** The rows of the README's weapon table: hotkey, name, ammo. */
-function readmeWeapons(): { key: string; name: string; ammo: string }[] {
+/** The rows of the README's weapon table: hotkey, name, ammo, damage. */
+function readmeWeapons(): { key: string; name: string; ammo: string; damage: string }[] {
   const lines = readFileSync('README.md', 'utf8').split('\n');
   const head = lines.findIndex((l) => l.startsWith('| Key | Weapon'));
   expect(head, 'the README has no weapon table').toBeGreaterThan(-1);
-  const rows: { key: string; name: string; ammo: string }[] = [];
+  const rows: { key: string; name: string; ammo: string; damage: string }[] = [];
   for (let i = head + 2; i < lines.length && lines[i].startsWith('|'); i++) {
     const cells = lines[i]
       .split('|')
       .slice(1, -1)
       .map((c) => c.trim());
-    rows.push({ key: cells[0], name: cells[1], ammo: cells[2] });
+    rows.push({ key: cells[0], name: cells[1], ammo: cells[2], damage: cells[3] });
   }
   return rows;
 }
@@ -58,6 +58,34 @@ describe('the README weapon table', () => {
     for (const [k, row] of rows.entries()) {
       const ammo = WEAPONS[WEAPON_ORDER[k]].ammo;
       expect({ weapon: row.name, ammo: row.ammo }).toEqual({ weapon: row.name, ammo: ammo === Infinity ? '∞' : String(ammo) });
+    }
+  });
+  /**
+   * Every number a weapon can do, from the weapon table: its own blast, and whatever its payload
+   * does — the fragments of a cluster, the bombs of a strike, the gobs of a spray. A table that
+   * says "50 dmg" for a cluster bomb and stops there is telling a reader less than half the story.
+   */
+  function damageFigures(id: WeaponId): number[] {
+    const def = WEAPONS[id];
+    const payloads = [def.cluster?.weapon, def.strike?.weapon, def.spray?.weapon];
+    const numbers = [def.damage, ...payloads.map((p) => (p ? WEAPONS[p].damage : 0))];
+    return [...new Set(numbers.filter((n) => n > 0))];
+  }
+
+  it('states the damage the weapon table really deals, payloads included', () => {
+    const rows = readmeWeapons();
+    for (const [k, row] of rows.entries()) {
+      const id = WEAPON_ORDER[k];
+      const figures = damageFigures(id);
+      if (!figures.length) {
+        // Nothing this weapon does hurts anybody; say so rather than leaving the cell to guesswork.
+        expect({ weapon: row.name, damage: row.damage }).toEqual({ weapon: row.name, damage: '—' });
+        continue;
+      }
+      const stated = [...row.damage.matchAll(/\d+/g)].map((m) => Number(m[0]));
+      for (const figure of figures) {
+        expect(stated, `${row.name}: the table deals ${String(figure)}, the README says "${row.damage}"`).toContain(figure);
+      }
     }
   });
 });

@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.77.0] — 2026-09-22
+
+### The French Attack
+
+- **A twenty-fourth weapon that does nothing at all.** Wave the white flag and the turn passes
+  straight to the next buddy: no shot, no damage, no crater, and no retreat window, because there is
+  nothing to retreat from. Unlimited, so it is always there when every shot you have would hurt you
+  more than them.
+
+### The weapon bar
+
+- **The tools sit together now.** Blowtorch, drill, rope, platform and the white flag are five
+  consecutive slots, instead of the flag being appended to the end of the list on its own. Two
+  hotkeys moved to make room: the proximity mine is ⇧0, and self-destruct is now **K**.
+
+### Documentation
+
+- **The README states what every weapon actually does in damage**, in a column of its own, and
+  states a payload separately from the thing that throws it: the cluster bomb is "25 for the burst,
+  then 10 per bomblet (×5)" rather than one number that describes neither half. A test reads the
+  figures out of the weapon table and fails if the page disagrees, payloads included.
+
 ## [1.76.1] — 2026-09-22
 
 ### Fixed

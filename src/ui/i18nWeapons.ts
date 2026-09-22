@@ -43,6 +43,10 @@ const DE: WeaponWords = {
   mine: { name: 'Annäherungsmine', blurb: 'Leertaste legt sie vor die Füße. Sie schärft sich, während du wegläufst, und geht dann für jeden hoch.' },
   selfdestruct: { name: 'Selbstzerstörung', blurb: 'Die Knolle sprengt sich selbst: Schaden gleich Lebenspunkte, und der Radius wächst mit.' },
   teleport: { name: 'Teleport', blurb: 'Klick irgendwohin auf die Karte, um dort zu erscheinen — und dann zu fallen, zu landen oder zu ertrinken.' },
+  surrender: {
+    name: 'Französischer Angriff',
+    blurb: 'Die weiße Fahne schwenken: kein Schuss, kein Schaden, kein Krater. Der Zug geht direkt an den nächsten Knoblauch.',
+  },
   ming: {
     name: 'Ming-Vase',
     blurb: 'Eine pro Match. Sechshundert Jahre Porzellan, einmal geworfen: eine gewaltige Explosion und acht Scherben, die je wie eine Granate einschlagen.',
@@ -76,6 +80,10 @@ const HR: WeaponWords = {
   mine: { name: 'Mina', blurb: 'Space je spusti pod noge. Naoruža se dok bižiš, pa plane svakomu tko dođe blizu.' },
   selfdestruct: { name: 'Samouništenje', blurb: 'Glavica se digne u zrak: šteta koliko joj je života ostalo, a radijus raste s njon.' },
   teleport: { name: 'Teleport', blurb: 'Klikni bilo di na kartu da se pojaviš tamo — pa pada, slitanje ili utapanje, kako ispadne.' },
+  surrender: {
+    name: 'Francuski napad',
+    blurb: 'Zamahni bilom zastavom: nima pucanja, nima štete, nima kratera. Red ide odma na sljedećeg češnjaka.',
+  },
   ming: { name: 'Ming vaza', blurb: 'Jedna po partiji. Šeststo godin porculana, bačeno jednom: golem prasak i osan krhotin šta svaka udara ka bomba.' },
   flamer: {
     name: 'Bacač plamena',
@@ -105,6 +113,7 @@ const ZH: WeaponWords = {
   mine: { name: '感应地雷', blurb: '空格放在脚边。你跑开时它完成布设，之后谁靠近都炸。' },
   selfdestruct: { name: '自爆', blurb: '蒜头把自己炸掉：伤害等于剩余血量，爆炸范围也随之变大。' },
   teleport: { name: '传送', blurb: '点击地图任意位置就出现在那里——然后照常下落、着地或淹死。' },
+  surrender: { name: '法式进攻', blurb: '挥一挥白旗：不开火、不造成伤害、不留弹坑。回合直接交给下一个大蒜兄弟。' },
   ming: { name: '明代花瓶', blurb: '每局一件。六百年的瓷器，只能扔一次：一次巨大的爆炸，外加八片碎片，每片都像手榴弹一样。' },
   flamer: { name: '喷火器', blurb: '三秒钟的燃油。喷射时用上下键摆动喷嘴；风和重力会带着火团走，落到哪里哪里就烧起来。' },
 };

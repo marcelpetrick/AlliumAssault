@@ -302,6 +302,11 @@ export class BuddyView {
         [MeshBuilder.CreateBox('heldPlank', { width: 0.9, height: 0.12, depth: 0.5 }, scene), kit.wood, [0.55, 0.02, 0], false],
         [MeshBuilder.CreateBox('heldPlankEnd', { width: 0.1, height: 0.2, depth: 0.5 }, scene), kit.metal, [0.95, 0.02, 0], false],
       ]),
+      // A bedsheet on a broom handle, held out at arm's length and slightly ashamed of itself.
+      surrender: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCylinder('flagPole', { height: 0.85, diameter: 0.05, tessellation: 8 }, scene), kit.wood, [0.5, 0.18, 0], true],
+        [MeshBuilder.CreateBox('flagCloth', { width: 0.42, height: 0.3, depth: 0.02 }, scene), kit.porcelain, [0.72, 0.36, 0], false],
+      ]),
       // A fuel canister and a long nozzle with a pilot ring at the tip.
       flamer: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('flamerTank', { height: 0.42, diameter: 0.24, tessellation: 12 }, scene), kit.metal, [0.08, 0.06, -0.18], false],

@@ -31,9 +31,25 @@ export type WeaponId =
   | 'ming'
   | 'shard'
   | 'flamer'
-  | 'fuelgob';
+  | 'fuelgob'
+  | 'surrender';
 export type WeaponKind =
-  'projectile' | 'hitscan' | 'melee' | 'walker' | 'strike' | 'self' | 'torch' | 'flamer' | 'flyer' | 'drill' | 'mine' | 'rope' | 'platform' | 'teleport';
+  | 'projectile'
+  | 'hitscan'
+  | 'melee'
+  | 'walker'
+  | 'strike'
+  | 'self'
+  | 'torch'
+  | 'flamer'
+  | 'flyer'
+  | 'drill'
+  | 'mine'
+  | 'rope'
+  | 'platform'
+  | 'teleport'
+  /** Does nothing at all and ends the turn: the white flag. */
+  | 'skip';
 
 /**
  * How a weapon looks and sounds. Plain keys that the renderer and the synthesizer map to models and
@@ -45,7 +61,7 @@ export interface WeaponLook {
   /** Sound while in flight: rockets whistle, lobbed things whoosh. */
   flight?: 'rocket' | 'lob';
   /** Sound when the weapon is used. */
-  fireSound?: 'fire' | 'throw' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk' | 'hookShot' | 'warp' | 'build' | 'torchLight';
+  fireSound?: 'fire' | 'throw' | 'shot' | 'spinup' | 'baa' | 'alarm' | 'clunk' | 'hookShot' | 'warp' | 'build' | 'torchLight' | 'flap';
   /** Sound of each hitscan bullet. */
   shotSound?: 'bullet';
   /** Sound when a melee weapon connects. */
@@ -770,6 +786,27 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 0,
     range: 0,
   },
+  surrender: {
+    id: 'surrender',
+    look: { fireSound: 'flap' },
+    name: 'French Attack',
+    icon: '🏳️',
+    blurb: 'Wave the white flag: no shot, no damage, no crater. The turn passes straight to the next buddy.',
+    kind: 'skip',
+    ammo: Infinity,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 0,
+    radius: 0,
+    damage: 0,
+    force: 0,
+    range: 0,
+  },
   platform: {
     id: 'platform',
     look: { fireSound: 'build' },
@@ -823,13 +860,14 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   // Digging.
   'torch',
   'drill',
-  // Getting about and building.
+  // Tools: getting about, building, and giving up on the whole idea.
   'rope',
   'platform',
+  'surrender',
   // Traps and last resorts.
   'mine',
-  'selfdestruct',
   'teleport',
+  'selfdestruct',
   // Appended, so every hotkey above keeps the slot it has always had.
   'ming',
   'flamer',
@@ -839,7 +877,7 @@ export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);
 
 /** Weapons past the twenty digit slots carry a letter key of their own. */
-export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport', KeyV: 'ming', KeyF: 'flamer' };
+export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport', KeyK: 'selfdestruct', KeyV: 'ming', KeyF: 'flamer' };
 
 /**
  * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 and Shift+0 the ten

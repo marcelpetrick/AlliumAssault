@@ -1290,6 +1290,10 @@ export class Game {
       this.emit({ type: 'mineLaid', mine: mine.id, buddy: b.id, x: mine.body.x, y: mine.body.y });
       this.startRetreat();
       return;
+    } else if (def.kind === 'skip') {
+      // The white flag. Nothing is fired, so there is nothing to retreat from: hand the turn over.
+      this.setPhase('settling');
+      return;
     } else if (def.kind === 'self') {
       this.selfDestruct(b);
       return;

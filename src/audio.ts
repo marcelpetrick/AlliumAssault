@@ -3,6 +3,7 @@
 
 export type Sfx =
   | 'explosion'
+  | 'flap'
   | 'fire'
   | 'shot'
   | 'punch'
@@ -162,6 +163,12 @@ export class Audio {
         // A small charge going off: the big explosion in miniature, not a shotgun blast.
         this.noise(0.28 * i + 0.1, 'lowpass', 1800, 240, 0.5 * i);
         this.tone('sine', 190 * pitch, 70, 0.18, 0.35 * i);
+        break;
+      case 'flap':
+        // A bedsheet on a stick, shaken twice: two airy flaps and nothing else. No bang, no boom.
+        this.noise(0.16, 'bandpass', 900, 1500, 0.22);
+        this.noise(0.14, 'bandpass', 700, 1200, 0.18, 0.18);
+        this.tone('sine', 180 * pitch, 150 * pitch, 0.12, 0.05, 0.05);
         break;
       case 'build':
         // Planks dropped and knocked into place: two wooden knocks and a short ring.

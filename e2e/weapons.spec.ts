@@ -479,7 +479,7 @@ test('napalm strike: Shift+3 and a click, flames crackle, eat into the ground, t
 test('self-destruct: siren, the buddy is gone and the nearby enemy badly hurt', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
-  await select(page, 'Shift+0', 'selfdestruct');
+  await select(page, 'k', 'selfdestruct');
   const bomber = await me(page);
   await faceEnemyUpClose(page);
   const before = await state(page);
@@ -854,11 +854,34 @@ test('platform: Shift+8 previews a board, the wheel tilts it and a click sets it
   expect(errors).toEqual([]);
 });
 
-test('proximity mine: Shift+9 drops it, it arms with a click and blows up whoever comes near', async ({ page }, info) => {
+test('french attack: the white flag ends the turn without firing anything', async ({ page }, info) => {
+  const errors = await boot(page);
+  await startDuel(page, { turnTime: 40 });
+  const before = await state(page);
+  await select(page, 'Shift+9', 'surrender');
+  // Unlimited, so the bar shows the infinity sign rather than a count.
+  await expect(page.locator('.weapon-name')).toContainText('French Attack');
+  await info.attach('flag', { body: await page.screenshot(), contentType: 'image/png' });
+
+  await page.keyboard.press('Space');
+  await waitForSound(page, 'flap');
+  // Nothing was thrown and nothing was dug.
+  const after = await state(page);
+  expect(after.projectiles).toBe(0);
+  expect(after.terrainRevision).toBe(before.terrainRevision);
+
+  // The turn moves on to somebody else.
+  await page.waitForFunction((t) => window.__allium.state().turn > t, before.turn, { timeout: 40_000 });
+  const next = await state(page);
+  expect(next.buddies.every((b) => b.hp === 100)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('proximity mine: Shift+0 drops it, it arms with a click and blows up whoever comes near', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
   const before = await state(page);
-  await select(page, 'Shift+9', 'mine');
+  await select(page, 'Shift+0', 'mine');
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.mines.length === 1, 10_000);
   expect((await state(page)).ammo!.mine).toBe(1);

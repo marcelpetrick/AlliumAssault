@@ -1550,6 +1550,7 @@ describe('weapon voices', () => {
     rope: 'hookShot',
     platform: 'build',
     teleport: 'warp',
+    surrender: 'flap',
     punch: undefined,
     bat: undefined,
     drill: undefined,
@@ -1572,6 +1573,59 @@ describe('weapon voices', () => {
     expect(WEAPON_ORDER.filter((id) => WEAPONS[id].look.fireSound === 'fire')).toEqual(['bazooka']);
     // Every selectable weapon is accounted for above: no new weapon slips in without a decision.
     for (const id of WEAPON_ORDER) expect({ id, listed: id in VOICES }).toEqual({ id, listed: true });
+  });
+});
+
+describe('the French Attack', () => {
+  it('is always in the list and never runs out', () => {
+    expect(WEAPONS.surrender.ammo).toBe(Infinity);
+    expect(WEAPONS.surrender.special).toBeUndefined();
+    expect(WEAPON_ORDER).toContain('surrender');
+  });
+
+  it('sits with the other tools rather than among the bombs', () => {
+    const at = (id: WeaponId) => WEAPON_ORDER.indexOf(id);
+    const tools = [at('drill'), at('rope'), at('platform'), at('surrender')].sort((a, b) => a - b);
+    // Four consecutive slots on the weapon bar: the group a player reaches for to get out of trouble.
+    expect(tools[3] - tools[0]).toBe(3);
+  });
+
+  it('fires nothing, hurts nobody, moves no ground, and hands the turn over', () => {
+    const g = flatGame([40, 44], [team('A', 2), team('B', 1)], { turnTime: 40 });
+    toAiming(g);
+    const first = defined(g.activeBuddy, 'active buddy').id;
+    const revision = g.terrain.revision;
+    const health = g.buddies.map((b) => b.hp);
+    g.selectWeapon('surrender');
+    g.pressFire();
+    g.releaseFire();
+    expect(g.projectiles).toHaveLength(0);
+    // Straight past the retreat window: there is nothing to retreat from.
+    expect(g.phase).not.toBe('retreat');
+    runUntil(g, () => g.phase === 'aiming', 20);
+    expect(defined(g.activeBuddy, 'next buddy').id).not.toBe(first);
+    expect(g.buddies.map((b) => b.hp)).toEqual(health);
+    expect(g.terrain.revision).toBe(revision);
+  });
+
+  it('can be waved every single turn, because it costs nothing', () => {
+    const g = flatGame([40, 44], [team('A', 2), team('B', 1)], { turnTime: 40 });
+    for (let turn = 0; turn < 4; turn++) {
+      runUntil(g, () => g.phase === 'aiming', 20);
+      expect(g.teams[defined(g.activeBuddy, 'buddy').team].ammo.surrender).toBe(Infinity);
+      g.selectWeapon('surrender');
+      expect(g.weapon).toBe('surrender');
+      g.pressFire();
+      g.releaseFire();
+    }
+    expect(g.buddies.every((b) => b.hp === 100)).toBe(true);
+  });
+
+  it('is not something the AI ever reaches for', () => {
+    const g = flatGame([40, 90], [team('A', 1, 'ai'), team('B', 1)], { turnTime: 20 });
+    toAiming(g);
+    const plan = planAttack(g, g.buddies[0], 'hard', mulberry32(3), undefined, new Map());
+    expect(plan.weapon).not.toBe('surrender');
   });
 });
 
