@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.78.3] — 2026-09-23
+
+### Fixed
+
+- **Trees could still end up in the water, for two reasons 1.74.1 did not cover.**
+  - The waterline check read the smooth noise function the hills come from, but a hill is drawn as
+    rows of triangles between sampled points, and that surface sits up to 1.18 lower between them.
+    Trees were placed on the curve rather than on the ground you see, so they floated above the
+    hill and the check was measuring a surface nobody can look at. Both now use the drawn surface.
+  - **Sudden Death drowned them.** The hills are built once, when the match starts, while the sea
+    keeps rising a unit per turn — so the flood simply climbed past the trees and left them standing
+    in open water. A tree the water reaches is now taken with it.
+- Trees also want more dry ground under them than before: 1.2 units rather than 0.6, so the ones
+  nearest the shore read as standing on land instead of paddling in the shallows.
+
 ## [1.78.2] — 2026-09-22
 
 ### Documentation

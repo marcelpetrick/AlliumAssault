@@ -40,3 +40,32 @@ export function onViewRay(eye: { x: number; y: number; z: number }, onPlane: Vec
   const f = (z - eye.z) / -eye.z;
   return { x: eye.x + (onPlane.x - eye.x) * f, y: eye.y + (onPlane.y - eye.y) * f };
 }
+
+/**
+ * Height of a coarse quad grid at an arbitrary point, the way the renderer interpolates it.
+ *
+ * A hill is drawn as rows of triangles spanning sampled points, so the surface a player actually
+ * sees is this interpolation and not the smooth function the samples came from. Anything placed on
+ * the hill has to agree with it, or it floats above the ground — and a waterline check made against
+ * the smooth function is measuring a surface nobody can see.
+ */
+export function gridSurface(xs: readonly number[], ts: readonly number[], at: (x: number, t: number) => number, x: number, t: number): number {
+  let c = 0;
+  while (c < xs.length - 2 && xs[c + 1] < x) c++;
+  let r = 0;
+  while (r < ts.length - 2 && ts[r + 1] < t) r++;
+  const fx = (x - xs[c]) / (xs[c + 1] - xs[c]);
+  const ft = (t - ts[r]) / (ts[r + 1] - ts[r]);
+  const near = at(xs[c], ts[r]) * (1 - fx) + at(xs[c + 1], ts[r]) * fx;
+  const far = at(xs[c], ts[r + 1]) * (1 - fx) + at(xs[c + 1], ts[r + 1]) * fx;
+  return near * (1 - ft) + far * ft;
+}
+
+/**
+ * Which scattered things the water has swallowed. The background hills are built once, when the
+ * match starts; Sudden Death then raises the sea past them, and anything still standing there is a
+ * tree in open water.
+ */
+export function drownedBy(bases: readonly number[], waterLevel: number): boolean[] {
+  return bases.map((base) => base <= waterLevel);
+}

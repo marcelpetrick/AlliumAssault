@@ -148,7 +148,7 @@ Status: ☐ open · ☑ done
 | T134 | Setup screen: a bigger map-seed field and a bigger dice button                                                  | ☑      | 1.71.0         |
 | T135 | Public release v1.72.0: push, tag, GitHub release and Pages deployment                                          | ☑      | 1.72.0         |
 | T136 | Public release v1.74.0: the translation fixes, the About button and the documentation guards                    | ☑      | 1.74.0         |
-| T137 | Bug: background trees are scattered below the waterline and stand in the sea                                    | ☑      | 1.74.1         |
+| T137 | Bug: background trees are scattered below the waterline and stand in the sea                                    | ☑      | 1.74.1, 1.78.3 |
 | T138 | Walled landscape option: an indestructible wall round the level, no falling out, no aircraft                    | ☑      | 1.78.0         |
 | T139 | A tooltip on the walled-landscape option explaining what it turns on and off                                    | ☑      | 1.78.0         |
 | T140 | Gravity: check it is applied at all, then Moon at half, a normal default, and a superheavy                      | ☑      | 1.75.0         |
