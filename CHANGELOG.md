@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.76.0] — 2026-09-22
+
+### The AI goes shopping
+
+Reported from play: a bot stands beside a crate and shoots past it, health crates included.
+
+- **A crate is no longer weighed against the whole attack.** Fetching was chosen only when the crate
+  outscored the best shot — but a shot is scored in damage and a kill alone is worth forty, so
+  almost any shot beat almost any crate. Picking a crate up hands the turn straight back with time
+  to still fire, so the two were never alternatives. When both fit in the turn the bot now collects
+  first and shoots after, which is the order a person plays.
+- **Unless it can finish someone.** An enemy one hit from dead will have moved by next turn; the
+  crate will not. That shot is taken.
+- **Every difficulty hunts crates now, Easy included** — on foot, and on the rope for a crate on a
+  ledge. Easy stays easy where it counts: it still does not read chained blasts or play the board.
+- **Every difficulty also checks it can get there**, which Easy previously did not, so it no longer
+  sets off across water after a box it can never reach.
+- **A hurt buddy really goes for the health.** The survival weighting more than doubled: below a
+  crate's worth of health, nothing in the arsenal is worth more than not dying.
+
 ## [1.75.0] — 2026-09-22
 
 ### Gravity

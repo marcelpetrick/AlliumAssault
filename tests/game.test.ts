@@ -2262,19 +2262,51 @@ describe('AI', () => {
     expect(Math.abs(blocked!.x - (me.body.x + 5))).toBeLessThan(1.2);
   });
 
-  it('a badly hurt buddy goes for the health crate even with a shot available', () => {
-    const fetches = (hp: number) => {
+  it('takes a crate at its feet before shooting, healthy or not', () => {
+    const fetches = (hp: number, away = 5) => {
       const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 40 });
       toAiming(g);
       onlyWeapon(g, 0, 'bazooka');
       g.buddies[0].hp = hp;
-      g.crates.push({ id: 973, kind: 'health', weapon: null, body: createBody(g.buddies[0].body.x + 5, 20.45, CRATE_RADIUS) });
+      g.crates.push({ id: 973, kind: 'health', weapon: null, body: createBody(g.buddies[0].body.x + away, 20.45, CRATE_RADIUS) });
       runUntil(g, () => g.crates.length === 0 || (g.phase !== 'aiming' && g.phase !== 'turnStart'), 12);
       return g.crates.length === 0;
     };
-    // A clean shot at an enemy 18 units away beats a crate when there is nothing to heal.
-    expect(fetches(100)).toBe(false);
+    // Picking a crate up and shooting afterwards both fit in one turn, so there is nothing to weigh:
+    // standing beside a box and firing past it was the bug.
+    expect(fetches(100)).toBe(true);
     expect(fetches(15)).toBe(true);
+  });
+
+  it('does not wander off to shop when the shot in front of it is a kill', () => {
+    const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 40 });
+    toAiming(g);
+    onlyWeapon(g, 0, 'bazooka');
+    // One hit finishes the enemy: the crate keeps, the open enemy does not.
+    g.buddies[1].hp = 5;
+    g.crates.push({ id: 974, kind: 'health', weapon: null, body: createBody(g.buddies[0].body.x + 5, 20.45, CRATE_RADIUS) });
+    runUntil(g, () => g.phase !== 'aiming' && g.phase !== 'turnStart', 12);
+    expect(g.crates).toHaveLength(1);
+  });
+
+  it('walks to a crate further off when it has the turn time for the trip and the shot', () => {
+    const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45 });
+    toAiming(g);
+    onlyWeapon(g, 0, 'bazooka');
+    g.crates.push({ id: 975, kind: 'weapon', weapon: 'banana', body: createBody(g.buddies[0].body.x + 10, 20.45, CRATE_RADIUS) });
+    runUntil(g, () => g.crates.length === 0 || (g.phase !== 'aiming' && g.phase !== 'turnStart'), 20);
+    expect(g.crates).toHaveLength(0);
+  });
+
+  it('shoots rather than shops when there is only time left for one of them', () => {
+    const g = flatGame([40, 58], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45 });
+    toAiming(g);
+    onlyWeapon(g, 0, 'bazooka');
+    g.crates.push({ id: 976, kind: 'weapon', weapon: 'banana', body: createBody(g.buddies[0].body.x + 11, 20.45, CRATE_RADIUS) });
+    // Not enough left to walk there and still aim: the shot wins, as it always did.
+    g.turnTimeLeft = 7;
+    runUntil(g, () => g.crates.length === 0 || (g.phase !== 'aiming' && g.phase !== 'turnStart'), 20);
+    expect(g.crates).toHaveLength(1);
   });
 
   it('does not set off for a crate behind a wall it cannot climb', () => {

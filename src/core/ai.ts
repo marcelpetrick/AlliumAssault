@@ -515,8 +515,11 @@ const FLYER_CLEARANCE_TIME = (WEAPONS.flysheep.radius + 2) / FLYER_SPEED;
 const CRATE_WORTH = 15;
 /** A health crate for a buddy at full health: over-healing is still a buffer worth having. */
 const HEALTH_CRATE_FULL = 10;
-/** Extra weight when the heal might be what keeps this buddy in the match. */
-const SURVIVAL_BONUS = 25;
+/**
+ * Extra weight when the heal might be what keeps this buddy in the match. Large on purpose: a
+ * buddy one hit from dead has nothing to shoot with that is worth more than staying alive.
+ */
+const SURVIVAL_BONUS = 60;
 /** A weapon crate, plus this much for every special weapon the team has none of. */
 const WEAPON_CRATE_BASE = 15;
 const WEAPON_CRATE_SHORTAGE = 1.2;
@@ -537,6 +540,8 @@ const ROPE_ANCHOR_HEIGHT = 16;
 const ROPE_FETCH_TIME = 12;
 /** What a rope trip costs against simply walking: slower, riskier, and it spends a rope. */
 const ROPE_TRIP_COST = 6;
+/** Trips per turn, so a bot cannot spend the whole match shopping. */
+const MAX_FETCHES = 2;
 /** A swing is abandoned after this long, whatever it has achieved. */
 const SWING_TIMEOUT = 9;
 /** Close enough overhead to let go and drop onto the crate. */
@@ -545,14 +550,16 @@ const SWING_DROP_RANGE = 1.6;
 const ROPE_LAUNCH_AIM = 1.15;
 
 /**
- * What walking to this crate is worth. A level without `crates` knowledge treats every crate the
- * same, as before. Otherwise the kind is visible on the map and counts: a health crate is worth
- * most to a buddy that needs the health, and worth a little even at full health because over-healing
- * is allowed. What is inside a weapon crate only shows once it is opened, so it is valued by how
- * thin the team's stock of special weapons is.
+ * What walking to this crate is worth.
+ *
+ * Every level reads the kind, because the kind is painted on the side of the box and a human can
+ * see it too — a health crate is worth most to a buddy that needs the health, and worth a little
+ * even at full health because over-healing is allowed. What is inside a weapon crate only shows
+ * once it is opened, so it is valued by how thin the team's stock of special weapons is. A mystery
+ * box could be either, and is valued as the plain average of the two.
  */
-function crateValue(game: Game, me: Buddy, crate: Crate, know: AiKnowledge): number {
-  if (!know.crates) return CRATE_WORTH;
+function crateValue(game: Game, me: Buddy, crate: Crate): number {
+  if (crate.kind === 'mystery') return CRATE_WORTH;
   if (crate.kind === 'health') {
     const missing = Math.max(0, START_HP - me.hp);
     const heal = HEALTH_CRATE_FULL + (CRATE_HEAL - HEALTH_CRATE_FULL) * Math.min(1, missing / CRATE_HEAL);
@@ -587,29 +594,42 @@ function walkable(game: Game, fromX: number, toX: number, seconds: number): bool
 /** How a buddy would get to a crate: on its feet, or hanging from the rope. */
 export type CrateRoute = 'walk' | 'rope';
 
+/** A crate worth going to, how to get there, what it is worth and how long the trip costs. */
+export interface CrateGoal {
+  crate: Crate;
+  value: number;
+  route: CrateRoute;
+  /** World units between the buddy and the crate. */
+  distance: number;
+  /** Rough seconds the trip will take, so the turn can budget for the shot afterwards. */
+  seconds: number;
+}
+
 /**
  * The crate worth most to this buddy right now, how it would get there, and what the trip is worth.
  *
- * A level that thinks about crates checks it can actually reach one before setting off. Walking is
- * always preferred; where the ground does not allow it — a ledge above, a gap in between, an island
- * of its own — a team with rope left can swing across instead, which is the difference between an
- * AI that collects the crates it happens to be standing next to and one that goes shopping.
+ * Every difficulty goes shopping, and every difficulty checks it can actually get there first —
+ * walking into the sea after a crate is not a charming kind of stupid. Walking is always preferred;
+ * where the ground does not allow it — a ledge above, a gap in between, an island of its own — a
+ * team with rope left can swing across instead, which is the difference between an AI that collects
+ * the crates it happens to be standing next to and one that goes and gets them.
  */
-function crateGoal(game: Game, me: Buddy, know: AiKnowledge, seconds: number): { crate: Crate; value: number; route: CrateRoute } | null {
-  let best: { crate: Crate; value: number; route: CrateRoute } | null = null;
-  const roped = know.crates && game.teams[me.team].ammo.rope > 0 && seconds > ROPE_FETCH_TIME;
+function crateGoal(game: Game, me: Buddy, seconds: number): CrateGoal | null {
+  let best: CrateGoal | null = null;
+  const roped = game.teams[me.team].ammo.rope > 0 && seconds > ROPE_FETCH_TIME;
   for (const c of game.crates) {
     const dx = Math.abs(c.body.x - me.body.x);
     const dy = c.body.y - me.body.y;
     if (!c.body.grounded) continue;
-    const onFoot = Math.abs(dy) <= 3 && dx <= CRATE_REACH && (!know.crates || walkable(game, me.body.x, c.body.x, seconds));
+    const onFoot = Math.abs(dy) <= 3 && dx <= CRATE_REACH && walkable(game, me.body.x, c.body.x, seconds);
     // The rope reaches further and, more to the point, upwards — which walking never does.
     const byRope = !onFoot && roped && dx <= ROPE_REACH && dy > -ROPE_DROP && dy < ROPE_CLIMB && ropeAnchorAbove(game, me, c);
     if (!onFoot && !byRope) continue;
     const route: CrateRoute = onFoot ? 'walk' : 'rope';
     // Swinging is slower and riskier than walking, and it spends a rope.
-    const value = crateValue(game, me, c, know) - dx * CRATE_DISTANCE_COST - (route === 'rope' ? ROPE_TRIP_COST : 0);
-    if (!best || value > best.value) best = { crate: c, value, route };
+    const value = crateValue(game, me, c) - dx * CRATE_DISTANCE_COST - (route === 'rope' ? ROPE_TRIP_COST : 0);
+    const trip = route === 'walk' ? dx / WALK_SPEED : ROPE_FETCH_TIME;
+    if (!best || value > best.value) best = { crate: c, value, route, distance: dx, seconds: trip };
   }
   return best;
 }
@@ -627,6 +647,31 @@ function ropeAnchorAbove(game: Game, me: Buddy, crate: Crate): boolean {
     }
   }
   return false;
+}
+
+/** Is an enemy one hit from dead? Then the shot may not keep, and the crate will. */
+function canFinish(game: Game, me: Buddy, plan: AttackPlan): boolean {
+  const damage = WEAPONS[plan.weapon].damage;
+  return game.buddies.some((b) => b.alive && b.hp > 0 && b.team !== me.team && b.hp <= damage);
+}
+
+/**
+ * Should the buddy go and get this crate before shooting?
+ *
+ * Fetching is not an alternative to attacking. A pickup hands the turn back to `think` with time
+ * left to aim and fire, so a crate only has to be worth the walk — it does not have to be worth
+ * more than the entire attack. Comparing the two directly, which is what this did, is why a bot on
+ * 20 HP would stand beside a health crate and shoot past it: a shot is scored in damage and a kill
+ * alone is worth forty, so almost any shot outscores almost any crate.
+ *
+ * So: when both fit in the turn, shop first and shoot after — that is the upgrade-then-attack order
+ * a person would play. The exception is an enemy one hit from dead, which will have moved by next
+ * turn where the crate will not. When only one of the two fits, the old comparison is the right one
+ * and still decides.
+ */
+function worthFetching(game: Game, me: Buddy, goal: CrateGoal, plan: AttackPlan): boolean {
+  if (game.turnTimeLeft <= goal.seconds + FETCH_MARGIN) return goal.value > plan.score;
+  return !canFinish(game, me, plan);
 }
 
 /** Drives an AI team through the same commands a human uses. */
@@ -762,8 +807,8 @@ export class AiDriver {
         if (this.timer < LEVELS[this.level].think) return;
         const midUse = game.shotsLeft < WEAPONS[game.weapon].shots;
         const plan = planAttack(game, me, this.level, this.rng, midUse ? game.weapon : undefined, this.history);
-        const goal = midUse ? null : crateGoal(game, me, KNOWLEDGE[this.level], game.turnTimeLeft - FETCH_MARGIN);
-        if (goal && goal.value > plan.score && this.fetches < 2 && game.turnTimeLeft > 12) {
+        const goal = midUse ? null : crateGoal(game, me, game.turnTimeLeft - FETCH_MARGIN);
+        if (goal && this.fetches < MAX_FETCHES && worthFetching(game, me, goal, plan)) {
           this.fetches++;
           this.timer = 0;
           if (goal.route === 'rope') {

@@ -293,7 +293,7 @@ describe('AI crate hunting', () => {
     expect(g.turn > turn || g.phase === 'gameOver').toBe(true);
   });
 
-  it('leaves Easy out of it: it does not look at what is in a crate or how to get there', () => {
+  it('includes Easy: every difficulty goes after a crate it cannot walk to', () => {
     const g = flatGame([40, 110], [team('A', 1, 'ai'), team('B', 1)], { crates: 0, turnTime: 45 });
     aiming(g);
     const me = g.buddies[0];
@@ -305,10 +305,11 @@ describe('AI crate hunting', () => {
     const easy = new AiDriver('easy', mulberry32(2));
     let fired = false;
     for (let k = 0; k < 60 * 8 && !fired; k++) {
+      crate.body.grounded = true;
       easy.update(g, 1 / 60);
       fired = g.drainEvents().some((e) => e.type === 'ropeShot');
     }
-    expect(fired).toBe(false);
+    expect(fired).toBe(true);
   });
 });
 
