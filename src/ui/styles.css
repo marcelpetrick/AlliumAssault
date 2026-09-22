@@ -11,6 +11,8 @@
   --muted: rgb(255 248 234 / 70%);
   --accent: #8bd450;
   --accent-2: #ffd166;
+  --good: #5ee27a;
+  --bad: #ff6b6b;
   --danger: #ff5a5f;
   --radius: 18px;
 }
@@ -1250,4 +1252,70 @@ kbd {
 
 .award small {
   color: var(--muted);
+}
+
+/* Green for what went well, red for what did not; the neutral facts stay plain. */
+.stats-table td.good,
+.tally b.good {
+  color: var(--good);
+}
+
+.stats-table td.bad,
+.tally b.bad {
+  color: var(--bad);
+}
+
+/* Honours and blunders side by side, and the tallies beside them, wrapping on a narrow screen. */
+.stats-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.award.good {
+  border-color: rgb(94 226 122 / 45%);
+  background: rgb(94 226 122 / 8%);
+}
+
+.award.bad {
+  border-color: rgb(255 90 90 / 45%);
+  background: rgb(255 90 90 / 8%);
+}
+
+.award.good .award-who {
+  color: var(--good);
+}
+
+.award.bad .award-who {
+  color: var(--bad);
+}
+
+/* A plain count list: icon, what it is, how many. */
+.tally {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tally li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 2px;
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  font-size: 14px;
+}
+
+.tally .use-icon {
+  font-size: 17px;
+}
+
+.tally .use-name {
+  flex: 1;
+  color: var(--muted);
+}
+
+.tally b {
+  font-variant-numeric: tabular-nums;
 }

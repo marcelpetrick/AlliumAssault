@@ -10,7 +10,7 @@ import { MatchStats, type StatsRoster } from '../src/core/stats';
 import { flatGame, runUntil, team } from './helpers';
 
 const toAiming = (g: Game) => runUntil(g, () => g.phase === 'aiming', 5);
-const award = (g: Game, id: string) => g.summary().awards.find((a) => a.id === id);
+const award = (g: Game, id: string) => [...g.summary().awards, ...g.summary().blunders].find((a) => a.id === id);
 
 describe('match statistics', () => {
   it('credit damage to the buddy that caused the blast, not to whoever is on turn', () => {
@@ -107,7 +107,7 @@ describe('match statistics', () => {
       runUntil(g, () => g.phase === 'aiming' || g.phase === 'retreat', 6);
       if (g.phase !== 'aiming') break;
     }
-    expect(g.summary().favourite?.weapon).toBe('grenade');
+    expect(g.summary().favourites.at(0)?.weapon).toBe('grenade');
 
     // And the island really did lose ground.
     g.explode(60, 20, 8, 0, 0);
@@ -167,10 +167,11 @@ describe('match statistics', () => {
     const summary = g.summary();
     expect(summary.buddies[0].id).toBe(strong.id);
     expect(summary.buddies.map((b) => b.dealt)).toEqual([...summary.buddies.map((b) => b.dealt)].sort((a, b) => b - a));
-    for (const a of summary.awards) {
+    for (const a of [...summary.awards, ...summary.blunders]) {
       expect(a.who.length, `${a.id} has nobody`).toBeGreaterThan(0);
-      expect(a.detail.length, `${a.id} says nothing`).toBeGreaterThan(0);
       expect(a.icon.length, `${a.id} has no icon`).toBeGreaterThan(0);
+      // The core hands over numbers, never sentences: the words come from the catalogue.
+      expect(Object.values(a.values).every((v) => typeof v === 'number' || typeof v === 'string')).toBe(true);
     }
   });
 });
@@ -222,14 +223,15 @@ describe('the honours board', () => {
       stats.damaged({ buddy: 1, weapon: 'bazooka' }, target, 10, roster);
       stats.fired(2, 'grenade', roster);
     }
-    const awards = stats.summary(roster).awards;
+    const summary = stats.summary(roster);
+    const awards = [...summary.awards, ...summary.blunders];
     expect(awards.find((a) => a.id === 'deadeye')?.who).toBe('Sharp');
     expect(awards.find((a) => a.id === 'butterfingers')?.who).toBe('Wild');
     // Three shots each, three hits and none: the detail says which is which.
-    expect(awards.find((a) => a.id === 'deadeye')?.detail).toContain('100.0%');
-    expect(awards.find((a) => a.id === 'butterfingers')?.detail).toContain('3 of 3');
-    // And the length of the match is reported in minutes and seconds.
-    expect(awards.find((a) => a.id === 'length')?.detail).toContain('3 min 30 s');
+    expect(awards.find((a) => a.id === 'deadeye')?.values).toMatchObject({ percent: '100.0%', shots: 3 });
+    expect(awards.find((a) => a.id === 'butterfingers')?.values).toMatchObject({ missed: 3, shots: 3 });
+    // And the length of the match is carried as numbers for the catalogue to phrase.
+    expect(awards.find((a) => a.id === 'length')?.values).toMatchObject({ minutes: 3, seconds: 30 });
   });
 
   it('falls back to a placeholder when asked about a buddy no roster knows', () => {
@@ -243,7 +245,8 @@ describe('the honours board', () => {
   it('leaves out the awards nobody earned, and keeps the ones that are always true', () => {
     const g = flatGame([40, 90], [team('A', 1), team('B', 1)], { turnTime: 45 });
     toAiming(g);
-    const ids = g.summary().awards.map((a) => a.id);
+    const summary = g.summary();
+    const ids = [...summary.awards, ...summary.blunders].map((a) => a.id);
     // Nothing has been fired or collected, so none of these can have a winner.
     for (const id of ['mvp', 'biggest', 'owngoal', 'deadeye', 'butterfingers', 'crates', 'swim', 'ground']) {
       expect(ids, `${id} was awarded for nothing`).not.toContain(id);
@@ -259,13 +262,13 @@ describe('the honours board', () => {
   it('names the favourite weapon only once one has been used', () => {
     const g = flatGame([40, 90], [team('A', 1), team('B', 1)], { turnTime: 45 });
     toAiming(g);
-    expect(g.summary().favourite).toBeNull();
+    expect(g.summary().favourites).toEqual([]);
     expect(g.summary().awards.find((a) => a.id === 'favourite')).toBeUndefined();
     g.selectWeapon('grenade');
     g.buddies[0].aim = 0.7;
     g.pressFire();
     g.releaseFire();
-    expect(g.summary().favourite?.weapon).toBe('grenade');
+    expect(g.summary().favourites.at(0)?.weapon).toBe('grenade');
   });
 
   it('counts damage dealt by nobody in particular against the victim alone', () => {
@@ -281,5 +284,73 @@ describe('the honours board', () => {
     expect(record.taken).toBeGreaterThan(0);
     for (const b of g.summary().buddies) expect(b.dealt).toBe(0);
     expect(g.summary().awards.find((a) => a.id === 'mvp')).toBeUndefined();
+  });
+});
+
+describe('what the scoreboard counts', () => {
+  const roster: StatsRoster = {
+    buddies: [
+      { id: 1, name: 'One', team: 0, alive: true },
+      { id: 2, name: 'Two', team: 0, alive: false },
+      { id: 3, name: 'Three', team: 1, alive: false },
+      { id: 4, name: 'Four', team: 1, alive: false },
+    ],
+    teams: [
+      { index: 0, name: 'A', colour: '#ef4b3c' },
+      { index: 1, name: 'B', colour: '#3d8bfd' },
+    ],
+    turns: 12,
+    seconds: 400,
+    groundLost: 0.05,
+  };
+
+  it('tells a drowning from a blast from somebody who pressed their own detonator', () => {
+    const stats = new MatchStats();
+    stats.died(2, null, true, roster);
+    stats.died(3, { buddy: 1, weapon: 'bazooka' }, false, roster);
+    stats.died(4, { buddy: 4, weapon: 'selfdestruct' }, false, roster);
+    const { deaths } = stats.summary(roster);
+    expect(deaths).toEqual({ drowned: 1, blasted: 1, selfDestructed: 1 });
+    // And the buddy that blew itself up is not credited with a kill for it.
+    expect(stats.summary(roster).buddies.find((b) => b.id === 4)?.kills).toBe(0);
+  });
+
+  it('ranks the weapons by use, and picks the tools out of them', () => {
+    const stats = new MatchStats();
+    for (let k = 0; k < 4; k++) stats.fired(1, 'bazooka', roster);
+    for (let k = 0; k < 3; k++) stats.fired(1, 'rope', roster);
+    stats.fired(1, 'torch', roster);
+    const { favourites, tools } = stats.summary(roster);
+    expect(favourites.map((f) => f.weapon)).toEqual(['bazooka', 'rope', 'torch']);
+    expect(favourites[0].uses).toBe(4);
+    // Tools are the ones that dig, carry or build; the bazooka is not one of them.
+    expect(tools.map((f) => f.weapon)).toEqual(['rope', 'torch']);
+  });
+
+  it('separates the blunders from the honours by their tone', () => {
+    const stats = new MatchStats();
+    stats.fired(1, 'grenade', roster);
+    stats.damaged({ buddy: 1, weapon: 'grenade' }, { id: 2, team: 0 }, 30, roster);
+    const summary = stats.summary(roster);
+    // Hurting your own side is a blunder, and belongs in neither the honours nor both lists.
+    const own = summary.blunders.find((a) => a.id === 'owngoal');
+    expect(own).toBeDefined();
+    expect(own?.tone).toBe('bad');
+    expect(summary.awards.find((a) => a.id === 'owngoal')).toBeUndefined();
+    for (const a of summary.awards) expect(a.tone).not.toBe('bad');
+    for (const a of summary.blunders) expect(a.tone).toBe('bad');
+  });
+
+  it('names a weapon award by its id, so the interface can translate it', () => {
+    const stats = new MatchStats();
+    stats.fired(1, 'rope', roster);
+    const all = [...stats.summary(roster).awards, ...stats.summary(roster).blunders];
+    for (const id of ['favourite', 'handy']) {
+      const a = all.find((x) => x.id === id);
+      expect(a, `${id} is missing`).toBeDefined();
+      // The id, not "Rope": the core has no business knowing what to call it.
+      expect(a?.who).toBe('rope');
+      expect(a?.values.weapon).toBe('rope');
+    }
   });
 });

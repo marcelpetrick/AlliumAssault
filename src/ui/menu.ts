@@ -3,11 +3,11 @@
 
 import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
-import type { MatchSummary } from '../core/stats';
-import { WEAPON_ORDER, WEAPONS } from '../core/weapons';
+import type { Award, MatchSummary } from '../core/stats';
+import { WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
-import { LANGUAGES, t, type Language } from './i18n';
+import { LANGUAGES, t, type Language, type TextKey } from './i18n';
 import { weaponBlurb, weaponName } from './i18nWeapons';
 import {
   ARSENAL_OPTIONS,
@@ -59,20 +59,21 @@ const segmented = (items: { label: string; value: string | number; on: boolean }
     )
     .join('')}</div>`;
 
-export const CONTROLS_HTML = `
+/** The key map, rebuilt on demand because it has to follow the language. */
+export const controlsHtml = (): string => `
   <table class="keys">
-    <tr><td><kbd>←</kbd><kbd>→</kbd></td><td>Walk</td></tr>
-    <tr><td><kbd>Enter</kbd></td><td>Jump forward</td></tr>
-    <tr><td><kbd>Backspace</kbd></td><td>Back-flip (high jump)</td></tr>
-    <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>Aim</td></tr>
-    <tr><td><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></td><td>Steer the flying sheep</td></tr>
-    <tr><td><kbd>Space</kbd></td><td>Hold to charge, release to fire</td></tr>
-    <tr><td><kbd>1</kbd>–<kbd>0</kbd> <kbd>⇧1</kbd>–<kbd>⇧${WEAPON_ORDER.length - 10}</kbd> <kbd>Tab</kbd></td><td>Choose weapon</td></tr>
-    <tr><td>Wheel · Drag</td><td>Zoom · Pan camera</td></tr>
-    <tr><td><kbd>←</kbd><kbd>→</kbd> (air strike)</td><td>Choose which side the plane flies in from</td></tr>
-    <tr><td><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> (on the rope)</td><td>Reel in and out, swing left and right</td></tr>
-    <tr><td>Click</td><td>Call the air strike or concrete mule</td></tr>
-    <tr><td><kbd>M</kbd> <kbd>Esc</kbd></td><td>Mute · Pause (also the HUD's Help and Pause buttons)</td></tr>
+    <tr><td><kbd>←</kbd><kbd>→</kbd></td><td>${t('keys.walk')}</td></tr>
+    <tr><td><kbd>Enter</kbd></td><td>${t('keys.jump')}</td></tr>
+    <tr><td><kbd>Backspace</kbd></td><td>${t('keys.backflip')}</td></tr>
+    <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>${t('keys.aim')}</td></tr>
+    <tr><td><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></td><td>${t('keys.steer')}</td></tr>
+    <tr><td><kbd>Space</kbd></td><td>${t('keys.charge')}</td></tr>
+    <tr><td><kbd>1</kbd>–<kbd>0</kbd> <kbd>⇧1</kbd>–<kbd>⇧${String(WEAPON_ORDER.length - 10)}</kbd> <kbd>Tab</kbd></td><td>${t('keys.choose')}</td></tr>
+    <tr><td>${t('keys.wheelDrag')}</td><td>${t('keys.camera')}</td></tr>
+    <tr><td><kbd>←</kbd><kbd>→</kbd> ${t('keys.airStrike')}</td><td>${t('keys.approachSide')}</td></tr>
+    <tr><td><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> ${t('keys.onRope')}</td><td>${t('keys.rope')}</td></tr>
+    <tr><td>${t('keys.click')}</td><td>${t('keys.callStrike')}</td></tr>
+    <tr><td><kbd>M</kbd> <kbd>Esc</kbd></td><td>${t('keys.mutePause')}</td></tr>
   </table>`;
 
 export class Menu {
@@ -259,16 +260,16 @@ export class Menu {
     this.el.innerHTML = `
       <div class="screen">
         <div class="panel about">
-          <header class="panel-head"><button class="ghost" data-action="title">← Back</button><h2>About</h2><span></span></header>
-          <p class="lead"><b>Allium Assault</b> v${esc(this.version)} — turn-based garlic warfare, <b>free to play</b> in your browser.</p>
+          <header class="panel-head"><button class="ghost" data-action="title">${t('setup.back')}</button><h2>${t('about.heading')}</h2><span></span></header>
+          <p class="lead">${esc(t('about.lead', { name: 'Allium Assault', version: this.version }))}</p>
           <ul class="about-facts">
-            <li><b>Author:</b> Marcel Petrick · <a href="mailto:mail@marcelpetrick.it">mail@marcelpetrick.it</a></li>
-            <li><b>Play online:</b> hosted on GitHub Pages at <a href="${PAGES_URL}" target="_blank" rel="noopener">marcelpetrick.github.io/AlliumAssault</a></li>
-            <li><b>Source code:</b> <a href="${REPO_URL}" target="_blank" rel="noopener">github.com/marcelpetrick/AlliumAssault</a> · licensed GPL-3.0-or-later</li>
+            <li><b>${t('about.author')}</b> Marcel Petrick · <a href="mailto:mail@marcelpetrick.it">mail@marcelpetrick.it</a></li>
+            <li><b>${t('about.playOnline')}</b> ${t('about.hostedAt')} <a href="${PAGES_URL}" target="_blank" rel="noopener">marcelpetrick.github.io/AlliumAssault</a></li>
+            <li><b>${t('about.source')}</b> <a href="${REPO_URL}" target="_blank" rel="noopener">github.com/marcelpetrick/AlliumAssault</a> · ${t('about.licensed')}</li>
           </ul>
-          <h3>Tech stack and open-source licenses</h3>
+          <h3>${t('about.stack')}</h3>
           <table class="licenses">
-            <tr><th>Component</th><th>Version</th><th>License</th></tr>
+            <tr><th>${t('about.component')}</th><th>${t('about.version')}</th><th>${t('about.license')}</th></tr>
             ${row('Babylon.js (3D engine)', dep('@babylonjs/core'), 'Apache-2.0', 'https://www.babylonjs.com/')}
             ${row('simplex-noise (terrain)', dep('simplex-noise'), 'MIT', 'https://github.com/jwagner/simplex-noise.js')}
             ${row('Fredoka font', 'Google Fonts', 'OFL-1.1', 'https://fonts.google.com/specimen/Fredoka')}
@@ -278,8 +279,7 @@ export class Menu {
             ${row('Playwright (browser tests)', dep('@playwright/test'), 'Apache-2.0', 'https://playwright.dev/')}
             ${row('ESLint + typescript-eslint', dep('eslint'), 'MIT', 'https://eslint.org/')}
           </table>
-          <p class="fine">Sound effects are synthesized live with the Web Audio API; graphics are generated in code. Game
-          mechanics are inspired by Team17's Worms series; all design, art, sound and code are original.</p>
+          <p class="fine">${t('about.fine')}</p>
         </div>
       </div>`;
   }
@@ -293,7 +293,7 @@ export class Menu {
           <header class="panel-head"><button class="ghost" data-action="help-back">${t('setup.back')}</button><h2>${t('help.heading')}</h2><span></span></header>
           <p class="lead">${t('help.lead')}</p>
           <div class="help-grid">
-            <div>${CONTROLS_HTML}</div>
+            <div>${controlsHtml()}</div>
             <div class="weapon-list">
               ${WEAPON_ORDER.map((id) => {
                 const w = WEAPONS[id];
@@ -368,36 +368,72 @@ export class Menu {
       return;
     }
     this.screen = 'stats';
-    const pct = (hits: number, shots: number) => (shots > 0 ? `${Math.round((hits / shots) * 100)}%` : '—');
+    const pct = (hits: number, shots: number) => (shots > 0 ? `${String(Math.round((hits / shots) * 100))}%` : '—');
+    /** A number that is better when it is bigger, or better when it is smaller. */
+    const tone = (value: number, good: 'high' | 'low') => (value === 0 ? '' : good === 'high' ? ' class="good"' : ' class="bad"');
+    const card = (a: Award) => {
+      // An award about a weapon carries its id; everything else carries names already.
+      const who = typeof a.values.weapon === 'string' ? weaponName(a.values.weapon as WeaponId) : a.who;
+      return `<div class="award ${a.tone}"><span class="award-icon">${a.icon}</span><div><b>${esc(t(`award.${a.id}.title` as TextKey))}</b>
+        <div class="award-who">${esc(who)}</div><small>${esc(t(`award.${a.id}.detail` as TextKey, a.values))}</small></div></div>`;
+    };
+    const uses = (list: readonly { weapon: WeaponId; uses: number }[]) =>
+      list
+        .map(
+          (u) =>
+            `<li><span class="use-icon">${WEAPONS[u.weapon].icon}</span><span class="use-name">${esc(weaponName(u.weapon))}</span><b>${esc(t('stats.uses', { n: u.uses }))}</b></li>`,
+        )
+        .join('');
+
     this.el.innerHTML = `
       <div class="screen">
         <div class="panel wide stats-panel">
           <header class="panel-head"><button class="ghost" data-action="victory">${t('setup.back')}</button><h2>${t('stats.heading')}</h2><span></span></header>
           <table class="stats-table">
-            <tr><th>${t('stats.team')}</th><th>${t('stats.dealt')}</th><th>${t('stats.taken')}</th><th>${t('stats.ownGoals')}</th><th>${t('stats.shots')}</th><th>${t('stats.onTarget')}</th><th>${t('stats.lost')}</th></tr>
+            <tr><th>${t('stats.team')}</th><th>${t('stats.dealt')}</th><th>${t('stats.taken')}</th><th>${t('stats.ownGoals')}</th><th>${t('stats.shots')}</th><th>${t('stats.onTarget')}</th><th>${t('stats.lost')}</th><th>${t('stats.survivors')}</th></tr>
             ${summary.teams
               .map(
-                (t) =>
-                  `<tr style="--team:${t.colour}"><td><span class="stats-dot"></span>${esc(t.name)}</td><td>${String(t.dealt)}</td><td>${String(t.taken)}</td><td>${String(t.friendly)}</td><td>${String(t.shots)}</td><td>${pct(t.hits, t.shots)}</td><td>${String(t.lost)}</td></tr>`,
+                (team) =>
+                  `<tr style="--team:${team.colour}"><td><span class="stats-dot"></span>${esc(team.name)}</td><td class="good">${String(team.dealt)}</td><td class="bad">${String(team.taken)}</td><td${tone(team.friendly, 'low')}>${String(team.friendly)}</td><td>${String(team.shots)}</td><td>${pct(team.hits, team.shots)}</td><td${tone(team.lost, 'low')}>${String(team.lost)}</td><td${tone(team.survivors, 'high')}>${String(team.survivors)}</td></tr>`,
               )
               .join('')}
           </table>
-          <h3>${t('stats.honours')}</h3>
-          <div class="awards">
-            ${summary.awards
-              .map(
-                (a) =>
-                  `<div class="award"><span class="award-icon">${a.icon}</span><div><b>${esc(a.title)}</b><div class="award-who">${esc(a.who)}</div><small>${esc(a.detail)}</small></div></div>`,
-              )
-              .join('')}
+
+          <div class="stats-split">
+            <section>
+              <h3>${t('stats.honours')}</h3>
+              <div class="awards">${summary.awards.map(card).join('')}</div>
+            </section>
+            ${
+              summary.blunders.length
+                ? `<section>
+              <h3>${t('stats.blunders')}</h3>
+              <div class="awards">${summary.blunders.map(card).join('')}</div>
+            </section>`
+                : ''
+            }
           </div>
+
+          <div class="stats-split">
+            <section>
+              <h3>${t('stats.deaths')}</h3>
+              <ul class="tally">
+                <li><span class="use-icon">\u{1f30a}</span><span class="use-name">${t('stats.drowned')}</span><b${tone(summary.deaths.drowned, 'low')}>${String(summary.deaths.drowned)}</b></li>
+                <li><span class="use-icon">\u{1f4a3}</span><span class="use-name">${t('stats.blasted')}</span><b${tone(summary.deaths.blasted, 'low')}>${String(summary.deaths.blasted)}</b></li>
+                <li><span class="use-icon">\u{1f92f}</span><span class="use-name">${t('stats.selfDestructed')}</span><b${tone(summary.deaths.selfDestructed, 'low')}>${String(summary.deaths.selfDestructed)}</b></li>
+              </ul>
+            </section>
+            ${summary.tools.length ? `<section><h3>${t('stats.tools')}</h3><ul class="tally">${uses(summary.tools)}</ul></section>` : ''}
+            ${summary.favourites.length ? `<section><h3>${t('stats.favourites')}</h3><ul class="tally">${uses(summary.favourites)}</ul></section>` : ''}
+          </div>
+
           <h3>${t('stats.everyBuddy')}</h3>
           <table class="stats-table">
             <tr><th>${t('stats.buddy')}</th><th>${t('stats.dealtShort')}</th><th>${t('stats.taken')}</th><th>${t('stats.ownGoals')}</th><th>${t('stats.shots')}</th><th>${t('stats.crates')}</th><th>${t('stats.bestHit')}</th></tr>
             ${summary.buddies
               .map(
                 (b) =>
-                  `<tr class="${b.alive ? 'alive' : 'out'}"><td>${b.alive ? '\u{1f9c4}' : '\u{1faa6}'} ${esc(b.name)}</td><td>${String(b.dealt)}</td><td>${String(b.taken)}</td><td>${String(b.friendly)}</td><td>${String(b.shots)}</td><td>${String(b.crates)}</td><td>${String(b.best.amount)}</td></tr>`,
+                  `<tr class="${b.alive ? 'alive' : 'out'}"><td>${b.alive ? '\u{1f9c4}' : '\u{1faa6}'} ${esc(b.name)}</td><td${tone(b.dealt, 'high')}>${String(b.dealt)}</td><td>${String(b.taken)}</td><td${tone(b.friendly, 'low')}>${String(b.friendly)}</td><td>${String(b.shots)}</td><td${tone(b.crates, 'high')}>${String(b.crates)}</td><td${tone(b.best.amount, 'high')}>${String(b.best.amount)}</td></tr>`,
               )
               .join('')}
           </table>

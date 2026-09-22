@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.69.0] — 2026-09-22
+
+### Fixed
+
+- **The statistics screen was English in all four languages.** The cause was architectural: the core
+  built award titles and details as English sentences, where no catalogue could reach them. Awards
+  now carry an id, an icon, who earned it and the numbers behind it, and the interface turns those
+  into a sentence in whichever language it is speaking. A weapon award carries the weapon's id
+  rather than its English name, for the same reason.
+- The help screen's key map and the whole About screen were also untranslated. Both follow the
+  setting now; the physical key names (`Enter`, `Space`, `Backspace`) stay as they are printed on
+  the keyboard, and so do proper nouns, URLs and licence identifiers.
+
+### Added
+
+- **The scoreboard says more, and in colour.** Green for what went well, red for what did not, each
+  team's own colour beside its name. Blunders have their own board beside the honours. New counts:
+  how many drowned, how many were blown up, how many pressed their own detonator; every weapon used,
+  ranked; and the tools — rope, blowtorch, drill, platform, teleport, flamethrower — ranked
+  separately, because reaching for a tool is a different kind of decision.
+- Two new awards: most knocked out, and tool of the match.
+- 61 new catalogue keys in each of the four languages, and a browser test that plays an AI duel in
+  German and fails if a single English heading, award title or column name survives on the screen.
+
 ## [1.68.3] — 2026-09-22
 
 ### Added

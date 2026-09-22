@@ -657,9 +657,65 @@ test('match statistics: the victory screen leads to a scoreboard with teams, bud
   expect(buddyTable.join(' ')).toContain('Bruno');
   await info.attach('statistics', { body: await page.screenshot(), contentType: 'image/png' });
 
+  // The new sections: how they went, what was reached for, and the blunders beside the honours.
+  await expect(page.getByRole('heading', { name: 'How they went' })).toBeVisible();
+  const tally = (await page.locator('.tally').allTextContents()).join(' ');
+  expect(tally).toContain('Drowned');
+  expect(tally).toContain('Blown up');
+  expect(tally).toContain('Self-destructed');
+  // Awards are coloured by what they say: a triumph green, a blunder red.
+  expect(await page.locator('.award.good').count()).toBeGreaterThan(0);
+
   // Back to the victory screen, and the winner is still there.
   await page.getByRole('button', { name: /Back/ }).click();
   await expect(page.getByRole('button', { name: /Rematch/ })).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
+test('match statistics: the whole scoreboard follows the language, awards included', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await boot(page);
+  // German chosen before a shot is fired, so the scoreboard is built in it from the start.
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.locator('[data-action="language"][data-value="de"]').click();
+  await page.getByRole('button', { name: /Zurück/ }).click();
+
+  await page.evaluate(() => {
+    window.__allium.startMatch({
+      seed: 'e2e-stats-de',
+      teams: [
+        { name: 'Rot', color: '#ef4b3c', controller: 'ai', aiLevel: 'hard', buddyNames: ['Rocco'] },
+        { name: 'Blau', color: '#3d8bfd', controller: 'ai', aiLevel: 'hard', buddyNames: ['Bruno'] },
+      ],
+      turnTime: 10,
+      retreatTime: 1,
+      windMax: 0,
+      crates: 0,
+      theme: 'meadow',
+    });
+  });
+  await page.keyboard.press('Shift');
+  await page.evaluate(() => {
+    const app = window.__allium.app;
+    for (let k = 0; k < 60 * 400 && app.game!.phase !== 'gameOver'; k++) app.fastForward(1 / 60);
+  });
+  await waitFor(page, (s) => s.screen === 'victory', 30_000);
+
+  await page.getByRole('button', { name: /Match-Statistik/ }).click();
+  await expect(page.getByRole('heading', { name: 'Match-Statistik' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wie sie gingen' })).toBeVisible();
+  const german = (await page.locator('.stats-panel').textContent()) ?? '';
+  expect(german).toContain('Auszeichnungen');
+  expect(german).toContain('Ertrunken');
+  expect(german).toContain('Schaden ausgeteilt');
+  // Nothing English left behind — headings, award titles or table columns.
+  for (const english of ['Honours', 'Drowned', 'Blown up', 'Most Valuable Buddy', 'Time in the field', 'Damage dealt', 'Weapon of the match']) {
+    expect(german, `"${english}" was left untranslated`).not.toContain(english);
+  }
   expect(errors).toEqual([]);
 });
 

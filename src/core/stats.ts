@@ -10,7 +10,7 @@
  * the counting here — pure, with no DOM and no renderer — is what makes it testable.
  */
 
-import { WEAPONS, type WeaponId } from './weapons';
+import { WEAPONS, type WeaponId, type WeaponKind } from './weapons';
 
 /** Who is answerable for a blast: the buddy that caused it, and what they used. */
 export interface Blame {
@@ -37,6 +37,8 @@ export interface BuddyRecord {
   kills: number;
   alive: boolean;
   drowned: boolean;
+  /** It pressed its own detonator, which is a different kind of gone from being blown up.  */
+  selfDestructed: boolean;
 }
 
 export interface TeamRecord {
@@ -52,25 +54,57 @@ export interface TeamRecord {
   survivors: number;
 }
 
-/** One line of the honours board: a title, who earned it, and the number behind it. */
+/** Whether an award is something to be pleased about, to regret, or merely a fact of the match. */
+export type Tone = 'good' | 'bad' | 'neutral';
+
+/**
+ * One line of the honours board. Deliberately wordless: the id says which award it is and `values`
+ * carries the numbers behind it, and the interface turns the two into a sentence in whichever
+ * language it is speaking. The core has no business holding English.
+ */
 export interface Award {
   id: string;
   icon: string;
-  title: string;
+  /**
+   * Who earned it — names as the roster spells them, joined for a shared award. For an award about
+   * a weapon it is the weapon's id, because only the interface knows what to call one.
+   */
   who: string;
-  detail: string;
+  /** The numbers the sentence needs, by name. */
+  values: Readonly<Record<string, number | string>>;
+  tone: Tone;
+}
+
+/** How the buddies that are gone came to be gone. */
+export interface Deaths {
+  drowned: number;
+  blasted: number;
+  selfDestructed: number;
+}
+
+/** A weapon and how often it was used. */
+export interface WeaponUse {
+  weapon: WeaponId;
+  uses: number;
 }
 
 export interface MatchSummary {
   teams: TeamRecord[];
   buddies: BuddyRecord[];
+  /** Everything worth celebrating or noting, most interesting first. */
   awards: Award[];
+  /** And the ones worth laughing at, kept apart so the honours board stays an honours board. */
+  blunders: Award[];
   turns: number;
   /** Seconds of simulated play. */
   seconds: number;
   /** Share of the island blasted away, 0..1. */
   groundLost: number;
-  favourite: { weapon: WeaponId; uses: number } | null;
+  /** Every weapon that was used, most-used first. */
+  favourites: WeaponUse[];
+  /** The tools among them — the rope, the torch, the drill and the rest that dig or carry. */
+  tools: WeaponUse[];
+  deaths: Deaths;
 }
 
 /** Buddies and teams as the recorder needs to know them, without importing the whole Game. */
@@ -81,6 +115,9 @@ export interface StatsRoster {
   seconds: number;
   groundLost: number;
 }
+
+/** Weapon kinds that are tools rather than weapons: they dig, carry or build rather than hurt. */
+const TOOL_KINDS = new Set<WeaponKind>(['torch', 'drill', 'rope', 'platform', 'teleport', 'flamer']);
 
 const blank = (b: StatsRoster['buddies'][number]): BuddyRecord => ({
   id: b.id,
@@ -96,6 +133,7 @@ const blank = (b: StatsRoster['buddies'][number]): BuddyRecord => ({
   kills: 0,
   alive: b.alive,
   drowned: false,
+  selfDestructed: false,
 });
 
 /**
@@ -146,6 +184,8 @@ export class MatchStats {
     const record = this.record(buddy, roster);
     record.alive = false;
     record.drowned = drowned;
+    // Taking yourself with you is its own way to go, and worth counting separately.
+    record.selfDestructed = by?.buddy === buddy && by.weapon === 'selfdestruct';
     if (by && by.buddy !== buddy) this.record(by.buddy, roster).kills++;
   }
 
@@ -168,16 +208,27 @@ export class MatchStats {
         survivors: mine.filter((b) => b.alive).length,
       };
     });
-    const uses = [...this.weapons.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-    const favourite = uses[0] ? { weapon: uses[0][0], uses: uses[0][1] } : null;
+    const favourites: WeaponUse[] = [...this.weapons.entries()]
+      .map(([weapon, uses]) => ({ weapon, uses }))
+      .sort((a, b) => b.uses - a.uses || a.weapon.localeCompare(b.weapon));
+    const tools = favourites.filter((u) => TOOL_KINDS.has(WEAPONS[u.weapon].kind));
+    const deaths: Deaths = {
+      drowned: buddies.filter((b) => b.drowned).length,
+      selfDestructed: buddies.filter((b) => b.selfDestructed).length,
+      blasted: buddies.filter((b) => !b.alive && !b.drowned && !b.selfDestructed).length,
+    };
+    const honours = awardsFor(buddies, teams, roster, favourites.at(0) ?? null, deaths, tools);
     return {
       teams,
       buddies: [...buddies].sort((a, b) => b.dealt - a.dealt || a.name.localeCompare(b.name)),
-      awards: awardsFor(buddies, teams, roster, favourite),
+      awards: honours.filter((a) => a.tone !== 'bad'),
+      blunders: honours.filter((a) => a.tone === 'bad'),
       turns: roster.turns,
       seconds: roster.seconds,
       groundLost: roster.groundLost,
-      favourite,
+      favourites,
+      tools,
+      deaths,
     };
   }
 
@@ -211,69 +262,84 @@ function best<T>(items: readonly T[], by: (item: T) => number, floor = 0): T | n
 const percent = (fraction: number): string => `${(fraction * 100).toFixed(1)}%`;
 
 /**
- * The honours board. Every award is skipped when nobody earned it, so a short, quiet match shows
- * three lines rather than a dozen empty ones — an award nobody won is not a fact about the match.
+ * The honours board, as ids and numbers. Every award is skipped when nobody earned it, so a short,
+ * quiet match shows three lines rather than a dozen empty ones — an award nobody won is not a fact
+ * about the match. The `tone` is what lets the screen colour a triumph green and a blunder red, and
+ * what separates the two lists.
  */
 function awardsFor(
   buddies: readonly BuddyRecord[],
   teams: readonly TeamRecord[],
   roster: StatsRoster,
-  favourite: { weapon: WeaponId; uses: number } | null,
+  favourite: WeaponUse | null,
+  deaths: Deaths,
+  tools: readonly WeaponUse[],
 ): Award[] {
   const out: Award[] = [];
-  const add = (id: string, icon: string, title: string, who: string | null, detail: string): void => {
-    if (who) out.push({ id, icon, title, who, detail });
+  const add = (id: string, icon: string, who: string | null, values: Record<string, number | string>, tone: Tone): void => {
+    if (who) out.push({ id, icon, who, values, tone });
   };
 
   const mvp = best(buddies, (b) => b.dealt);
-  add('mvp', '\u{1f3c5}', 'Most Valuable Buddy', mvp?.name ?? null, `${String(mvp?.dealt ?? 0)} damage dealt`);
+  add('mvp', '\u{1f3c5}', mvp?.name ?? null, { damage: mvp?.dealt ?? 0 }, 'good');
 
   const hardest = best(buddies, (b) => b.best.amount);
-  add('biggest', '\u{1f4a5}', 'Biggest single hit', hardest?.name ?? null, `${String(hardest?.best.amount ?? 0)} in one blow`);
+  add('biggest', '\u{1f4a5}', hardest?.name ?? null, { damage: hardest?.best.amount ?? 0 }, 'good');
+
+  const killer = best(buddies, (b) => b.kills);
+  add('kills', '\u{1f480}', killer?.name ?? null, { kills: killer?.kills ?? 0 }, 'good');
 
   const ownGoal = best(buddies, (b) => b.friendly);
-  add('owngoal', '\u{1f926}', 'Own goal of the match', ownGoal?.name ?? null, `${String(ownGoal?.friendly ?? 0)} damage to its own side`);
+  add('owngoal', '\u{1f926}', ownGoal?.name ?? null, { damage: ownGoal?.friendly ?? 0 }, 'bad');
 
   // Accuracy is only a fact about somebody who actually took a few shots.
   const marksmen = buddies.filter((b) => b.shots >= 3);
   const deadeye = best(marksmen, (b) => b.hits / b.shots);
   if (deadeye && deadeye.hits > 0) {
-    add('deadeye', '\u{1f3af}', 'Deadeye', deadeye.name, `${percent(deadeye.hits / deadeye.shots)} of ${String(deadeye.shots)} shots found somebody`);
+    add('deadeye', '\u{1f3af}', deadeye.name, { percent: percent(deadeye.hits / deadeye.shots), shots: deadeye.shots }, 'good');
   }
   const butter = best(marksmen, (b) => 1 - b.hits / b.shots);
   if (butter && butter !== deadeye && butter.hits < butter.shots) {
-    add(
-      'butterfingers',
-      '\u{1f9e4}',
-      'Butterfingers',
-      butter.name,
-      `${String(butter.shots - butter.hits)} of ${String(butter.shots)} shots hit nothing at all`,
-    );
+    add('butterfingers', '\u{1f9e4}', butter.name, { missed: butter.shots - butter.hits, shots: butter.shots }, 'bad');
   }
 
   const collector = best(buddies, (b) => b.crates);
-  add('crates', '\u{1f4e6}', 'Crate hoarder', collector?.name ?? null, `${String(collector?.crates ?? 0)} collected`);
+  add('crates', '\u{1f4e6}', collector?.name ?? null, { crates: collector?.crates ?? 0 }, 'good');
 
   const drowned = buddies.filter((b) => b.drowned);
-  if (drowned.length) add('swim', '\u{1f30a}', 'Gone swimming', drowned.map((b) => b.name).join(', '), `${String(drowned.length)} went over the side`);
+  if (drowned.length) add('swim', '\u{1f30a}', names(drowned), { count: drowned.length }, 'bad');
+
+  const blownUp = buddies.filter((b) => !b.alive && !b.drowned && !b.selfDestructed);
+  if (blownUp.length) add('blasted', '\u{1f4a3}', names(blownUp), { count: deaths.blasted }, 'neutral');
+
+  const martyrs = buddies.filter((b) => b.selfDestructed);
+  if (martyrs.length) add('martyr', '\u{1f92f}', names(martyrs), { count: deaths.selfDestructed }, 'bad');
 
   const untouched = buddies.filter((b) => b.alive && b.taken === 0);
-  if (untouched.length) add('untouched', '\u{1f9c4}', 'Not a scratch', untouched.map((b) => b.name).join(', '), 'came through without taking a hit');
+  if (untouched.length) add('untouched', '\u{1f9c4}', names(untouched), { count: untouched.length }, 'good');
 
   const pacifists = buddies.filter((b) => b.shots === 0 && b.alive);
-  if (pacifists.length) add('pacifist', '\u{1f54a}', 'Kept its head down', pacifists.map((b) => b.name).join(', '), 'never fired a shot');
+  if (pacifists.length) add('pacifist', '\u{1f54a}', names(pacifists), { count: pacifists.length }, 'bad');
 
   const worst = best(teams, (t) => t.taken - t.dealt);
-  if (worst && teams.length > 1) add('worst', '\u{1f4c9}', 'Worst day out', worst.name, `took ${String(worst.taken)} and gave ${String(worst.dealt)}`);
+  if (worst && teams.length > 1) add('worst', '\u{1f4c9}', worst.name, { taken: worst.taken, dealt: worst.dealt }, 'bad');
 
-  if (favourite) {
-    add('favourite', WEAPONS[favourite.weapon].icon, 'Weapon of the match', WEAPONS[favourite.weapon].name, `used ${String(favourite.uses)} times`);
-  }
+  if (favourite) add('favourite', WEAPONS[favourite.weapon].icon, favourite.weapon, { uses: favourite.uses, weapon: favourite.weapon }, 'neutral');
 
-  if (roster.groundLost > 0.001) add('ground', '\u{1f5ff}', 'Island demolished', percent(roster.groundLost), 'of the rock is gone');
+  const handiest = tools.at(0);
+  if (handiest) add('handy', WEAPONS[handiest.weapon].icon, handiest.weapon, { uses: handiest.uses, weapon: handiest.weapon }, 'neutral');
 
-  const minutes = Math.floor(roster.seconds / 60);
-  const seconds = Math.round(roster.seconds % 60);
-  add('length', '⏱', 'Time in the field', `${String(roster.turns)} turns`, `${String(minutes)} min ${String(seconds)} s of pungent combat`);
+  if (roster.groundLost > 0.001) add('ground', '\u{1f5ff}', percent(roster.groundLost), { percent: percent(roster.groundLost) }, 'neutral');
+
+  add(
+    'length',
+    '\u23f1',
+    String(roster.turns),
+    { turns: roster.turns, minutes: Math.floor(roster.seconds / 60), seconds: Math.round(roster.seconds % 60) },
+    'neutral',
+  );
   return out;
 }
+
+/** Names of a group of buddies, in the order the roster gives them. */
+const names = (group: readonly BuddyRecord[]): string => group.map((b) => b.name).join(', ');
