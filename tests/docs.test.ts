@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponId } from '../src/core/weapons';
@@ -87,6 +87,30 @@ describe('the README weapon table', () => {
         expect(stated, `${row.name}: the table deals ${String(figure)}, the README says "${row.damage}"`).toContain(figure);
       }
     }
+  });
+});
+
+describe('the weapon preview page', () => {
+  /**
+   * Same reasoning as the README's table: a page with one section per weapon is wrong the moment a
+   * weapon is added, and a clip that was never recorded is a broken image nobody notices.
+   */
+  it('has a section and a clip for every weapon, in the weapon bar order', () => {
+    const page = readFileSync('docs/weapons_preview.md', 'utf8');
+    const headings = [...page.matchAll(/^### (.+)$/gm)].map((m) => m[1].trim());
+    expect(headings).toEqual(WEAPON_ORDER.map((id) => `${WEAPONS[id].icon} ${WEAPONS[id].name}`));
+    const clips = [...page.matchAll(/\(weapons\/([a-z]+)\.gif\)/g)].map((m) => m[1]);
+    expect(clips).toEqual([...WEAPON_ORDER]);
+  });
+
+  it('points every clip at a file that was actually recorded', () => {
+    for (const id of WEAPON_ORDER) expect(existsSync(`docs/weapons/${id}.gif`), `docs/weapons/${id}.gif is missing`).toBe(true);
+  });
+
+  it('gives each weapon the hotkey the game binds, on the page as well as in the README', () => {
+    const page = readFileSync('docs/weapons_preview.md', 'utf8');
+    const keys = [...page.matchAll(/^\*\*(.+?)\*\* ·/gm)].map((m) => m[1]);
+    expect(keys).toEqual(WEAPON_ORDER.map((_, k) => hotkeyLabel(k)));
   });
 });
 

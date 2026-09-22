@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.78.2] — 2026-09-22
+
+### Documentation
+
+- **Every weapon now has a clip of itself.** [`docs/weapons_preview.md`](docs/weapons_preview.md)
+  shows all twenty-four in action, each on a scenery of its own, so the arsenal can be watched
+  rather than read about.
+- The clips are recorded from the game, not staged: `scripts/capture-weapons.mjs` drives a real
+  match through the same test hook the browser suite uses, with a fixed seed and a fixed frame step,
+  so re-running it produces the same film. `npm run capture-weapons` records all of them, or just
+  the ones you name.
+- Three tests hold the page to the weapon table: a section and a clip for every weapon in the
+  weapon bar's order, the hotkey each one really binds, and a file on disk behind every clip.
+
 ## [1.78.1] — 2026-09-22
 
 ### Fixed

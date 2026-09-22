@@ -140,7 +140,8 @@ the pixel density is halved.
 
 Grouped the way the weapon bar groups them: the launcher and the thrown family, the guns, the
 fists, the sheep, what is called in from the sky, the digging tools, getting about and building,
-and the two ways of taking others with you.
+and the two ways of taking others with you. There is a recorded clip of every one of them on
+[the weapon preview page](docs/weapons_preview.md).
 
 | Key | Weapon                 | Ammo | Damage                                     | Behaviour                                                                                                                               |
 | --- | ---------------------- | ---- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
