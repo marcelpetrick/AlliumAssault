@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.68.2] — 2026-09-22
+
+### Fixed
+
+- **The README listed the flamethrower twice.** A botched edit inserted the row once, failed
+  partway, and inserted it again on the retry. One row, with the fuller wording, remains. The rest
+  of the table was already in the weapon bar's own order and is unchanged.
+
+### Added
+
+- Tests that hold the README's weapon table to the code: every weapon exactly once, in the order the
+  weapon bar shows them, with the hotkey the game binds and the ammo the weapon table gives out —
+  and a sweep of every Markdown file in the repository for a table row repeated inside one table.
+  All four fail if the duplicated row is put back.
+
 ## [1.68.1] — 2026-09-22
 
 ### Changed

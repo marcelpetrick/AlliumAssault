@@ -166,7 +166,6 @@ and the two ways of taking others with you.
 | ⇧0  | ☠️ Self-Destruct       | 1    | "Oh no!": the buddy panics for three seconds, then blows itself up — damage equals its health, blast radius health ÷ 10                         |
 | T   | 🌀 Teleport            | 1    | Press T, then click any free spot: the buddy appears there and falls, lands hard or drowns from there like anybody else. One per match          |
 | V   | 🏺 Ming Vase           | 1    | Six hundred years of porcelain, thrown once: an enormous blast and eight razor shards that each hit like a grenade. One per match               |
-| F   | 🧯 Flamethrower        | 2    | Three seconds of burning fuel out of a nozzle; up and down steer it while it runs, and the ground keeps burning                                 |
 | F   | 🧯 Flamethrower        | 2    | Three seconds of burning fuel out of a nozzle. Up and down steer it while it runs; wind and gravity carry the gobs and the ground keeps burning |
 
 ## Architecture
