@@ -8,7 +8,7 @@ import { defined } from '../core/assert';
 import { WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
-import { LANGUAGES, t, type Language } from './i18n';
+import { LANGUAGES, t, type Language, type TextKey } from './i18n';
 import { weaponBlurb, weaponName } from './i18nWeapons';
 import {
   ARSENAL_OPTIONS,
@@ -39,11 +39,11 @@ export interface MenuActions {
   click(): void;
 }
 
-const CONTROLLERS: { id: string; label: string; controller: Controller; level: AiLevel }[] = [
-  { id: 'human', label: 'Human', controller: 'human', level: 'normal' },
-  { id: 'easy', label: 'AI Easy', controller: 'ai', level: 'easy' },
-  { id: 'normal', label: 'AI Normal', controller: 'ai', level: 'normal' },
-  { id: 'hard', label: 'AI Hard', controller: 'ai', level: 'hard' },
+const CONTROLLERS: { id: string; key: TextKey; controller: Controller; level: AiLevel }[] = [
+  { id: 'human', key: 'opt.human', controller: 'human', level: 'normal' },
+  { id: 'easy', key: 'opt.aiEasy', controller: 'ai', level: 'easy' },
+  { id: 'normal', key: 'opt.aiNormal', controller: 'ai', level: 'normal' },
+  { id: 'hard', key: 'opt.aiHard', controller: 'ai', level: 'hard' },
 ];
 
 const PAGES_URL = 'https://marcelpetrick.github.io/AlliumAssault/';
@@ -165,7 +165,7 @@ export class Menu {
                 <div class="swatches">${TEAM_COLORS.map((c) => `<button class="swatch ${c === cfg.color ? 'on' : ''}" style="--c:${c}" data-action="color" data-team="${i}" data-value="${c}"></button>`).join('')}</div>
                 <label class="field-label">${t('setup.player')}</label>
                 ${segmented(
-                  CONTROLLERS.map((c) => ({ label: c.label, value: c.id, on: c.id === ctrl })),
+                  CONTROLLERS.map((c) => ({ label: t(c.key), value: c.id, on: c.id === ctrl })),
                   'controller',
                   i,
                 )}
@@ -190,19 +190,19 @@ export class Menu {
           </section>
           <section class="options">
             <div><label class="field-label">${t('setup.turnTime')}</label>${segmented(
-              TURN_OPTIONS.map((s) => ({ label: `${s}s`, value: s, on: s === d.turnTime })),
+              TURN_OPTIONS.map((s) => ({ label: t('opt.seconds', { n: s }), value: s, on: s === d.turnTime })),
               'turn',
             )}</div>
             <div><label class="field-label">${t('setup.wind')}</label>${segmented(
-              WIND_OPTIONS.map((w) => ({ label: w.label, value: w.value, on: w.value === d.windMax })),
+              WIND_OPTIONS.map((w) => ({ label: t(w.key), value: w.value, on: w.value === d.windMax })),
               'wind',
             )}</div>
             <div><label class="field-label">${t('setup.crates')}</label>${segmented(
-              CRATE_OPTIONS.map((c) => ({ label: c.label, value: c.value, on: c.value === (d.crates ?? 0) })),
+              CRATE_OPTIONS.map((c) => ({ label: t(c.key), value: c.value, on: c.value === (d.crates ?? 0) })),
               'crates',
             )}</div>
             <div><label class="field-label">${t('setup.graphics')}</label>${segmented(
-              QUALITY_OPTIONS.map((q) => ({ label: q.label, value: q.value, on: q.value === this.quality })),
+              QUALITY_OPTIONS.map((q) => ({ label: t(q.key), value: q.value, on: q.value === this.quality })),
               'quality',
             )}</div>
             <div><label class="field-label">${t('setup.language')}</label>${segmented(
@@ -210,19 +210,19 @@ export class Menu {
               'language',
             )}</div>
             <div><label class="field-label">${t('setup.textSize')}</label>${segmented(
-              TEXT_SIZES.map((size) => ({ label: size.label, value: size.value, on: size.value === this.textSize })),
+              TEXT_SIZES.map((size) => ({ label: t(size.key), value: size.value, on: size.value === this.textSize })),
               'text-size',
             )}</div>
             <div><label class="field-label">${t('setup.arsenal')}</label>${segmented(
-              ARSENAL_OPTIONS.map((a) => ({ label: a.label, value: a.value, on: a.value === (d.arsenal ?? 'all') })),
+              ARSENAL_OPTIONS.map((a) => ({ label: t(a.key), value: a.value, on: a.value === (d.arsenal ?? 'all') })),
               'arsenal',
             )}</div>
             <div><label class="field-label">${t('setup.gravity')}</label>${segmented(
-              GRAVITY_OPTIONS.map((g) => ({ label: g.label, value: g.value, on: g.value === (d.gravity ?? 1) })),
+              GRAVITY_OPTIONS.map((g) => ({ label: t(g.key), value: g.value, on: g.value === (d.gravity ?? 1) })),
               'gravity',
             )}</div>
             <div><label class="field-label">${t('setup.suddenDeath')}</label>${segmented(
-              SUDDEN_DEATH_OPTIONS.map((o) => ({ label: o.label, value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
+              SUDDEN_DEATH_OPTIONS.map((o) => ({ label: t(o.key, { n: o.value }), value: o.value, on: o.value === (d.suddenDeath ?? 0) })),
               'sudden-death',
             )}</div>
             <div class="map-field">
@@ -240,7 +240,7 @@ export class Menu {
               const th = THEMES[id];
               return `<button class="theme-card ${id === d.theme ? 'on' : ''}" data-action="theme" data-value="${id}"
                 style="--sky1:${th.skyTop.toHexString()};--sky2:${th.skyHorizon.toHexString()};--ground:${th.grass.toHexString()};--rock:${th.rock.toHexString()}">
-                <span>${th.name}</span></button>`;
+                <span>${t(`theme.${id}`)}</span></button>`;
             }).join('')}
           </section>
           <footer class="panel-foot">
@@ -321,7 +321,7 @@ export class Menu {
           <div class="pause-setting">
             <label class="field-label">${t('setup.textSize')}</label>
             ${segmented(
-              TEXT_SIZES.map((size) => ({ label: size.label, value: size.value, on: size.value === this.textSize })),
+              TEXT_SIZES.map((size) => ({ label: t(size.key), value: size.value, on: size.value === this.textSize })),
               'text-size',
             )}
           </div>

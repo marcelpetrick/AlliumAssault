@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.73.0] — 2026-09-22
+
+### Fixed
+
+- **The setup screen's options stayed English in every language.** Switching to Mandarin translated
+  the labels above each control but not the buttons under them: Wind said 风力 over `Off / Light /
+  Normal / Strong`, and the crate setting said 补给箱 over `Cratyness`. The option values come from
+  data modules — `presets.ts`, `settings.ts`, `quality.ts` — rather than from markup, so the sweep
+  that found the other untranslated screens never looked at them. Every option now carries a
+  catalogue key that the screen resolves as it renders: wind, crates, sudden death, gravity,
+  arsenal, graphics, text size, turn time, the Human/AI choice on each team card, and all five
+  scenery names. 26 keys in each of the four languages.
+- A scenery's name was stored twice — in the theme table and, from now on, in the catalogue. The
+  table's copy is gone, so there is one place to change it.
+
+### Added
+
+- Two unit tests that walk every option key in every language and fail on an empty string or an
+  unfilled placeholder, and a browser test that switches to Mandarin and fails if any of ten English
+  option labels, five scenery names or four player labels survives on the screen.
+
 ## [1.72.2] — 2026-09-22
 
 ### Changed

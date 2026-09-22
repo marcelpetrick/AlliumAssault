@@ -5,7 +5,6 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 
 export interface Theme {
   id: string;
-  name: string;
   skyTop: Color3;
   skyHorizon: Color3;
   fog: Color3;
@@ -40,7 +39,6 @@ const hex = (value: string) => Color3.FromHexString(value);
 export const THEMES: Record<string, Theme> = {
   meadow: {
     id: 'meadow',
-    name: 'Garlic Meadow',
     skyTop: hex('#1c6ad8'),
     skyHorizon: hex('#a6daf6'),
     fog: hex('#b6dcf0'),
@@ -67,7 +65,6 @@ export const THEMES: Record<string, Theme> = {
   },
   sunset: {
     id: 'sunset',
-    name: 'Golden Sunset',
     skyTop: hex('#3a3c7e'),
     skyHorizon: hex('#ffae68'),
     fog: hex('#f2a27c'),
@@ -94,7 +91,6 @@ export const THEMES: Record<string, Theme> = {
   },
   night: {
     id: 'night',
-    name: 'Moonlit Grove',
     skyTop: hex('#050a22'),
     skyHorizon: hex('#2a4478'),
     fog: hex('#1d2d52'),
@@ -121,7 +117,6 @@ export const THEMES: Record<string, Theme> = {
   },
   candy: {
     id: 'candy',
-    name: 'Candy Shop',
     skyTop: hex('#ff8fc8'),
     skyHorizon: hex('#ffe3f1'),
     fog: hex('#ffd6ea'),
@@ -152,7 +147,6 @@ export const THEMES: Record<string, Theme> = {
   },
   frost: {
     id: 'frost',
-    name: 'Frosty Peaks',
     skyTop: hex('#5e8fd6'),
     skyHorizon: hex('#e6f2fb'),
     fog: hex('#dbe9f5'),
@@ -182,4 +176,10 @@ export const THEMES: Record<string, Theme> = {
   },
 };
 
-export const THEME_IDS = Object.keys(THEMES);
+/**
+ * The sceneries, in the order the setup screen offers them. Spelt out as literals rather than
+ * derived from `Object.keys`, so a catalogue key built from one is checked at compile time and no
+ * scenery can reach the screen untranslated. A test keeps the list and the table in step.
+ */
+export const THEME_IDS = ['meadow', 'sunset', 'night', 'candy', 'frost'] as const;
+export type ThemeId = (typeof THEME_IDS)[number];

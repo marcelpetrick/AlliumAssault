@@ -11,7 +11,7 @@ export type Quality = 'high' | 'low';
  * Full is the default and stays the default: shadows, bloom, antialiasing and the full pixel
  * density, even where that costs frames. Low is for weak GPUs and is what `?quality=low` selects.
  */
-export const QUALITY_OPTIONS: { label: string; value: Quality }[] = [
-  { label: 'Full', value: 'high' },
-  { label: 'Low (weak GPU)', value: 'low' },
+export const QUALITY_OPTIONS: { key: 'opt.full' | 'opt.lowGpu'; value: Quality }[] = [
+  { key: 'opt.full', value: 'high' },
+  { key: 'opt.lowGpu', value: 'low' },
 ];

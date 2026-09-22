@@ -4,6 +4,7 @@
 import { DEFAULT_CRATE_CHANCE } from '../core/crates';
 import type { AiLevel, Arsenal, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { shuffle } from '../core/rng';
+import type { TextKey } from './i18n';
 import { THEME_IDS } from '../render/themes';
 
 export const TEAM_COLORS = ['#ef4b3c', '#3d8bfd', '#2ecc71', '#f5b92e', '#a45ee5', '#ff7eb6'];
@@ -31,41 +32,41 @@ export const BUDDY_NAMES = [
   'Pungent',
 ];
 
-export const WIND_OPTIONS = [
-  { label: 'Off', value: 0 },
-  { label: 'Light', value: 0.35 },
-  { label: 'Normal', value: 0.7 },
-  { label: 'Strong', value: 1 },
+export const WIND_OPTIONS: { key: TextKey; value: number }[] = [
+  { key: 'opt.off', value: 0 },
+  { key: 'opt.light', value: 0.35 },
+  { key: 'opt.normal', value: 0.7 },
+  { key: 'opt.strong', value: 1 },
 ];
 export const TURN_OPTIONS = [30, 45, 60, 90];
-export const ARSENAL_OPTIONS: { label: string; value: Arsenal }[] = [
-  { label: 'All weapons', value: 'all' },
-  { label: 'Find in crates', value: 'crates' },
-  { label: 'Infinite supplies', value: 'infinite' },
+export const ARSENAL_OPTIONS: { key: TextKey; value: Arsenal }[] = [
+  { key: 'opt.allWeapons', value: 'all' },
+  { key: 'opt.findInCrates', value: 'crates' },
+  { key: 'opt.infinite', value: 'infinite' },
 ];
 /** Turn on which Sudden Death drops everybody to 1 HP and starts the flood; 0 is off. */
-export const SUDDEN_DEATH_OPTIONS = [
-  { label: 'Off', value: 0 },
-  { label: 'Turn 10', value: 10 },
-  { label: 'Turn 20', value: 20 },
-  { label: 'Turn 30', value: 30 },
+export const SUDDEN_DEATH_OPTIONS: { key: TextKey; value: number }[] = [
+  { key: 'opt.off', value: 0 },
+  { key: 'opt.turnN', value: 10 },
+  { key: 'opt.turnN', value: 20 },
+  { key: 'opt.turnN', value: 30 },
 ];
 /**
  * The arena's pull as a multiple of the standard one. Normal is the world the game has always had;
  * Moon makes for floaty jumps, long throws and gentle landings, Heavy for the opposite.
  */
-export const GRAVITY_OPTIONS = [
-  { label: 'Moon', value: 0.55 },
-  { label: 'Normal', value: 1 },
-  { label: 'Heavy', value: 1.5 },
+export const GRAVITY_OPTIONS: { key: TextKey; value: number }[] = [
+  { key: 'opt.moon', value: 0.55 },
+  { key: 'opt.normal', value: 1 },
+  { key: 'opt.heavy', value: 1.5 },
 ];
-export const CRATE_OPTIONS = [
-  { label: 'Off', value: 0 },
-  { label: 'Normal', value: DEFAULT_CRATE_CHANCE },
-  { label: 'Lots', value: 0.7 },
+export const CRATE_OPTIONS: { key: TextKey; value: number }[] = [
+  { key: 'opt.off', value: 0 },
+  { key: 'opt.normal', value: DEFAULT_CRATE_CHANCE },
+  { key: 'opt.lots', value: 0.7 },
   // From 1 upwards the value is a guaranteed number of crates per turn instead of a chance.
   // "Cratyness" is spelt exactly so on purpose: crates plus craziness.
-  { label: 'Cratyness', value: 2 },
+  { key: 'opt.cratyness', value: 2 },
 ];
 
 export const randomSeed = (): string => Math.random().toString(36).slice(2, 8);

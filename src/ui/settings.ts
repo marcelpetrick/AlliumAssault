@@ -3,16 +3,16 @@
 
 import type { AiLevel, Controller, MatchConfig, TeamConfig } from '../core/game';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
-import { LANGUAGES, preferredLanguage, setLanguage, type Language } from './i18n';
+import { LANGUAGES, preferredLanguage, setLanguage, type Language, type TextKey } from './i18n';
 import { THEME_IDS } from '../render/themes';
 import { ARSENAL_OPTIONS, CRATE_OPTIONS, GRAVITY_OPTIONS, quickMatch, randomSeed, SUDDEN_DEATH_OPTIONS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
 
 export type TextSize = 'normal' | 'large' | 'huge';
 
-export const TEXT_SIZES: { label: string; value: TextSize; scale: number }[] = [
-  { label: 'Normal', value: 'normal', scale: 1 },
-  { label: 'Large', value: 'large', scale: 1.25 },
-  { label: 'Huge', value: 'huge', scale: 1.5 },
+export const TEXT_SIZES: { key: TextKey; value: TextSize; scale: number }[] = [
+  { key: 'opt.normal', value: 'normal', scale: 1 },
+  { key: 'opt.large', value: 'large', scale: 1.25 },
+  { key: 'opt.huge', value: 'huge', scale: 1.5 },
 ];
 
 /** What the player chose last time, restored for the next game and after a reload. */

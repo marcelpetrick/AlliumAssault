@@ -829,3 +829,41 @@ test('title screen: About is a real button, the same size as the others', async 
   await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('languages: the setup screen options change too, not only their labels', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await page.locator('[data-action="language"][data-value="zh"]').click();
+
+  // Every segmented option and every scenery card, in Mandarin. The labels above them were
+  // translated from the start; these come from data modules and were not.
+  const optionText = (await page.locator('.options .seg button').allTextContents()).join(' ');
+  for (const english of ['Cratyness', 'Lots', 'Normal', 'Off', 'Moon', 'Heavy', 'All weapons', 'Full', 'Huge', 'Turn 10']) {
+    expect(optionText, `the option "${english}" is still English in Mandarin`).not.toContain(english);
+  }
+  expect(optionText).toContain('补给箱狂潮');
+  expect(optionText).toContain('月球');
+
+  const scenery = (await page.locator('.themes button').allTextContents()).join(' ');
+  for (const english of ['Garlic Meadow', 'Candy Shop', 'Frosty Peaks', 'Golden Sunset', 'Moonlit Grove']) {
+    expect(scenery, `the scenery "${english}" is still English in Mandarin`).not.toContain(english);
+  }
+  expect(scenery).toContain('大蒜草原');
+
+  // The controller buttons on each team card too.
+  const players = (await page.locator('.team-card .seg button').allTextContents()).join(' ');
+  for (const english of ['Human', 'AI Easy', 'AI Normal', 'AI Hard']) {
+    expect(players, `the player option "${english}" is still English in Mandarin`).not.toContain(english);
+  }
+  expect(players).toContain('玩家');
+
+  // The language list itself stays in each language's own words, which is the point of it.
+  const langs = (await page.locator('[data-action="language"]').allTextContents()).join(' ');
+  expect(langs).toContain('English');
+  expect(langs).toContain('Deutsch');
+  expect(errors).toEqual([]);
+});
