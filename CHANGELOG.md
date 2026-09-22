@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.71.0] — 2026-09-22
+
+### Added
+
+- **Buddies can be renamed.** Each one in the setup screen is now a field, the way the team name
+  already was, and the names are saved with the rest of the setup — so the next match starts with
+  the team you named last time. Clearing a field falls back to a default rather than leaving a
+  nameless buddy in the HUD.
+
+### Changed
+
+- The map-seed field and its dice button are half again as large. They are the two most-used
+  controls on the setup screen and were the smallest.
+
 ## [1.70.0] — 2026-09-22
 
 ### Added

@@ -4,6 +4,7 @@
 import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import type { Award, MatchSummary } from '../core/stats';
+import { defined } from '../core/assert';
 import { WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
@@ -175,7 +176,12 @@ export class Menu {
                     <span>${cfg.buddyNames.length}</span>
                     <button data-action="buddies" data-team="${i}" data-value="1">+</button>
                   </div>
-                  <div class="buddy-names">${cfg.buddyNames.map((n) => `<span>🧄 ${esc(n)}</span>`).join('')}</div>
+                  <div class="buddy-names">${cfg.buddyNames
+                    .map(
+                      (n, b) =>
+                        `<label class="buddy-name"><span>🧄</span><input data-field="buddy-name" data-team="${String(i)}" data-buddy="${String(b)}" value="${esc(n)}" maxlength="24" spellcheck="false" aria-label="${esc(t('setup.buddyName', { n: b + 1 }))}" /></label>`,
+                    )
+                    .join('')}</div>
                 </div>
               </div>`;
               })
@@ -463,6 +469,13 @@ export class Menu {
       }, 250);
     }
     if (input.dataset.field === 'team-name') this.draft.teams[Number(input.dataset.team)].name = input.value || 'Team';
+    if (input.dataset.field === 'buddy-name') {
+      // An empty field would leave a nameless buddy in the HUD, so it falls back to what it was
+      // called by default rather than to nothing.
+      const team = defined(this.draft.teams[Number(input.dataset.team)], 'team');
+      const at = Number(input.dataset.buddy);
+      team.buddyNames[at] = input.value || `${team.name.slice(0, 6)} ${String(at + 1)}`;
+    }
     this.persist();
   }
 

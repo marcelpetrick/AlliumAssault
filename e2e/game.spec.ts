@@ -761,3 +761,40 @@ test('languages: the whole interface follows the setting, and it survives a relo
   await expect(page.getByRole('button', { name: /自定义对战/ })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('setup screen: buddies can be renamed, and the names come back next time', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    localStorage.removeItem('allium.settings');
+  });
+  await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+
+  // Every buddy of every team is a field, not a label.
+  const names = page.locator('.buddy-name input');
+  const count = await names.count();
+  expect(count).toBeGreaterThanOrEqual(4);
+
+  await names.nth(0).fill('Knoblauch');
+  await names.nth(1).fill('Češnjak');
+  // The seed field and its dice are big enough to hit without aiming.
+  const seed = (await page.locator('.seed input').boundingBox())!;
+  const dice = (await page.locator('[data-action="dice"]').boundingBox())!;
+  expect(seed.width).toBeGreaterThanOrEqual(180);
+  expect(seed.height).toBeGreaterThanOrEqual(30);
+  expect(dice.height).toBeGreaterThanOrEqual(30);
+
+  // Straight into the browser's memory, and back out of it after a reload.
+  const stored = await page.evaluate(() => localStorage.getItem('allium.settings') ?? '');
+  expect(stored).toContain('Knoblauch');
+  await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  await expect(page.locator('.buddy-name input').nth(0)).toHaveValue('Knoblauch');
+  await expect(page.locator('.buddy-name input').nth(1)).toHaveValue('Češnjak');
+
+  // And the match that starts really uses them.
+  await page.getByRole('button', { name: /Start Battle/ }).click();
+  await waitFor(page, (s) => !s.demo && s.buddies.length > 0, 30_000);
+  expect((await state(page)).buddies.map((b) => b.name)).toContain('Knoblauch');
+  expect(errors).toEqual([]);
+});

@@ -144,8 +144,8 @@ Status: ☐ open · ☑ done
 | T130 | A short document on how the project's i18n works and how to add a string or a language                          | ☑      | 1.69.1         |
 | T131 | Statistics: more colour, green for good and red for bad, blunders, favourite weapons, deaths by cause, tool use | ☑      | 1.69.0         |
 | T132 | Check the blowtorch actually burns a buddy it walks into — it should                                            | ☑      | 1.68.3         |
-| T133 | Rename the buddies in a team, the way the team itself can be renamed, and remember the names                    | ☐      |                |
-| T134 | Setup screen: a bigger map-seed field and a bigger dice button                                                  | ☐      |                |
+| T133 | Rename the buddies in a team, the way the team itself can be renamed, and remember the names                    | ☑      | 1.71.0         |
+| T134 | Setup screen: a bigger map-seed field and a bigger dice button                                                  | ☑      | 1.71.0         |
 | T135 | Public release: push, tag, GitHub release and Pages deployment                                                  | ☐      |                |
 
 ## Current implementation plan
