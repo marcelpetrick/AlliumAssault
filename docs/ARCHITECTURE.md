@@ -10,8 +10,10 @@ system context, containers, components, and the dynamic flows that matter most. 
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
 | Looks good in 3D, no pixel/voxel art | Babylon.js scene with PBR-style lighting, shadows, post-processing; smooth meshes from a density field |
 | Plays like Worms                     | Explicit match state machine, fixed 60 Hz simulation, arbitrarily destructible terrain                 |
-| Browser only, no backend             | Static Vite build; all state lives in the tab (mute flag and match settings in `localStorage`)         |
+| Browser only, no backend             | Static Vite build; all state lives in the tab (settings in `localStorage`, under a schema version)     |
 | Testable                             | Rules in a headless core with no Babylon/DOM imports; `window.__allium` hook for Playwright            |
+| Readable in four languages           | Every player-facing string comes from a catalogue keyed by language, with English as the fallback      |
+| Answers for itself at the end        | The rules count the match as they run it, so the scoreboard credits what actually happened             |
 
 ## 2. Level 1 — System context
 
@@ -28,7 +30,7 @@ C4Context
   System_Ext(fonts, "Google Fonts", "Optional Fredoka web font; system fonts are the fallback")
   System_Ext(github, "GitHub", "Repository, Actions CI, Releases, Pages hosting")
 
-  Rel(player, game, "Plays in", "Modern browser, WebGL2")
+  Rel(player, game, "Plays in", "Modern browser, WebGL2; its language picks the interface's")
   Rel(host, game, "Serves static files", "HTTP")
   Rel(game, fonts, "Loads font stylesheet", "HTTPS")
   Rel(dev, github, "Pushes commits and release tags vX.Y.Z")
@@ -47,9 +49,9 @@ C4Container
   Person(player, "Player")
 
   System_Boundary(tab, "Allium Assault (browser tab)") {
-    Container(ui, "UI overlay", "HTML, CSS, TypeScript", "Title, match setup, HUD, pause, help, about, victory, persisted settings — src/ui")
+    Container(ui, "UI overlay", "HTML, CSS, TypeScript", "Title, match setup, HUD, pause, help, about, victory, statistics; four languages and persisted settings — src/ui")
     Container(app, "App shell", "TypeScript", "Engine lifetime, fixed 60 Hz loop, input, event routing — src/app.ts")
-    Container(core, "Game core", "Pure TypeScript", "Rules, terrain, physics, weapons, AI — src/core")
+    Container(core, "Game core", "Pure TypeScript", "Rules, terrain, physics, weapons, AI, match statistics — src/core")
     Container(render, "3D renderer", "Babylon.js 9", "Scene, meshes, effects, camera — src/render")
     Container(audio, "Sound synthesizer", "Web Audio API", "Generated sound effects — src/audio.ts")
   }
@@ -69,13 +71,19 @@ C4Container
   Rel(audio, webaudio, "Oscillators and filtered noise")
 ```
 
-| Container   | Path                        | May import                                                           |
-| ----------- | --------------------------- | -------------------------------------------------------------------- |
-| Game core   | `src/core/`                 | only other core modules and `simplex-noise` — **no Babylon, no DOM** |
-| 3D renderer | `src/render/`               | core (read-only), Babylon.js                                         |
-| UI overlay  | `src/ui/`                   | core types, render themes, DOM                                       |
-| App shell   | `src/app.ts`, `src/main.ts` | everything                                                           |
-| Sound       | `src/audio.ts`              | Web Audio only                                                       |
+| Container   | Path                        | May import                                                                    |
+| ----------- | --------------------------- | ----------------------------------------------------------------------------- |
+| Game core   | `src/core/`                 | only other core modules and `simplex-noise` — **no Babylon, no DOM**          |
+| 3D renderer | `src/render/`               | core (read-only), Babylon.js — always per module, never the package root      |
+| UI overlay  | `src/ui/`                   | core types, `render/themes` and `render/quality` (both Babylon-free), the DOM |
+| App shell   | `src/app.ts`, `src/main.ts` | everything                                                                    |
+| Sound       | `src/audio.ts`              | Web Audio only                                                                |
+
+Two import rules are checked rather than trusted. `tests/imports.test.ts` fails on
+`from '@babylonjs/core'` anywhere in `src`, because the package root is a barrel that re-exports the
+whole engine and takes the bundle from 1.5 MB to 6.9 MB; it also insists that any module building a
+picking ray asks for `@babylonjs/core/Culling/ray`, the side-effect module that installs
+`createPickingRay` on `Scene.prototype`. Neither mistake shows up in a typecheck.
 
 ## 4. Level 3 — Components
 
@@ -94,11 +102,13 @@ C4Component
     Component(physics, "Physics", "physics.ts", "stepBody for buddies, stepProjectile for shells")
     Component(weapons, "Weapon table", "weapons.ts", "Twenty-three weapons by kind, grouped thematically; fragments, arsenal flags, digit and letter hotkeys")
     Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts, fire.ts, rope.ts", "Hopping sheep, steerable flyer, strike drop planning, napalm flames that eat into the ground, rope hook and swing")
-    Component(crates, "Crates and mines", "crates.ts, mines.ts", "Seeded crate contents and free land spots; mine arming, proximity and fuse")
+    Component(crates, "Crates and mines", "crates.ts, mines.ts", "Health, weapon and mystery crates on seeded free land; mystery contents rolled on opening; mine arming, proximity and fuse")
+    Component(stats, "MatchStats", "stats.ts", "Counts the match as it runs: damage by culprit, own goals, shots and hits, crates, kills; the honours board at the end")
     Component(support, "rng, math, constants, assert", "rng.ts, math.ts, constants.ts, assert.ts", "Seeded streams, helpers, tuning values, invariants")
   }
 
   Rel(game, match, "Is the state machine over")
+  Rel(game, stats, "fired, damaged, collected, died; summary() at the end")
   Rel(game, terrain, "Generates, carves, queries")
   Rel(game, physics, "Steps bodies and projectiles")
   Rel(game, weapons, "Reads definitions")
@@ -107,6 +117,7 @@ C4Component
   Rel(game, ai, "update() during AI turns")
   Rel(ai, game, "selectWeapon, face, pressFire, releaseFire")
   Rel(ai, physics, "Simulates candidate shots")
+  Rel(stats, weapons, "Names the weapon of the match")
   Rel(physics, terrain, "sample, distance, normal")
   Rel(terrain, support, "Seeded noise streams")
 ```
@@ -121,12 +132,20 @@ C4Component
 
 **Match state.** `Game` is the only place that mutates match state. Input arrives as commands
 (`jump`, `selectWeapon`, `pressFire`, `strike`, …) or as the held `input` flags (walking, aiming,
-steering the flying sheep); results leave as typed `GameEvent`s. Besides buddies and projectiles
-the game owns the weapon action in progress — one `TurnAction` (hopping or flying sheep, torch,
-drill or minigun burst) stepped by `stepAction` — the pending strike drops, and the persistent
-world objects (crates, napalm flames, tombstones). Presentation of each weapon (projectile model,
-sounds, muzzle flash) is declared in `WeaponDef.look`, so renderer and app never switch on weapon
-ids.
+steering the flying sheep, swinging the flamethrower's nozzle); results leave as typed `GameEvent`s.
+Besides buddies and projectiles the game owns the weapon action in progress — one `TurnAction`
+(hopping or flying sheep, rope, blowtorch, drill, minigun burst, flamethrower or a panicking
+self-destruct) stepped by `stepAction` — the pending strike drops, and the persistent world objects
+(crates, mines, napalm flames, tombstones). Presentation of each weapon (projectile model, sounds,
+muzzle flash, whether a hit brings a stadium with it) is declared in `WeaponDef.look`, so renderer
+and app never switch on weapon ids.
+
+**Attribution.** A blast carries a `Blame` — the buddy that caused it and the weapon it used —
+through `explode()` and `damage()`, and through the chains a blast sets off, so a crate or a mine
+touched off by somebody's grenade is still that grenade's doing. This is the one piece of knowledge
+only the rules have: a `damage` event says who was hurt, never by whom. `MatchStats` books it, which
+is why the scoreboard can tell a kill from an own goal and the player who earned it from the player
+whose turn it happened to be.
 
 ### 4.2 Renderer and UI
 
@@ -141,13 +160,17 @@ C4Component
     Component(env, "Environment", "environment.ts", "Sky and water shaders, hills, thin-instanced pines, lollipops or snowy pines, clouds")
     Component(deco, "Decorations", "decorations.ts", "Thin-instanced ground props per scenery style: flowers, gumdrops, snowballs")
     Component(buddy, "BuddyView and BuddyKit", "buddyView.ts", "Lathe garlic models, faces, squash and stretch, weapons")
-    Component(fx, "Effects", "effects.ts", "Particles, shockwave, lights, tracers, projectile models, sheep, plane, crates, tombstones, flames, flying earth, strike cursor; sweeps up one-shot systems")
+    Component(fx, "Effects", "effects.ts", "Particles, shockwave, lights, tracers, projectile models, sheep, plane, crates, tombstones, flames, flying earth, strike reticle and teleport cross; sweeps up one-shot systems")
     Component(themes, "Themes and textures", "themes.ts, textures.ts", "Palettes and procedural grain and normal maps")
+    Component(quality, "Quality", "quality.ts", "Full or Low, and what each costs — the one render module with no Babylon in it, so the settings can name it")
   }
 
   Container_Boundary(ui, "UI overlay") {
     Component(hud, "Hud", "hud.ts", "Turn card, timer, wind, gravity badge, two-row weapon bar, team bars, name tags, floaters")
-    Component(menu, "Menu", "menu.ts, presets.ts, settings.ts, mapPreview.ts", "Title, custom setup (gravity, crates, arsenal, seed with a live map preview), help, about, pause, victory; persisted settings and text size")
+    Component(menu, "Menu", "menu.ts, presets.ts, mapPreview.ts", "Title, custom setup (gravity, crates, arsenal, graphics, language, seed with a live map preview), help, about, pause, victory and the statistics screen")
+    Component(settings, "Settings", "settings.ts", "What the browser remembers, under a schema version, with a migration for anything an older build wrote")
+    Component(i18n, "Catalogues", "i18n.ts, i18nWeapons.ts", "English, German, Croatian and Mandarin; English holds every key and is the fallback")
+    Component(dom, "dom", "dom.ts", "query() and queryAs(): element lookup that fails loudly instead of returning null")
   }
 
   Container(core, "Game core", "src/core")
@@ -159,8 +182,16 @@ C4Component
   Rel(world, fx, "explosion, splash, tracer, syncProjectiles")
   Rel(tv, core, "contourRegion, Terrain.sample")
   Rel(world, themes, "Palette and lighting")
+  Rel(world, quality, "Built for Full or Low, once")
   Rel(hud, world, "project() world to screen")
   Rel(hud, core, "Reads phase, timers, ammo, HP")
+  Rel(hud, i18n, "t(), weaponName(), weaponBlurb()")
+  Rel(menu, i18n, "t() for every screen")
+  Rel(menu, settings, "load, save, migrate")
+  Rel(menu, core, "Renders the MatchSummary the app hands it")
+  Rel(settings, quality, "Validates the stored graphics setting")
+  Rel(hud, dom, "Looks its own elements up")
+  Rel(menu, dom, "Looks its own elements up")
 ```
 
 ## 5. Dynamic view — one frame
@@ -208,6 +239,11 @@ stateDiagram-v2
   drilling --> retreat: after 3 s
   aiming --> firing: minigun burst
   firing --> retreat: last bullet
+  aiming --> spraying: flamethrower opened
+  spraying --> retreat: after 3 s of fuel
+  aiming --> roping: hook fired
+  roping --> aiming: landed again — the rope is a utility, not the turn's shot
+  roping --> settling: turn time runs out mid-swing
   aiming --> panicking: self-destruct triggered
   panicking --> settling: three seconds of "Oh no!", then the blast
   aiming --> retreat: platform placed or teleport used
@@ -223,32 +259,46 @@ stateDiagram-v2
 Rules enforced here:
 
 - ammo is consumed on a weapon's first shot,
-- in `guiding`, `torching`, `drilling` and `firing` the buddy cannot move; the turn timer keeps
-  running in all but `firing` (`COUNTDOWN_PHASES`), and hurting the active buddy in any of them ends
-  the turn (`ACTION_PHASES`),
+- in `guiding`, `torching`, `drilling`, `spraying`, `roping` and `firing` the buddy cannot walk; the
+  turn timer keeps running in all but `firing` (`COUNTDOWN_PHASES`), and hurting the active buddy in
+  any of them ends the turn (`ACTION_PHASES`),
+- `roping` is the one action phase that returns to `aiming` rather than ending the turn: the rope
+  moves the buddy instead of attacking with it, so once it lands it may still take its shot — and
+  the rope is only charged for once its hook actually bites,
+- `spraying` still reads the up and down keys, because steering the nozzle mid-burst is the whole
+  point of the flamethrower; the nozzle swings past the limits the ordinary aim is held to,
 - the active buddy takes no fall damage while drilling,
 - crates teleport in at turn starts from a seeded stream, so maps replay identically — one per turn
-  by chance, or a fixed number under "crate craziness",
+  by chance, or a fixed number under "Cratyness",
+- a mystery crate's contents are rolled from that same stream when somebody opens it, not when it
+  drops, so nothing about the box on the map gives the answer away and a seed still replays,
 - Sudden Death raises the water one unit per turn start, never by the second, so sitting a turn out
   never floods faster than playing it,
 - a buddy that dies during its own turn intro hands the turn straight on,
 - the turn only ends once the world has settled — projectiles, sheep, strike drops, crates,
-  napalm flames and tombstones included,
+  napalm flames, tombstones and any mine still counting down included,
 - death explosions are queued one at a time, so chain reactions resolve deterministically.
 
 ## 7. Dynamic view — an explosion
 
 ```mermaid
 flowchart LR
-  hit["Projectile hits or fuse ends"] --> explode["Game.explode()"]
+  hit["Projectile hits or fuse ends"] --> explode["Game.explode(…, blame)"]
   explode --> carve["Terrain.carve()<br/>field = min(field, d − r)<br/>scorch rim, mark dirty chunks"]
   explode --> dmg["Radial damage and knockback"]
+  explode --> chain["Crates and mines in reach<br/>explode in turn, same blame"]
+  chain --> fire["A burst crate leaves<br/>a few short-lived flames"]
   explode --> evt["explosion event"]
   evt --> fx["World: particles, shockwave, flash, camera hold"]
   evt --> deco["Decorations.clearAround()"]
   carve -. next frame .-> mesh["TerrainView.update()<br/>contourRegion() per dirty chunk → VertexData"]
   dmg --> bodies["Physics: flight, fall damage, drowning"]
+  dmg --> stats["MatchStats.damaged(blame, …)"]
 ```
+
+Each crate and mine is taken out of its list before its own blast, so a chain can never come back
+round to it and nothing is counted twice. The blame travels with the chain: the grenade that started
+it gets the credit, not the crate it happened to touch.
 
 ## 8. Dynamic view — AI turn
 
@@ -261,24 +311,37 @@ flowchart TD
   special --> score
   sample --> score["scoreBlast(): enemy damage + kill bonus<br/>− weighted friendly and self damage"]
   melee --> score
-  score --> noise["Add aim and power error by difficulty"]
-  noise --> act["selectWeapon, face, aim via input,<br/>pressFire, releaseFire at planned power"]
+  score --> cost["Subtract what reaching for it costs:<br/>limited ammo, uses already spent,<br/>a cluster weapon's whole payload"]
+  cost --> noise["Add aim and power error by difficulty"]
+  noise --> shop{"Is a crate worth more<br/>than the best shot?"}
+  shop -- "walkable" --> walk["Walk to it"]
+  shop -- "rope, and rock overhead" --> swing["Fire the hook, swing across,<br/>reel in, let go over the crate<br/>(abandoned after 9 s)"]
+  shop -- no --> act["selectWeapon, face, aim via input,<br/>pressFire, releaseFire at planned power"]
   act --> more{"Weapon has shots left?"}
   more -- yes --> replan["Re-plan restricted to the current weapon"] --> act
   more -- no --> retreat["Walk away during retreat"]
 ```
 
-Planning runs on the main thread. With the full arsenal a hard AI decision takes about 50 ms in
-the Node benchmark, a short hitch once per AI turn. The AI can also detour to a nearby crate when
-it has no good shot, and steers a flying sheep with the same arrow keys a player uses.
+Planning runs on the main thread. With the full arsenal a hard decision measures about 30 ms on the
+development machine — a hitch of a frame or two, once per AI turn, hidden behind the think delay.
+
+Two things keep it from playing the same turn over and over. Reaching for a weapon costs something
+before its blast is even scored: a flat charge for anything limited, a share of the weapon's whole
+payload divided by how much is left, and a growing penalty for a weapon this team has already leant
+on — a little even for one it can never run out of. Without that the AI found the single
+highest-scoring weapon and played it until the ammo ran out, which for the concrete mule was almost
+anywhere and for the Ming vase was turn one of every match. And Normal and Hard go shopping: they
+already valued crates, and now reach the ones walking cannot get to by firing the rope and swinging
+across. The swing is abandoned after nine seconds however it is going, because a traversal that is
+not working must never eat the turn.
 
 ## 9. Deployment and delivery
 
 ```mermaid
 flowchart LR
   dev["Developer"] -- "push master / pull request" --> ci["CI workflow<br/>linters, typecheck, Vitest, build,<br/>Playwright in Google Chrome,<br/>REUSE check, actionlint"]
-  dev -- "push tag vX.Y.Z" --> rel["Release workflow<br/>verify, build, zip + SHA-256,<br/>notes from CHANGELOG"]
-  dev -- "push tag vX.Y.Z" --> pages["Pages workflow<br/>build, deploy dist/"]
+  dev -- "push tag vX.Y.Z" --> rel["Release workflow<br/>lint, typecheck, coverage, build,<br/>Playwright, tag = package.json,<br/>zip + SHA-256, notes from CHANGELOG"]
+  dev -- "push tag vX.Y.Z" --> pages["Pages workflow<br/>lint, typecheck, coverage, build,<br/>Playwright, then deploy dist/"]
   pages --> site[("GitHub Pages<br/>marcelpetrick.github.io/AlliumAssault")]
   rel --> release[("GitHub Release")]
   release --> host["Any static web server"]
@@ -289,6 +352,10 @@ flowchart LR
 Every commit on `master` carries its own SemVer version in `package.json` and a `CHANGELOG.md`
 entry; only releases get a `vX.Y.Z` tag. See the Versioning section of the README and `AGENTS.md`.
 
+All three workflows run the browser suite, the release one included: a tag cannot publish a build
+that the only gate watching the renderer actually run has not seen. The release also refuses to
+publish unless the tag matches the version in `package.json`.
+
 ## 10. Key decisions
 
 | Decision                                    | Alternatives considered                | Why                                                                                                                     |
@@ -298,15 +365,20 @@ entry; only releases get a `vX.Y.Z` tag. See the Versioning section of the READM
 | Gameplay on a 2D plane, rendered in 3D      | Full 3D gameplay                       | Keeps Worms-style aiming and tactics while the presentation is fully 3D                                                 |
 | HTML/CSS overlay for UI                     | Babylon GUI                            | Crisp text, standard layout and styling, easy Playwright selectors                                                      |
 | Events out of the core                      | Renderer polling diffs                 | Effects, sound and HUD react to exactly what happened, in order                                                         |
+| Statistics counted in the core              | Replaying the event log afterwards     | Only the rules know who caused a blast; an event says who was hurt, never by whom                                       |
+| Babylon imported per module                 | `from '@babylonjs/core'`               | The package root is a barrel: importing it defeats tree-shaking and quadruples the bundle. Enforced by a unit test      |
+| English as the source of truth for text     | A key-per-language catalogue           | Every key exists in one place; other languages are partial and fall back, so a gap shows words rather than an id        |
 | Synthesized audio                           | Sample files                           | No asset pipeline or licensing; tiny build                                                                              |
 | Type-aware linting, fixes over suppressions | Plain ESLint recommended               | Catches unsafe `any`, unnecessary conditions and non-null misuse in a strict TypeScript codebase                        |
 | SPDX headers + REUSE.toml                   | License notice in README only          | Machine-checkable licensing for every file; enforced in CI                                                              |
 
 ## 11. Quality and testing map
 
-| Level      | Tooling                                                                                                    | Covers                                                                                                                                                                                                                                                                                                                                                                                    |
-| ---------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit       | Vitest (`tests/`)                                                                                          | RNG, terrain generation, craters, contouring, body and projectile physics, turns, every weapon's rules, crates, flames, tombstones, hotkeys, persisted settings, AI plans, a full AI-vs-AI match                                                                                                                                                                                          |
-| End-to-end | Playwright + Google Chrome (`e2e/`)                                                                        | Title demo, a human turn with real keys, AI match to victory, custom setup, arsenal, settings persistence and Reset all, about screen, pause menu; every weapon with real keys and clicks (`weapons.spec.ts`); crates and camera pan, tombstones, sceneries, audio cues, movement sounds and weapon bar (`features.spec.ts`) — sounds are checked through the synthesizer's play counters |
-| Static     | TypeScript strict; ESLint (type-checked), Prettier, Stylelint, markdownlint; SPDX check, REUSE, actionlint | Whole codebase                                                                                                                                                                                                                                                                                                                                                                            |
-| Pipeline   | `npm run verify`, GitHub Actions                                                                           | All of the above on every push; releases and GitHub Pages deployment on tags                                                                                                                                                                                                                                                                                                              |
+| Level      | Tooling                                                                                                    | Covers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit       | Vitest (`tests/`)                                                                                          | RNG, terrain generation, craters, contouring, body and projectile physics, turns, every weapon's rules, crates and mystery boxes, flames, tombstones, hotkeys, persisted settings and their migration, the four catalogues, match statistics and the honours board, AI plans and crate-hunting, a full AI-vs-AI match, and the Babylon import rules                                                                                                                                                                      |
+| End-to-end | Playwright + Google Chrome (`e2e/`)                                                                        | Title demo, a human turn with real keys, AI match to victory, custom setup, arsenal, settings persistence and Reset all, graphics budget, languages, one text scale across menu and HUD, the pinned Start button, the statistics screen, about screen, pause menu; every weapon with real keys and clicks (`weapons.spec.ts`); crates and mystery boxes, camera pan, tombstones, sceneries, audio cues, movement sounds and weapon bar (`features.spec.ts`) — sounds are checked through the synthesizer's play counters |
+| Static     | TypeScript strict; ESLint (type-checked), Prettier, Stylelint, markdownlint; SPDX check, REUSE, actionlint | Whole codebase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Coverage   | Vitest v8 over `src/core` (`npm run coverage`)                                                             | Thresholds of 98% on statements, branches, functions and lines, enforced in CI and in every release. `src/render`, `src/ui`, `src/app.ts` and `src/audio.ts` need a GPU or the DOM and are covered by the browser suite instead                                                                                                                                                                                                                                                                                          |
+| Profiling  | `npm run profile` over `bench/core.bench.ts`                                                               | One fixed step of the rules core, stage by stage, checked against a tenfold ceiling so an order-of-magnitude regression fails rather than merely printing. Numbers and method in `PERFORMANCE.md`                                                                                                                                                                                                                                                                                                                        |
+| Pipeline   | `npm run verify`, GitHub Actions                                                                           | All of the above on every push; releases and GitHub Pages deployment on tags, both gated on the browser suite                                                                                                                                                                                                                                                                                                                                                                                                            |

@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.68.1] — 2026-09-22
+
+### Changed
+
+- **`docs/ARCHITECTURE.md` brought back in step with the code.** The C4 model had drifted over the
+  1.56–1.68 run: the component diagrams now name `stats.ts`, `quality.ts`, `i18n.ts`,
+  `i18nWeapons.ts`, `settings.ts` and `dom.ts`; the state machine shows the `spraying` phase the
+  flamethrower introduced and the `roping` phase that had never been drawn at all; the explosion
+  flow shows chained crates leaving fire and damage being booked against whoever caused it; and the
+  AI flow shows the cost that keeps it off one weapon and the rope trip it now takes to reach a
+  crate. Added the import rules that a unit test enforces, the coverage and profiling gates, and
+  three key decisions that had gone unrecorded. All nine diagrams were rendered to check they parse,
+  and the AI planning cost was re-measured rather than repeated from memory — 30 ms, not 50.
+
 ## [1.68.0] — 2026-09-22
 
 Public release. Everything below since 1.55.1, in one page.
