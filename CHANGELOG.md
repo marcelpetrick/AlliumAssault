@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.74.1] — 2026-09-22
+
+### Fixed
+
+- **A tree was standing in the sea.** The background hill bands fade to just under the waterline at
+  their front and back edges, and trees were scattered across the full depth of a band without
+  anyone asking whether the ground under them was dry. Every spot is now checked against the water
+  before a tree is put on it, and a spot with no dry ground left goes empty.
+
 ## [1.74.0] — 2026-09-22
 
 Public release. The headline is that the interface is now genuinely translated — the last one said

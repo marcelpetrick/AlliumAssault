@@ -13,7 +13,11 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { createNoise2D } from 'simplex-noise';
 import { defined } from '../core/assert';
 import { mulberry32 } from '../core/rng';
+import { dryScatter } from './geometry';
 import type { Theme } from './themes';
+
+/** How far a scattered tree is sunk into the hill so its trunk does not float above the surface. */
+const TREE_SINK = 0.3;
 
 const SKY_VERTEX = `
 precision highp float;
@@ -226,18 +230,25 @@ export class Environment {
         const count = index === 0 ? 170 : 220;
         const inst = tree.clone(`trees-${index}`);
         inst.isVisible = true;
-        const matrices = new Float32Array(count * 16);
+        const matrices: number[] = [];
+        const one = new Float32Array(16);
         for (let n = 0; n < count; n++) {
           const x = xs[0] + rng() * (xs[w - 1] - xs[0]);
-          const t = 0.2 + rng() * 0.45;
           const s = (0.8 + rng() * 1.1) * (index === 0 ? 1.1 : 1.9);
+          const stretch = s * (0.8 + rng() * 0.5);
+          const spin = rng() * 6.28;
+          // The band sinks to just under the waterline at its front and back edge, so a spot is
+          // only usable where the hill under it is actually dry — otherwise a tree stands in the sea.
+          const t = dryScatter((at) => height(x, at), waterLevel, TREE_SINK + 0.3, [0.2 + rng() * 0.45, 0.35 + rng() * 0.3, 0.5]);
+          if (t === null) continue;
           Matrix.Compose(
-            new Vector3(s, s * (0.8 + rng() * 0.5), s),
-            Quaternion.RotationAxis(Vector3.Up(), rng() * 6.28),
-            new Vector3(x, height(x, t) - 0.3, layer.z + t * layer.depth),
-          ).copyToArray(matrices, n * 16);
+            new Vector3(s, stretch, s),
+            Quaternion.RotationAxis(Vector3.Up(), spin),
+            new Vector3(x, height(x, t) - TREE_SINK, layer.z + t * layer.depth),
+          ).copyToArray(one, 0);
+          matrices.push(...one);
         }
-        inst.thinInstanceSetBuffer('matrix', matrices, 16, true);
+        inst.thinInstanceSetBuffer('matrix', new Float32Array(matrices), 16, true);
         this.meshes.push(inst);
       }
     });

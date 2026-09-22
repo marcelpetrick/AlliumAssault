@@ -148,40 +148,59 @@ Status: ☐ open · ☑ done
 | T134 | Setup screen: a bigger map-seed field and a bigger dice button                                                  | ☑      | 1.71.0         |
 | T135 | Public release v1.72.0: push, tag, GitHub release and Pages deployment                                          | ☑      | 1.72.0         |
 | T136 | Public release v1.74.0: the translation fixes, the About button and the documentation guards                    | ☑      | 1.74.0         |
+| T137 | Bug: background trees are scattered below the waterline and stand in the sea                                    | ☐      |                |
+| T138 | Walled landscape option: an indestructible wall round the level, no falling out, no aircraft                    | ☐      |                |
+| T139 | A tooltip on the walled-landscape option explaining what it turns on and off                                    | ☐      |                |
+| T140 | Gravity: check it is applied at all, then Moon at half, a normal default, and a superheavy                      | ☐      |                |
+| T141 | Ming vase shards should go off on contact, not on a timer — they are contact bombs                              | ☐      |                |
+| T142 | Air-strike marker does not sit under the mouse: it is drawn nearer the camera than it is picked                 | ☐      |                |
+| T143 | README: state every weapon's damage explicitly, fragments and payloads separately                               | ☐      |                |
+| T144 | Shorten the retreat window after firing from five seconds to three                                              | ☐      |                |
+| T145 | AI stands beside a crate without taking it; every difficulty should hunt crates                                 | ☐      |                |
+| T146 | "French Attack": wave a white flag, fire nothing, hand the turn to the next buddy                               | ☐      |                |
 
 ## Current implementation plan
 
-A second batch, in the order it will be done. Each item is one atomic commit with its own version
-bump, its own tests and a line in the changelog.
+Seven items from one play session. Smallest and most certain first, so each lands on a green tree.
 
-1. **T132 — does the blowtorch burn?** A correctness question before any feature work: the torch is
-   supposed to hurt a buddy it walks into, and nothing currently proves it. Find out, and either
-   write the test that shows it always did or fix it and write the test that shows it now does.
+1. **T137 — the tree in the sea.** The background hill bands fade to `waterLevel - 2` at their front
+   and back edges, and trees are scattered across that range without checking the ground under them
+   is dry. Scatter only above the waterline.
 
-2. **T129 + T130 — finish the translations, then write down how they work.** The statistics screen
-   is the known gap and the cause is architectural: `stats.ts` builds award titles and details as
-   English sentences, in the core, where no catalogue can reach them. The fix is for the core to
-   emit an award id and its numbers and for the UI to turn that into words — which is what it should
-   have done from the start. Then sweep every remaining screen for a literal, and write
-   `docs/I18N.md`: how a string gets a key, how a language is added, and what the tests enforce.
+2. **T141 — the vase's shards are contact bombs.** They carry a 1.2 s fuse and bounce; they should
+   go off on the first thing they touch, like the cluster bomb's bomblets.
 
-3. **T131 — a scoreboard worth reading.** Colour it: green for what went well, red for what did not,
-   the team's own colour where it belongs. Count what players actually argue about afterwards — how
-   many drowned, how many were blown up, how many took themselves with them, how often the rope and
-   the blowtorch came out — and give the blunders their own place beside the honours.
+3. **T142 — the strike marker does not sit under the mouse.** `pick()` intersects the gameplay plane
+   at z = 0, but the reticle is drawn at z = −0.8 and the teleport cross at z = −0.6 — nearer the
+   camera, so perspective pushes them away from the cursor, and further the nearer the screen edge.
+   Pick the point on the plane the marker is actually drawn on.
 
-4. **T128 — aim while charging.** Up and down currently do nothing once Space is held, which is
-   exactly when a player notices the shot is two degrees off. The aim keeps answering during the
-   charge, for both charged weapons and the thrown ones.
+4. **T140 — the gravity options.** Measured first: the setting is applied correctly and does change
+   the flight, so nothing is broken. But at Moon a full-power bazooka carries 145 units across a
+   128-unit map — it leaves the island entirely, which is what "everything is flying" means. Moon
+   becomes a true half, Normal stays the default, and a superheavy option joins the end.
 
-5. **T133 — name your buddies.** The team name is an editable field; the buddy names are plain text
-   beside it. They become fields too, and are saved with the rest of the setup, so a new match
-   starts with the names you gave last time.
+5. **T138 + T139 — the walled landscape.** An option in the setup screen: an indestructible wall
+   round the arena, so nothing falls off the edge and every shot stays in play. Sudden Death still
+   floods it — drowning becomes the only way out. Aircraft are switched off while it is on, since a
+   plane over a sealed arena is the one thing that could still reach outside it. The option carries
+   a tooltip saying both halves of that, because it changes two things at once.
 
-6. **T134 — a seed field you can read.** The map-seed input and its dice button are the smallest
-   controls on the setup screen and the two most often used; make them the size they deserve.
+6. **T144 — three seconds to retreat.** Five is long enough to walk out of your own blast and
+   halfway across the map; three keeps the shot honest.
 
-7. **T135 — the release.** `npm run verify` green, push, one tag, GitHub release and Pages.
+7. **T145 — the AI walks up to a crate and stops.** Reported from play: bots stand beside a crate
+   and never take it. Find out why before changing anything, then make crate-hunting something
+   every difficulty does rather than the top two only.
+
+8. **T146 — the French Attack.** A weapon that does nothing: raise a white flag and the turn passes
+   to the next buddy. Useful when every shot you have would hurt you more than them, and funny,
+   which is the other half of why it is going in.
+
+9. **T143 — the damage table.** The README gives one damage figure per weapon, which is a half-truth
+   for anything that splits: the cluster bomb says 25 and then throws five bomblets. Every weapon
+   states its own blast and, separately, what each fragment or bomb of its payload does — taken from
+   the weapon table so the numbers cannot drift.
 
 ## Answered questions
 
