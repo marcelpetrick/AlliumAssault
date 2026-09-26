@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.78.4] — 2026-09-26
+
+### Changed
+
+- `@babylonjs/core` 9.27.1 → 9.28.0, `vite` 8.3.0 → 8.3.1, `vitest` and `@vitest/coverage-v8`
+  5.0.1 → 5.0.2, `prettier` 3.9.8 → 3.9.9, `@types/node` 24.13.6 → 24.19.0, and the `smol-toml`
+  override 1.8.0 → 1.9.0. TypeScript stays at 6.0.3 (`typescript-eslint` 8.70.1 still declares
+  `typescript >=4.8.4 <6.1.0`) and `@types/node` on the 24.x line to match the Node 24 runtime.
+
 ## [1.78.3] — 2026-09-23
 
 ### Fixed
