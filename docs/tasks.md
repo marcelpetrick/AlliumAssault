@@ -162,6 +162,7 @@ Status: ☐ open · ☑ done
 | T148 | Group the French Attack, rope, drill and platform together on the weapon bar                                    | ☑      | 1.77.0         |
 | T149 | A clip of every weapon in action on its own page, `docs/weapons_preview.md`                                     | ☑      | 1.78.2         |
 | T150 | Dependency review and update (`/updateDependencies`), then public release v1.78.4                               | ☑      | 1.78.4         |
+| T151 | Land Dependabot PRs #2, #3, #4: Babylon.js 9.29.0, `globals`, Vite/Vitest, Stylelint, ts-eslint                 | ☑      | 1.78.5         |
 
 ## Current implementation plan
 

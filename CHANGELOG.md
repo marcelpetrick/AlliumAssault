@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.78.5] — 2026-10-11
+
+### Changed
+
+- `@babylonjs/core` 9.28.0 → 9.29.0, `globals` 17.12.0 → 17.13.0, `vite` 8.3.1 → 8.3.2, `vitest`
+  and `@vitest/coverage-v8` 5.0.2 → 5.0.3, `stylelint` 17.15.0 → 17.16.0, `typescript-eslint`
+  8.70.1 → 8.71.0 and `@types/node` 24.19.0 → 24.19.1 — the updates Dependabot proposed in #2,
+  #3 and #4, landed as one versioned commit.
+
 ## [1.78.4] — 2026-09-26
 
 ### Changed
