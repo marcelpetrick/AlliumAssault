@@ -25,7 +25,7 @@
     "profile": "vitest run --config vitest.profile.config.ts"
   },
   "dependencies": {
-    "@babylonjs/core": "9.29.0",
+    "@babylonjs/core": "9.30.0",
     "simplex-noise": "4.0.3"
   },
   "devDependencies": {
