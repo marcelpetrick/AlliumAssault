@@ -133,3 +133,10 @@ of them next changes rather than as a sweep.
   really does replay; the fixed-step simulation is independent of the frame rate.
 - **Build output.** 6.8 MB of JavaScript, 1.5 MB gzipped, which is Babylon.js and is cached after
   the first load; nothing else ships.
+
+## Melee review — 1.80.1
+
+The bat had radius zero, so a swing could damage a buddy but never the wall beside it. Give it a
+0.9 unit carve radius, retain the punch carve, and remove the obsolete zero-radius melee guard.
+Core and browser scenarios check both tools against rock without a victim, distant misses, and
+indestructible arena boundaries. No rule changes to buddy damage or knockback.

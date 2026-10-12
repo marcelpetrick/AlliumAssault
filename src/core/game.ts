@@ -1420,7 +1420,6 @@ export class Game {
    * can knock its own way out rather than being stuck with a weapon that cannot reach.
    */
   private meleeCarve(b: Buddy, def: WeaponDef, dir: Point, cx: number, cy: number): void {
-    if (def.radius <= 0) return;
     if (def.knock === 'uppercut' && dir.y > UPPERCUT_MIN_SIN) {
       // Discs along the aim, from just above the head to the full reach, so the hole is a shaft.
       for (let d = b.body.radius; d <= def.range + UPPERCUT_REACH; d += def.radius * 0.5) {

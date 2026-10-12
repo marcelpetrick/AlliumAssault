@@ -25,7 +25,7 @@ safe supplies, basic jumps, useful attacks, awareness of friends and hazards. Ea
 errors; Hard searches more accurately. Outcome tests must assert pickup/landing/attack, not only
 that a hook was fired or the buddy moved.
 
-## 3. Melee wall damage (T155)
+## 3. Melee wall damage (T155 — delivered in 1.80.1)
 
 Verify existing punch wall/ceiling carving. Give the bat a useful terrain carve radius. Rock is
 destructible; arena borders and placed boards retain their existing indestructible rules. Test

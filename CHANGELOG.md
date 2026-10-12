@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.80.1] — 2026-10-12
+
+- Give the bat a useful wall carve radius alongside the punch, even when no buddy is hit.
+- Preserve indestructible arena walls and boards; verify wall hits and out-of-range misses.
+- Check both tools through real keyboard input and visible terrain changes in the browser.
+
 ## [1.80.0] — 2026-10-12
 
 - Replace the fixed perforated island generator with seeded plains, solid hills, clustered islands

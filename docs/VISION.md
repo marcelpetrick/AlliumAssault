@@ -46,11 +46,11 @@ Twenty-four weapons. _Special_ weapons can be restricted to crates with the arse
 | Bazooka                       | ∞    | Charged shot, ballistic, strong wind influence, explodes on contact                                          |
 | Grenade                       | ∞    | Charged throw, bounces, 3 s fuse, light wind influence                                                       |
 | Shotgun                       | 2    | Two instant shots per turn along the aim line, small craters                                                 |
-| Garlic Punch                  | ∞    | Melee uppercut: 45 damage + launch, no charge                                                                |
+| Garlic Punch                  | ∞    | Melee uppercut: 45 damage + launch, carves nearby rock, no charge                                            |
 | Cluster Bomb                  | 3    | Red grenade; bursts into five bomblets of 10 damage                                                          |
 | Sheep (special)               | 1    | Hops forward on its own; Space detonates                                                                     |
 | Air Strike (special)          | 1    | Click a target: a plane drops five bombs                                                                     |
-| Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far                                                                      |
+| Baseball Bat                  | 2    | Melee: 25 damage, knocks the victim far and carves nearby walls                                              |
 | Blowtorch                     | 2    | Burns a 3 s tunnel along the aim line and rides it; falls where there is nothing left to cut                 |
 | Self-Destruct (special)       | 1    | Buddy explodes: damage = health, radius = health ÷ 10                                                        |
 | Minigun (special)             | 1    | 14-bullet burst that shoves the victim far                                                                   |

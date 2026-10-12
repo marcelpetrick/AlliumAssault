@@ -265,7 +265,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     gravityScale: 0,
     restitution: null,
     fuse: 0,
-    radius: 0,
+    radius: 0.9,
     damage: 25,
     force: 26,
     range: 1.4,
