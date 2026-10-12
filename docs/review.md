@@ -1,4 +1,28 @@
-# Repository review — after v1.53.0
+# Repository review — October 2026
+
+## Current findings and resolutions
+
+Reviewed current v1.78.6 rules, AI, renderer, setup, tests and the requested changes.
+
+- **High: crate pickups vetoed by unrelated weak enemies.** Reproduced on all difficulties.
+  Crate priority now considers actual attack value, health and trip duration; a short pickup wins.
+- **High: cave walking tested against the skyline.** Reproduced beneath a low ceiling. Routes now
+  run copied bodies through real walking/jump physics, checking water, falls, visible mines and fire.
+- **High: rope routes were guesses.** Nearby overhead rock did not mean the chosen hook hit it,
+  and releasing after a vanished crate repeatedly fired a new hook. Complete traversals are now
+  simulated with the same controller as play; release is single, braking controls overshoot, failed
+  crate routes are remembered for the turn. A test verifies a real pickup across a gap and landing.
+- **Medium: selected aircraft weapons prevented walking.** Arrow keys selected approach direction.
+  Fetching now selects an available ordinary weapon before walking; regression test collects the box.
+- **Medium: local browser verification could reuse stale output.** The configuration contradicted
+  its own comment. Reuse is disabled so each suite builds the source it certifies.
+- **Medium: Normal lacked useful repositioning.** It now checks nearby safe positions when the
+  current attack is poor, retaining time to attack; lower aim noise improves ordinary shots.
+
+The previous historical review follows for traceability. New feature reviews are appended here
+with their verification results as implementation proceeds.
+
+## Historical review — after v1.53.0
 
 ```text
 Scope: the whole repository, not a branch diff — master is the only branch.

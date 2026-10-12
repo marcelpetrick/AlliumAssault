@@ -377,3 +377,111 @@ describe('AI rope swing, at its edges', () => {
     expect(g.rope).toBeNull();
   });
 });
+
+describe('AI reported crate regressions', () => {
+  it.each(['easy', 'normal', 'hard'] as const)('%s collects a close crate even with a weak enemy behind a wall', (level) => {
+    const ai = team('A', 1, 'ai');
+    ai.aiLevel = level;
+    const g = flatGame([40, 100], [ai, team('B', 1)], { crates: 0 });
+    aiming(g);
+    onlyWeapon(g, 0, 'bazooka');
+    g.buddies[1].hp = 1;
+    for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(75, y, 3);
+    g.crates.push({ id: 990, kind: 'health', weapon: null, body: createBody(43, 20.45, 0.45) });
+    expect(runUntil(g, () => g.crates.length === 0 || g.phase !== 'aiming', 10)).toBe(true);
+    expect(g.crates).toHaveLength(0);
+    expect(g.buddies[0].hp).toBe(125);
+  });
+
+  it('walks under a low ceiling to a nearby crate', () => {
+    const g = flatGame([40, 100], [team('A', 1, 'ai'), team('B', 1)], { crates: 0 });
+    aiming(g);
+    onlyWeapon(g, 0, 'bazooka');
+    // The buddy and the crate share a clear cave floor. The sky sees the roof instead.
+    for (let x = 42; x <= 49; x += 1) g.terrain.addDisc(x, 24, 1);
+    g.crates.push({ id: 991, kind: 'weapon', weapon: 'banana', body: createBody(46, 20.45, 0.45) });
+    expect(runUntil(g, () => g.crates.length === 0 || g.phase !== 'aiming', 10)).toBe(true);
+    expect(g.crates).toHaveLength(0);
+    expect(g.teams[0].ammo.banana).toBe(1);
+  });
+});
+
+describe('AI traversal recovery and attack budget', () => {
+  it('collects supplies after an aircraft weapon was left selected', () => {
+    const g = flatGame([40, 100], [team('A', 1, 'ai'), team('B', 1)], { crates: 0 });
+    aiming(g);
+    g.selectWeapon('airstrike');
+    g.crates.push({ id: 996, kind: 'health', weapon: null, body: createBody(43, 20.45, 0.45) });
+    expect(runUntil(g, () => g.crates.length === 0, 6)).toBe(true);
+    expect(g.buddies[0].hp).toBe(125);
+  });
+
+  it('gives up once on a vanished rope goal rather than repeatedly shooting fresh hooks', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    aiming(g);
+    g.selectWeapon('rope');
+    g.pressFire();
+    g.drainEvents();
+    const driver = new AiDriver('normal', mulberry32(1));
+    const internals = driver as unknown as { stage: string; swing: { crate: number; spent: number } };
+    internals.stage = 'swing';
+    internals.swing = { crate: 999, spent: 0 };
+    for (let i = 0; i < 20; i++) driver.update(g, 1 / 60);
+    expect(g.rope).toBeNull();
+    expect(g.drainEvents().some((e) => e.type === 'ropeShot')).toBe(false);
+  });
+
+  it('ends a turn with no usable attack instead of pretending to fire an empty bazooka', () => {
+    const g = flatGame([40, 100], [team('A', 1, 'ai'), team('B', 1)], { crates: 0 });
+    aiming(g);
+    onlyWeapon(g, 0, 'platform');
+    expect(runUntil(g, () => g.phase !== 'aiming', 3)).toBe(true);
+    expect(g.projectiles).toHaveLength(0);
+  });
+
+  it('recovers from a missing movement destination and respects the remaining shot budget', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+    aiming(g);
+    const driver = new AiDriver('normal', mulberry32(1));
+    const internals = driver as unknown as {
+      stage: string;
+      destination: { x: number; y: number } | null;
+      fetch: { crate: number; lastX: number; stuck: number };
+    };
+    internals.stage = 'move';
+    driver.update(g, 0.1);
+    expect(internals.stage).toBe('think');
+    internals.stage = 'move';
+    internals.destination = { x: 50, y: 20.6 };
+    driver.update(g, 4);
+    expect(internals.stage).toBe('think');
+    const body = createBody(44, 20.45, 0.45);
+    g.crates.push({ id: 997, kind: 'health', weapon: null, body });
+    internals.stage = 'fetch';
+    internals.fetch = { crate: 997, lastX: 40, stuck: 0 };
+    g.turnTimeLeft = 4;
+    driver.update(g, 0.1);
+    expect(internals.stage).toBe('think');
+    driver.update(g, 1);
+    expect(g.input.right).toBe(false);
+  });
+});
+
+describe('AI rope attack reserve', () => {
+  it('releases a rope when only the attack reserve remains', () => {
+    const g = flatGame([40, 100], [team('A', 1), team('B', 1)], { crates: 0 });
+    aiming(g);
+    g.selectWeapon('rope');
+    g.pressFire();
+    g.crates.push({ id: 998, kind: 'health', weapon: null, body: createBody(55, 20.45, 0.45) });
+    const driver = new AiDriver('normal', mulberry32(1));
+    const internals = driver as unknown as { stage: string; swing: { crate: number; spent: number } };
+    internals.stage = 'swing';
+    internals.swing = { crate: 998, spent: 0 };
+    g.turnTimeLeft = 4;
+    driver.update(g, 1 / 60);
+    expect(g.rope).toBeNull();
+    driver.update(g, 1 / 60);
+    expect(g.rope).toBeNull();
+  });
+});

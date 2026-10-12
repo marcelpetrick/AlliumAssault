@@ -927,3 +927,42 @@ test('languages: no English survives anywhere in the interface in Mandarin', asy
   expect(await englishIn('.panel.narrow'), 'pause menu').toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test('Normal collects a nearby crate under a roof before attacking a weak distant enemy', async ({ page }) => {
+  const errors = await boot(page);
+  await page.keyboard.press('Shift');
+  const firedBefore = await page.evaluate(() => {
+    window.__allium.setManual(true);
+    window.__allium.startMatch({
+      seed: 'ai-close-crate-regression',
+      teams: [
+        { name: 'Bot', color: '#ef4b3c', controller: 'ai', aiLevel: 'normal', buddyNames: ['Hunter'] },
+        { name: 'Player', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Target'] },
+      ],
+      turnTime: 45,
+      retreatTime: 3,
+      windMax: 0,
+      crates: 0,
+      theme: 'meadow',
+    });
+    const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    g.buddies.forEach((b, i) => Object.assign(b.body, { x: i === 0 ? 40 : 100, y: 20.65, vx: 0, vy: 0 }));
+    g.buddies[1].hp = 1;
+    for (let x = 42; x <= 48; x++) g.terrain.addDisc(x, 24, 1);
+    for (let y = 20; y <= 64; y += 2) g.terrain.addDisc(75, y, 3);
+    for (const id of Object.keys(g.teams[0].ammo)) if (id !== 'bazooka') g.teams[0].ammo[id as keyof (typeof g.teams)[0]['ammo']] = 0;
+    g.crates.push({ id: 9990, kind: 'health', weapon: null, body: { x: 45, y: 20.45, vx: 0, vy: 0, grounded: false, radius: 0.45, impact: 0, restTime: 0 } });
+    const fired = (window.__allium.state().sound.played as Partial<Record<string, number>>).fire ?? 0;
+    window.__allium.fastForward(5);
+    return fired;
+  });
+  const s = await state(page);
+  expect(s.crates).toHaveLength(0);
+  expect(s.buddies[0].hp).toBe(125);
+  await page.evaluate(() => {
+    window.__allium.fastForward(12);
+  });
+  expect(played(await state(page), 'fire')).toBeGreaterThan(firedBefore);
+  expect(errors).toEqual([]);
+});

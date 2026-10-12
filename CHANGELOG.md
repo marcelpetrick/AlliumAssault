@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.79.0] — 2026-10-12
+
+- Fix AI ignoring nearby crates beside weak enemies, under cave roofs and after selecting aircraft.
+- Validate walking, simple jumps and complete rope traversals with real physics and hazard checks.
+- Brake rope approaches, stop repeated rehooking and remember failed crate routes for the turn.
+- Improve Normal aim and safe local repositioning; skip turns with no usable attack.
+- Record the full implementation/release plan and reserve resetting to 1.0.0 for the user.
+- Always rebuild browser-test output instead of reusing a potentially stale preview server.
+  Run isolated browser tests with four local workers and two on CI.
+
 ## [1.78.6] — 2026-10-12
 
 ### Changed

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, START_HP, TORCH_SPEED, WALK_SPEED, WIND_ACCEL } from './constants';
+import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, START_HP, TORCH_SPEED, WIND_ACCEL } from './constants';
 import { meleeLaunch, REST_SPEED, REST_TIME, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';
 import { createBody, GRAVITY, stepBody, stepProjectile } from './physics';
@@ -9,6 +9,7 @@ import { gaussian, type Rng } from './rng';
 import { defined } from './assert';
 import { CRATE_BLAST, CRATE_HEAL, CRATE_WEAPONS, type Crate } from './crates';
 import { MINE_TRIGGER_RANGE } from './mines';
+import { ropeControls, ropeRoute, ROUTE_TIMEOUT, walkingTime, type RopeRoute } from './aiNavigation';
 import { FLYER_SPEED, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep } from './sheep';
 import { groundBelow, strikeWindShift } from './strike';
@@ -31,7 +32,7 @@ export interface AttackPlan {
 
 const LEVELS: Record<AiLevel, { angles: number; powers: number; aimError: number; powerError: number; think: number }> = {
   easy: { angles: 10, powers: 5, aimError: 0.12, powerError: 0.1, think: 1.2 },
-  normal: { angles: 18, powers: 8, aimError: 0.045, powerError: 0.04, think: 0.9 },
+  normal: { angles: 20, powers: 9, aimError: 0.025, powerError: 0.025, think: 0.9 },
   hard: { angles: 28, powers: 11, aimError: 0.012, powerError: 0.012, think: 0.6 },
 };
 
@@ -119,7 +120,7 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
   const hitTest =
     def.restitution === null
       ? (x: number, y: number) =>
-          game.buddies.some((b) => b.alive && b !== me && Math.hypot(b.body.x - x, b.body.y - y) < BUDDY_RADIUS + 0.15) ||
+          game.buddies.some((b) => b.alive && b.id !== me.id && Math.hypot(b.body.x - x, b.body.y - y) < BUDDY_RADIUS + 0.15) ||
           game.crates.some((c) => Math.hypot(c.body.x - x, c.body.y - y) < c.body.radius + 0.15)
       : undefined;
   const dt = 1 / 20;
@@ -186,9 +187,11 @@ function enemyWeight(game: Game, me: Buddy, enemy: Buddy, know: AiKnowledge): nu
  */
 const surfaceCache = new Map<number, number>();
 let surfaceRevision = -1;
+let surfaceTerrain: Terrain | null = null;
 
 function surfaceAt(t: Terrain, x: number): number {
-  if (t.revision !== surfaceRevision) {
+  if (t !== surfaceTerrain || t.revision !== surfaceRevision) {
+    surfaceTerrain = t;
     surfaceCache.clear();
     surfaceRevision = t.revision;
   }
@@ -239,7 +242,7 @@ function addBlast(game: Game, me: Buddy, tally: Tally, x: number, y: number, rad
       const ny = dist > 1e-3 ? dy / dist : 1;
       if (shovedOut(game, b, nx * force * falloff, ny * force * falloff + force * 0.35 * falloff)) value = b.hp;
     }
-    if (b.team === me.team) tally.loss += value * (b === me ? SELF_WEIGHT : FRIEND_WEIGHT);
+    if (b.team === me.team) tally.loss += value * (b.id === me.id ? SELF_WEIGHT : FRIEND_WEIGHT);
     else tally.gain += (value + (value >= b.hp ? KILL_BONUS : 0)) * enemyWeight(game, me, b, know);
   }
 }
@@ -406,7 +409,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const def = WEAPONS.mine;
     const reach = Math.hypot(nearest.body.x - me.body.x, nearest.body.y - me.body.y);
     const friendClose = game.buddies.some(
-      (b) => b.alive && b !== me && b.team === me.team && Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) < MINE_TRIGGER_RANGE * 1.5,
+      (b) => b.alive && b.id !== me.id && b.team === me.team && Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) < MINE_TRIGGER_RANGE * 1.5,
     );
     const score = def.damage * Math.max(0, 1 - reach / MINE_BAIT_RANGE) * enemyWeight(game, me, nearest, know) - MINE_COST - (friendClose ? def.damage : 0);
     const facing: 1 | -1 = nearest.body.x < me.body.x ? -1 : 1;
@@ -418,7 +421,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const blast = selfDestructBlast(WEAPONS.selfdestruct, me.hp);
     let score = -me.hp - 30;
     for (const b of game.buddies) {
-      if (!b.alive || b === me) continue;
+      if (!b.alive || b.id === me.id) continue;
       const reach = Math.max(0, Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) - BUDDY_RADIUS * 0.5);
       if (reach >= blast.radius) continue;
       const dmg = blast.damage * (1 - reach / blast.radius);
@@ -527,28 +530,16 @@ const WEAPON_CRATE_SHORTAGE = 1.2;
 const CRATE_DISTANCE_COST = 0.4;
 /** Furthest a crate can be and still be considered. */
 const CRATE_REACH = 12;
-/** Sampling step and the biggest step up the buddy can walk, for the reachability check. */
-const SURFACE_STEP = 0.5;
-const MAX_CLIMB = 1;
 /** Seconds held back for aiming and firing after a walk. */
 const FETCH_MARGIN = 6;
 /** Rope fetching: how far it reaches sideways, how far up and down, and how long a trip may take. */
 const ROPE_REACH = 26;
 const ROPE_CLIMB = 14;
 const ROPE_DROP = 10;
-const ROPE_ANCHOR_HEIGHT = 16;
-const ROPE_FETCH_TIME = 12;
 /** What a rope trip costs against simply walking: slower, riskier, and it spends a rope. */
 const ROPE_TRIP_COST = 6;
 /** Trips per turn, so a bot cannot spend the whole match shopping. */
 const MAX_FETCHES = 2;
-/** A swing is abandoned after this long, whatever it has achieved. */
-const SWING_TIMEOUT = 9;
-/** Close enough overhead to let go and drop onto the crate. */
-const SWING_DROP_RANGE = 1.6;
-/** The hook is fired at this angle: steep enough to find a ceiling, flat enough to carry sideways. */
-const ROPE_LAUNCH_AIM = 1.15;
-
 /**
  * What walking to this crate is worth.
  *
@@ -570,28 +561,6 @@ function crateValue(game: Game, me: Buddy, crate: Crate): number {
   return WEAPON_CRATE_BASE + (CRATE_WEAPONS.length - stocked) * WEAPON_CRATE_SHORTAGE;
 }
 
-/**
- * Can the buddy walk along the surface from `fromX` to `toX` inside `seconds`? A rough check on the
- * ground profile: no water or empty gap on the way, and no step up too tall to walk. It reads the
- * first rock below the sky, so it does not understand caves; a mistake only costs a wasted walk.
- */
-function walkable(game: Game, fromX: number, toX: number, seconds: number): boolean {
-  const t = game.terrain;
-  if (Math.abs(toX - fromX) / WALK_SPEED > seconds) return false;
-  // Never walk into a mine on the way: they set off for their own side just as readily.
-  const low = Math.min(fromX, toX) - MINE_TRIGGER_RANGE;
-  const high = Math.max(fromX, toX) + MINE_TRIGGER_RANGE;
-  if (game.mines.some((m) => m.body.x > low && m.body.x < high)) return false;
-  const step = toX > fromX ? SURFACE_STEP : -SURFACE_STEP;
-  let y = surfaceAt(t, clamp(fromX, 0, t.width));
-  for (let x = fromX + step; (toX - x) * step > 0; x += step) {
-    const next = surfaceAt(t, clamp(x, 0, t.width));
-    if (next <= t.waterLevel + 0.2 || next - y > MAX_CLIMB) return false;
-    y = next;
-  }
-  return true;
-}
-
 /** How a buddy would get to a crate: on its feet, or hanging from the rope. */
 export type CrateRoute = 'walk' | 'rope';
 
@@ -602,6 +571,7 @@ export interface CrateGoal {
   route: CrateRoute;
   /** Rough seconds the trip will take, so the turn can budget for the shot afterwards. */
   seconds: number;
+  hook?: RopeRoute;
 }
 
 /**
@@ -613,45 +583,26 @@ export interface CrateGoal {
  * team with rope left can swing across instead, which is the difference between an AI that collects
  * the crates it happens to be standing next to and one that goes and gets them.
  */
-function crateGoal(game: Game, me: Buddy, seconds: number): CrateGoal | null {
+function crateGoal(game: Game, me: Buddy, seconds: number, excluded: ReadonlySet<number>): CrateGoal | null {
   let best: CrateGoal | null = null;
-  const roped = game.teams[me.team].ammo.rope > 0 && seconds > ROPE_FETCH_TIME;
+  const roped = game.teams[me.team].ammo.rope > 0 && seconds > 3;
   for (const c of game.crates) {
     const dx = Math.abs(c.body.x - me.body.x);
     const dy = c.body.y - me.body.y;
-    if (!c.body.grounded) continue;
-    const onFoot = Math.abs(dy) <= 3 && dx <= CRATE_REACH && walkable(game, me.body.x, c.body.x, seconds);
+    if (!c.body.grounded || excluded.has(c.id)) continue;
+    const walk = dx <= CRATE_REACH ? walkingTime(game, me.body, c.body, seconds) : null;
+    const onFoot = walk !== null;
     // The rope reaches further and, more to the point, upwards — which walking never does.
-    const byRope = !onFoot && roped && dx <= ROPE_REACH && dy > -ROPE_DROP && dy < ROPE_CLIMB && ropeAnchorAbove(game, me, c);
+    const hook = !onFoot && roped && dx <= ROPE_REACH && dy > -ROPE_DROP && dy < ROPE_CLIMB ? ropeRoute(game, me.body, c.body, seconds) : null;
+    const byRope = hook !== null;
     if (!onFoot && !byRope) continue;
     const route: CrateRoute = onFoot ? 'walk' : 'rope';
     // Swinging is slower and riskier than walking, and it spends a rope.
     const value = crateValue(game, me, c) - dx * CRATE_DISTANCE_COST - (route === 'rope' ? ROPE_TRIP_COST : 0);
-    const trip = route === 'walk' ? dx / WALK_SPEED : ROPE_FETCH_TIME;
-    if (!best || value > best.value) best = { crate: c, value, route, seconds: trip };
+    const trip = walk ?? defined(hook, 'rope route').seconds;
+    if (!best || value > best.value) best = { crate: c, value, route, seconds: trip, hook: hook ?? undefined };
   }
   return best;
-}
-
-/**
- * Is there rock to hook above the line between the buddy and the crate? A rope needs something
- * overhead to hang from; without this the AI fires hopefully at open sky and falls where it stood.
- */
-function ropeAnchorAbove(game: Game, me: Buddy, crate: Crate): boolean {
-  const t = game.terrain;
-  const midX = (me.body.x + crate.body.x) / 2;
-  for (const x of [midX, me.body.x + (crate.body.x - me.body.x) * 0.3, me.body.x]) {
-    for (let y = me.body.y + 2; y < me.body.y + ROPE_ANCHOR_HEIGHT; y += 0.5) {
-      if (t.isSolid(x, y)) return true;
-    }
-  }
-  return false;
-}
-
-/** Is an enemy one hit from dead? Then the shot may not keep, and the crate will. */
-function canFinish(game: Game, me: Buddy, plan: AttackPlan): boolean {
-  const damage = WEAPONS[plan.weapon].damage;
-  return game.buddies.some((b) => b.alive && b.hp > 0 && b.team !== me.team && b.hp <= damage);
 }
 
 /**
@@ -670,15 +621,20 @@ function canFinish(game: Game, me: Buddy, plan: AttackPlan): boolean {
  */
 function worthFetching(game: Game, me: Buddy, goal: CrateGoal, plan: AttackPlan): boolean {
   if (game.turnTimeLeft <= goal.seconds + FETCH_MARGIN) return goal.value > plan.score;
-  return !canFinish(game, me, plan);
+  // Nearby supplies are collected before an attack. A genuinely valuable finishing shot may
+  // justify skipping a longer detour, but an unrelated low-health enemy cannot veto a pickup.
+  return goal.seconds < 2 || me.hp <= CRATE_HEAL || plan.score < KILL_BONUS + 10;
 }
 
 /** Drives an AI team through the same commands a human uses. */
 export class AiDriver {
-  private stage: 'think' | 'fetch' | 'swing' | 'aim' | 'fire' | 'wait' = 'think';
+  private stage: 'think' | 'move' | 'fetch' | 'swing' | 'aim' | 'fire' | 'wait' = 'think';
   /** Crate being walked to, and how often this turn the AI already went for one. */
   private fetch: { crate: number; lastX: number; stuck: number } | null = null;
   private fetches = 0;
+  private repositioned = false;
+  private destination: { x: number; y: number } | null = null;
+  private readonly failedCrates = new Set<number>();
   private timer = 0;
   private plan: AttackPlan | null = null;
   /** What this team has already used, so the scoring can push it towards something else. */
@@ -695,6 +651,9 @@ export class AiDriver {
     this.fetch = null;
     this.swing = null;
     this.fetches = 0;
+    this.repositioned = false;
+    this.destination = null;
+    this.failedCrates.clear();
     this.stage = 'think';
     this.timer = 0;
     this.plan = null;
@@ -748,31 +707,24 @@ export class AiDriver {
     const swing = this.swing;
     const crate = swing && game.crates.find((c) => c.id === swing.crate);
     if (!swing || !crate) {
-      game.pressFire();
-      return;
-    }
-    swing.spent += dt;
-    if (swing.spent > SWING_TIMEOUT) {
       if (game.rope) game.pressFire();
       return;
     }
-    const dx = crate.body.x - me.body.x;
-    const dy = crate.body.y - me.body.y;
-    if (!game.rope) {
-      // Between hooks: falling. Let it fall — the crate is collected by touching it.
+    swing.spent += dt;
+    if (swing.spent > ROUTE_TIMEOUT || game.turnTimeLeft < FETCH_MARGIN) {
+      if (game.rope) game.pressFire();
       return;
     }
-    if (Math.abs(dx) < SWING_DROP_RANGE && dy < 0) {
-      // Over it and above it: let go and drop onto the crate.
+    if (!game.rope) return;
+    const control = ropeControls(game, game.rope, me.body, crate.body);
+    if (control.release) {
       game.pressFire();
       return;
     }
-    const input = game.input;
-    input.right = dx > 0;
-    input.left = dx < 0;
-    // Reel in while the crate is still above, pay out while it is below.
-    input.up = dy > 1;
-    input.down = dy < -1;
+    game.input.right = control.swing > 0;
+    game.input.left = control.swing < 0;
+    game.input.up = control.reel < 0;
+    game.input.down = control.reel > 0;
   }
 
   update(game: Game, dt: number): void {
@@ -806,7 +758,7 @@ export class AiDriver {
         if (this.timer < LEVELS[this.level].think) return;
         const midUse = game.shotsLeft < WEAPONS[game.weapon].shots;
         const plan = planAttack(game, me, this.level, this.rng, midUse ? game.weapon : undefined, this.history);
-        const goal = midUse ? null : crateGoal(game, me, game.turnTimeLeft - FETCH_MARGIN);
+        const goal = midUse ? null : crateGoal(game, me, game.turnTimeLeft - FETCH_MARGIN, this.failedCrates);
         if (goal && this.fetches < MAX_FETCHES && worthFetching(game, me, goal, plan)) {
           this.fetches++;
           this.timer = 0;
@@ -815,13 +767,42 @@ export class AiDriver {
             this.swing = { crate: goal.crate.id, spent: 0 };
             this.stage = 'swing';
             game.selectWeapon('rope');
-            game.face(goal.crate.body.x < me.body.x ? -1 : 1);
-            me.aim = ROPE_LAUNCH_AIM;
+            const hook = defined(goal.hook, 'planned hook');
+            game.face(hook.facing);
+            me.aim = hook.aim;
             game.pressFire();
             return;
           }
+          // Arrow keys on a selected aircraft weapon choose its approach instead of walking.
+          const walkingWeapon = WEAPON_ORDER.find((id) => game.teams[me.team].ammo[id] > 0 && !WEAPONS[id].strike?.plane);
+          if (walkingWeapon) game.selectWeapon(walkingWeapon);
           this.fetch = { crate: goal.crate.id, lastX: me.body.x, stuck: 0 };
           this.stage = 'fetch';
+          return;
+        }
+        if (!midUse && !this.repositioned && this.level !== 'easy' && plan.score < 5 && game.turnTimeLeft > 12) {
+          let improvement = plan.score + 12;
+          for (const offset of [-5, 5]) {
+            const destination = { x: me.body.x + offset, y: me.body.y };
+            if (walkingTime(game, me.body, destination, 3) === null) continue;
+            const moved = { ...me, body: { ...me.body, ...destination } };
+            const alternative = planAttack(game, moved, this.level, this.rng, undefined, this.history);
+            if (alternative.score > improvement) {
+              improvement = alternative.score;
+              this.destination = destination;
+            }
+          }
+          this.repositioned = true;
+          if (this.destination) {
+            const walkingWeapon = WEAPON_ORDER.find((id) => game.teams[me.team].ammo[id] > 0 && !WEAPONS[id].strike?.plane);
+            if (walkingWeapon) game.selectWeapon(walkingWeapon);
+            this.stage = 'move';
+            this.timer = 0;
+            return;
+          }
+        }
+        if (!Number.isFinite(plan.score) || (plan.score <= 0 && game.turnTimeLeft < 8)) {
+          game.skipTurn();
           return;
         }
         this.plan = plan;
@@ -832,10 +813,22 @@ export class AiDriver {
         this.timer = 0;
         return;
       }
+      case 'move': {
+        const target = this.destination;
+        if (!target || Math.abs(target.x - me.body.x) < 0.5 || this.timer > 3) {
+          this.stage = 'think';
+          this.timer = LEVELS[this.level].think;
+          return;
+        }
+        input.left = target.x < me.body.x;
+        input.right = target.x > me.body.x;
+        return;
+      }
       case 'fetch': {
         const f = this.fetch;
         const target = f && game.crates.find((c) => c.id === f.crate);
-        if (!f || !target || this.timer > 6) {
+        if (!f || !target || this.timer > ROUTE_TIMEOUT || game.turnTimeLeft < FETCH_MARGIN) {
+          if (target) this.failedCrates.add(target.id);
           // Picked up, destroyed or out of reach: think again from the new position.
           this.stage = 'think';
           this.timer = LEVELS[this.level].think * 0.5;
@@ -845,13 +838,17 @@ export class AiDriver {
         else input.right = true;
         f.stuck = Math.abs(me.body.x - f.lastX) < 0.01 ? f.stuck + dt : 0;
         f.lastX = me.body.x;
-        if (f.stuck > 0.3) game.jump(false);
+        if (f.stuck > 0.3) {
+          game.face(target.body.x < me.body.x ? -1 : 1);
+          game.jump(false);
+        }
         return;
       }
       case 'swing':
         // The hook never bit, or the traversal is over and we are standing again: think afresh.
         this.stage = 'think';
         this.timer = LEVELS[this.level].think * 0.5;
+        if (this.swing && game.crates.some((c) => c.id === this.swing?.crate)) this.failedCrates.add(this.swing.crate);
         this.swing = null;
         return;
       case 'aim': {

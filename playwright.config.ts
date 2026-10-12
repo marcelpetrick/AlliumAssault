@@ -6,8 +6,8 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: 'e2e',
   timeout: 180_000,
-  fullyParallel: false,
-  workers: 1,
+  fullyParallel: true,
+  workers: process.env.CI ? 2 : 4,
   // One retry: the suite is deterministic, but the browser occasionally loses the dev server to a
   // network change, and that says nothing about the game.
   retries: 1,
@@ -24,7 +24,7 @@ export default defineConfig({
     url: 'http://localhost:4173',
     // Locally the suite always builds what it is about to test: reusing a server that happens to
     // be on the port would certify a stale `dist/` and report it green. On CI nothing is listening.
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

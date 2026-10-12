@@ -165,48 +165,48 @@ Status: ☐ open · ☑ done
 | T150 | Dependency review and update (`/updateDependencies`), then public release v1.78.4                               | ☑      | 1.78.4         |
 | T151 | Land Dependabot PRs #2, #3, #4: Babylon.js 9.29.0, `globals`, Vite/Vitest, Stylelint, ts-eslint                 | ☑      | 1.78.5         |
 
+| T152 | Re-review fire, flood, default rope, platforms, movement/drill and the >98% coverage gate | ☐ | — |
+| T153 | Rebuild AI crate collection, movement and rope planning; Normal plays competently, Easy retains aim mistakes | ☑ | 1.79.0 |
+| T154 | Jetpack: six seconds of accelerated flight, controlled descent, visible exhaust and tests | ☐ | — |
+| T155 | Punch and bat damage destructible walls; preserve indestructible arena walls | ☐ | — |
+| T156 | Redesign seeded terrain: solid plains, cave-free hills, clustered islands and mixed caves; preview walls | ☐ | — |
+| T157 | Crate-only homing rocket: target enemy, three ballistic seconds, then straight homing blocked by terrain | ☐ | — |
+
+| T158 | Optional tag-team factions: editable names, shared victory, separate turns/inventory, friendly fire | ☐ | — |
+| T159 | Update agent guidance, atomic verified commits, then publish the completed batch as a public release | ☐ | — |
+
 ## Current implementation plan
 
-Seven items from one play session. Smallest and most certain first, so each lands on a green tree.
+October 12 review and implementation. Earlier requests T68–T74 are already implemented; audit the
+current behavior before changing it. Keep this plan current as each step is verified.
 
-1. **T137 — the tree in the sea.** The background hill bands fade to `waterLevel - 2` at their front
-   and back edges, and trees are scattered across that range without checking the ground under them
-   is dry. Scatter only above the waterline.
-
-2. **T141 — the vase's shards are contact bombs.** They carry a 1.2 s fuse and bounce; they should
-   go off on the first thing they touch, like the cluster bomb's bomblets.
-
-3. **T142 — the strike marker does not sit under the mouse.** `pick()` intersects the gameplay plane
-   at z = 0, but the reticle is drawn at z = −0.8 and the teleport cross at z = −0.6 — nearer the
-   camera, so perspective pushes them away from the cursor, and further the nearer the screen edge.
-   Pick the point on the plane the marker is actually drawn on.
-
-4. **T140 — the gravity options.** Measured first: the setting is applied correctly and does change
-   the flight, so nothing is broken. But at Moon a full-power bazooka carries 145 units across a
-   128-unit map — it leaves the island entirely, which is what "everything is flying" means. Moon
-   becomes a true half, Normal stays the default, and a superheavy option joins the end.
-
-5. **T138 + T139 — the walled landscape.** An option in the setup screen: an indestructible wall
-   round the arena, so nothing falls off the edge and every shot stays in play. Sudden Death still
-   floods it — drowning becomes the only way out. Aircraft are switched off while it is on, since a
-   plane over a sealed arena is the one thing that could still reach outside it. The option carries
-   a tooltip saying both halves of that, because it changes two things at once.
-
-6. **T144 — three seconds to retreat.** Five is long enough to walk out of your own blast and
-   halfway across the map; three keeps the shot honest.
-
-7. **T145 — the AI walks up to a crate and stops.** Reported from play: bots stand beside a crate
-   and never take it. Find out why before changing anything, then make crate-hunting something
-   every difficulty does rather than the top two only.
-
-8. **T146 — the French Attack.** A weapon that does nothing: raise a white flag and the turn passes
-   to the next buddy. Useful when every shot you have would hurt you more than them, and funny,
-   which is the other half of why it is going in.
-
-9. **T143 — the damage table.** The README gives one damage figure per weapon, which is a half-truth
-   for anything that splits: the cluster bomb says 25 and then throws five bomblets. Every weapon
-   states its own blast and, separately, what each fragment or bomb of its payload does — taken from
-   the weapon table so the numbers cannot drift.
+1. **T152 — establish the baseline.** Inspect rules, renderer, browser tests and prior resolutions.
+   Baseline: 313 tests pass; coverage is 99.68% statements, 98.13% branches, 100% functions,
+   99.90% lines. Verify fire visibility at different resolutions and Firefox where available.
+2. **T153 — AI investigation and repair.** Add failing scenarios for nearby crates, caves, hazards,
+   weak but unreachable enemies and failed rope routes. Replace sky-profile assumptions with real
+   physics checks; validate hook launches and complete traversals. Normal must collect supplies,
+   make simple jumps, reposition for a useful attack and retain time to shoot. Easy may aim badly;
+   neither level should repeatedly attempt a route already known to fail.
+3. **T155 — melee terrain damage.** Punch already carves rock; bat currently has a zero carve
+   radius. Give both useful wall damage and verify ceilings, open air and indestructible borders.
+4. **T154 — jetpack.** Append a weapon and hotkey without moving existing keys. Six seconds of
+   directional acceleration, capped speed and a safe slow descent after fuel expires; return to
+   aiming after landing. Add a model, fiery exhaust, translated controls, stats and browser tests.
+5. **T156 — terrain and preview.** Seed chooses a varied layout and its parameters. Include truly
+   cave-free continuous landscapes, broad plains, clustered separate islands, and cavernous maps.
+   Adapt sizes/counts to the arena, retain enough safe spawn positions and reproducibility. Draw
+   walls immediately when toggled in setup. Test multiple seeds, dimensions and full matches.
+6. **T157 — homing rocket.** Enemy selection by map click, ordinary charged launch, three seconds
+   of ballistic flight, then direct homing on the living target. Terrain intercepts the flight;
+   a lost target leaves the rocket flying straight. Crates supply it. Cover AI use and all states.
+7. **T158 — factions.** Default off. Editable faction assignments and names, allies share victory,
+   retain separate team turns and inventories, and can damage each other. AI treats allies as friends.
+   Persist setup safely and test solo factions, elimination, draws, friendly fire and the victory UI.
+8. **Review and finish.** Review the actual diff and cross-feature interactions, correct findings,
+   run `npm run verify`, retain all four core coverage metrics above 98%, update `docs/review.md`,
+   weapon/architecture docs and completion versions. User authorized atomic commits and a public release. Run the full gate before each commit;
+   publish one final release tag after all tasks pass. Never reset the version to 1.0.0.
 
 ## Answered questions
 

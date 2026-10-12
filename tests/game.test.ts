@@ -2456,7 +2456,7 @@ describe('AI', () => {
     onlyWeapon(g, 0, 'bazooka');
     // One hit finishes the enemy: the crate keeps, the open enemy does not.
     g.buddies[1].hp = 5;
-    g.crates.push({ id: 974, kind: 'health', weapon: null, body: createBody(g.buddies[0].body.x + 5, 20.45, CRATE_RADIUS) });
+    g.crates.push({ id: 974, kind: 'health', weapon: null, body: createBody(g.buddies[0].body.x + 11, 20.45, CRATE_RADIUS) });
     runUntil(g, () => g.phase !== 'aiming' && g.phase !== 'turnStart', 12);
     expect(g.crates).toHaveLength(1);
   });
@@ -2498,7 +2498,8 @@ describe('AI', () => {
     expect(run(false).left).toBe(0);
     const blocked = run(true);
     expect(blocked.left).toBe(1);
-    expect(Math.abs(blocked.walked)).toBeLessThan(3);
+    // Repositioning away from the wall is allowed; chasing the unreachable box is not.
+    expect(blocked.walked).toBeLessThan(3);
   });
 
   it('presses the enemy team holding the most health, and finishes a team down to one buddy', () => {
@@ -2597,14 +2598,12 @@ describe('AI', () => {
     expect(run(true)).toBe(1);
   });
 
-  it('every level plays an AI-vs-AI match to the end with crates on the map', () => {
-    for (const level of ['easy', 'normal', 'hard'] as const) {
-      const teams = [team('A', 2, 'ai'), team('B', 2, 'ai')].map((t) => ({ ...t, aiLevel: level }));
-      const g = new Game(config(teams, { seed: `levels-${level}`, turnTime: 25, windMax: 0.3, crates: 1 }));
-      g.simulate(60 * 20);
-      expect(g.phase).toBe('gameOver');
-      expect(g.turn).toBeGreaterThan(2);
-    }
+  it.each(['easy', 'normal', 'hard'] as const)('%s plays an AI-vs-AI match to the end with crates on the map', (level) => {
+    const teams = [team('A', 2, 'ai'), team('B', 2, 'ai')].map((t) => ({ ...t, aiLevel: level }));
+    const g = new Game(config(teams, { seed: `levels-${level}`, turnTime: 25, windMax: 0.3, crates: 1 }));
+    g.simulate(60 * 20);
+    expect(g.phase).toBe('gameOver');
+    expect(g.turn).toBeGreaterThan(2);
   });
 
   it('plays an AI-vs-AI match to the end on a generated map', () => {

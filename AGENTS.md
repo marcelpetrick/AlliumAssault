@@ -80,6 +80,10 @@ python3 scripts/history_chart.py                 # redraw the README history cha
   Parts of Babylon's API are installed on `Scene.prototype` by a side-effect module and must be
   imported by name as well (`import '@babylonjs/core/Culling/ray'` for picking); such a gap builds
   and typechecks fine and only the browser suite catches it.
+- **AI behavior:** Normal should collect safe nearby supplies, handle basic jumps, account for
+  allies and hazards, and use ropes only for checked routes. Test completed pickups/traversals
+  and useful attacks, rather than only that movement or a hook launch happened. Easy may have
+  larger aim errors; avoid obvious movement failures on every difficulty.
 - **Verification:** `npm run verify` must be green before every commit. Add or update unit tests
   for rule changes and E2E checks for user-visible flows.
 - **E2E in headless Chrome** renders with SwiftShader at about 2 fps: drive tests through
@@ -96,6 +100,8 @@ python3 scripts/history_chart.py                 # redraw the README history cha
 
 [Semantic Versioning](https://semver.org/).
 
+- **Version ownership:** never reset or change the version to `1.0.0`; only the user makes that
+  change. Continue from the current version with normal SemVer increments.
 - **Every commit bumps the version** in `package.json` / `package-lock.json`
   (`npm version X.Y.Z --no-git-tag-version`) and adds a matching `CHANGELOG.md` section.
   Patch for fixes, docs, balance and dependency updates; minor for features; major for breaking
