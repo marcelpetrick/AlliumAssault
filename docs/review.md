@@ -19,6 +19,13 @@ Reviewed current v1.78.6 rules, AI, renderer, setup, tests and the requested cha
 - **Medium: Normal lacked useful repositioning.** It now checks nearby safe positions when the
   current attack is poor, retaining time to attack; lower aim noise improves ordinary shots.
 
+- **Medium: every generated map contained the same cave/ledge recipe.** Seeded layout families now
+  include genuinely solid plains and hills, clustered islands with water channels, and caverns.
+  Profiles and feature sizes scale to the arena. Tests check full rosters across 24 seeds/sizes,
+  body clearance, separation, monotonic solid columns and actual island channels.
+- **Medium: wall selection was absent from the preview.** The preview now overlays both arena
+  walls immediately; the browser test checks changed edge pixels, stable seed and reversible toggle.
+
 The previous historical review follows for traceability. New feature reviews are appended here
 with their verification results as implementation proceeds.
 

@@ -53,6 +53,17 @@ describe('AI navigation uses the real physics', () => {
     }
   });
 
+  it('uses the blowtorch to reach a weak enemy behind a wall to its left', () => {
+    const g = arena();
+    onlyWeapon(g, 0, 'torch');
+    const enemy = g.buddies[1];
+    enemy.body.x = 35;
+    enemy.hp = 10;
+    for (let y = 20; y <= 30; y += 0.5) g.terrain.addDisc(37.5, y, 1);
+    expect(runUntil(g, () => enemy.hp === 0, 12)).toBe(true);
+    expect(g.buddies[0].facing).toBe(-1);
+  });
+
   it('rejects empty-sky hooks and unreachable ledges', () => {
     const g = arena();
     const b = g.buddies[0].body;

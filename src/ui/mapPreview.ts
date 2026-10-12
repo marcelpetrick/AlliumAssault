@@ -27,7 +27,7 @@ function terrainFor(seed: string): Terrain {
 }
 
 /** Draw the map for `seed` in the colours of `theme`. */
-export function drawMapPreview(canvas: HTMLCanvasElement, seed: string, theme: string): void {
+export function drawMapPreview(canvas: HTMLCanvasElement, seed: string, theme: string, walled = false): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const { width, height } = canvas;
@@ -67,4 +67,15 @@ export function drawMapPreview(canvas: HTMLCanvasElement, seed: string, theme: s
   ctx.globalAlpha = 0.75;
   ctx.fillRect(0, waterTop, width, height - waterTop);
   ctx.globalAlpha = 1;
+  if (walled) {
+    ctx.fillStyle = '#788898';
+    const wall = Math.max(3, Math.round(width / 96));
+    ctx.fillRect(0, 0, wall, height);
+    ctx.fillRect(width - wall, 0, wall, height);
+    ctx.fillStyle = '#c9d1d8';
+    for (let y = 0; y < height; y += 12) {
+      ctx.fillRect(0, y, wall, 2);
+      ctx.fillRect(width - wall, y, wall, 2);
+    }
+  }
 }

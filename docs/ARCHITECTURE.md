@@ -130,6 +130,11 @@ C4Component
 - explosions subtract a disc with `min(field, distance − radius)`,
 - the renderer extracts the surface with marching squares.
 
+**Generation.** Independent seeded streams select a layout family and vary its profile, island
+spacing and cavern features. Plains and hills are monotonic heightfields, guaranteeing no buried
+holes. Dimensions scale the geometry; the setup preview samples the same generator and overlays
+the selected arena walls. Spawn selection still validates body clearance and separation.
+
 **Match state.** `Game` is the only place that mutates match state. Input arrives as commands
 (`jump`, `selectWeapon`, `pressFire`, `strike`, …) or as the held `input` flags (walking, aiming,
 steering the flying sheep, swinging the flamethrower's nozzle); results leave as typed `GameEvent`s.

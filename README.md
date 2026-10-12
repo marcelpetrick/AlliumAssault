@@ -68,6 +68,9 @@ the pixel density is halved.
 
 - **Smooth 3D world** — Babylon.js 9: rounded terrain slabs, cascaded soft shadows, bloom, ACES
   tone mapping, animated water, parallax hills with forests, drifting clouds, particle explosions.
+- **Adaptive landscapes** — seeds choose broad solid plains, cave-free rolling hills, clustered
+  islands or cavernous terrain, with varied shapes scaled to the arena. The map preview shows the
+  selected side walls as well as the exact landscape.
 - **Destructible terrain** — every explosion carves a round, scorched crater and throws tumbling
   lumps of earth out of it; props on the ground
   get blown away.

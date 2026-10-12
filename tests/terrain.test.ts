@@ -304,3 +304,48 @@ describe('marching squares contour', () => {
     }
   });
 });
+
+describe('adaptive landscape families', () => {
+  it('generates continuous plains and hills with no holes in any column', () => {
+    for (const layout of ['plain', 'hills'] as const) {
+      for (const seed of ['solid-a', 'solid-b', 'solid-c']) {
+        const t = generateTerrain({ ...spec, seed, layout });
+        expect(t.layout).toBe(layout);
+        for (let x = 8; x < t.width - 8; x += 1) {
+          let air = false;
+          for (let y = 0.25; y < t.height; y += 0.25) {
+            if (!t.isSolid(x, y)) air = true;
+            else expect(air, `${layout} has a hole at ${x},${y}`).toBe(false);
+          }
+        }
+      }
+    }
+  });
+
+  it.each(Array.from({ length: 24 }, (_, i) => i))('provides safe separated spawns in scaled arena seed %i', (i) => {
+    const width = [96, 128, 192][i % 3];
+    const height = [48, 64, 80][i % 3];
+    const t = generateTerrain({ seed: `landscape-${i}`, width, height, waterLevel: 3 });
+    const points = pickSpawns(findSpawnCandidates(t, 0.6), 16, mulberry32(i));
+    expect(points, `seed ${i}: ${t.layout}`).toHaveLength(16);
+    expect(t.solidFraction()).toBeGreaterThan(0.12);
+    expect(t.solidFraction()).toBeLessThan(0.55);
+    for (const [k, p] of points.entries()) {
+      for (const other of points.slice(k + 1)) expect(Math.hypot(p.x - other.x, p.y - other.y)).toBeGreaterThanOrEqual(1.5);
+      expect(p.y).toBeGreaterThan(5.5);
+      expect(t.distance(p.x, p.y)).toBeGreaterThan(0.45);
+    }
+  });
+
+  it('makes islands separated by actual open-water channels', () => {
+    const t = generateTerrain({ ...spec, seed: 'clustered', layout: 'islands' });
+    let gaps = 0;
+    let wasLand = false;
+    for (let x = 0; x <= t.width; x += 0.5) {
+      const land = t.isSolid(x, t.waterLevel + 1);
+      if (!land && wasLand) gaps++;
+      wasLand = land;
+    }
+    expect(gaps).toBeGreaterThanOrEqual(2);
+  });
+});

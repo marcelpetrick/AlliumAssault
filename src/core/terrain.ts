@@ -47,6 +47,7 @@ export class Terrain {
   readonly chunksY: number;
   readonly dirty = new Set<number>();
   revision = 0;
+  layout: TerrainLayout | 'custom' = 'custom';
   /**
    * The arena's pull, as a multiple of the standard one. The setup screen offers a lighter and a
    * heavier world; everything that falls — buddies, projectiles, crates, bombs — reads it here.
@@ -275,62 +276,79 @@ export class Terrain {
   }
 }
 
+export type TerrainLayout = 'plain' | 'hills' | 'islands' | 'caverns';
+export const TERRAIN_LAYOUTS: readonly TerrainLayout[] = ['plain', 'hills', 'islands', 'caverns'];
+
 export interface TerrainSpec {
   seed: string;
   width: number;
   height: number;
   waterLevel: number;
+  /** Optional for authored maps/tests; ordinary matches let the seed choose. */
+  layout?: TerrainLayout;
 }
 
-/** Seeded island landscape: rolling hills, overhangs, caves and floating ledges. */
-export function generateTerrain({ seed, width, height, waterLevel }: TerrainSpec): Terrain {
+/** Seeded families of landscapes, scaled to the arena rather than always perforating one island. */
+export function generateTerrain({ seed, width, height, waterLevel, layout }: TerrainSpec): Terrain {
   const terrain = new Terrain(width, height, waterLevel);
-  const shapeRng = rngFor(seed, 'shape');
-  const hills = createNoise2D(shapeRng);
-  const rock = createNoise2D(shapeRng);
-  const detail = createNoise2D(shapeRng);
-
-  const base = waterLevel + height * 0.3;
-  const profile = (x: number) => base + hills(x * 0.016, 0.37) * height * 0.12 + hills(x * 0.055, 4.1) * height * 0.045 + hills(x * 0.14, 9.7) * 0.8;
-  const shore = (x: number) => 2 - smoothstep(3, 16, x) - smoothstep(3, 16, width - x);
-
-  terrain.fill((x, y) => {
-    let v = profile(x) - y;
-    if (v > -MAX_DIST * 2 && v < MAX_DIST * 3) v += rock(x * 0.06, y * 0.06) * 2.4 + detail(x * 0.18, y * 0.18) * 0.6;
-    v -= shore(x) * 30;
-    return Math.min(v, height - 3 - y);
+  const rng = rngFor(seed, 'layout');
+  const family = layout ?? TERRAIN_LAYOUTS[Math.floor(rng() * TERRAIN_LAYOUTS.length)];
+  terrain.layout = family;
+  const shape = rngFor(seed, 'shape');
+  const hills = createNoise2D(shape);
+  const detail = createNoise2D(shape);
+  const usable = height - waterLevel;
+  const base = waterLevel + usable * (0.26 + rng() * 0.1);
+  const rolling = family === 'plain' ? 0.015 + rng() * 0.02 : 0.07 + rng() * 0.08;
+  const frequency = 1.5 + rng() * 2.5;
+  const shoreWidth = width * (0.04 + rng() * 0.06);
+  const profile = (x: number) => base + hills((x / width) * frequency, 0.37) * usable * rolling + hills((x / width) * 12, 4.1) * usable * rolling * 0.25;
+  const heights = Array.from({ length: terrain.nx }, (_, i) => profile(i * CELL));
+  const islandCount = Math.max(2, Math.min(7, Math.round(width / (22 + rng() * 12))));
+  const islands = Array.from({ length: islandCount }, (_, i) => {
+    const slot = width / islandCount;
+    return { x: slot * (i + 0.4 + rng() * 0.2), half: slot * (0.32 + rng() * 0.1), top: base + (rng() - 0.5) * usable * 0.16 };
   });
 
-  const features = rngFor(seed, 'features');
-  const caveCount = 4 + Math.floor(features() * 4);
-  for (let c = 0; c < caveCount; c++) {
-    const cx = 16 + features() * (width - 32);
-    const top = profile(cx);
-    const r = 1.8 + features() * 2.4;
-    const stretch = 1 + features() * 1.3;
-    const room = top - waterLevel - 9;
-    if (room <= 0) continue;
-    const cy = waterLevel + 4.5 + features() * room;
-    stamp(terrain, cx, cy, r * stretch + 1, (x, y, v) => {
-      const d = Math.hypot((x - cx) / stretch, y - cy) - r + detail(x * 0.35, y * 0.35) * 0.45;
-      return Math.min(v, d);
-    });
-  }
+  terrain.fill((x, y) => {
+    if (family === 'islands') {
+      let density = -MAX_DIST;
+      for (const island of islands) {
+        const edge = Math.abs(x - island.x) / island.half;
+        const top = island.top + hills((x / width) * 10, 6.2) * usable * 0.025 - Math.pow(edge, 6) * usable * 0.35;
+        density = Math.max(density, Math.min(top - y, island.half - Math.abs(x - island.x)));
+      }
+      return Math.min(density, height - 3 - y);
+    }
+    const shore = 2 - smoothstep(0, shoreWidth, x) - smoothstep(0, shoreWidth, width - x);
+    let density = heights[Math.round(x / CELL)] - y - shore * usable * 0.65;
+    // Plains and hills stay heightfields: no caves, overhangs or hidden holes at all.
+    if (family === 'caverns' && Math.abs(density) < MAX_DIST * 3) density += detail(x * 0.08, y * 0.08) * 1.6;
+    return Math.min(density, height - 3 - y);
+  });
 
-  const islandCount = 2 + Math.floor(features() * 3);
-  for (let c = 0; c < islandCount; c++) {
-    const cx = 14 + features() * (width - 28);
-    const cy = Math.min(profile(cx) + 9 + features() * 8, height - 9);
-    const rx = 3.5 + features() * 5;
-    const ry = 1.1 + features() * 0.8;
-    stamp(terrain, cx, cy, rx + 3, (x, y, v) => {
-      const sy = y < cy ? ry * 2 : ry;
-      const d = (Math.hypot((x - cx) / rx, (y - cy) / sy) - 1) * Math.min(rx, sy) + detail(x * 0.3, y * 0.3) * 0.35;
-      return Math.max(v, -d);
-    });
+  if (family === 'caverns') {
+    const features = rngFor(seed, 'features');
+    const count = Math.max(1, Math.round((width / 24) * (0.7 + features() * 0.6)));
+    for (let c = 0; c < count; c++) {
+      const cx = width * (0.12 + features() * 0.76);
+      const r = usable * (0.025 + features() * 0.035);
+      const stretch = 1 + features() * 1.5;
+      const room = profile(cx) - waterLevel - r * 3;
+      if (room <= 0) continue;
+      const cy = waterLevel + r * 1.5 + features() * room;
+      stamp(terrain, cx, cy, r * stretch + 1, (x, y, v) => Math.min(v, Math.hypot((x - cx) / stretch, y - cy) - r + detail(x * 0.35, y * 0.35) * 0.25));
+    }
+    const ledges = Math.floor(features() * 4);
+    for (let c = 0; c < ledges; c++) {
+      const cx = width * (0.12 + features() * 0.76);
+      const cy = Math.min(profile(cx) + usable * (0.12 + features() * 0.15), height - 7);
+      const rx = width * (0.025 + features() * 0.035);
+      const ry = usable * (0.018 + features() * 0.015);
+      stamp(terrain, cx, cy, rx + 3, (x, y, v) => Math.max(v, (1 - Math.hypot((x - cx) / rx, (y - cy) / ry)) * ry));
+    }
   }
-
-  terrain.removeSpecks(80);
+  terrain.removeSpecks(40);
   terrain.revision++;
   return terrain;
 }

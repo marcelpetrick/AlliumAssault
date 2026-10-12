@@ -260,7 +260,7 @@ export class Menu {
   /** Draw the island the current seed and scenery produce, whenever the setup screen is on. */
   private paintPreview(): void {
     const canvas = this.el.querySelector('canvas[data-preview]');
-    if (canvas instanceof HTMLCanvasElement) drawMapPreview(canvas, this.draft.seed, this.draft.theme);
+    if (canvas instanceof HTMLCanvasElement) drawMapPreview(canvas, this.draft.seed, this.draft.theme, this.draft.walled);
   }
 
   showAbout(): void {

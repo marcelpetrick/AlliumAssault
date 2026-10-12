@@ -11,7 +11,7 @@ and drilling. Existing core baseline: 313 tests, 99.68% statements, 98.13% branc
 100% functions, 99.90% lines. Keep all four metrics above 98%; measure actual coverage.
 Run browser checks across resolutions and Firefox where available. Record limits honestly.
 
-## 2. Competent AI (T153)
+## 2. Competent AI (T153 — delivered in 1.79.0)
 
 Reproduce nearby crate failures before editing. Replace sky-only walking checks with physics
 simulation of the buddy's actual floor, steps and jumps. Account for mines in two dimensions,
@@ -40,7 +40,7 @@ water, turn timeout, damage and death must work. Show a 3D pack, fiery downward 
 remaining; translate controls and descriptions in all languages. Verify normal/heavy gravity,
 collision, fuel, pickups in flight, safe landing and another weapon afterwards.
 
-## 5. Adaptive terrain and wall preview (T156)
+## 5. Adaptive terrain and wall preview (T156 — delivered in 1.80.0)
 
 Seed selects a layout and its parameters: broad plains, solid cave-free rolling landscapes,
 clustered islands, or mixed cavernous terrain. Vary height, widths, number and spacing rather than

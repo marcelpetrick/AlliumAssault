@@ -132,6 +132,9 @@ Following the last control decision made in the 2D prototype:
 
 ## Look & feel
 
+- **Generation:** the seed selects solid plains, cave-free hills, clustered islands or caverns.
+  Parameters vary per seed and scale with arena dimensions; every family supports a full roster.
+  The setup preview uses the same field and displays optional side walls.
 - **Terrain:** a smooth signed-density field meshed with marching squares, extruded into
   pillowy 3D slabs with grass tops, rock strata, scorch marks around craters.
 - **Garlic buddies:** lathe-modelled bulbs with sprouts, big eyes, team-coloured bandanas,

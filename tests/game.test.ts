@@ -2611,7 +2611,7 @@ describe('AI', () => {
     g.simulate(60 * 15);
     expect(g.phase).toBe('gameOver');
     expect(g.turn).toBeGreaterThan(2);
-  });
+  }, 15_000);
 });
 
 describe('gravity', () => {

@@ -336,6 +336,12 @@ for (const scenery of ['Candy Shop', 'Frosty Peaks']) {
 test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute silences', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
+  // Keep the sound scenario stable across terrain families, with room for a safe sheep blast.
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    g.buddies.forEach((b, i) => Object.assign(b.body, { x: i === 0 ? 40 : 100, y: 20.65, vx: 0, vy: 0, grounded: true }));
+  });
 
   await select(page, '2', 'grenade');
   await waitFor(page, (s) => ((s.sound.played as Partial<Record<string, number>>).select ?? 0) >= 1, 10_000);
@@ -352,6 +358,10 @@ test('audio cues: weapon select blip, turn start chime, last-seconds tick, mute 
   await waitFor(page, (s) => s.phase === 'guiding', 10_000);
   await page.evaluate(() => (window.__allium.app.game!.turnTimeLeft = 3.2));
   await waitForSound(page, 'tick', ticks + 1);
+  await page.evaluate(() => {
+    const sheep = window.__allium.app.game!.sheep;
+    if (sheep) sheep.body.x = 60;
+  });
   await page.keyboard.press('Space');
 
   // After the blast and retreat the next turn starts with its chime.
@@ -744,5 +754,26 @@ test('walled landscape: the option seals the arena, grounds the planes and carri
   const buddies = (await state(page)).buddies;
   expect(buddies.every((b) => b.x > -1)).toBe(true);
   expect(buddies.some((b) => b.hp > 0)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('map preview draws the arena walls immediately when the option is enabled', async ({ page }) => {
+  const errors = await boot(page);
+  await page.getByRole('button', { name: /Custom Match/ }).click();
+  const edges = () =>
+    page.evaluate(() => {
+      const c = document.querySelector<HTMLCanvasElement>('canvas.map-preview')!;
+      const ctx = c.getContext('2d')!;
+      return [Array.from(ctx.getImageData(1, 20, 1, 1).data), Array.from(ctx.getImageData(c.width - 2, 20, 1, 1).data)];
+    });
+  const open = await edges();
+  const seed = await page.locator('[data-field="seed"]').inputValue();
+  await page.locator('[data-action="walled"][data-value="1"]').click();
+  const closed = await edges();
+  expect(closed).not.toEqual(open);
+  expect(closed[0]).toEqual(closed[1]);
+  expect(await page.locator('[data-field="seed"]').inputValue()).toBe(seed);
+  await page.locator('[data-action="walled"][data-value="0"]').click();
+  expect(await edges()).toEqual(open);
   expect(errors).toEqual([]);
 });

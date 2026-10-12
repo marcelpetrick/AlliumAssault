@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.80.0] — 2026-10-12
+
+- Replace the fixed perforated island generator with seeded plains, solid hills, clustered islands
+  and caverns, varying their geometry and scaling it with arena dimensions.
+- Show the selected side walls in the exact map preview without changing the seed.
+- Check topology, water channels, spawn clearance and separation across 24 scaled seed scenarios.
+- Allow the complete generated-map AI match test fifteen seconds under coverage instrumentation.
+- Give sound, grenade-bounce and rope scenarios explicit arenas; manually step rope input and
+  dispatch its sound events. Accept valid quick AI wins while checking the final surviving teams.
+
 ## [1.79.0] — 2026-10-12
 
 - Fix AI ignoring nearby crates beside weak enemies, under cave roofs and after selecting aircraft.

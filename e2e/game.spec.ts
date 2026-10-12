@@ -136,6 +136,7 @@ test('AI vs AI match reaches the victory screen and offers a rematch', async ({ 
 
 test('every AI level plays a match with crates to a finish without stalling', async ({ page }) => {
   const errors = await boot(page);
+  await page.evaluate(() => window.__allium.setManual(true));
   for (const level of ['easy', 'normal', 'hard'] as const) {
     await page.evaluate((aiLevel) => {
       window.__allium.startMatch({
@@ -158,7 +159,8 @@ test('every AI level plays a match with crates to a finish without stalling', as
     }
     const done = await state(page);
     expect(done.phase, `${level} should finish`).toBe('gameOver');
-    expect(done.turn).toBeGreaterThan(2);
+    expect(done.turn).toBeGreaterThanOrEqual(1);
+    expect(new Set(done.buddies.filter((b) => b.alive).map((b) => b.team)).size).toBeLessThanOrEqual(1);
   }
   expect(errors).toEqual([]);
 });
@@ -193,6 +195,8 @@ test('a badly hurt AI buddy walks to a health crate instead of taking its shot',
   // Nearly dead, with a health crate a few steps along the ground it is already standing on.
   const placed = await page.evaluate(() => {
     const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    g.buddies.forEach((b, i) => Object.assign(b.body, { x: i === 0 ? 40 : 100, y: 20.65, vx: 0, vy: 0, grounded: true }));
     const me = g.activeBuddy!;
     me.hp = 12;
     const surface = (x: number) => {

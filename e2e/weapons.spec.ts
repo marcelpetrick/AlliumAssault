@@ -87,6 +87,11 @@ test('bazooka: the aim can still be corrected while the shot is charging', async
 test('grenade: bounces audibly, then explodes after its fuse', async ({ page }) => {
   const errors = await boot(page);
   await startDuel(page);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    g.buddies.forEach((b, i) => Object.assign(b.body, { x: i === 0 ? 40 : 100, y: 20.65, vx: 0, vy: 0, grounded: true }));
+  });
   await select(page, '2', 'grenade');
   await aim(page, -0.35);
   const before = await state(page);
@@ -637,6 +642,12 @@ test('sheep: baa on release, hops away, Space blows it up', async ({ page }, inf
 test('rope: Shift+7 hooks the rock overhead, then reel, swing and let go', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
+  await page.evaluate(() => {
+    window.__allium.setManual(true);
+    const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    g.buddies.forEach((b, i) => Object.assign(b.body, { x: i === 0 ? 40 : 100, y: 20.65, vx: 0, vy: 0, grounded: true }));
+  });
   const before = await state(page);
   // Give the buddy something to hook: a slab of rock well above its head, with a stub hanging off
   // it to the right so the swing has a corner to wrap the rope around.
@@ -654,6 +665,7 @@ test('rope: Shift+7 hooks the rock overhead, then reel, swing and let go', async
   });
   await page.keyboard.press('Space');
   await waitFor(page, (s) => s.phase === 'roping', 10_000);
+  await fastForward(page, 0.05);
   await waitForSound(page, 'hookShot');
   await fastForward(page, 0.5);
   await waitForSound(page, 'hookBite');
