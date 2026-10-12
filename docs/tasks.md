@@ -12,6 +12,7 @@ Status: ☐ open · ☑ done
 
 | #    | Task                                                                                                            | Status | Version        |
 | ---- | --------------------------------------------------------------------------------------------------------------- | ------ | -------------- |
+| T64  | Review and apply October dependency updates                                                                     | ☑      | 1.78.6         |
 | T0   | Task list in `tasks.md`, kept current with every commit                                                         | ☑      | 1.1.12, 1.4.1  |
 | T1   | Fix buddies floating after the ground below is blasted away                                                     | ☑      | 1.1.13         |
 | T2   | Stronger Garlic Punch                                                                                           | ☑      | 1.1.14         |
@@ -1075,6 +1076,13 @@ now includes suggested order, affected files, proposed tuning and behavior, the 
 approach, cross-feature constraints and acceptance risks. Proposed defaults are not approvals.
 No gameplay code was changed for the planning work; the user gave the go-ahead afterwards and
 T55–T61 were implemented in 1.33.5 through 1.39.0.
+
+### T64 — Review and apply October dependency updates ☑
+
+Implemented in 1.78.6. Apply Dependabot #4 and #5 together with newer compatible patch releases,
+keep exact manifest and lockfile pins, and verify lint, types, coverage, production build and the
+Chrome end-to-end suite. TypeScript 7 is deferred until the linter supports it; Node types stay
+on the runtime's 24.x line.
 
 ## Defaults chosen (change on request)
 

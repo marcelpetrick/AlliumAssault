@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.78.6] — 2026-10-12
+
+### Changed
+
+- Update `@babylonjs/core` 9.29.0 → 9.30.0 and the Dependabot dev-tooling updates from #4 and #5:
+  `@playwright/test` 1.63.0 → 1.64.0, `eslint` 10.11.0 → 10.12.0,
+  `typescript-eslint` 8.71.0 → 8.71.1 and `vite` 8.3.2 → 8.3.4.
+- Refresh compatible exact pins: `@types/node` 24.19.1 → 24.19.2, `vitest` and
+  `@vitest/coverage-v8` 5.0.3 → 5.0.4, `prettier` 3.9.9 → 3.9.10 and the `smol-toml`
+  override 1.9.0 → 1.9.1. Keep Node types on 24.x to match the runtime and TypeScript at 6.0.3
+  because `typescript-eslint` 8.71.1 requires TypeScript below 6.1.0.
+- Pin transitive `katex` to 0.19.0 to fix GHSA-238p-pmpm-9mq7 in the Markdown tooling.
+  Refresh the lockfile to source-map-js 1.2.2, fixing GHSA-68fv-2mgg-jv7q.
+  The separate `braces` advisory GHSA-vfj7-8cjw-p6xm remains unresolved upstream: its latest
+  published release is still the affected 3.0.3. Production dependencies have no audit findings.
+
 ## [1.78.5] — 2026-10-11
 
 ### Changed
