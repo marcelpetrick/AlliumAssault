@@ -108,6 +108,7 @@ const EN = {
     'Teams take turns. Walk your garlic buddy into position, pick a weapon, aim, and blast the enemy — then retreat before the smoke clears. Water is deadly, falls hurt, and the last team standing wins.',
   'help.unlimited': 'unlimited',
   'help.perTeam': '{n} per team',
+  'help.perCrate': '{n} per crate',
   'help.damage': 'dmg',
 
   // HUD
@@ -132,6 +133,8 @@ const EN = {
   'hud.approachRight': '← → plane comes in from the right',
   'hud.useJetpack': 'Space to launch · arrows accelerate · six seconds of fuel',
   'hud.jetpacking': '↑ thrust · ←→ steer · ↓ descend · Space stops thrust · {seconds}s fuel',
+  'hud.homingTarget': 'Click an enemy to lock on, then aim and hold/release Space',
+  'hud.homingLocked': 'Target: {name} · ↑↓ aim · hold/release Space to fire',
   'hud.platform': 'Move the mouse to place the board · wheel tilts it · left-click sets it · Esc menu',
   'hud.teleport': 'Left-click anywhere to beam there — mind the drop · Esc menu',
   'hud.firing': 'Rat-a-tat-tat! 🔩',
@@ -351,6 +354,7 @@ const DE: Catalogue = {
     'Die Teams sind abwechselnd dran. Bring deine Knoblauchknolle in Stellung, wähle eine Waffe, ziele und jag den Gegner in die Luft — und zieh dich zurück, bevor sich der Rauch legt. Wasser ist tödlich, Stürze tun weh, und wer zuletzt steht, gewinnt.',
   'help.unlimited': 'unbegrenzt',
   'help.perTeam': '{n} pro Team',
+  'help.perCrate': '{n} pro Kiste',
   'help.damage': 'Sch.',
 
   'hud.wind': 'Wind',
@@ -374,6 +378,8 @@ const DE: Catalogue = {
   'hud.approachRight': '← → das Flugzeug kommt von rechts',
   'hud.useJetpack': 'Leertaste startet · Pfeile beschleunigen · sechs Sekunden Treibstoff',
   'hud.jetpacking': '↑ Schub · ←→ lenken · ↓ sinken · Leertaste stoppt · {seconds}s Treibstoff',
+  'hud.homingTarget': 'Gegner anklicken, dann zielen und Leertaste halten/loslassen',
+  'hud.homingLocked': 'Ziel: {name} · ↑↓ zielen · Leertaste halten/loslassen',
   'hud.platform': 'Maus bewegen, um das Brett zu setzen · Mausrad kippt es · Linksklick legt es ab · Esc Menü',
   'hud.teleport': 'Linksklick irgendwohin, um dich zu beamen — Achtung, der Fall · Esc Menü',
   'hud.firing': 'Ratatatata! 🔩',
@@ -595,6 +601,7 @@ const HR: Catalogue = {
     'Ekipe idu na smine. Dovedi svoju glavicu di triba, uzmi oružje, nacilja i raznesi protivnika — pa se povuci prin nego se dim slegne. More ubija, pad boli, a dobiva ona ekipa šta ostane zadnja na nogan.',
   'help.unlimited': 'bez kraja',
   'help.perTeam': '{n} po ekipi',
+  'help.perCrate': '{n} po kutiji',
   'help.damage': 'štete',
 
   'hud.wind': 'Vitar',
@@ -618,6 +625,8 @@ const HR: Catalogue = {
   'hud.approachRight': '← → avion dolazi z desne strane',
   'hud.useJetpack': 'Space za poletit · strelice ubrzavaju · šest sekundi goriva',
   'hud.jetpacking': '↑ potisak · ←→ vodi · ↓ spuštaj · Space gasi · {seconds}s goriva',
+  'hud.homingTarget': 'Klikni protivnika, naciljaj pa drži i pusti Space',
+  'hud.homingLocked': 'Meta: {name} · ↑↓ nišani · drži i pusti Space',
   'hud.platform': 'Miči miša di ćeš dasku · kotačić je naginje · lijevi klik je spušta · Esc izbornik',
   'hud.teleport': 'Lijevi klik bilo di da se teleportiraš — pazi na pad · Esc izbornik',
   'hud.firing': 'Ratatata! 🔩',
@@ -832,6 +841,7 @@ const ZH: Catalogue = {
   'help.lead': '两队轮流行动。把你的蒜头走到位置上，选一件武器，瞄准，把对手炸飞——然后趁烟还没散赶紧撤。水会要命，摔下来会疼，最后站着的那一队获胜。',
   'help.unlimited': '无限',
   'help.perTeam': '每队 {n} 发',
+  'help.perCrate': '每箱 {n} 发',
   'help.damage': '伤害',
 
   'hud.wind': '风力',
@@ -855,6 +865,8 @@ const ZH: Catalogue = {
   'hud.approachRight': '← → 飞机从右边进场',
   'hud.useJetpack': '空格启动 · 方向键加速 · 六秒燃料',
   'hud.jetpacking': '↑ 推进 · ←→ 转向 · ↓ 下降 · 空格停止推进 · 剩余 {seconds} 秒燃料',
+  'hud.homingTarget': '点击敌人锁定，然后瞄准并按住/松开空格',
+  'hud.homingLocked': '目标：{name} · ↑↓ 瞄准 · 按住/松开空格发射',
   'hud.platform': '移动鼠标放置木板 · 滚轮调整角度 · 左键放下 · Esc 菜单',
   'hud.teleport': '左键点任意位置传送过去——小心摔落 · Esc 菜单',
   'hud.firing': '哒哒哒哒！🔩',

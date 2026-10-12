@@ -33,8 +33,8 @@ export type WeaponId =
   | 'flamer'
   | 'fuelgob'
   | 'surrender'
-  | 'jetpack';
-
+  | 'jetpack'
+  | 'homing';
 export type WeaponKind =
   | 'projectile'
   | 'hitscan'
@@ -103,6 +103,10 @@ export interface WeaponDef {
   damage: number;
   force: number;
   range: number;
+  /** Seconds of ballistic flight before direct pursuit begins. */
+  homing?: { delay: number; speed: number };
+  /** Supplied only by crates, even with the ordinary full arsenal. */
+  crateOnly?: boolean;
   /** Melee: 'uppercut' launches victims skywards, 'swing' bats them away along the aim line. */
   knock?: 'uppercut' | 'swing';
   /**
@@ -852,6 +856,32 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 0,
     range: 0,
   },
+
+  homing: {
+    id: 'homing',
+    look: { projectile: 'rocket', flight: 'rocket', fireSound: 'fire', muzzle: true },
+    name: 'Homing Rocket',
+    icon: '🎯',
+    blurb:
+      'Click an enemy to lock on, then aim and charge. After three ballistic seconds it homes straight towards that buddy; walls stop it. Found in crates.',
+    kind: 'projectile',
+    special: true,
+    crateOnly: true,
+    ammo: 1,
+    charge: true,
+    shots: 1,
+    minSpeed: 10,
+    maxSpeed: 42,
+    windInfluence: 1,
+    gravityScale: 1,
+    restitution: null,
+    fuse: 12,
+    radius: 3,
+    damage: 45,
+    force: 16,
+    range: 0,
+    homing: { delay: 3, speed: 24 },
+  },
 };
 
 /**
@@ -896,6 +926,7 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   'ming',
   'flamer',
   'jetpack',
+  'homing',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
@@ -908,6 +939,7 @@ export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = {
   KeyV: 'ming',
   KeyF: 'flamer',
   KeyJ: 'jetpack',
+  KeyH: 'homing',
 };
 
 /**

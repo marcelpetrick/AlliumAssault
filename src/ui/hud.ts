@@ -318,6 +318,10 @@ export class Hud {
       const side = g.choosingApproach ? ` · ${g.strikeDir > 0 ? t('hud.approachLeft') : t('hud.approachRight')}` : '';
       return `${t('hud.clickStrike', { weapon: weaponName(g.weapon) })}${side} · ${t('hud.esc')}`;
     }
+    if (def.homing && g.phase === 'aiming') {
+      const target = g.buddies.find((b) => b.id === g.homingTarget && b.alive && b.hp > 0);
+      return target ? t('hud.homingLocked', { name: target.name }) : t('hud.homingTarget');
+    }
     if (def.kind === 'platform' && g.phase === 'aiming') return t('hud.platform');
     if (def.kind === 'teleport' && g.phase === 'aiming') return t('hud.teleport');
     if (g.phase === 'jetpacking' && g.action?.kind === 'jetpack') return t('hud.jetpacking', { seconds: Math.ceil(g.action.left) });

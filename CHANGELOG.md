@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.82.0] — 2026-10-13
+
+- Add the crate-only Homing Rocket on H, with one shot per pickup and no ordinary starting ammo.
+- Click an enemy to lock it, aim and charge like the bazooka, fly ballistically for three seconds,
+  then pursue its current position directly; swept collision still stops it at rock, bodies or crates.
+- Continue along the last heading after target loss; require a living enemy lock before spending ammo.
+- Give AI target-aware shot simulation, a scoped held launcher, translated help/HUD instructions,
+  correct per-crate help stock and a real gameplay clip.
+- Show the real digit and letter hotkeys in help instead of impossible Shift+numbers past nine.
+- Cover actual crate pickup, mouse locking, guidance timing, impact, walls and AI launching.
+
 ## [1.81.0] — 2026-10-12
 
 - Add a default two-use jetpack on J: six seconds of directional acceleration, capped speed,

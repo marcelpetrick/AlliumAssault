@@ -58,6 +58,7 @@ const CLIPS = [
   { id: 'selfdestruct', theme: 'sunset', aim: 0, frames: 60 },
   { id: 'ming', theme: 'candy', aim: 0.85, hold: 10, frames: 70 },
   { id: 'flamer', theme: 'night', aim: -0.1, frames: 60 },
+  { id: 'homing', theme: 'night', aim: 1.4, hold: 14, frames: 95 },
   { id: 'jetpack', theme: 'sunset', aim: 0, frames: 110, after: [35, 'glide'] },
 ];
 
@@ -101,12 +102,19 @@ async function setUp(clip) {
   await page.evaluate((c) => {
     const g = window.__allium.app.game;
     const me = g.activeBuddy;
+    if (c.id === 'homing') {
+      g.terrain.fill((_x, y) => 20 - y);
+      g.buddies.forEach((b, i) => Object.assign(b.body, { x: b.team === me.team ? 40 + i : 80 + i, y: 20.65, vx: 0, vy: 0, grounded: true }));
+      g.crates.push({ id: 9999, kind: 'weapon', weapon: 'homing', body: { ...me.body, radius: 0.45 } });
+      g.simulate(0.1);
+    }
     const enemy = g.buddies.filter((b) => b.team !== me.team).sort((a, b) => Math.abs(a.body.x - me.body.x) - Math.abs(b.body.x - me.body.x))[0];
     const dir = enemy.body.x < me.body.x ? -1 : 1;
     // Melee has to be within arm's reach, so put the buddy there rather than filming it walk.
     if (c.close) me.body.x = enemy.body.x - dir * c.close;
     g.selectWeapon(c.id);
     g.face(dir);
+    if (c.id === 'homing') g.targetBuddy(enemy.id);
     if (c.aim !== undefined) me.aim = c.aim;
     window.__alliumClip = { target: enemy.body.x, x: me.body.x, y: me.body.y };
   }, clip);

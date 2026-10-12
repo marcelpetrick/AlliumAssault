@@ -34,7 +34,7 @@ browser and start a Quick Match.
 </table>
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
-garlic buddies. Destructible islands, wind, twenty-five weapons from bazookas and banana bombs to
+garlic buddies. Destructible islands, wind, twenty-six weapons from bazookas and banana bombs to
 a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones,
 Sudden Death and five sceneries — rendered with real-time 3D graphics in your browser.
 
@@ -175,6 +175,9 @@ and the two ways of taking others with you. There is a recorded clip of every on
 | V   | 🏺 Ming Vase           | 1    | 70 for the burst, then 38 per shard (×8)   | Six hundred years of porcelain, thrown once; the shards are contact bombs. One per match                                                |
 | F   | 🧯 Flamethrower        | 2    | 7 per burning gob                          | Three seconds of fuel out of a nozzle. Up and down steer it while it runs; wind and gravity carry the gobs and the ground keeps burning |
 | J   | 🎒 Jetpack             | 2    | —                                          | Space launches; arrows accelerate for six seconds. Slow safe descent, then land and attack; Space stops thrust early                    |
+| H   | 🎯 Homing Rocket       | 1    | 45                                         | Crate-only: click an enemy, aim and charge; three ballistic seconds, then direct pursuit. Rock blocks the flight                        |
+
+The Homing Rocket starts with no ammo and supplies one rocket per weapon crate; its table stock is the pickup amount.
 
 ## Architecture
 
@@ -184,7 +187,7 @@ src/
 │   ├── terrain.ts   density field, seeded generation, craters, spawn finding
 │   ├── contour.ts   marching squares (fill triangles + oriented edges)
 │   ├── physics.ts   circle bodies vs. field, swept projectiles
-│   ├── weapons.ts   weapon table (25 weapons by kind), arsenal flags, hotkey mapping
+│   ├── weapons.ts   weapon table (26 weapons by kind), arsenal flags, hotkey mapping
 │   ├── match.ts     what a match is made of: config, buddies, teams, phases, turn actions, events
 │   ├── game.ts      the state machine over them: turns, weapon execution, damage, crates, mines, flames
 │   ├── sheep.ts     hopping sheep · flyer.ts steerable flying sheep

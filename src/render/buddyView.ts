@@ -298,6 +298,10 @@ export class BuddyView {
         [MeshBuilder.CreateCylinder('mineDisc', { height: 0.14, diameter: 0.42, tessellation: 14 }, scene), kit.metal, [0.58, 0, 0], false],
         [MeshBuilder.CreateCylinder('mineTrigger', { height: 0.12, diameter: 0.12, tessellation: 8 }, scene), kit.glove, [0.58, 0.12, 0], false],
       ]),
+      homing: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCylinder('homingLauncher', { height: 0.9, diameter: 0.22, tessellation: 12 }, scene), kit.metal, [0.5, 0, 0], true],
+        [MeshBuilder.CreateBox('homingScope', { width: 0.25, height: 0.12, depth: 0.12 }, scene), kit.glove, [0.5, 0.2, 0], false],
+      ]),
       jetpack: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateCylinder('jetpackTankL', { height: 0.65, diameter: 0.24, tessellation: 12 }, scene), kit.metal, [-0.25, 0, -0.25], false],
         [MeshBuilder.CreateCylinder('jetpackTankR', { height: 0.65, diameter: 0.24, tessellation: 12 }, scene), kit.metal, [-0.25, 0, 0.25], false],

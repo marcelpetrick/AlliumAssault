@@ -1534,6 +1534,7 @@ describe('weapon voices', () => {
   /** What each weapon should sound like when it is used; see docs/SOUND.md for the reasoning. */
   const VOICES: Partial<Record<WeaponId, string | undefined>> = {
     bazooka: 'fire',
+    homing: 'fire',
     jetpack: 'torchLight',
     grenade: 'throw',
     cluster: 'throw',
@@ -1570,8 +1571,8 @@ describe('weapon voices', () => {
     const throwers = WEAPON_ORDER.filter((id) => WEAPONS[id].look.fireSound === 'throw');
     expect(throwers.length).toBeGreaterThanOrEqual(4);
     for (const id of throwers) expect(WEAPONS[id].look.flight).toBe('lob');
-    // Only the bazooka roars, and it is the only weapon that launches something under power.
-    expect(WEAPON_ORDER.filter((id) => WEAPONS[id].look.fireSound === 'fire')).toEqual(['bazooka']);
+    // Powered launchers share the rocket launch roar.
+    expect(WEAPON_ORDER.filter((id) => WEAPONS[id].look.fireSound === 'fire')).toEqual(['bazooka', 'homing']);
     // Every selectable weapon is accounted for above: no new weapon slips in without a decision.
     for (const id of WEAPON_ORDER) expect({ id, listed: id in VOICES }).toEqual({ id, listed: true });
   });

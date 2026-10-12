@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { steerHoming } from './homing';
 import { AIM_MAX, AIM_MIN, BUDDY_RADIUS, MUZZLE_OFFSET, START_HP, TORCH_SPEED, WIND_ACCEL } from './constants';
 import { meleeLaunch, REST_SPEED, REST_TIME, selfDestructBlast, type AiLevel, type Buddy, type Game } from './game';
 import { clamp, lerp } from './math';
@@ -28,6 +29,7 @@ export interface AttackPlan {
   target?: number;
   /** Air strikes: side the plane comes in from, chosen deliberately rather than inherited. */
   strikeDir?: 1 | -1;
+  buddyTarget?: number;
 }
 
 const LEVELS: Record<AiLevel, { angles: number; powers: number; aimError: number; powerError: number; think: number }> = {
@@ -109,7 +111,15 @@ const MINE_COST = 18;
 const MIN_SHOVE = 2;
 
 /** Simulate a shot without touching game state; returns where it detonates. */
-export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 | -1, aim: number, power: number): { x: number; y: number } | null {
+export function simulateShot(
+  game: Game,
+  me: Buddy,
+  weapon: WeaponId,
+  facing: 1 | -1,
+  aim: number,
+  power: number,
+  buddyTarget?: number,
+): { x: number; y: number } | null {
   const def = WEAPONS[weapon];
   const dx = Math.cos(aim) * facing;
   const dy = Math.sin(aim);
@@ -126,8 +136,19 @@ export function simulateShot(game: Game, me: Buddy, weapon: WeaponId, facing: 1 
   const dt = 1 / 20;
   const ax = game.wind * WIND_ACCEL * def.windInfluence;
   let rest = 0;
-  for (let t = 0; t < 7; t += dt) {
-    const hit = stepProjectile(game.terrain, p, dt, ax, -GRAVITY * game.terrain.gravityScale * def.gravityScale, def.restitution, hitTest, 0.3);
+  for (let t = 0; t < (def.homing ? def.fuse : 7); t += dt) {
+    const guided = def.homing && t + dt >= def.homing.delay ? def.homing : undefined;
+    if (guided) steerHoming(p, game.buddies.find((b) => b.id === buddyTarget && b.alive && b.hp > 0)?.body, guided.speed);
+    const hit = stepProjectile(
+      game.terrain,
+      p,
+      dt,
+      guided ? 0 : ax,
+      guided ? 0 : -GRAVITY * game.terrain.gravityScale * def.gravityScale,
+      def.restitution,
+      hitTest,
+      0.3,
+    );
     if (hit === 'terrain' || hit === 'target') return { x: p.x, y: p.y };
     if (hit === 'water' || hit === 'out') return null;
     if (def.fuse > 0 && t + dt >= def.fuse) return { x: p.x, y: p.y };
@@ -320,15 +341,17 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const cost = pickCost(weapon);
     // Limited weapons are a rare pick, so search them on a coarser grid to keep thinking fast.
     const stride = limited && !only ? 2 : 1;
-    for (const facing of [1, -1] as const) {
-      for (let a = 0; a < cfg.angles; a += stride) {
-        const aim = lerp(-0.35, 1.4, a / (cfg.angles - 1));
-        for (let s = 0; s < cfg.powers; s += stride) {
-          const power = lerp(0.3, 1, s / (cfg.powers - 1));
-          const impact = simulateShot(game, me, weapon, facing, aim, power);
-          if (!impact) continue;
-          const score = scoreWeapon(game, me, impact.x, impact.y, WEAPONS[weapon], know) - cost;
-          if (score > best.score) best = { weapon, facing, aim, power, score };
+    for (const target of WEAPONS[weapon].homing ? enemies : [null]) {
+      for (const facing of [1, -1] as const) {
+        for (let a = 0; a < cfg.angles; a += stride) {
+          const aim = lerp(-0.35, 1.4, a / (cfg.angles - 1));
+          for (let s = 0; s < cfg.powers; s += stride) {
+            const power = lerp(0.3, 1, s / (cfg.powers - 1));
+            const impact = simulateShot(game, me, weapon, facing, aim, power, target?.id);
+            if (!impact) continue;
+            const score = scoreWeapon(game, me, impact.x, impact.y, WEAPONS[weapon], know) - cost;
+            if (score > best.score) best = { weapon, facing, aim, power, score, buddyTarget: target?.id };
+          }
         }
       }
     }
@@ -808,6 +831,7 @@ export class AiDriver {
         this.plan = plan;
         this.history.set(plan.weapon, (this.history.get(plan.weapon) ?? 0) + 1);
         game.selectWeapon(plan.weapon);
+        if (plan.buddyTarget !== undefined) game.targetBuddy(plan.buddyTarget);
         game.face(plan.facing);
         this.stage = 'aim';
         this.timer = 0;

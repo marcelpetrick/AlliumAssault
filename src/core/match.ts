@@ -153,6 +153,8 @@ export interface Projectile {
   fuse: number;
   age: number;
   owner: number;
+  /** Locked buddy, retained independently of the currently selected weapon. */
+  target?: number;
   /** Seconds spent (almost) motionless, for weapons that detonate after coming to rest. */
   rest?: number;
   /** A rest-fuse weapon has come to rest and its fuse is counting down. */
@@ -216,6 +218,7 @@ export interface InputState {
 /** Ammo a team starts with for `id` under the given arsenal setting. */
 export function startingAmmo(arsenal: Arsenal | undefined, id: WeaponId): number {
   const def = WEAPONS[id];
+  if (def.crateOnly && arsenal !== 'infinite') return 0;
   if (!WEAPON_ORDER.includes(id)) return def.ammo;
   if (arsenal === 'infinite') return Infinity;
   if (arsenal === 'crates' && def.special) return 0;

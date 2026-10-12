@@ -315,7 +315,8 @@ export class World {
     const g = this.game;
     const aiming = g.phase === 'aiming' && g.isHumanTurn;
     const targeting = aiming && WEAPONS[g.weapon].kind === 'strike';
-    this.effects.setStrikeCursor(targeting ? this.markerAt(STRIKE_CURSOR_Z) : null, this.time);
+    const locked = aiming && WEAPONS[g.weapon].homing ? g.buddies.find((b) => b.id === g.homingTarget && b.alive && b.hp > 0)?.body : null;
+    this.effects.setStrikeCursor(locked ?? (targeting ? this.markerAt(STRIKE_CURSOR_Z) : null), this.time);
     const beaming = aiming && WEAPONS[g.weapon].kind === 'teleport' ? this.pointer : null;
     this.effects.setTeleportCursor(beaming && this.markerAt(TELEPORT_CURSOR_Z), beaming !== null && g.canTeleportTo(beaming.x, beaming.y), this.time);
   }

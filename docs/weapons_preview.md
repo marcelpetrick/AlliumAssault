@@ -1,6 +1,6 @@
 # Every weapon, in action
 
-Twenty-five clips, one per weapon, each filmed on a scenery of its own. They are recorded from the
+Twenty-six clips, one per weapon, each filmed on a scenery of its own. They are recorded from the
 game rather than staged: `scripts/capture-weapons.mjs` drives a real match through the same test
 hook the browser suite uses, with a fixed seed and a fixed frame step, so re-running the script
 produces the same film. Nothing here is a mock-up.
@@ -219,6 +219,13 @@ Three seconds of burning fuel. Up and down steer the nozzle while it runs; wind 
 **J** · Two flights; arrows accelerate for six seconds, then land gently and attack. Space stops thrust early.
 
 ![Jetpack flight](weapons/jetpack.gif)
+
+### 🎯 Homing Rocket
+
+**H** · One rocket per crate; click an enemy, then aim and charge. Three ballistic seconds,
+then direct pursuit; intervening rock intercepts the flight.
+
+![Homing Rocket flight](weapons/homing.gif)
 
 ## A note on the file sizes
 

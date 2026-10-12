@@ -497,7 +497,7 @@ export class App {
   private targetingMap(): boolean {
     const game = this.game;
     if (!game || this.demo || this.paused || this.menu.screen) return false;
-    return game.isHumanTurn && game.phase === 'aiming' && MAP_WEAPONS.includes(WEAPONS[game.weapon].kind);
+    return game.isHumanTurn && game.phase === 'aiming' && (MAP_WEAPONS.includes(WEAPONS[game.weapon].kind) || !!WEAPONS[game.weapon].homing);
   }
 
   private targetingPlatform(): boolean {
@@ -518,10 +518,13 @@ export class App {
     const game = this.game;
     if (!game || !this.world || this.demo || this.paused || this.menu.screen || !game.isHumanTurn) return;
     const kind = WEAPONS[game.weapon].kind;
-    if (!MAP_WEAPONS.includes(kind)) return;
+    if (!MAP_WEAPONS.includes(kind) && !WEAPONS[game.weapon].homing) return;
     const at = this.world.pick(cssX, cssY);
     if (!at) return;
-    if (kind === 'strike') game.strike(at.x);
+    if (WEAPONS[game.weapon].homing) {
+      const target = game.buddies.find((b) => b.alive && Math.hypot(b.body.x - at.x, b.body.y - at.y) < b.body.radius * 2);
+      if (target) game.targetBuddy(target.id);
+    } else if (kind === 'strike') game.strike(at.x);
     else if (kind === 'platform') game.placePlatform({ ...at, angle: this.world.platformAngle });
     else game.teleportTo(at.x, at.y);
   }
@@ -543,6 +546,7 @@ export class App {
       charge: g?.charge ?? null,
       wind: g?.wind ?? 0,
       rope: g?.rope ? { state: g.rope.state, length: g.rope.length, pivots: g.rope.pivots.length, x: g.rope.hook.x, y: g.rope.hook.y } : null,
+      homingTarget: g?.homingTarget ?? null,
       jetpack: g?.action?.kind === 'jetpack' ? { fuel: g.action.left, thrust: g.action.thrust } : null,
       strikeDir: g?.strikeDir ?? 1,
       choosingApproach: g?.choosingApproach ?? false,

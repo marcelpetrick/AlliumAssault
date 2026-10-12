@@ -5,7 +5,7 @@ import pkg from '../../package.json';
 import type { AiLevel, Arsenal, Controller, MatchConfig } from '../core/game';
 import type { Award, MatchSummary } from '../core/stats';
 import { defined } from '../core/assert';
-import { WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
+import { LETTER_KEYS, WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapons';
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
 import { LANGUAGES, t, type Language, type TextKey } from './i18n';
@@ -70,7 +70,9 @@ export const controlsHtml = (): string => `
     <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>${t('keys.aim')}</td></tr>
     <tr><td><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></td><td>${t('keys.steer')}</td></tr>
     <tr><td><kbd>Space</kbd></td><td>${t('keys.charge')}</td></tr>
-    <tr><td><kbd>1</kbd>–<kbd>0</kbd> <kbd>⇧1</kbd>–<kbd>⇧${String(WEAPON_ORDER.length - 10)}</kbd> <kbd>Tab</kbd></td><td>${t('keys.choose')}</td></tr>
+    <tr><td><kbd>1</kbd>–<kbd>9</kbd> <kbd>0</kbd> <kbd>⇧1</kbd>–<kbd>⇧9</kbd> <kbd>⇧0</kbd> ${Object.keys(LETTER_KEYS)
+      .map((code) => `<kbd>${code.slice(3)}</kbd>`)
+      .join(' ')} <kbd>Tab</kbd></td><td>${t('keys.choose')}</td></tr>
     <tr><td>${t('keys.wheelDrag')}</td><td>${t('keys.camera')}</td></tr>
     <tr><td><kbd>←</kbd><kbd>→</kbd> ${t('keys.airStrike')}</td><td>${t('keys.approachSide')}</td></tr>
     <tr><td><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> ${t('keys.onRope')}</td><td>${t('keys.rope')}</td></tr>
@@ -311,7 +313,7 @@ export class Menu {
               ${WEAPON_ORDER.map((id) => {
                 const w = WEAPONS[id];
                 return `<div class="weapon-row"><span class="weapon-icon">${w.icon}</span><div><b>${esc(weaponName(id))}</b>
-                  <small>${w.ammo === Infinity ? t('help.unlimited') : t('help.perTeam', { n: w.ammo })} · ${w.damage} ${t('help.damage')}</small><p>${esc(weaponBlurb(id))}</p></div></div>`;
+                  <small>${w.ammo === Infinity ? t('help.unlimited') : t(w.crateOnly ? 'help.perCrate' : 'help.perTeam', { n: w.ammo })} · ${w.damage} ${t('help.damage')}</small><p>${esc(weaponBlurb(id))}</p></div></div>`;
               }).join('')}
             </div>
           </div>

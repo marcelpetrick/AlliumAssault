@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { steerHoming } from './homing';
 import { JETPACK_TIME, stepJetpack } from './jetpack';
 import { AiDriver } from './ai';
 import { defined } from './assert';
@@ -165,6 +166,7 @@ export class Game {
   /** Charge level 0..1 while Space is held, otherwise null. */
   charge: number | null = null;
   shotsLeft = 0;
+  homingTarget: number | null = null;
   winner: number | null = null;
   /** Sudden Death keeps flooding the map until the match ends. */
   waterRising = false;
@@ -382,6 +384,24 @@ export class Game {
     }
   }
 
+  /** Lock a living enemy for a target-guided weapon. A rejected click consumes nothing. */
+  targetBuddy(id: number): boolean {
+    const me = this.activeBuddy;
+    const target = this.buddies.find((b) => b.id === id);
+    if (
+      this.phase !== 'aiming' ||
+      !me?.alive ||
+      !WEAPONS[this.weapon].homing ||
+      this.charge !== null ||
+      !target?.alive ||
+      target.hp <= 0 ||
+      target.team === me.team
+    )
+      return false;
+    this.homingTarget = id;
+    return true;
+  }
+
   /** Space pressed: start charging, fire instantly for non-charge weapons, or detonate the sheep. */
   pressFire(): void {
     if (this.phase === 'guiding') {
@@ -402,6 +422,7 @@ export class Game {
     // Ammo is consumed on the first shot, so a multi-shot weapon may finish with zero ammo left.
     const midUse = this.shotsLeft < def.shots;
     if ((team.ammo[this.weapon] <= 0 && !midUse) || MAP_WEAPONS.includes(def.kind)) return;
+    if (def.homing && !this.buddies.some((b) => b.id === this.homingTarget && b.alive && b.hp > 0)) return;
     if (def.charge) this.charge = 0;
     else this.fire(1);
   }
@@ -616,8 +637,10 @@ export class Game {
               this.buddies.some((b) => b.alive && (b.id !== p.owner || p.age > 0.3) && Math.hypot(b.body.x - x, b.body.y - y) < b.body.radius + p.radius) ||
               this.crates.some((c) => Math.hypot(c.body.x - x, c.body.y - y) < c.body.radius + p.radius)
           : undefined;
-      const pull = -GRAVITY * this.terrain.gravityScale * def.gravityScale;
-      const hit = stepProjectile(this.terrain, p, dt, this.wind * WIND_ACCEL * def.windInfluence, pull, def.restitution, hitTest);
+      const guided = def.homing && p.age >= def.homing.delay ? def.homing : undefined;
+      if (guided) steerHoming(p, this.buddies.find((b) => b.id === p.target && b.alive && b.hp > 0)?.body, guided.speed);
+      const pull = guided ? 0 : -GRAVITY * this.terrain.gravityScale * def.gravityScale;
+      const hit = stepProjectile(this.terrain, p, dt, guided ? 0 : this.wind * WIND_ACCEL * def.windInfluence, pull, def.restitution, hitTest);
       if (p.bounces > bounces) this.emit({ type: 'bounce', x: p.x, y: p.y, speed: Math.hypot(p.vx, p.vy) });
       if (def.restFuse !== undefined && !p.armed) {
         p.rest = Math.hypot(p.vx, p.vy) < REST_SPEED ? (p.rest ?? 0) + dt : 0;
@@ -1294,6 +1317,7 @@ export class Game {
     this.wind = Math.round((this.windRng() * 2 - 1) * this.config.windMax * 20) / 20;
     this.turnTimeLeft = this.config.turnTime;
     this.charge = null;
+    this.homingTarget = null;
     this.action = null;
     this.drops = [];
     this.flames = [];
@@ -1315,6 +1339,7 @@ export class Game {
     this.charge = null;
     if (!b || !team || this.phase !== 'aiming') return;
     const def = WEAPONS[this.weapon];
+    if (def.homing && !this.buddies.some((target) => target.id === this.homingTarget && target.alive && target.hp > 0)) return;
     // A rope only costs a use once its hook actually bites, so a miss is free.
     if (this.shotsLeft === def.shots && def.kind !== 'rope') team.ammo[def.id] -= 1;
     this.shotsLeft--;
@@ -1326,7 +1351,8 @@ export class Game {
 
     if (def.kind === 'projectile') {
       const speed = lerp(def.minSpeed, def.maxSpeed, power);
-      this.spawnProjectile(def.id, m.x, m.y, dir.x * speed, dir.y * speed, b.id);
+      const projectile = this.spawnProjectile(def.id, m.x, m.y, dir.x * speed, dir.y * speed, b.id);
+      if (def.homing && this.homingTarget !== null) projectile.target = this.homingTarget;
     } else if (def.kind === 'flyer') {
       this.action = { kind: 'flyer', flyer: { id: this.nextId++, owner: b.id, x: m.x, y: m.y, angle: Math.atan2(dir.y, dir.x), age: 0 } };
       this.setPhase('guiding');

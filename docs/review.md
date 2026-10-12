@@ -153,3 +153,14 @@ ceilings, enemy damage, lethal damage and supplies collected during flight.
 The full jetpack gate also caught the wider weapon bar overflowing at 960 pixels. Compact HUD
 breakpoints now account for the expanded arsenal at Normal, Large and Huge text sizes; the
 existing viewport browser regression checks all three.
+
+## Homing rocket review — 1.82.0
+
+The projectile stores a buddy id, preserves three seconds of normal ballistic physics and then
+steers towards the living target without bypassing ordinary swept collision. A lost target retains
+the last heading; invalid locks cannot spend ammo. Tests exercise an actual intervening wall with
+a live target, moved/lost targets, crate pickup, AI launch and real mouse locking in the browser.
+Review corrected the help stock to one per crate rather than one per team, and authored the
+browser camera setup so its click actually reaches the visible enemy. The existing powered-rocket
+sounds are reused through presentation metadata. Help now lists the actual digit and letter keys
+rather than extending Shift+numbers past nine.

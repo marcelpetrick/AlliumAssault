@@ -49,7 +49,7 @@ reproducibility, enough safe separated spawns and headroom. Preview uses the exa
 toggling walls repaints visible side barriers without changing the seed. Test seed matrices,
 dimensions, topology, spawn clearance and browser preview/match consistency.
 
-## 6. Homing rocket (T157)
+## 6. Homing rocket (T157 — delivered in 1.82.0)
 
 Crate-only weapon with one use per pickup. Click an enemy to lock it, then aim and charge like a
 bazooka. First three seconds are ballistic. Afterwards track that buddy's current location in a

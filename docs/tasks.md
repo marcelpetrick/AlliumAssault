@@ -164,16 +164,14 @@ Status: ☐ open · ☑ done
 | T149 | A clip of every weapon in action on its own page, `docs/weapons_preview.md`                                     | ☑      | 1.78.2         |
 | T150 | Dependency review and update (`/updateDependencies`), then public release v1.78.4                               | ☑      | 1.78.4         |
 | T151 | Land Dependabot PRs #2, #3, #4: Babylon.js 9.29.0, `globals`, Vite/Vitest, Stylelint, ts-eslint                 | ☑      | 1.78.5         |
-
-| T152 | Re-review fire, flood, default rope, platforms, movement/drill and the >98% coverage gate | ☐ | — |
-| T153 | Rebuild AI crate collection, movement and rope planning; Normal plays competently, Easy retains aim mistakes | ☑ | 1.79.0 |
-| T154 | Jetpack: six seconds of accelerated flight, controlled descent, visible exhaust and tests | ☑ | 1.81.0 |
-| T155 | Punch and bat damage destructible walls; preserve indestructible arena walls | ☑ | 1.80.1 |
-| T156 | Redesign seeded terrain: solid plains, cave-free hills, clustered islands and mixed caves; preview walls | ☑ | 1.80.0 |
-| T157 | Crate-only homing rocket: target enemy, three ballistic seconds, then straight homing blocked by terrain | ☐ | — |
-
-| T158 | Optional tag-team factions: editable names, shared victory, separate turns/inventory, friendly fire | ☐ | — |
-| T159 | Update agent guidance, atomic verified commits, then publish the completed batch as a public release | ☐ | — |
+| T152 | Re-review fire, flood, default rope, platforms, movement/drill and the >98% coverage gate                       | ☐      | —              |
+| T153 | Rebuild AI crate collection, movement and rope planning; Normal plays competently, Easy retains aim mistakes    | ☑      | 1.79.0         |
+| T154 | Jetpack: six seconds of accelerated flight, controlled descent, visible exhaust and tests                       | ☑      | 1.81.0         |
+| T155 | Punch and bat damage destructible walls; preserve indestructible arena walls                                    | ☑      | 1.80.1         |
+| T156 | Redesign seeded terrain: solid plains, cave-free hills, clustered islands and mixed caves; preview walls        | ☑      | 1.80.0         |
+| T157 | Crate-only homing rocket: target enemy, three ballistic seconds, then straight homing blocked by terrain        | ☑      | 1.82.0         |
+| T158 | Optional tag-team factions: editable names, shared victory, separate turns/inventory, friendly fire             | ☐      | —              |
+| T159 | Update agent guidance, atomic verified commits, then publish the completed batch as a public release            | ☐      | —              |
 
 ## Current implementation plan
 
