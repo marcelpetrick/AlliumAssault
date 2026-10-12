@@ -248,7 +248,13 @@ export class App {
     }
     this.audio.setCharge(game.charge);
     this.audio.setFire(game.flames.length);
-    this.audio.setTool(game.phase === 'torching' || game.phase === 'spraying' ? 'torch' : game.phase === 'drilling' ? 'drill' : null);
+    this.audio.setTool(
+      game.phase === 'torching' || game.phase === 'spraying' || (game.action?.kind === 'jetpack' && game.action.thrust)
+        ? 'torch'
+        : game.phase === 'drilling'
+          ? 'drill'
+          : null,
+    );
     const flights: FlightSound[] = game.projectiles.map((p) => ({
       id: p.id,
       kind: WEAPONS[p.weapon].look.flight ?? 'lob',
@@ -537,6 +543,7 @@ export class App {
       charge: g?.charge ?? null,
       wind: g?.wind ?? 0,
       rope: g?.rope ? { state: g.rope.state, length: g.rope.length, pivots: g.rope.pivots.length, x: g.rope.hook.x, y: g.rope.hook.y } : null,
+      jetpack: g?.action?.kind === 'jetpack' ? { fuel: g.action.left, thrust: g.action.thrust } : null,
       strikeDir: g?.strikeDir ?? 1,
       choosingApproach: g?.choosingApproach ?? false,
       lastStrike: this.lastStrike,

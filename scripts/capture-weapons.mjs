@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
- * Records one short clip of every weapon and writes docs/weapons_preview.md around them.
+ * Records one short clip of every weapon for docs/weapons_preview.md.
  *
  *   npm run build && npm run preview             (in another terminal)
  *   node scripts/capture-weapons.mjs [url]       default http://localhost:4173
@@ -21,7 +21,7 @@ const url = process.argv[2] ?? 'http://localhost:4173';
 const only = process.argv.slice(3);
 const out = 'docs/weapons';
 
-/** Small on purpose: twenty-four clips have to live in a git repository somebody clones. */
+/** Small on purpose: many clips have to live in a git repository somebody clones. */
 const WIDTH = 320;
 const FPS = 10;
 const COLORS = 48;
@@ -31,7 +31,7 @@ const COLORS = 48;
  *
  * `hold` is frames of charge before release (charge weapons only), `after` a callback fired that
  * many frames in — detonating the sheep, letting go of the rope. Sceneries rotate so the page is
- * not twenty-four pictures of the same meadow.
+ * not many pictures of the same meadow.
  */
 const CLIPS = [
   { id: 'bazooka', theme: 'meadow', aim: 0.62, hold: 8, frames: 42 },
@@ -58,6 +58,7 @@ const CLIPS = [
   { id: 'selfdestruct', theme: 'sunset', aim: 0, frames: 60 },
   { id: 'ming', theme: 'candy', aim: 0.85, hold: 10, frames: 70 },
   { id: 'flamer', theme: 'night', aim: -0.1, frames: 60 },
+  { id: 'jetpack', theme: 'sunset', aim: 0, frames: 110, after: [35, 'glide'] },
 ];
 
 const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
@@ -140,6 +141,10 @@ async function pull(clip) {
     return;
   }
   await page.evaluate(() => window.__allium.app.game.pressFire());
+  if (clip.id === 'jetpack') {
+    await page.keyboard.down('ArrowUp');
+    await page.keyboard.down('ArrowRight');
+  }
   if (clip.hold) await frames(clip.hold);
   await page.evaluate(() => window.__allium.app.game.releaseFire());
 }
@@ -150,7 +155,10 @@ const PREROLL = 5;
 /** Film the clip into `dir`, running whatever it asked for part-way through. */
 async function film(clip, dir, from = 0) {
   for (let k = from; k < clip.frames; k++) {
-    if (clip.after && k === clip.after[0]) {
+    if (clip.after && k === clip.after[0] && clip.after[1] === 'glide') {
+      await page.keyboard.up('ArrowUp');
+      await page.keyboard.up('ArrowRight');
+    } else if (clip.after && k === clip.after[0]) {
       await page.evaluate(() => {
         const g = window.__allium.app.game;
         g.pressFire();

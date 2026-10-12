@@ -139,7 +139,7 @@ function resolve(t: Terrain, b: Body): void {
   }
 }
 
-function touchingGround(t: Terrain, b: Body): boolean {
+export function touchingGround(t: Terrain, b: Body): boolean {
   return contactDistance(t, b.x, b.y - 0.08) < b.radius && t.normal(b.x, b.y).y > GROUND_NORMAL_Y;
 }
 

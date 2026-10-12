@@ -1246,7 +1246,7 @@ describe('sudden death', () => {
 });
 
 describe('starting arsenal', () => {
-  const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill', 'rope', 'platform'];
+  const BASIC: WeaponId[] = ['bazooka', 'grenade', 'shotgun', 'punch', 'cluster', 'bat', 'torch', 'drill', 'rope', 'platform', 'jetpack'];
 
   it('hands every team the basic weapons from turn one, under every arsenal setting', () => {
     for (const arsenal of ['all', 'crates', 'infinite'] as const) {
@@ -1534,6 +1534,7 @@ describe('weapon voices', () => {
   /** What each weapon should sound like when it is used; see docs/SOUND.md for the reasoning. */
   const VOICES: Partial<Record<WeaponId, string | undefined>> = {
     bazooka: 'fire',
+    jetpack: 'torchLight',
     grenade: 'throw',
     cluster: 'throw',
     holy: 'throw',

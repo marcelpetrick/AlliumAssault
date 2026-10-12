@@ -10,6 +10,7 @@
 import type { Body } from './physics';
 import type { Point } from './math';
 import type { Flyer } from './flyer';
+import type { JetpackAction } from './jetpack';
 import type { Rope } from './rope';
 import type { Sheep } from './sheep';
 import type { Terrain } from './terrain';
@@ -78,6 +79,7 @@ export type Phase =
   | 'torching'
   | 'drilling'
   | 'spraying'
+  | 'jetpacking'
   | 'roping'
   | 'firing'
   | 'panicking'
@@ -87,14 +89,25 @@ export type Phase =
   | 'gameOver';
 
 /** Phases in which the turn timer counts down. */
-export const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'spraying', 'roping'];
+export const COUNTDOWN_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'spraying', 'jetpacking', 'roping'];
 /** Seconds a buddy panics with its thumb on the detonator before the blast. */
 export const PANIC_TIME = 3;
 /** Weapons pointed with the mouse: they are used by clicking the map, never with the fire button. */
 export const MAP_WEAPONS: readonly WeaponKind[] = ['strike', 'platform', 'teleport'];
 
 /** Phases in which the active team is still playing its turn, so hurting its buddy ends it. */
-export const ACTION_PHASES: readonly Phase[] = ['aiming', 'guiding', 'torching', 'drilling', 'spraying', 'roping', 'firing', 'panicking', 'retreat'];
+export const ACTION_PHASES: readonly Phase[] = [
+  'aiming',
+  'guiding',
+  'torching',
+  'drilling',
+  'spraying',
+  'jetpacking',
+  'roping',
+  'firing',
+  'panicking',
+  'retreat',
+];
 
 export interface Buddy {
   id: number;
@@ -338,6 +351,7 @@ export type TurnAction =
   | { kind: 'sheep'; sheep: Sheep }
   | { kind: 'flyer'; flyer: Flyer }
   | { kind: 'rope'; rope: Rope | null; paid: boolean }
+  | JetpackAction
   | TorchAction
   | DrillAction
   | BurstAction

@@ -140,3 +140,16 @@ The bat had radius zero, so a swing could damage a buddy but never the wall besi
 0.9 unit carve radius, retain the punch carve, and remove the obsolete zero-radius melee guard.
 Core and browser scenarios check both tools against rock without a victim, distant misses, and
 indestructible arena boundaries. No rule changes to buddy damage or knockback.
+
+## Jetpack review — 1.81.0
+
+The powered action uses acceleration and terrain collision, with six seconds of fuel and a
+three-unit descent speed cap. Review caught a timeout/damage path that could hand the turn on
+while its owner was airborne: the governor now remains until landing, death or drowning. Landing
+restores aiming, preserving a follow-up attack. Real browser input verifies acceleration, fuel,
+visible cone exhaust and the subsequent bazooka shot; core scenarios include heavy gravity,
+ceilings, enemy damage, lethal damage and supplies collected during flight.
+
+The full jetpack gate also caught the wider weapon bar overflowing at 960 pixels. Compact HUD
+breakpoints now account for the expanded arsenal at Normal, Large and Huge text sizes; the
+existing viewport browser regression checks all three.

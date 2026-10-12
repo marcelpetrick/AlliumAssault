@@ -103,6 +103,7 @@ interface SheepView {
 
 /** Explosions, splashes, tracers, projectile models and the aiming reticle. */
 export class Effects {
+  private jetFlames: Mesh[] = [];
   private readonly dot: Texture;
   private readonly transients: Transient[] = [];
   private readonly flash: PointLight;
@@ -486,6 +487,23 @@ export class Effects {
     mesh.isPickable = false;
     mesh.setEnabled(true);
     this.rope = { mesh, points: points.length };
+  }
+
+  /** Solid emissive exhaust stays visible on Firefox and low graphics without particle sprites. */
+  updateJetpack(game: Game, time: number): void {
+    const running = game.action?.kind === 'jetpack' && game.action.thrust && game.activeBuddy?.alive;
+    if (running && !this.jetFlames.length) {
+      this.jetFlames = [this.flameCone('jetpackOuter', this.materials.flameOuter), this.flameCone('jetpackCore', this.materials.flameInner)];
+    }
+    const b = game.activeBuddy;
+    this.jetFlames.forEach((mesh, i) => {
+      mesh.setEnabled(!!running);
+      if (!running || !b) return;
+      const length = (i === 0 ? 1.6 : 1.1) * (1 + Math.sin(time * 35) * 0.12);
+      mesh.position.set(b.body.x - b.facing * 0.25, b.body.y - 0.4 - length / 2, -0.65 - i * 0.1);
+      mesh.rotation.z = Math.PI;
+      mesh.scaling.set(i === 0 ? 0.5 : 0.28, length, 0.5);
+    });
   }
 
   /** Blowtorch flame at the nozzle, pointing along the burn line, while the torch burns. */

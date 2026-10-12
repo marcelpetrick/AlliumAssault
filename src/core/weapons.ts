@@ -32,7 +32,9 @@ export type WeaponId =
   | 'shard'
   | 'flamer'
   | 'fuelgob'
-  | 'surrender';
+  | 'surrender'
+  | 'jetpack';
+
 export type WeaponKind =
   | 'projectile'
   | 'hitscan'
@@ -48,6 +50,7 @@ export type WeaponKind =
   | 'rope'
   | 'platform'
   | 'teleport'
+  | 'jetpack'
   /** Does nothing at all and ends the turn: the white flag. */
   | 'skip';
 
@@ -828,6 +831,27 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     force: 0,
     range: 0,
   },
+  jetpack: {
+    id: 'jetpack',
+    look: { fireSound: 'torchLight' },
+    name: 'Jetpack',
+    icon: '🎒',
+    blurb: 'Space launches; arrows accelerate for six seconds. Space stops thrust. Descend gently, land, then shoot.',
+    kind: 'jetpack',
+    ammo: 2,
+    charge: false,
+    shots: 1,
+    minSpeed: 0,
+    maxSpeed: 0,
+    windInfluence: 0,
+    gravityScale: 0,
+    restitution: null,
+    fuse: 6,
+    radius: 0,
+    damage: 0,
+    force: 0,
+    range: 0,
+  },
 };
 
 /**
@@ -871,13 +895,20 @@ export const WEAPON_ORDER: readonly WeaponId[] = [
   // Appended, so every hotkey above keeps the slot it has always had.
   'ming',
   'flamer',
+  'jetpack',
 ];
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 /** Selectable weapons that crates can contain. */
 export const SPECIAL_WEAPONS: readonly WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].special);
 
 /** Weapons past the twenty digit slots carry a letter key of their own. */
-export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = { KeyT: 'teleport', KeyK: 'selfdestruct', KeyV: 'ming', KeyF: 'flamer' };
+export const LETTER_KEYS: Readonly<Partial<Record<string, WeaponId>>> = {
+  KeyT: 'teleport',
+  KeyK: 'selfdestruct',
+  KeyV: 'ming',
+  KeyF: 'flamer',
+  KeyJ: 'jetpack',
+};
 
 /**
  * Hotkeys: 1–9 and 0 select the first ten weapons in WEAPON_ORDER, Shift+1–9 and Shift+0 the ten

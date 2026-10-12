@@ -143,7 +143,7 @@ export interface StatsRoster {
 }
 
 /** Weapon kinds that are tools rather than weapons: they dig, carry or build rather than hurt. */
-const TOOL_KINDS = new Set<WeaponKind>(['torch', 'drill', 'rope', 'platform', 'teleport', 'flamer']);
+const TOOL_KINDS = new Set<WeaponKind>(['torch', 'drill', 'rope', 'jetpack', 'platform', 'teleport', 'flamer']);
 
 const blank = (b: StatsRoster['buddies'][number]): BuddyRecord => ({
   id: b.id,

@@ -320,6 +320,8 @@ export class Hud {
     }
     if (def.kind === 'platform' && g.phase === 'aiming') return t('hud.platform');
     if (def.kind === 'teleport' && g.phase === 'aiming') return t('hud.teleport');
+    if (g.phase === 'jetpacking' && g.action?.kind === 'jetpack') return t('hud.jetpacking', { seconds: Math.ceil(g.action.left) });
+    if (def.kind === 'jetpack' && g.phase === 'aiming') return t('hud.useJetpack');
     if (g.phase === 'firing') return t('hud.firing');
     if (g.phase === 'drilling') return t('hud.drilling');
     if (g.phase === 'torching') return t('hud.torching');

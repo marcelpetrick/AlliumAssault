@@ -292,6 +292,7 @@ export class World {
     this.effects.syncRope(g);
     this.effects.syncGraves(g, dt);
     this.effects.updateTorch(g, this.time);
+    this.effects.updateJetpack(g, this.time);
     this.effects.updateDrill(g, this.theme.dirt);
     this.effects.updateFlames(g, this.time);
     if (this.strikeView && this.time > this.strikeView.until) {

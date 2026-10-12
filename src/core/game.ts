@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { JETPACK_TIME, stepJetpack } from './jetpack';
 import { AiDriver } from './ai';
 import { defined } from './assert';
 import {
@@ -293,7 +294,14 @@ export class Game {
 
   /** The active team still acts this turn: controlling its buddy or guiding its sheep. */
   get acting(): boolean {
-    return this.controllable || this.phase === 'guiding' || this.phase === 'torching' || this.phase === 'drilling' || this.phase === 'roping';
+    return (
+      this.controllable ||
+      this.phase === 'guiding' ||
+      this.phase === 'torching' ||
+      this.phase === 'drilling' ||
+      this.phase === 'jetpacking' ||
+      this.phase === 'roping'
+    );
   }
 
   /**
@@ -378,6 +386,10 @@ export class Game {
   pressFire(): void {
     if (this.phase === 'guiding') {
       this.detonateGuided();
+      return;
+    }
+    if (this.action?.kind === 'jetpack' && this.phase === 'jetpacking') {
+      this.action.left = 0;
       return;
     }
     if (this.phase === 'roping') {
@@ -566,7 +578,7 @@ export class Game {
       // Kept for the mine sweep: where this buddy was before it moved.
       this.lastBuddyPos.set(b.id, { x: b.body.x, y: b.body.y });
       // The rope moves its buddy itself, so the ordinary step would apply gravity a second time.
-      if (b === active && this.action?.kind === 'rope' && this.phase === 'roping') continue;
+      if (b === active && ((this.action?.kind === 'rope' && this.phase === 'roping') || this.action?.kind === 'jetpack')) continue;
       let walk: number | null = null;
       const torch = b === active ? this.torch : null;
       // Rock ahead of the flame is what the torch pulls itself along; in open air it only walks.
@@ -852,6 +864,29 @@ export class Game {
       case 'drill':
         if (b?.alive && this.phase === 'drilling') this.stepDrill(action, b, dt);
         else this.action = null;
+        return;
+      case 'jetpack':
+        if (!b?.alive) {
+          this.action = null;
+          return;
+        }
+        {
+          const powered = this.phase === 'jetpacking';
+          const landed = stepJetpack(
+            this.terrain,
+            b.body,
+            action,
+            dt,
+            powered ? Number(this.input.right) - Number(this.input.left) : 0,
+            powered ? Number(this.input.up) - Number(this.input.down) : 0,
+          );
+          this.landing(b, true);
+          this.checkRopeBounds(b);
+          if (landed) {
+            this.action = null;
+            if (this.phase === 'jetpacking') this.setPhase('aiming');
+          }
+        }
         return;
       case 'rope':
         if (b?.alive && this.phase === 'roping') this.stepRoping(action, b, dt);
@@ -1155,6 +1190,10 @@ export class Game {
         this.turnTimeLeft -= dt;
         if (this.turnTimeLeft <= 0) this.endTurnEarly();
         break;
+      case 'jetpacking':
+        this.turnTimeLeft -= dt;
+        if (this.turnTimeLeft <= 0) this.endTurnEarly();
+        break;
       case 'roping':
         this.turnTimeLeft -= dt;
         // Out of time: the rope lets go and the buddy falls where it is, like any other tool.
@@ -1168,7 +1207,7 @@ export class Game {
         if (this.retreatLeft <= 0) this.setPhase('settling');
         break;
       case 'settling':
-        if ((this.phaseTime >= SETTLE_MIN && this.isSettled()) || this.phaseTime >= SETTLE_MAX) this.setPhase('deaths');
+        if ((this.phaseTime >= SETTLE_MIN && this.isSettled()) || (this.phaseTime >= SETTLE_MAX && this.action?.kind !== 'jetpack')) this.setPhase('deaths');
         break;
       case 'deaths': {
         const doomed = this.buddies.find((b) => b.alive && b.hp <= 0);
@@ -1311,6 +1350,13 @@ export class Game {
     } else if (def.kind === 'torch') {
       this.action = { kind: 'torch', dx: dir.x, dy: dir.y, left: def.fuse, carveIn: 0, burnt: [] };
       this.setPhase('torching');
+      return;
+    } else if (def.kind === 'jetpack') {
+      this.shotsLeft = def.shots;
+      this.action = { kind: 'jetpack', left: JETPACK_TIME, airborne: false, thrust: false };
+      b.body.vy = Math.max(b.body.vy, 4);
+      b.body.grounded = false;
+      this.setPhase('jetpacking');
       return;
     } else if (def.kind === 'rope') {
       // A utility, not the turn's shot: the buddy may still fire a weapon once it has landed.
@@ -1537,7 +1583,9 @@ export class Game {
     this.charge = null;
     // A guided sheep goes off; torch, drill and bursts simply stop.
     this.detonateGuided();
-    this.action = null;
+    // Exhaustion or the turn clock cuts the engine, but the descent governor stays until landing.
+    if (this.action?.kind === 'jetpack' && this.activeBuddy?.alive && this.activeBuddy.hp > 0) this.action.left = 0;
+    else this.action = null;
     this.setPhase('settling');
   }
 

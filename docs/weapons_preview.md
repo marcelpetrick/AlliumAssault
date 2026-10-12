@@ -1,6 +1,6 @@
 # Every weapon, in action
 
-Twenty-four clips, one per weapon, each filmed on a scenery of its own. They are recorded from the
+Twenty-five clips, one per weapon, each filmed on a scenery of its own. They are recorded from the
 game rather than staged: `scripts/capture-weapons.mjs` drives a real match through the same test
 hook the browser suite uses, with a fixed seed and a fixed frame step, so re-running the script
 produces the same film. Nothing here is a mock-up.
@@ -13,7 +13,7 @@ To record them again:
 ```bash
 npm run build
 npm run preview                      # in another terminal
-npm run capture-weapons              # all twenty-four
+npm run capture-weapons              # all weapons
 npm run capture-weapons -- http://localhost:4173 ming flamer    # or just these
 ```
 
@@ -214,8 +214,14 @@ One per match. Six hundred years of porcelain, thrown once: an enormous blast an
 
 Three seconds of burning fuel. Up and down steer the nozzle while it runs; wind and gravity carry the gobs, and where they land they keep burning.
 
+### 🎒 Jetpack
+
+**J** · Two flights; arrows accelerate for six seconds, then land gently and attack. Space stops thrust early.
+
+![Jetpack flight](weapons/jetpack.gif)
+
 ## A note on the file sizes
 
 Each clip is 320 pixels wide, ten frames a second, 48 colours — about 400 kB. That is small enough
-that twenty-four of them fit in a repository somebody has to clone, and large enough to see what is
+that all of them fit in a repository somebody has to clone, and large enough to see what is
 going on. The settings live at the top of `scripts/capture-weapons.mjs` if you want them bigger.

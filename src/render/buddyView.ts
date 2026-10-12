@@ -298,6 +298,11 @@ export class BuddyView {
         [MeshBuilder.CreateCylinder('mineDisc', { height: 0.14, diameter: 0.42, tessellation: 14 }, scene), kit.metal, [0.58, 0, 0], false],
         [MeshBuilder.CreateCylinder('mineTrigger', { height: 0.12, diameter: 0.12, tessellation: 8 }, scene), kit.glove, [0.58, 0.12, 0], false],
       ]),
+      jetpack: this.buildWeapon(scene, attach, [
+        [MeshBuilder.CreateCylinder('jetpackTankL', { height: 0.65, diameter: 0.24, tessellation: 12 }, scene), kit.metal, [-0.25, 0, -0.25], false],
+        [MeshBuilder.CreateCylinder('jetpackTankR', { height: 0.65, diameter: 0.24, tessellation: 12 }, scene), kit.metal, [-0.25, 0, 0.25], false],
+        [MeshBuilder.CreateBox('jetpackHarness', { width: 0.25, height: 0.4, depth: 0.7 }, scene), kit.glove, [-0.25, 0.05, 0], false],
+      ]),
       platform: this.buildWeapon(scene, attach, [
         [MeshBuilder.CreateBox('heldPlank', { width: 0.9, height: 0.12, depth: 0.5 }, scene), kit.wood, [0.55, 0.02, 0], false],
         [MeshBuilder.CreateBox('heldPlankEnd', { width: 0.1, height: 0.2, depth: 0.5 }, scene), kit.metal, [0.95, 0.02, 0], false],
@@ -436,9 +441,9 @@ export class BuddyView {
     for (const pupil of this.pupils) pupil.position.x = b.facing * 0.03;
     this.root.rotation.z = this.hurtTime > 0 ? Math.sin(time * 60) * 0.12 : 0;
 
-    const holding = game && isActive && ['aiming', 'turnStart', 'torching', 'drilling', 'spraying'].includes(game.phase) ? game.weapon : null;
+    const holding = game && isActive && ['aiming', 'turnStart', 'torching', 'drilling', 'spraying', 'jetpacking'].includes(game.phase) ? game.weapon : null;
     for (const [id, node] of Object.entries(this.weapons)) node.setEnabled(holding === id);
-    this.weaponPivot.rotation.z = b.facing > 0 ? b.aim : Math.PI - b.aim;
+    this.weaponPivot.rotation.z = holding === 'jetpack' ? 0 : b.facing > 0 ? b.aim : Math.PI - b.aim;
     this.weaponPivot.rotation.x = b.facing > 0 ? 0 : Math.PI;
     this.jackhammer(game !== null && isActive && game.phase === 'drilling', time);
   }

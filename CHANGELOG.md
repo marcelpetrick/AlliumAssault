@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.81.0] — 2026-10-12
+
+- Add a default two-use jetpack on J: six seconds of directional acceleration, capped speed,
+  visible 3D equipment and fiery exhaust, then a slow safe descent until landing.
+- Land and attack in the same turn, or stop thrust early with Space; preserve the descent
+  governor after timeout or damage, and clear the tool on death or drowning.
+- Translate controls and fuel hints in all four languages and record a real gameplay preview.
+- Switch the wider weapon bar to the compact HUD earlier at each text size so it stays reachable.
+- Verify fuel, collisions, gravity settings, pickups in flight, damage, timeout and landing.
+
 ## [1.80.1] — 2026-10-12
 
 - Give the bat a useful wall carve radius alongside the punch, even when no buddy is hit.

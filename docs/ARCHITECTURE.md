@@ -100,7 +100,7 @@ C4Component
     Component(terrain, "Terrain", "terrain.ts", "Density field, seeded generation, carve, spawn search, dirty chunks; also the arena: water level, gravity scale and placed platforms")
     Component(contour, "contourRegion", "contour.ts", "Marching squares: fill triangles and oriented edges")
     Component(physics, "Physics", "physics.ts", "stepBody for buddies, stepProjectile for shells")
-    Component(weapons, "Weapon table", "weapons.ts", "Twenty-four weapons by kind, grouped thematically; fragments, arsenal flags, digit and letter hotkeys")
+    Component(weapons, "Weapon table", "weapons.ts", "Twenty-five weapons by kind, grouped thematically; fragments, arsenal flags, digit and letter hotkeys")
     Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts, fire.ts, rope.ts", "Hopping sheep, steerable flyer, strike drop planning, napalm flames that eat into the ground, rope hook and swing")
     Component(crates, "Crates and mines", "crates.ts, mines.ts", "Health, weapon and mystery crates on seeded free land; mystery contents rolled on opening; mine arming, proximity and fuse")
     Component(stats, "MatchStats", "stats.ts", "Counts the match as it runs: damage by culprit, own goals, shots and hits, crates, kills; the honours board at the end")
@@ -130,6 +130,10 @@ C4Component
 - explosions subtract a disc with `min(field, distance − radius)`,
 - the renderer extracts the surface with marching squares.
 
+**Jetpack action.** Its movement owns the active body for six seconds of powered acceleration.
+A descent governor remains until ground contact, including after turn timeout, so ordinary gravity
+and fall damage are not applied a second time and the next team cannot take over an airborne body.
+
 **Generation.** Independent seeded streams select a layout family and vary its profile, island
 spacing and cavern features. Plains and hills are monotonic heightfields, guaranteeing no buried
 holes. Dimensions scale the geometry; the setup preview samples the same generator and overlays
@@ -139,7 +143,7 @@ the selected arena walls. Spawn selection still validates body clearance and sep
 (`jump`, `selectWeapon`, `pressFire`, `strike`, …) or as the held `input` flags (walking, aiming,
 steering the flying sheep, swinging the flamethrower's nozzle); results leave as typed `GameEvent`s.
 Besides buddies and projectiles the game owns the weapon action in progress — one `TurnAction`
-(hopping or flying sheep, rope, blowtorch, drill, minigun burst, flamethrower or a panicking
+(hopping or flying sheep, rope, jetpack, blowtorch, drill, minigun burst, flamethrower or a panicking
 self-destruct) stepped by `stepAction` — the pending strike drops, and the persistent world objects
 (crates, mines, napalm flames, tombstones). Presentation of each weapon (projectile model, sounds,
 muzzle flash, whether a hit brings a stadium with it) is declared in `WeaponDef.look`, so renderer

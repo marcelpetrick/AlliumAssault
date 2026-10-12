@@ -167,7 +167,7 @@ Status: ☐ open · ☑ done
 
 | T152 | Re-review fire, flood, default rope, platforms, movement/drill and the >98% coverage gate | ☐ | — |
 | T153 | Rebuild AI crate collection, movement and rope planning; Normal plays competently, Easy retains aim mistakes | ☑ | 1.79.0 |
-| T154 | Jetpack: six seconds of accelerated flight, controlled descent, visible exhaust and tests | ☐ | — |
+| T154 | Jetpack: six seconds of accelerated flight, controlled descent, visible exhaust and tests | ☑ | 1.81.0 |
 | T155 | Punch and bat damage destructible walls; preserve indestructible arena walls | ☑ | 1.80.1 |
 | T156 | Redesign seeded terrain: solid plains, cave-free hills, clustered islands and mixed caves; preview walls | ☑ | 1.80.0 |
 | T157 | Crate-only homing rocket: target enemy, three ballistic seconds, then straight homing blocked by terrain | ☐ | — |

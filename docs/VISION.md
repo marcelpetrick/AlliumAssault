@@ -39,7 +39,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 
 ## Weapons
 
-Twenty-four weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
+Twenty-five weapons. _Special_ weapons can be restricted to crates with the arsenal setting.
 
 | Weapon                        | Ammo | Behaviour                                                                                                    |
 | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------ |
@@ -67,6 +67,7 @@ Twenty-four weapons. _Special_ weapons can be restricted to crates with the arse
 | Ming Vase (special)           | 1    | A porcelain heirloom thrown once: a huge first blast, then eight shards that each land like a grenade        |
 | Flamethrower (special)        | 2    | Three seconds of lit fuel, steered with up and down while it runs; wind carries it, the ground burns on      |
 | French Attack                 | ∞    | The white flag: nothing is fired and the turn passes to the next buddy. Always in the list                   |
+| Jetpack                       | 2    | Six seconds of accelerated flight, then a safe descent; land and attack in the same turn                     |
 
 ## Rope
 
@@ -170,4 +171,4 @@ general-purpose physics engines cannot do arbitrarily destructible Worms terrain
 
 ## Out of scope (for now)
 
-Online multiplayer, jetpack, persistent statistics.
+Online multiplayer, persistent statistics.

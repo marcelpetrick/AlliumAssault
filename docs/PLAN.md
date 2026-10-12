@@ -31,7 +31,7 @@ Verify existing punch wall/ceiling carving. Give the bat a useful terrain carve 
 destructible; arena borders and placed boards retain their existing indestructible rules. Test
 wall strikes, misses and victims beside walls in core and browser.
 
-## 4. Jetpack (T154)
+## 4. Jetpack (T154 — delivered in 1.81.0)
 
 Append a default inventory tool without changing existing hotkeys. Space activates; arrows
 accelerate directionally for six seconds. Cap velocity; after fuel runs out, limit descent speed
