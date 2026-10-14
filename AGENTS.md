@@ -16,22 +16,22 @@ entirely in the browser as a static site: local hot-seat and human-vs-AI.
 
 ## Layout
 
-| Path                      | Contents                                                                                                                                                                                                              | Rule                                                             |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `src/core/`               | Game rules: terrain field, marching squares, physics, weapon table, sheep/flyer/strike actors, napalm flames, crates, match state machine, AI; `match.ts` the vocabulary a match is made of, `assert.ts` invariants   | Pure TypeScript — no Babylon, no DOM. Unit tested.               |
-| `src/render/`             | Babylon.js scene, terrain mesh, buddies, effects, camera                                                                                                                                                              | Reads core state and events, never changes rules                 |
-| `src/ui/`                 | HTML/CSS overlay: menus, setup, about, HUD; `settings.ts` persisted settings, `dom.ts` element lookup                                                                                                                 |                                                                  |
-| `src/audio.ts`            | Web Audio synthesizer; every sound is generated, no asset files                                                                                                                                                       |                                                                  |
-| `src/app.ts`              | Frame loop, input, event dispatch, `window.__allium` test hook                                                                                                                                                        |                                                                  |
-| `tests/`                  | Vitest core tests                                                                                                                                                                                                     |                                                                  |
-| `bench/`                  | `core.bench.ts`, the stage-by-stage measurement behind `npm run profile`                                                                                                                                              | Numbers and method live in `docs/PERFORMANCE.md`                 |
-| `e2e/`                    | Playwright tests in Google Chrome: `game.spec.ts` (flows, settings, about), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, tombstones, sceneries, sounds, HUD), helpers in `support.ts`         | Every new weapon or feature gets an E2E test                     |
-| `scripts/`                | `spdx.mjs` (SPDX check and fixer), `capture-media.mjs` (README screenshots and GIF), `capture-weapons.mjs` (one clip per weapon for `docs/weapons_preview.md`), `history_chart.py` (README growth and coverage chart) |                                                                  |
-| `.github/`                | Workflows, Dependabot, `CONTRIBUTING.md`, `SECURITY.md` — where GitHub looks for them                                                                                                                                 |                                                                  |
-| `REUSE.toml`, `LICENSES/` | REUSE annotations for files without headers, license texts                                                                                                                                                            |                                                                  |
-| `docs/`                   | `README-index`, `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `PERFORMANCE.md`, `SOUND.md`, `I18N.md`, `archive/`                                                                                         |                                                                  |
-| `docs/tasks.md`           | Every request with status and version                                                                                                                                                                                 | Update in every commit: add new requests, tick off finished ones |
-| `docs/review.md`          | Latest code and architecture review with resolutions                                                                                                                                                                  |                                                                  |
+| Path                      | Contents                                                                                                                                                                                                                                                     | Rule                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `src/core/`               | Game rules: terrain field, marching squares, physics, weapon table, sheep/flyer/strike actors, napalm flames, crates, match state machine, AI, navigation, jetpack and homing guidance; `match.ts` the vocabulary a match is made of, `assert.ts` invariants | Pure TypeScript — no Babylon, no DOM. Unit tested.               |
+| `src/render/`             | Babylon.js scene, terrain mesh, buddies, effects, camera                                                                                                                                                                                                     | Reads core state and events, never changes rules                 |
+| `src/ui/`                 | HTML/CSS overlay: menus, setup, about, HUD; `settings.ts` persisted settings, `dom.ts` element lookup                                                                                                                                                        |                                                                  |
+| `src/audio.ts`            | Web Audio synthesizer; every sound is generated, no asset files                                                                                                                                                                                              |                                                                  |
+| `src/app.ts`              | Frame loop, input, event dispatch, `window.__allium` test hook                                                                                                                                                                                               |                                                                  |
+| `tests/`                  | Vitest core tests                                                                                                                                                                                                                                            |                                                                  |
+| `bench/`                  | `core.bench.ts`, the stage-by-stage measurement behind `npm run profile`                                                                                                                                                                                     | Numbers and method live in `docs/PERFORMANCE.md`                 |
+| `e2e/`                    | Playwright tests in Google Chrome: `game.spec.ts` (flows, settings, about), `weapons.spec.ts` (one test per weapon), `features.spec.ts` (crates, tombstones, sceneries, sounds, HUD), helpers in `support.ts`                                                | Every new weapon or feature gets an E2E test                     |
+| `scripts/`                | `spdx.mjs` (SPDX check and fixer), `capture-media.mjs` (README screenshots and GIF), `capture-weapons.mjs` (one clip per weapon for `docs/weapons_preview.md`), `history_chart.py` (README growth and coverage chart)                                        |                                                                  |
+| `.github/`                | Workflows, Dependabot, `CONTRIBUTING.md`, `SECURITY.md` — where GitHub looks for them                                                                                                                                                                        |                                                                  |
+| `REUSE.toml`, `LICENSES/` | REUSE annotations for files without headers, license texts                                                                                                                                                                                                   |                                                                  |
+| `docs/`                   | `README-index`, `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `PERFORMANCE.md`, `SOUND.md`, `I18N.md`, `archive/`                                                                                                                                |                                                                  |
+| `docs/tasks.md`           | Every request with status and version                                                                                                                                                                                                                        | Update in every commit: add new requests, tick off finished ones |
+| `docs/review.md`          | Latest code and architecture review with resolutions                                                                                                                                                                                                         |                                                                  |
 
 Core emits `GameEvent`s; renderer, HUD and audio consume them. Continuous state (charge level,
 projectiles in flight) is read from the game every frame instead.
@@ -61,7 +61,7 @@ python3 scripts/history_chart.py                 # redraw the README history cha
 - **Controls:** Enter = jump, Backspace = back-flip, Space hold/release = charge and fire (Space
   again detonates sheep), arrows walk, aim and steer the flying sheep, Tab cycles; 1–9 and 0 select
   the first ten weapons, Shift+1–9 and Shift+0 the next ten, and anything past those twenty gets a
-  letter key of its own in `LETTER_KEYS` (T teleport, V Ming vase, F flamethrower). A click on the
+  letter key of its own in `LETTER_KEYS` (T teleport, V Ming vase, F flamethrower, K self-destruct, J jetpack, H homing rocket). A click on the
   map calls strikes.
 - **Adding a weapon:** definition in `src/core/weapons.ts` (kind, ammo, `special`, and `look`:
   projectile model, flight/fire/hit sounds, muzzle flash — presentation never switches on ids), appended to
@@ -84,7 +84,20 @@ python3 scripts/history_chart.py                 # redraw the README history cha
   allies and hazards, and use ropes only for checked routes. Test completed pickups/traversals
   and useful attacks, rather than only that movement or a hook launch happened. Easy may have
   larger aim errors; avoid obvious movement failures on every difficulty.
-- **Verification:** `npm run verify` must be green before every commit. Add or update unit tests
+- **Cross-browser fire:** preserve the emissive mesh fallback for torch, ground fire and blasts at
+  both graphics budgets. The repeatable headed Firefox audit is
+  `xvfb-run -a node scripts/check-firefox-fire.mjs http://localhost:4173` after a preview build
+  (`npx playwright install firefox` first). It checks ordinary Firefox WebGL preferences, both
+  torch facings and two resolutions; inspect the saved screenshots as well as the assertions.
+- **Authored test arenas:** tests about a particular wall, bounce, rope anchor, cave or sound
+  sequence should create that geometry explicitly. Generated-map tests exercise seeds and topology;
+  procedural variety must not silently change a feature fixture's intended floor or ceiling.
+- **AI movement:** planning and play share jump/rope control and real body collision. Aircraft
+  approach arrows apply only to humans; AI uses `setStrikeDir()` explicitly. Check actual crate
+  collection, landing and damage, including hazards and faction allies.
+- **Factions:** friendly fire remains enabled. Allies share victory but retain team turns and ammo.
+  Homing locks and AI targeting reject faction allies; allied kills must not earn enemy-kill awards.
+- **Verification:** `npm run verify` must be green before every commit. All four core coverage thresholds are 98.1%. Add or update unit tests
   for rule changes and E2E checks for user-visible flows.
 - **E2E in headless Chrome** renders with SwiftShader at about 2 fps: drive tests through
   `window.__allium` (`state()`, `startMatch()`, `fastForward()`, `stepFrames()`) instead of

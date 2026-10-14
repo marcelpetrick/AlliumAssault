@@ -47,6 +47,19 @@ describe('tag-team factions', () => {
     expect(g.teams[0].ammo.bat).toBe(2);
   });
 
+  it('records lethal allied damage as friendly fire without awarding an enemy kill', () => {
+    const g = match();
+    const ally = g.buddies[1];
+    ally.hp = 10;
+    g.selectWeapon('punch');
+    g.buddies[0].aim = 0;
+    g.pressFire();
+    expect(runUntil(g, () => !ally.alive, 8)).toBe(true);
+    const attacker = g.summary().buddies.find((b) => b.id === g.buddies[0].id)!;
+    expect(attacker.friendly).toBe(45);
+    expect(attacker.kills).toBe(0);
+  });
+
   it('is off by default; each team may also remain a faction of its own', () => {
     const g = match(false);
     expect(g.allied(0, 1)).toBe(false);

@@ -3,7 +3,7 @@
 Status and delivery versions live in [tasks.md](tasks.md). Architecture is documented in
 [ARCHITECTURE.md](ARCHITECTURE.md). This is the execution plan for the current user requests.
 
-## 1. Audit and reproduce (T152)
+## 1. Audit and reproduce (T152 — delivered in 1.83.1)
 
 Review current implementation of Firefox fire visibility, explosions, napalm, directional torch,
 particle cleanup, default rope, two-use platforms, Sudden Death water, walking, jumping, falls
@@ -65,7 +65,7 @@ when opposing factions are eliminated. Friendly fire remains active. AI values f
 friends. Persist names/assignments with validation and show the faction in HUD/victory. Cover
 eliminated allies, multiple winners, draws, free-for-all compatibility and the complete setup flow.
 
-## 8. Review, verification and public release (T159)
+## 8. Review, verification and public release (T159 — delivery version 1.83.1)
 
 Update AGENTS.md with the user's version ownership: never reset to 1.0.0; only the user makes that
 change. Use atomic Conventional Commits, bump the current version and update changelog/tasks with
@@ -73,3 +73,12 @@ each. Run `npm run verify` before every commit; fix concrete review findings and
 in review.md. Keep tests meaningful and preserve >98% core coverage without excluding new behavior.
 Update README, VISION and architecture for new features. After the complete batch is committed
 and verified, push, publish one final version tag and confirm the public release and deployment.
+
+## Final review follow-through — 1.83.1
+
+All implementation sections above are delivered. Final AI review additionally separates human
+aircraft approach input from AI walking, shares proactive jump control between planning and play,
+requires safe grounded route completion and checks retreat terrain before walking. Lethal friendly
+fire remains active without earning enemy-kill awards. Coverage is enforced above 98% with a
+98.1% threshold for all four core metrics. Firefox fire audit and screenshots are retained.
+The authorized final release tag publishes the static build, checksum and playable Pages site.

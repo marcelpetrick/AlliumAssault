@@ -215,7 +215,12 @@ export class MatchStats {
     record.drowned = drowned;
     // Taking yourself with you is its own way to go, and worth counting separately.
     record.selfDestructed = by?.buddy === buddy && by.weapon === 'selfdestruct';
-    if (by && by.buddy !== buddy) this.record(by.buddy, roster).kills++;
+    if (by && by.buddy !== buddy) {
+      const culprit = this.record(by.buddy, roster);
+      const faction = roster.teams[culprit.team]?.faction;
+      const friendly = culprit.team === record.team || (faction !== undefined && faction === roster.teams[record.team].faction);
+      if (!friendly) culprit.kills++;
+    }
   }
 
   /** Everything the scoreboard shows, worked out once when the match is over. */

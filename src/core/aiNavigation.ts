@@ -3,6 +3,7 @@
 
 import { JUMP, MUZZLE_OFFSET, SAFE_FALL_SPEED, WALK_SPEED } from './constants';
 import type { Game } from './game';
+import type { Terrain } from './terrain';
 import type { Point } from './math';
 import { mineSees, MINE_TRIGGER_RANGE } from './mines';
 import { GRAVITY, stepBody, type Body } from './physics';
@@ -13,8 +14,12 @@ const PICKUP_RANGE = 0.95;
 export const ROUTE_TIMEOUT = 7;
 
 /** Shared walking controller: the preview and the real bot make the same simple jump. */
-export function walkJump(body: Body, stuck: number, facing: 1 | -1): boolean {
-  if (stuck <= 0.3 || !body.grounded) return false;
+export function walkJumpNeeded(body: Body, stuck: number, facing: 1 | -1, terrain?: Terrain): boolean {
+  return body.grounded && (stuck > 0.3 || (terrain !== undefined && terrain.distance(body.x + facing * 1.5, body.y) < body.radius));
+}
+
+export function walkJump(body: Body, stuck: number, facing: 1 | -1, terrain?: Terrain): boolean {
+  if (!walkJumpNeeded(body, stuck, facing, terrain)) return false;
   body.vx = JUMP.vx * facing;
   body.vy = JUMP.vy;
   body.grounded = false;
@@ -39,9 +44,9 @@ export function walkingTime(game: Game, from: Body, target: Point, budget: numbe
   const body = { ...from };
   let stuck = 0;
   for (let time = 0; time < Math.min(budget, ROUTE_TIMEOUT); time += DT) {
-    if (Math.hypot(body.x - target.x, body.y - target.y) < PICKUP_RANGE) return time;
+    if (body.grounded && Math.hypot(body.x - target.x, body.y - target.y) < PICKUP_RANGE) return time;
     const facing = target.x < body.x ? -1 : 1;
-    walkJump(body, stuck, facing);
+    walkJump(body, stuck, facing, game.terrain);
     const before = body.x;
     stepBody(game.terrain, body, DT, body.grounded ? facing * WALK_SPEED : null);
     if (!safeRouteBody(game, body)) return null;

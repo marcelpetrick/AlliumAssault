@@ -323,7 +323,7 @@ export class Game {
    */
   get choosingApproach(): boolean {
     const def = WEAPONS[this.weapon];
-    return this.phase === 'aiming' && !!this.activeBuddy?.alive && def.kind === 'strike' && !!def.strike?.plane;
+    return this.isHumanTurn && this.phase === 'aiming' && !!this.activeBuddy?.alive && def.kind === 'strike' && !!def.strike?.plane;
   }
 
   /** The turn timer is running. */
@@ -369,7 +369,8 @@ export class Game {
 
   /** Choose which side the strike plane flies in from; ignored unless one is being aimed. */
   setStrikeDir(dir: 1 | -1): void {
-    if (this.choosingApproach) this.strikeDir = dir;
+    const def = WEAPONS[this.weapon];
+    if (this.phase === 'aiming' && def.kind === 'strike' && def.strike?.plane) this.strikeDir = dir;
   }
 
   selectWeapon(id: WeaponId): void {

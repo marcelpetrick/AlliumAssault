@@ -24,7 +24,7 @@ export default defineConfig({
       // instead; measuring them here would report a number that no unit test could ever move.
       include: ['src/core/**/*.ts'],
       // The rules core is meant to stay fully exercised; raise these when the numbers allow it.
-      thresholds: { statements: 98, branches: 98, functions: 98, lines: 98 },
+      thresholds: { statements: 98.1, branches: 98.1, functions: 98.1, lines: 98.1 },
     },
   },
 });

@@ -620,6 +620,7 @@ test('match statistics: the victory screen leads to a scoreboard with teams, bud
   // A short, violent duel between two AI teams, so the match reaches a winner on its own. Started
   // directly rather than through startDuel, which waits for a human turn that never comes.
   await page.evaluate(() => {
+    window.__allium.setManual(true);
     window.__allium.startMatch({
       seed: 'e2e-stats',
       teams: [
@@ -637,6 +638,7 @@ test('match statistics: the victory screen leads to a scoreboard with teams, bud
   await page.evaluate(() => {
     const app = window.__allium.app;
     for (let k = 0; k < 60 * 400 && app.game!.phase !== 'gameOver'; k++) app.fastForward(1 / 60);
+    window.__allium.stepFrames(30, 1 / 10);
   });
   await waitFor(page, (s) => s.screen === 'victory', 30_000);
 
@@ -689,6 +691,7 @@ test('match statistics: the whole scoreboard follows the language, awards includ
   await page.getByRole('button', { name: /Zurück/ }).click();
 
   await page.evaluate(() => {
+    window.__allium.setManual(true);
     window.__allium.startMatch({
       seed: 'e2e-stats-de',
       teams: [
@@ -706,6 +709,7 @@ test('match statistics: the whole scoreboard follows the language, awards includ
   await page.evaluate(() => {
     const app = window.__allium.app;
     for (let k = 0; k < 60 * 400 && app.game!.phase !== 'gameOver'; k++) app.fastForward(1 / 60);
+    window.__allium.stepFrames(30, 1 / 10);
   });
   await waitFor(page, (s) => s.screen === 'victory', 30_000);
 

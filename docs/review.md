@@ -2,7 +2,8 @@
 
 ## Current findings and resolutions
 
-Reviewed current v1.78.6 rules, AI, renderer, setup, tests and the requested changes.
+Reviewed the v1.78.6 baseline and the completed October changes through v1.83.1: rules, AI,
+renderer, setup, tests, documentation and release workflows.
 
 - **High: crate pickups vetoed by unrelated weak enemies.** Reproduced on all difficulties.
   Crate priority now considers actual attack value, health and trip duration; a short pickup wins.
@@ -13,7 +14,8 @@ Reviewed current v1.78.6 rules, AI, renderer, setup, tests and the requested cha
   simulated with the same controller as play; release is single, braking controls overshoot, failed
   crate routes are remembered for the turn. A test verifies a real pickup across a gap and landing.
 - **Medium: selected aircraft weapons prevented walking.** Arrow keys selected approach direction.
-  Fetching now selects an available ordinary weapon before walking; regression test collects the box.
+  Approach arrows now apply only to humans; AI calls `setStrikeDir()` explicitly. A regression
+  collects a box with only aircraft ammo, jumps a step and then calls its attack.
 - **Medium: local browser verification could reuse stale output.** The configuration contradicted
   its own comment. Reuse is disabled so each suite builds the source it certifies.
 - **Medium: Normal lacked useful repositioning.** It now checks nearby safe positions when the
@@ -178,3 +180,52 @@ with a translated explanation until two opposing factions are configured.
 A long-name browser case reproduced the timer/pause controls reaching 1177 pixels on a 960-pixel
 viewport at Huge text size. Team and buddy labels now wrap unbroken names, keeping every top HUD
 control within the viewport; the test measures each control rather than only its fixed parent.
+
+## Final integration review — 1.83.1
+
+- **AI could still fail with only aircraft ammo.** Removed the ordinary-weapon workaround. Human
+  approach input is separated from AI movement; real pickup and subsequent aircraft direction are
+  checked in core and Chrome. The browser scenario records position at pickup, before a later
+  successful retreat moves the buddy back across the arena.
+- **Repositioning planned jumps it never executed.** Planning and play now share a proactive jump
+  decision. Jump before touching a step so collision cannot erase the horizontal launch velocity.
+  Tests require an actual jump and a damaging attack after crossing the obstacle in both directions.
+- **Retreating could walk into water.** Preview the real route, require a grounded endpoint, prefer
+  the direction away from the target and use the safe opposite direction when needed. Remain on
+  small islands when neither route is safe; water, flames and visible mines constrain routes.
+- **Allied kills could earn enemy-kill awards.** Faction damage stays active and is recorded as
+  friendly; lethal allied damage no longer increments enemy kills.
+- **Statistics UI depended on slow rendered time.** Both scoreboard scenarios now freeze the
+  automatic loop and explicitly step the victory delay after the AI match ends. This follows the
+  same deterministic frame control as the match-completion test.
+- **Coverage and test scope.** All core files remain measured. Thresholds are now 98.1% for all
+  four metrics. `npm run verify` checks formatting/licensing, strict types, coverage, the production
+  build and the complete Chrome suite. Browser outcome tests cover every selectable weapon and
+  the requested movement, tools, AI and faction flows; arbitrary combinations are not exhaustive.
+
+### Firefox fire investigation
+
+The current renderer already uses emissive 3D mesh fallbacks alongside particles. Missing fire
+could not be reproduced with ordinary headed Firefox WebGL preferences: Low at 1280×720 and
+800×600, and Full at 1280×720 show the aimed torch in both facings, ground flames and blast glow.
+The browser reports WebGL 2.0 and a masked Intel renderer; no page or console errors were observed.
+This evidence does not establish the cause of the user's earlier session or certify every GPU.
+
+Repeat after building and serving a preview:
+
+```bash
+npx playwright install firefox
+xvfb-run -a node scripts/check-firefox-fire.mjs http://localhost:4173
+```
+
+On a desktop with a display, omit `xvfb-run -a`. The audit uses no forced Firefox WebGL preferences.
+Assertions check mesh state, direction and errors; inspect the screenshots for visible colour and
+placement. It allows the compositor to present frames before capturing.
+
+- [Low, 800×600](screenshots/firefox-low-800.png)
+- [Low, 1280×720](screenshots/firefox-low-1280.png)
+- [Full, 1280×720](screenshots/firefox-high-1280.png)
+
+Sudden Death still raises water once per turn, ordinary rope stock remains three, platforms remain
+two-use, and drilling cushions a fall only while active. Existing browser regressions verify these
+rules together with fire cleanup and the newly expanded arsenal.

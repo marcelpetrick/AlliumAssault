@@ -10,7 +10,7 @@ import { gaussian, type Rng } from './rng';
 import { defined } from './assert';
 import { CRATE_BLAST, CRATE_HEAL, CRATE_WEAPONS, type Crate } from './crates';
 import { MINE_TRIGGER_RANGE } from './mines';
-import { ropeControls, ropeRoute, ROUTE_TIMEOUT, walkingTime, type RopeRoute } from './aiNavigation';
+import { walkJumpNeeded, ropeControls, ropeRoute, ROUTE_TIMEOUT, walkingTime, type RopeRoute } from './aiNavigation';
 import { FLYER_SPEED, stepFlyer, type Flyer } from './flyer';
 import { releaseSheep, stepSheep } from './sheep';
 import { groundBelow, strikeWindShift } from './strike';
@@ -670,7 +670,7 @@ export class AiDriver {
   private fetch: { crate: number; lastX: number; stuck: number } | null = null;
   private fetches = 0;
   private repositioned = false;
-  private destination: { x: number; y: number } | null = null;
+  private destination: { x: number; y: number; lastX: number; stuck: number } | null = null;
   private readonly failedCrates = new Set<number>();
   private timer = 0;
   private plan: AttackPlan | null = null;
@@ -772,10 +772,20 @@ export class AiDriver {
     input.left = input.right = input.up = input.down = false;
 
     if (game.phase === 'retreat') {
-      // Scurry away from the target for a moment.
+      // Check the actual floor before retreating, including water, mines and fire.
       if (this.plan && WEAPONS[this.plan.weapon].restitution === null && game.retreatLeft > game.config.retreatTime - 1) {
-        if (this.plan.facing > 0) input.left = true;
-        else input.right = true;
+        const away = this.plan.facing > 0 ? -1 : 1;
+        for (const side of [away, -away]) {
+          const target = { x: me.body.x + side * 4.5, y: me.body.y };
+          if (walkingTime(game, me.body, target, 2) === null) continue;
+          input.left = side < 0;
+          input.right = side > 0;
+          if (walkJumpNeeded(me.body, 0, side < 0 ? -1 : 1, game.terrain)) {
+            game.face(side < 0 ? -1 : 1);
+            game.jump(false);
+          }
+          break;
+        }
       }
       return;
     }
@@ -810,9 +820,6 @@ export class AiDriver {
             game.pressFire();
             return;
           }
-          // Arrow keys on a selected aircraft weapon choose its approach instead of walking.
-          const walkingWeapon = WEAPON_ORDER.find((id) => game.teams[me.team].ammo[id] > 0 && !WEAPONS[id].strike?.plane);
-          if (walkingWeapon) game.selectWeapon(walkingWeapon);
           this.fetch = { crate: goal.crate.id, lastX: me.body.x, stuck: 0 };
           this.stage = 'fetch';
           return;
@@ -826,13 +833,11 @@ export class AiDriver {
             const alternative = planAttack(game, moved, this.level, this.rng, undefined, this.history);
             if (alternative.score > improvement) {
               improvement = alternative.score;
-              this.destination = destination;
+              this.destination = { ...destination, lastX: me.body.x, stuck: 0 };
             }
           }
           this.repositioned = true;
           if (this.destination) {
-            const walkingWeapon = WEAPON_ORDER.find((id) => game.teams[me.team].ammo[id] > 0 && !WEAPONS[id].strike?.plane);
-            if (walkingWeapon) game.selectWeapon(walkingWeapon);
             this.stage = 'move';
             this.timer = 0;
             return;
@@ -860,6 +865,12 @@ export class AiDriver {
         }
         input.left = target.x < me.body.x;
         input.right = target.x > me.body.x;
+        target.stuck = Math.abs(me.body.x - target.lastX) < 0.01 ? target.stuck + dt : 0;
+        target.lastX = me.body.x;
+        if (walkJumpNeeded(me.body, target.stuck, target.x < me.body.x ? -1 : 1, game.terrain)) {
+          game.face(target.x < me.body.x ? -1 : 1);
+          game.jump(false);
+        }
         return;
       }
       case 'fetch': {
@@ -876,7 +887,7 @@ export class AiDriver {
         else input.right = true;
         f.stuck = Math.abs(me.body.x - f.lastX) < 0.01 ? f.stuck + dt : 0;
         f.lastX = me.body.x;
-        if (f.stuck > 0.3) {
+        if (walkJumpNeeded(me.body, f.stuck, target.body.x < me.body.x ? -1 : 1, game.terrain)) {
           game.face(target.body.x < me.body.x ? -1 : 1);
           game.jump(false);
         }

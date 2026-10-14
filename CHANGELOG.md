@@ -2,6 +2,31 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.1] — 2026-10-14
+
+This public release delivers the complete October gameplay batch (1.79.0–1.83.1).
+
+- Improve Normal AI aim, nearby crate priorities, cave walking, safe repositioning and complete
+  rope traversals. Plan and execute jumps before touching a step; collect supplies even with only
+  aircraft ammo. Keep retreats on safe ground and choose aircraft approach explicitly.
+- Add the two-use J jetpack: six seconds of acceleration, fiery exhaust, controlled descent and
+  a follow-up attack after landing. Timeout and damage preserve gentle descent.
+- Make punch and bat carve destructible walls, even without a victim; retain indestructible borders.
+- Generate varied adaptive plains, cave-free hills, clustered islands and caverns; preview walls.
+- Add the crate-only H Homing Rocket: click an enemy, aim/charge, three ballistic seconds and then
+  direct pursuit, with intervening terrain blocking the shot. AI understands its guidance.
+- Add optional named tag-team factions, shared victory, separate turns/inventories and active
+  friendly fire. Exclude allied kills from enemy-kill awards.
+- Verify visible fire in headed Firefox at both graphics budgets and at 800×600 and 1280×720;
+  include a repeatable audit and screenshots. Retain mesh-based fire and particle cleanup.
+- Recheck rising Sudden Death water, default rope, two-use platforms, movement, jumping, falls
+  and drill cushioning. Expand core and browser outcome tests and enforce all four core coverage
+  thresholds at 98.1%, without excluding new rules.
+- Keep the expanded weapon HUD reachable at every text size, translate new controls in all four
+  languages, record real weapon clips and update plans, tasks, architecture and agent guidance.
+- Step the scoreboard victory delay explicitly in browser tests so slow rendering cannot hide it.
+- Preserve the user's ownership of any reset to version 1.0.0.
+
 ## [1.83.0] — 2026-10-13
 
 - Add optional tag-team factions, off by default, with editable names and per-team assignments.

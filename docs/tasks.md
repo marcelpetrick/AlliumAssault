@@ -164,14 +164,14 @@ Status: ☐ open · ☑ done
 | T149 | A clip of every weapon in action on its own page, `docs/weapons_preview.md`                                     | ☑      | 1.78.2         |
 | T150 | Dependency review and update (`/updateDependencies`), then public release v1.78.4                               | ☑      | 1.78.4         |
 | T151 | Land Dependabot PRs #2, #3, #4: Babylon.js 9.29.0, `globals`, Vite/Vitest, Stylelint, ts-eslint                 | ☑      | 1.78.5         |
-| T152 | Re-review fire, flood, default rope, platforms, movement/drill and the >98% coverage gate                       | ☐      | —              |
-| T153 | Rebuild AI crate collection, movement and rope planning; Normal plays competently, Easy retains aim mistakes    | ☑      | 1.79.0         |
+| T152 | Re-review fire, flood, default rope, platforms, movement/drill and the >98% coverage gate                       | ☑      | 1.83.1         |
+| T153 | Rebuild AI crate collection, movement and rope planning; Normal plays competently, Easy retains aim mistakes    | ☑      | 1.79.0, 1.83.1 |
 | T154 | Jetpack: six seconds of accelerated flight, controlled descent, visible exhaust and tests                       | ☑      | 1.81.0         |
 | T155 | Punch and bat damage destructible walls; preserve indestructible arena walls                                    | ☑      | 1.80.1         |
 | T156 | Redesign seeded terrain: solid plains, cave-free hills, clustered islands and mixed caves; preview walls        | ☑      | 1.80.0         |
 | T157 | Crate-only homing rocket: target enemy, three ballistic seconds, then straight homing blocked by terrain        | ☑      | 1.82.0         |
 | T158 | Optional tag-team factions: editable names, shared victory, separate turns/inventory, friendly fire             | ☑      | 1.83.0         |
-| T159 | Update agent guidance, atomic verified commits, then publish the completed batch as a public release            | ☐      | —              |
+| T159 | Update agent guidance, atomic verified commits, then publish the completed batch as a public release            | ☑      | 1.83.1         |
 
 ## Current implementation plan
 
@@ -1092,3 +1092,18 @@ on the runtime's 24.x line.
 | Air strike    | 1 per team, 5 bomblets × 25 damage                             |
 | Crates        | Normal = 35 % chance per turn, max 4 on the map; health +25 HP |
 | Self-destruct | damage = health, radius = health ÷ 10                          |
+
+### October delivery verification — 1.83.1
+
+Implemented T152–T159 in atomic versioned commits. Additional AI review fixes cover supplies with
+only aircraft ammo, proactive jumps during fetching/repositioning, safe retreats and allied kill
+statistics. Scoreboard browser tests explicitly step the victory delay to avoid rendering-dependent
+timeouts. Core coverage thresholds now enforce 98.1% for statements, branches, functions and
+lines. The full gate includes every weapon, movement/fall/drill scenarios, flood, fire cleanup,
+new flight/guidance tools, factions and AI outcomes. These checks cover representative behavior;
+they do not prove every possible weapon/terrain combination.
+
+Headed Firefox with ordinary WebGL preferences passes both graphics budgets and two resolutions;
+see the reproducible command and saved evidence in [review.md](review.md). Plans and agent
+guidance are updated. The delivery release is [v1.83.1](https://github.com/marcelpetrick/AlliumAssault/releases/tag/v1.83.1);
+the release tag runs the verified packaging and Pages workflows.
