@@ -62,6 +62,10 @@ await clip.record(140, (f) => ({
 
 await clip.page.click('[data-action="quick"]');
 await clip.page.evaluate(() => {
+  const h = window.__allium;
+  h.startMatch({ ...h.app.game.config, seed: 'clip-c-quick-match' });
+});
+await clip.page.evaluate(() => {
   const app = window.__allium.app;
   for (let k = 0; k < 600 && app.game.phase !== 'aiming'; k++) app.fastForward(1 / 60);
 });
@@ -114,7 +118,7 @@ const sheep = (f) => ({
     o: hold(f, 3, 110, 9, 11),
     y: 24 * (1 - easeOutBack(ramp(f, 3, 19))),
     icon: '🐑',
-    text: '17 weapons',
+    text: '26 weapons',
     sub: 'including a sheep you set off yourself',
   },
 });
@@ -134,7 +138,7 @@ const card = (f) => ({
           s: 0.9 + 0.1 * easeOutBack(ramp(f, 4, 28)),
           eyebrow: 'Playable right now',
           text: 'Open<br>the tab',
-          sub: 'desktop or phone · free · open source',
+          sub: 'desktop browser · free · open source',
         }
       : {},
   cta: f > 30 ? { o: easeOut(ramp(f, 32, 48)), y: 250, text: '', url: ADDRESS } : {},

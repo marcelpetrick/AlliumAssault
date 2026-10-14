@@ -61,7 +61,7 @@
   },
   "4a7eb3913efaa0e29e752b073e44227af9b436c3": {
     "branches": 97.97,
-    "functions": 100.0,
+    "functions": 100,
     "lines": 99.94,
     "statements": 99.76
   },
@@ -79,7 +79,7 @@
   },
   "5327ad4bf10d3de2dc04427e2bbafecd26bf1ade": {
     "branches": 97.97,
-    "functions": 100.0,
+    "functions": 100,
     "lines": 99.94,
     "statements": 99.76
   },
@@ -97,7 +97,7 @@
   },
   "8c2d125621e747ba973e82c79764e25dbcdee7d1": {
     "branches": 98.19,
-    "functions": 100.0,
+    "functions": 100,
     "lines": 99.94,
     "statements": 99.8
   },
@@ -143,9 +143,15 @@
     "lines": 94.62,
     "statements": 92.83
   },
+  "e947fbc852b6ee8e066abc59b3197d503bea088a": {
+    "statements": 99.66,
+    "branches": 98.22,
+    "functions": 100,
+    "lines": 99.91
+  },
   "f28f9567fee4faf8bcf85f0314f81da5e2a5d7bc": {
     "branches": 98.07,
-    "functions": 100.0,
+    "functions": 100,
     "lines": 99.94,
     "statements": 99.76
   },

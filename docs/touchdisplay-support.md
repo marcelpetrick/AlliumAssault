@@ -14,21 +14,23 @@ game, and what that would cost.
 Before designing buttons, the honest inventory. Every input the game needs, how often it is used,
 and how forgiving it is:
 
-| Input                        | Today                   | Frequency  | Precision needed               |
-| ---------------------------- | ----------------------- | ---------- | ------------------------------ |
-| Walk left / right            | ← →                     | Constant   | Low, but must be **held**      |
-| Aim up / down                | ↑ ↓                     | Constant   | **High** — a degree decides it |
-| Charge and fire              | Hold Space, release     | Every turn | **High** — timing is the power |
-| Jump / back-flip             | Enter / Backspace       | Often      | Low, discrete                  |
-| Pick a weapon                | 1–0, ⇧1–⇧0, T, Tab, bar | Every turn | Low, discrete (21 of them)     |
-| Detonate a sheep             | Space again             | Rare       | Medium — timing                |
-| Steer the flying sheep       | Arrow keys              | Rare       | High, continuous               |
-| Rope: reel, swing, let go    | ↑↓ ←→, Space            | Rare       | High, continuous               |
-| Strike / platform / teleport | Mouse click on the map  | Rare       | **High** — a spot on the map   |
-| Platform tilt                | Mouse wheel             | Rare       | Medium                         |
-| Air strike approach side     | ← →                     | Rare       | Low, discrete                  |
-| Pan and zoom the camera      | Drag, wheel             | Constant   | Medium                         |
-| Pause / help / mute          | Esc, HUD buttons, M     | Rare       | Low                            |
+| Input                        | Today                          | Frequency  | Precision needed               |
+| ---------------------------- | ------------------------------ | ---------- | ------------------------------ |
+| Walk left / right            | ← →                            | Constant   | Low, but must be **held**      |
+| Aim up / down                | ↑ ↓                            | Constant   | **High** — a degree decides it |
+| Charge and fire              | Hold Space, release            | Every turn | **High** — timing is the power |
+| Jump / back-flip             | Enter / Backspace              | Often      | Low, discrete                  |
+| Pick a weapon                | 1–0, ⇧1–⇧0, letters, Tab, bar  | Every turn | Low, discrete (26 of them)     |
+| Detonate a sheep             | Space again                    | Rare       | Medium — timing                |
+| Steer the flying sheep       | Arrow keys                     | Rare       | High, continuous               |
+| Rope: reel, swing, let go    | ↑↓ ←→, Space                   | Rare       | High, continuous               |
+| Jetpack acceleration         | Arrow keys; Space stops thrust | Rare       | High, continuous               |
+| Homing target lock           | Click an enemy before charging | Rare       | High, precise target           |
+| Strike / platform / teleport | Mouse click on the map         | Rare       | **High** — a spot on the map   |
+| Platform tilt                | Mouse wheel                    | Rare       | Medium                         |
+| Air strike approach side     | ← →                            | Rare       | Low, discrete                  |
+| Pan and zoom the camera      | Drag, wheel                    | Constant   | Medium                         |
+| Pause / help / mute          | Esc, HUD buttons, M            | Rare       | Low                            |
 
 Three of those are the hard ones: **aim**, **charge**, and **a spot on the map**. Everything else is
 a button.
@@ -91,7 +93,7 @@ natural artillery pose. Portrait is supported as a narrower variant, not a separ
   JUMP, or a second small button when the screen has room.
 - **Weapons.** The existing weapon bar is already tappable; on touch it becomes a horizontally
   scrolling strip of 48 px slots with the current weapon centred, and a ⌃ handle that opens it into
-  a three-row grid of all 21 with names. Tapping a weapon never fires it, so the grid can be
+  a three-row grid of all 26 with names. Tapping a weapon never fires it, so the grid can be
   explored safely.
 - **Menus.** The ☰ button in the HUD (today's Pause/Help buttons) is the escape hatch; no gesture is
   needed to reach the menu.
@@ -142,15 +144,20 @@ two-step:
 The ✗ next to it cancels for free. This is slower than a mouse click on purpose: on touch it is the
 difference between a considered placement and a wasted turn. The desktop flow does not change.
 
-### 4.4 The rope and the flying sheep
+### 4.4 Rope, flying sheep, jetpack and homing lock
 
-Both repurpose the arrow keys, and the pad inherits that. While roping or guiding, the pad shows
+Rope, flying sheep and jetpack repurpose the arrow keys, and the pad inherits that. While roping or guiding, the pad shows
 different glyphs (reel in/out, swing, or a compass rose for the sheep) and a one-line caption above
 it says what it does. FIRE becomes **LET GO** for the rope and **DETONATE** for the sheep — with no
 confirm, because both are time-critical and both are already irreversible in the same way on
 keyboard.
 
 ---
+
+Homing rockets also need an explicit enemy selection before charging. A touch design must show
+the locked buddy and confirm a valid enemy rather than treating an ordinary map tap as firing.
+Jetpack FIRE becomes **STOP THRUST**, with fuel remaining visible; descent remains governed by
+the existing core rules. These are requirements for the proposed overlay, not shipped controls.
 
 ## 5. Camera
 

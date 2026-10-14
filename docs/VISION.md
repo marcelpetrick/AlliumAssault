@@ -1,11 +1,11 @@
 # Allium Assault — Vision (v2, 3D)
 
 A turn-based artillery game in the spirit of **Worms Armageddon**, running entirely in the
-browser, starring teams of cute **garlic buddies**. Version 2 replaces the abandoned 2D pixel
-prototypes with smooth, real-time **3D graphics** while keeping the classic 2D gameplay plane.
+browser, starring teams of cute **garlic buddies**. Smooth, real-time **3D graphics** present a classic artillery gameplay plane.
 
-**Status as of v1.33.0: almost feature complete.** Every pillar and rule below is implemented and
-covered by tests; what remains is polish, balance and optional extra weapons.
+**Status as of v1.83.2:** the rules and arsenal below are implemented. Touch controls remain a
+design study; online multiplayer is out of scope. Representative core and browser outcomes are
+tested; arbitrary weapon/terrain combinations are not exhaustive.
 
 ## Pillars
 
@@ -30,7 +30,7 @@ covered by tests; what remains is polish, balance and optional extra weapons.
 | Health       | 100 HP; ≤ 0 HP → death explosion at end of turn, leaving a tombstone (not when drowned) |
 | Hazards      | Water at the bottom = instant death; fall damage above a speed threshold                |
 | Wind         | New random wind each turn, shown in HUD; affects projectiles per weapon                 |
-| Victory      | Last team with living buddies wins; draw if none survive                                |
+| Victory      | Last team or enabled faction with living buddies wins; draw if none survive             |
 | Gravity      | Moon, Normal or Heavy: scales the pull on everything that falls                         |
 | Crates       | Optional health, weapon and mystery crates: Off / Normal / Lots / Cratyness (see below) |
 | Language     | English, German, Croatian (Split dialect) or Mandarin; the browser's own by default     |
@@ -91,8 +91,8 @@ The rope takes the shock while the buddy is attached, so swinging into rock neve
 go the fall is an ordinary one and lands with ordinary fall damage. Roping is not the turn's shot:
 once the buddy lands, control returns to ordinary aiming with the turn timer still running, and a
 weapon can be fired from wherever the rope left it. Firing while attached
-is deliberately not supported — let go first. AI rope use is not part of this release; the AI never
-selects the rope.
+is deliberately not supported — let go first. AI can rope to supplies after simulating a complete safe traversal, using the same reel, swing
+and release decisions in planning and play. Failed crate routes are not repeatedly retried.
 
 ## Mines
 
@@ -115,7 +115,7 @@ the sheep, and a launcher that is dead or already out of health collects nothing
 
 ## Controls
 
-Following the last control decision made in the 2D prototype:
+Keyboard and mouse controls:
 
 | Key                                   | Action                                                                      |
 | ------------------------------------- | --------------------------------------------------------------------------- |
@@ -124,12 +124,13 @@ Following the last control decision made in the 2D prototype:
 | Backspace                             | Back-flip (high jump)                                                       |
 | ↑ / ↓                                 | Aim                                                                         |
 | Space (hold/release)                  | Charge and fire; instant weapons fire on press; Space again detonates sheep |
-| 1–9, 0, Shift+1–0, T / Tab            | Select weapon (or click the weapon bar), grouped by kind                    |
+| 1–9, 0, Shift+1–0, T/K/V/F/J/H, Tab   | Select weapon (or click the weapon bar), grouped by kind                    |
 | ← / → while aiming a plane strike     | Choose the side the plane flies in from, without moving the buddy           |
 | ↑ / ↓ / ← / → on the rope             | Reel the rope in and out, swing left and right                              |
-| Click on the map                      | Call the air strike, napalm strike or concrete mule                         |
+| Click on the map                      | Call strikes, place a platform, teleport, or lock a homing target           |
 | Arrow keys while a flying sheep flies | Steer it towards that direction                                             |
-| Mouse wheel / drag                    | Zoom / pan camera                                                           |
+| Arrow keys while using the jetpack    | Accelerate during six seconds of fuel; Space stops thrust early             |
+| Mouse wheel / drag                    | Zoom / pan camera; wheel tilts a platform during placement                  |
 | Esc · HUD Pause                       | Pause menu; the HUD's Help button pauses and opens How to Play              |
 
 ## Look & feel
@@ -147,7 +148,7 @@ Following the last control decision made in the 2D prototype:
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice).
 - **UI:** polished HTML/CSS overlay — title screen, match setup (teams, colours, controller,
   buddies, turn time, wind, crates, gravity, arsenal, text size, map seed with a live map preview,
-  scenery;
+  scenery, walls and named allied factions;
   remembered for the next game, Reset all), HUD (timer, wind, compact weapon bar, team health), help, about, pause and
   victory screens.
 - **Comedy:** comic R.I.P. tombstones, a hallelujah choir, bleating sheep, a braying mule.

@@ -1,3 +1,6 @@
+> **Archived September 2026 post copy.** Retained as written; counts, dates and mobile claims below
+> describe the earlier post, not the current game. Updated draft copy is in [post.md](post.md).
+
 𝐃𝐚𝐲 𝐨𝐧𝐞: 𝐟𝐨𝐮𝐫 𝐰𝐞𝐚𝐩𝐨𝐧𝐬. 𝐃𝐚𝐲 𝐟𝐢𝐯𝐞: 𝐬𝐞𝐯𝐞𝐧𝐭𝐞𝐞𝐧.
 
 I've continued the work on my browser-based game 𝐀𝐥𝐥𝐢𝐮𝐦 𝐀𝐬𝐬𝐚𝐮𝐥𝐭. Over the past 5 days and additional 99 commits I've turned the minimal prototype into a fully usable game.

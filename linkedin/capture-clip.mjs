@@ -64,7 +64,7 @@ const menu = (f) => ({
     y: 26 * (1 - easeOutBack(ramp(f, 4, 20))),
     icon: '⚙',
     text: 'Custom match',
-    sub: 'teams · arsenal · sudden death · scenery',
+    sub: 'factions · arsenal · sudden death · scenery',
   },
 });
 
@@ -77,12 +77,12 @@ const clicks = [
   '[data-action="sudden-death"][data-value="20"]',
   '[data-action="buddies"][data-team="0"][data-value="1"]',
   '[data-action="color"][data-team="1"][data-value="#a45ee5"]',
-  '[data-action="wind"][data-value="1"]',
+  '[data-action="tag-teams"][data-value="1"]',
 ];
 for (const selector of clicks) {
   const button = clip.page.locator(selector).first();
-  // A setting that moved or is already selected must not abort a recording that is minutes in.
-  if ((await button.count()) > 0) await button.click({ timeout: 5000 }).catch(() => undefined);
+  // Missing controls indicate a stale script and must fail the recording.
+  await button.click({ timeout: 5000 });
   await clip.record(12, menu, 1 / FPS, at);
   at += 12;
 }
@@ -104,7 +104,7 @@ await clip.zoom(22);
 await clip.faceEnemy(0.92);
 await clip.select('banana');
 await clip.fire();
-const banana = weapon('🍌', 'Banana Bomb', 'bursts into five bouncing bananas', 125, '13 new weapons');
+const banana = weapon('🍌', 'Banana Bomb', 'bursts into five bouncing bananas', 125, '26 weapons + tools');
 await clip.record(12, banana, 1 / FPS, 0);
 await clip.release();
 // Throw and arc, then skip most of the three second fuse straight to the burst.
@@ -140,7 +140,7 @@ const sheep = (f) => ({
   cta: {
     o: easeOut(ramp(f, 104, 120)),
     s: 0.9 + 0.1 * easeOutBack(ramp(f, 104, 126)),
-    text: '17 weapons · free · open source',
+    text: '26 weapons · free · open source',
     url: 'marcelpetrick.github.io/AlliumAssault',
   },
 });

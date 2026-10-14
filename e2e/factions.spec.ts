@@ -10,7 +10,23 @@ test('tag-team setup persists named factions and awards shared victory while fri
   await expect(page.locator('[data-action="tag-teams"][data-value="0"]')).toHaveClass(/on/);
   await page.locator('[data-action="add-team"]').click();
   await page.locator('[data-action="tag-teams"][data-value="1"]').click();
-  await page.locator('[data-field="faction-name"][data-faction="0"]').fill('Bulb Alliance');
+  const nameInput = page.locator('[data-field="faction-name"][data-faction="0"]');
+  const contrast = await nameInput.evaluate((input) => {
+    const style = getComputedStyle(input);
+    const luminance = (color: string) => {
+      const rgb = color
+        .match(/\d+(?:\.\d+)?/g)!
+        .slice(0, 3)
+        .map((n) => Number(n) / 255);
+      const linear = rgb.map((n) => (n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4));
+      return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+    };
+    const text = luminance(style.color),
+      background = luminance(style.backgroundColor);
+    return (Math.max(text, background) + 0.05) / (Math.min(text, background) + 0.05);
+  });
+  expect(contrast, 'faction names remain readable while editing').toBeGreaterThanOrEqual(4.5);
+  await nameInput.fill('Bulb Alliance');
   await page.locator('[data-action="faction"][data-team="1"][data-value="0"]').click();
   await page.locator('[data-action="faction"][data-team="2"][data-value="0"]').click();
   await expect(page.locator('[data-action="start"]')).toBeDisabled();

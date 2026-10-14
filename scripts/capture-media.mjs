@@ -1,198 +1,179 @@
 // SPDX-FileCopyrightText: 2026 Marcel Petrick <mail@marcelpetrick.it>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-/**
- * Captures the README screenshots and the battle recording in Google Chrome.
- *
- *   npm run build && npm run preview          (in another terminal)
- *   node scripts/capture-media.mjs [url]      default http://localhost:4173
- *
- * Scenes are scripted through the window.__allium test hook with fixed seeds and a fixed frame
- * step, so re-running produces comparable media. Writes docs/screenshots/*.jpg and battle.gif
- * (needs ffmpeg on the PATH).
- */
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+/** Refresh the README gallery and battle GIF from real actions in authored arenas. */
+import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { chromium } from '@playwright/test';
+import { openCapture, startMatch, frames, focus, encodeGif, recordFrame } from './media-kit.mjs';
 
 const url = process.argv[2] ?? 'http://localhost:4173';
 const out = 'docs/screenshots';
-
-const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-await page.goto(url);
-await page.waitForFunction(() => window.__allium?.ready, null, { timeout: 120_000 });
-
-const shoot = (name) => page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 82 });
-const frames = (count, dt = 1 / 30) => page.evaluate(([n, step]) => window.__allium.stepFrames(n, step), [count, dt]);
-
-/** Start a two-team human match and run until the first turn is ready. */
-async function match(seed, theme, extra = {}) {
-  await page.evaluate(
-    ([s, t, e]) =>
-      window.__allium.startMatch({
-        seed: s,
-        teams: [
-          { name: 'Garlic Gang', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Clovis', 'Aioli', 'Pesto'] },
-          { name: 'Clove Crew', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Chive', 'Sprout', 'Toasty'] },
-        ],
-        turnTime: 90,
-        retreatTime: 5,
-        windMax: 0,
-        crates: 0,
-        theme: t,
-        ...e,
-      }),
-    [seed, theme, extra],
-  );
-  await page.evaluate(() => window.__allium.setManual(true));
-  await page.evaluate(() => {
-    const app = window.__allium.app;
-    for (let k = 0; k < 400 && app.game.phase !== 'aiming'; k++) app.fastForward(1 / 60);
-  });
-  await frames(45);
-}
-
-// Title screen with the live demo behind the menu.
-await page.evaluate(() => window.__allium.setManual(false));
-await page.waitForTimeout(2500);
-await shoot('title');
-
-// Bazooka in flight over the meadow, then the blast.
-await match('readme-1', 'meadow');
-await page.evaluate(() => {
-  const g = window.__allium.app.game;
-  const me = g.activeBuddy;
-  const enemy = g.buddies.filter((b) => b.team !== me.team).sort((a, b) => Math.abs(a.body.x - me.body.x) - Math.abs(b.body.x - me.body.x))[0];
-  g.face(enemy.body.x < me.body.x ? -1 : 1);
-  me.aim = 0.6;
-  g.pressFire();
-});
-await frames(20);
-await page.evaluate(() => window.__allium.app.game.releaseFire());
-// Follow the rocket: shoot mid-flight, then the first frames of the explosion.
-let flight = 0;
-for (let k = 0; k < 120; k++) {
-  const flying = await page.evaluate(() => window.__allium.app.game.projectiles.length > 0);
-  if (!flying) break;
-  flight++;
-  if (flight === 12) await shoot('action-1');
-  await frames(1);
-}
-await frames(2);
-await shoot('action-2');
-
-// Flying sheep in the Candy Shop.
-await match('readme-candy', 'candy');
-await page.evaluate(() => {
-  const g = window.__allium.app.game;
-  g.selectWeapon('flysheep');
-  g.activeBuddy.aim = 1.1;
-  g.pressFire();
-});
-await frames(40);
-await shoot('candy-shop');
-
-// Air strike plane over Frosty Peaks.
-await match('readme-frost', 'frost');
-await page.evaluate(() => {
-  const g = window.__allium.app.game;
-  g.selectWeapon('airstrike');
-  g.strike(g.activeBuddy.body.x + 12 * g.activeBuddy.facing);
-});
-await frames(62);
-await shoot('frosty-peaks');
-
-// Napalm burning at sunset.
-await match('readme-napalm', 'sunset');
-await page.evaluate(() => {
-  const app = window.__allium.app;
-  const g = app.game;
-  g.selectWeapon('napalm');
-  g.strike(g.activeBuddy.body.x + 10 * g.activeBuddy.facing);
-  for (let k = 0; k < 600 && !g.flames.length; k++) app.fastForward(1 / 60);
-  // Keep the flames burning for the photo and centre the camera on them.
-  for (const f of g.flames) f.life = 60;
-  const w = app.world;
-  w.goal.x = g.flames.reduce((sum, f) => sum + f.x, 0) / g.flames.length;
-  w.goal.y = g.flames[0].y + 2;
-  w.manualUntil = w.time + 100;
-  w.goalDistance = 20;
-});
-// Let the "Retreat!" banner (1.8 s) fade and the camera settle before switching to real time.
-await frames(60);
-// Particle emitters need real frame time, so let the page run for a while.
-await page.evaluate(() => window.__allium.setManual(false));
-await page.waitForTimeout(8000);
-await shoot('napalm');
-
-// A tombstone and a fresh crate in the Moonlit Grove.
-await match('readme-night', 'night', { crates: 1 });
-await page.evaluate(() => {
-  const app = window.__allium.app;
-  const g = app.game;
-  const victim = g.activeBuddy;
-  victim.hp = 1;
-  g.explode(victim.body.x + 0.4, victim.body.y - 0.4, 1.2, 5, 1);
-  for (let k = 0; k < 60 * 20 && g.turn < 3; k++) app.fastForward(1 / 60);
-  const grave = g.graves[0];
-  const w = app.world;
-  w.goal.x = grave.body.x;
-  w.goal.y = grave.body.y + 1;
-  w.manualUntil = w.time + 100;
-  w.goalDistance = 18;
-});
-await frames(60);
-await shoot('tombstone');
-
-// Battle recording: a banana bomb volley, captured frame by frame.
-await match('readme-gif', 'meadow');
-await page.evaluate(() => {
-  const g = window.__allium.app.game;
-  g.selectWeapon('banana');
-  g.activeBuddy.aim = 0.9;
-  g.pressFire();
-});
-const dir = mkdtempSync(join(tmpdir(), 'allium-gif-'));
+mkdirSync(out, { recursive: true });
+const capture = await openCapture(url, { width: 1280, height: 720 });
+const { page } = capture;
+const shoot = async (name) => {
+  capture.check();
+  await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 88 });
+  console.log(`${name}.jpg`);
+};
 try {
-  for (let k = 0; k < 105; k++) {
-    if (k === 10) await page.evaluate(() => window.__allium.app.game.releaseFire());
-    await frames(1, 1 / 12);
-    await page.screenshot({ path: join(dir, `f${String(k).padStart(4, '0')}.png`) });
-  }
-  console.log(`captured ${readdirSync(dir).length} frames`);
-  const palette = join(dir, 'palette.png');
-  execFileSync('ffmpeg', [
-    '-y',
-    '-loglevel',
-    'error',
-    '-framerate',
-    '12',
-    '-i',
-    join(dir, 'f%04d.png'),
-    '-vf',
-    'scale=560:-1:flags=lanczos,palettegen=max_colors=96:stats_mode=diff',
-    palette,
-  ]);
-  execFileSync('ffmpeg', [
-    '-y',
-    '-loglevel',
-    'error',
-    '-framerate',
-    '12',
-    '-i',
-    join(dir, 'f%04d.png'),
-    '-i',
-    palette,
-    '-lavfi',
-    'scale=560:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle',
-    `${out}/battle.gif`,
-  ]);
-} finally {
-  rmSync(dir, { recursive: true, force: true });
-}
+  await frames(page, 20);
+  await shoot('title');
 
-await browser.close();
-console.log('media written to docs/screenshots');
+  await startMatch(page, 'readme-action', 'meadow');
+  await focus(page, 50, 23, 40);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game;
+    g.activeBuddy.aim = 0.4;
+    g.face(1);
+    g.pressFire();
+  });
+  await frames(page, 8);
+  await page.evaluate(() => window.__allium.app.game.releaseFire());
+  await frames(page, 4);
+  assert.ok(await page.evaluate(() => window.__allium.app.game.projectiles.length), 'rocket in flight');
+  await shoot('action-1');
+  for (let k = 0; k < 100 && (await page.evaluate(() => window.__allium.app.game.projectiles.length > 0)); k++) await frames(page);
+  const blast = await page.evaluate(() => window.__captureEvents.filter((e) => e.type === 'explosion').at(-1));
+  assert.ok(blast, 'actual rocket explosion');
+  await focus(page, blast.x, blast.y + 2, 32);
+  await shoot('action-2');
+
+  await startMatch(page, 'readme-candy', 'candy');
+  await focus(page, 46, 25, 38);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game;
+    g.selectWeapon('flysheep');
+    g.activeBuddy.aim = 0.8;
+    g.face(1);
+    g.pressFire();
+  });
+  await frames(page, 5);
+  assert.ok(await page.evaluate(() => window.__allium.app.game.flyer), 'flying sheep visible');
+  await shoot('candy-shop');
+
+  await startMatch(page, 'readme-frost', 'frost');
+  await page.evaluate(() => {
+    const g = window.__allium.app.game;
+    g.selectWeapon('airstrike');
+    g.setStrikeDir(1);
+    g.strike(55);
+  });
+  await frames(page, 14);
+  await focus(page, 50, 30, 54);
+  await shoot('frosty-peaks');
+
+  await startMatch(page, 'readme-napalm', 'sunset');
+  await page.evaluate(() => {
+    const g = window.__allium.app.game;
+    g.selectWeapon('napalm');
+    g.setStrikeDir(1);
+    g.strike(55);
+  });
+  for (let k = 0; k < 140 && !(await page.evaluate(() => window.__allium.app.game.flames.length)); k++) await frames(page);
+  const flame = await page.evaluate(() => window.__allium.app.game.flames[0]);
+  assert.ok(flame, 'napalm actually ignited');
+  await focus(page, flame.x, flame.y + 3, 35);
+  await shoot('napalm');
+
+  await startMatch(page, 'readme-night', 'night', {
+    crates: 1,
+    teams: [
+      { name: 'Garlic Gang', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Clovis', 'Aioli'] },
+      { name: 'Clove Crew', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Chive'] },
+    ],
+  });
+  await page.evaluate(() => {
+    const h = window.__allium,
+      g = h.app.game;
+    g.activeBuddy.hp = 1;
+    g.explode(40, 20.5, 1.2, 5, 1);
+    h.fastForward(15);
+  });
+  const grave = await page.evaluate(() => window.__allium.app.game.graves[0]);
+  assert.ok(grave, 'tombstone from an actual death');
+  await frames(page, 25);
+  await focus(page, grave.body.x, grave.body.y + 2, 28);
+  await shoot('tombstone');
+
+  await startMatch(page, 'readme-jetpack', 'sunset');
+  await page.evaluate(() => {
+    const g = window.__allium.app.game;
+    g.selectWeapon('jetpack');
+    g.pressFire();
+  });
+  await page.keyboard.down('ArrowUp');
+  await page.keyboard.down('ArrowRight');
+  await frames(page, 14);
+  await page.keyboard.up('ArrowUp');
+  await page.keyboard.up('ArrowRight');
+  const flying = await page.evaluate(() => window.__allium.app.game.activeBuddy.body);
+  await focus(page, flying.x, flying.y, 30);
+  await shoot('jetpack');
+
+  await startMatch(page, 'readme-homing', 'night');
+  await page.evaluate(() => {
+    const h = window.__allium,
+      g = h.app.game;
+    g.buddies[1].body.x = 80;
+    g.crates.push({ id: 9901, kind: 'weapon', weapon: 'homing', body: { ...g.activeBuddy.body, radius: 0.45 } });
+    h.fastForward(0.1);
+    g.selectWeapon('homing');
+    g.targetBuddy(g.buddies[1].id);
+    g.activeBuddy.aim = 1.4;
+    g.face(1);
+  });
+  // Let the pickup floater expire before moving the camera above the launcher.
+  await frames(page, 20);
+  await page.evaluate(() => {
+    const h = window.__allium,
+      g = h.app.game;
+    g.pressFire();
+    h.fastForward(1.5);
+    g.releaseFire();
+    h.fastForward(3.1);
+  });
+  const guided = await page.evaluate(() => window.__allium.app.game.projectiles[0]);
+  assert.ok(guided?.age >= 3, 'rocket guidance active');
+  await focus(page, 60, 31, 68);
+  await shoot('homing');
+
+  await page.evaluate(() => {
+    window.__allium.app.showTitle();
+    window.__allium.setManual(true);
+    window.__allium.app.menu.showSetup();
+  });
+  await page.locator('[data-action="tag-teams"][data-value="1"]').click();
+  await page.locator('[data-field="faction-name"][data-faction="0"]').fill('Bulb Alliance');
+  await page.locator('[data-action="walled"][data-value="1"]').click();
+  await page.waitForTimeout(300);
+  await shoot('setup');
+
+  await startMatch(page, 'readme-gif', 'meadow');
+  await focus(page, 55, 23, 56);
+  await page.evaluate(() => {
+    const g = window.__allium.app.game;
+    g.selectWeapon('banana');
+    g.activeBuddy.aim = 0.8;
+    g.face(1);
+    g.pressFire();
+  });
+  const dir = mkdtempSync(join(tmpdir(), 'allium-battle-'));
+  try {
+    for (let k = 0; k < 110; k++) {
+      if (k === 9) await page.evaluate(() => window.__allium.app.game.releaseFire());
+      await frames(page, 1, 1 / 12);
+      await recordFrame(page, dir, k);
+    }
+    assert.ok(await page.evaluate(() => window.__captureEvents.filter((e) => e.type === 'explosion').length > 2), 'banana fragments exploded');
+    encodeGif(dir, `${out}/battle.gif`, 12, 640);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+  capture.check();
+} finally {
+  await capture.browser.close();
+}
+console.log('README screenshots and battle GIF refreshed; actions verified');

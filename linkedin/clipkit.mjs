@@ -5,7 +5,7 @@
  * Recording harness shared by the LinkedIn clips.
  *
  * The game is driven through the window.__allium test hook in Google Chrome with fixed seeds and a
- * fixed frame step, so a clip re-records identically. Titles and lower thirds are DOM overlays
+ * fixed frame step, so a clip repeats its scripted actions. Titles and lower thirds are DOM overlays
  * injected into the page — they use the game's own Fredoka font and are advanced frame by frame
  * instead of by CSS animation, so they stay in sync with the stepped simulation.
  *
@@ -175,17 +175,27 @@ export class Clip {
   }
 
   async open() {
+    const headed = process.env.ALLIUM_CAPTURE_HEADED === '1';
     this.browser = await chromium.launch({
       channel: 'chrome',
-      args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--hide-scrollbars'],
+      headless: !headed,
+      args: headed
+        ? ['--ignore-gpu-blocklist', '--hide-scrollbars']
+        : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--hide-scrollbars'],
     });
     this.page = await this.browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
+    this.errors = [];
+    this.page.on('pageerror', (e) => this.errors.push(e.message));
+    this.page.on('console', (m) => {
+      if (m.type() === 'error') this.errors.push(m.text());
+    });
   }
 
   /** Reloads the game (a clean title screen) and re-injects the overlay. */
   async load() {
     await this.page.goto(`${this.url}/?quality=high`);
     await this.page.waitForFunction(() => window.__allium?.ready, null, { timeout: 180_000 });
+    await this.page.evaluate(() => window.__allium.setManual(true));
     await this.page.evaluate(OVERLAY);
   }
 
@@ -229,6 +239,9 @@ export class Clip {
     await this.page.evaluate(() => window.__allium.setManual(true));
     await this.page.evaluate(() => {
       const app = window.__allium.app;
+      app.game.terrain.fill((_x, y) => 20 - y);
+      app.world.decorations.clearAround(64, 32, 150);
+      app.game.buddies.forEach((b, i) => Object.assign(b.body, { x: 35 + 12 * i, y: 20.65, vx: 0, vy: 0, grounded: true }));
       for (let k = 0; k < 600 && app.game.phase !== 'aiming'; k++) app.fastForward(1 / 60);
     });
     // Let the turn banner play out so it never sits on top of a lower third.
@@ -275,6 +288,7 @@ export class Clip {
 
   async close() {
     await this.browser.close();
+    if (this.errors.length) throw new Error(`Recording browser errors: ${this.errors.join('; ')}`);
   }
 
   /** Encodes the captured frames to an MP4 that survives a LinkedIn upload, plus a poster frame. */

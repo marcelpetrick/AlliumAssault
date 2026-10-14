@@ -50,9 +50,12 @@ npm test           # Vitest
 npm run profile    # measure the rules core stage by stage (bench/, see docs/PERFORMANCE.md)
 npm run coverage   # Vitest with v8 coverage of src/core (thresholds enforced), report in coverage/
 npm run e2e        # Playwright, Google Chrome, builds and serves on :4173
-npm run verify     # lint, typecheck, test, build, e2e
+npm run verify     # lint, typecheck, coverage, build, e2e
 npm run capture-media -- http://localhost:4173   # regenerate README media from a preview build
 npm run capture-weapons -- http://localhost:4173 # re-record docs/weapons_preview.md's clips
+npm run capture-features -- http://localhost:4173 # terrain, factions, flood and AI GIFs
+npm run refresh-media                            # rebuild and refresh every media family
+npm run media-manifest                           # validate formats and record capture provenance
 python3 scripts/history_chart.py                 # redraw the README history chart (needs matplotlib)
 ```
 
@@ -89,6 +92,10 @@ python3 scripts/history_chart.py                 # redraw the README history cha
   `xvfb-run -a node scripts/check-firefox-fire.mjs http://localhost:4173` after a preview build
   (`npx playwright install firefox` first). It checks ordinary Firefox WebGL preferences, both
   torch facings and two resolutions; inspect the saved screenshots as well as the assertions.
+- **Media and documentation:** follow `docs/MEDIA.md`. Refresh affected screenshots, weapon/feature
+  GIFs and social captions when visible rules change; update the manifest with the generated files.
+  Captures must assert the demonstrated outcome and fail on browser errors. Review local links
+  after moving a document. Preserve dated archives rather than rewriting historical facts.
 - **Authored test arenas:** tests about a particular wall, bounce, rope anchor, cave or sound
   sequence should create that geometry explicitly. Generated-map tests exercise seeds and topology;
   procedural variety must not silently change a feature fixture's intended floor or ceiling.

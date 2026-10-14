@@ -172,6 +172,10 @@ Status: ☐ open · ☑ done
 | T157 | Crate-only homing rocket: target enemy, three ballistic seconds, then straight homing blocked by terrain        | ☑      | 1.82.0         |
 | T158 | Optional tag-team factions: editable names, shared victory, separate turns/inventory, friendly fire             | ☑      | 1.83.0         |
 | T159 | Update agent guidance, atomic verified commits, then publish the completed batch as a public release            | ☑      | 1.83.1         |
+| T160 | Regenerate all screenshots, GIFs and social animations; improve scripted captures and add feature clips         | ☑      | 1.83.2         |
+| T161 | Review every Markdown document, repair links and refresh stale gameplay and engineering documentation           | ☑      | 1.83.2         |
+| T162 | Verify, self-review, commit and push the complete media/documentation refresh                                   | ☑      | 1.83.2         |
+| T163 | Fix unreadable faction-name inputs discovered during media review and verify editing contrast                   | ☑      | 1.83.2         |
 
 ## Current implementation plan
 
@@ -717,7 +721,7 @@ versions with no code changes needed.
 
 ### T87 — Touch-display ideation ☑
 
-Written in 1.52.1 to [touchdisplay_support_ideation.md](touchdisplay_support_ideation.md); no code
+Written in 1.52.1 to [touchdisplay_support_ideation.md](touchdisplay-support.md); no code
 was changed. It starts from an inventory of every input the game needs — how often it is used and
 how precise it has to be — and finds that only three are hard on glass: aiming, charging, and
 picking a spot on the map. The proposal is a landscape layout with a four-way pad under the left
@@ -953,7 +957,7 @@ review) plus the Sudden Death change to a flat 1 HP.
 
 ### T54 — Requested code inspection and TODO backlog ☑
 
-Recorded in 1.33.2. [todo.md](docs/archive/todo-2026-09.md) preserves the user's numbering 0–6 and includes initial
+Recorded in 1.33.2. [todo.md](archive/todo-2026-09.md) preserves the user's numbering 0–6 and includes initial
 code findings, a rope physics/integration proposal, and acceptance checks for every task.
 An initial Holy Grenade terrain/wind diagnostic reproduced a delay to the 10-second arming
 fallback despite very little movement; T61 fixed it in 1.34.1.
@@ -962,14 +966,14 @@ fallback despite very little movement; T61 fixed it in 1.34.1.
 
 Requested and recorded in 1.33.2; every one of them is implemented, in 1.33.5 through 1.39.0.
 
-- T55: [0. Text-size coverage and weapon-bar readability](docs/archive/todo-2026-09.md#0-review-text-size-everywhere-especially-the-weapon-bar).
-- T56: [1. Text-size setting in the pause menu](docs/archive/todo-2026-09.md#1-add-text-size-to-the-in-game-menu).
-- T57: [2. Rope design and implementation](docs/archive/todo-2026-09.md#2-design-and-implement-the-rope-in-the-style-of-worms-2).
-- T58: [3. Air-attack approach direction](docs/archive/todo-2026-09.md#3-choose-the-direction-of-air-attacks-with-leftright).
-- T59: [4. Persistent proximity mines](docs/archive/todo-2026-09.md#4-add-proximity-mines-that-persist-across-turns).
-- T60: [5. Sheep crate collection for the launcher](docs/archive/todo-2026-09.md#5-let-sheep-and-super-sheep-collect-crates-for-their-launcher).
-- T61: [6. Holy Garlic Grenade timing](docs/archive/todo-2026-09.md#6-debug-and-fix-delayed-holy-garlic-grenade-countdowns).
-- T65/T66: [7. AI opponent review and improvements](docs/archive/todo-2026-09.md#7-review-and-strengthen-the-ai-opponents).
+- T55: [0. Text-size coverage and weapon-bar readability](archive/todo-2026-09.md#0-review-text-size-everywhere-especially-the-weapon-bar--done-in-1335).
+- T56: [1. Text-size setting in the pause menu](archive/todo-2026-09.md#1-add-text-size-to-the-in-game-menu--done-in-1340).
+- T57: [2. Rope design and implementation](archive/todo-2026-09.md#2-design-and-implement-the-rope-in-the-style-of-worms-2--done-in-1390).
+- T58: [3. Air-attack approach direction](archive/todo-2026-09.md#3-choose-the-direction-of-air-attacks-with-leftright--done-in-1350).
+- T59: [4. Persistent proximity mines](archive/todo-2026-09.md#4-add-proximity-mines-that-persist-across-turns--done-in-1380).
+- T60: [5. Sheep crate collection for the launcher](archive/todo-2026-09.md#5-let-sheep-and-super-sheep-collect-crates-for-their-launcher--done-in-1360).
+- T61: [6. Holy Garlic Grenade timing](archive/todo-2026-09.md#6-debug-and-fix-delayed-holy-garlic-grenade-countdowns--done-in-1341).
+- T65/T66: [7. AI opponent review and improvements](archive/todo-2026-09.md#7-review-and-strengthen-the-ai-opponents--implemented-in-1370-one-item-deferred).
 
 ### T55 — Text-size coverage and layout ☑
 
@@ -1044,7 +1048,7 @@ section. Pages deploys from the same push.
 
 ### T65/T66 — AI opponent review and improvements ☑
 
-Requested separately on 2026-09-20. Reviewed in 1.34.2 and written up in [7. Review and strengthen the AI opponents](docs/archive/todo-2026-09.md#7-review-and-strengthen-the-ai-opponents).
+Requested separately on 2026-09-20. Reviewed in 1.34.2 and written up in [7. Review and strengthen the AI opponents](archive/todo-2026-09.md#7-review-and-strengthen-the-ai-opponents--implemented-in-1370-one-item-deferred).
 The three levels already differ in search resolution and aim noise, and the AI does fetch crates,
 but it never reads a crate's contents or its own health when deciding to, never scores the chained
 crate explosion that `Game.explode()` actually produces, and treats every enemy team alike. The
@@ -1063,13 +1067,13 @@ last buddy.
 Recorded in 1.33.3. Checked three text sizes across four browser viewports and measured clipping
 of title buttons and the bottom weapon bar. A 216-case matrix using the normal throw commands
 reproduced the Holy Grenade's contact/rest mismatch, including on a modest slope without wind.
-Updated [todo.md](docs/archive/todo-2026-09.md) with reproduction steps, evidence, remaining audit limits, and rope
+Updated [todo.md](archive/todo-2026-09.md) with reproduction steps, evidence, remaining audit limits, and rope
 and sheep integration constraints. Implementation tasks T55–T61 were carried out afterwards.
 
 ### T63 — Planning handoff complete; implementation deferred ☑
 
 Recorded in 1.33.4. The user requested completed research and planning, committed and pushed,
-with no implementation until they decide when to begin. [todo.md](docs/archive/todo-2026-09.md#planning-handoff)
+with no implementation until they decide when to begin. [todo.md](archive/todo-2026-09.md#planning-handoff)
 now includes suggested order, affected files, proposed tuning and behavior, the rope solver
 approach, cross-feature constraints and acceptance risks. Proposed defaults are not approvals.
 No gameplay code was changed for the planning work; the user gave the go-ahead afterwards and
@@ -1107,3 +1111,12 @@ Headed Firefox with ordinary WebGL preferences passes both graphics budgets and 
 see the reproducible command and saved evidence in [review.md](review.md). Plans and agent
 guidance are updated. The delivery release is [v1.83.1](https://github.com/marcelpetrick/AlliumAssault/releases/tag/v1.83.1);
 the release tag runs the verified packaging and Pages workflows.
+
+### Media and documentation delivery — 1.83.2
+
+Refresh all 56 checked-in images/animations: 32 GIFs, 21 still images and three social MP4s.
+Five new feature GIFs show terrain families, rising water, factions and completed AI crate/rope
+routes. Audit all 23 Markdown documents, repair moved links and add local-link regression
+coverage. Capture review also fixes unreadable faction-name fields with a browser contrast check.
+Reproducible commands, media hashes and the audit record are in [MEDIA.md](MEDIA.md).
+The versioned commit is gated by full verification and then pushed to the public repository.

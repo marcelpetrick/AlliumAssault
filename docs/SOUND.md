@@ -1,7 +1,7 @@
 # Sound design
 
-Every sound in Allium Assault is synthesized in the browser with the Web Audio API — there is not a
-single audio file in the repository. `src/audio.ts` owns the synthesizer; the rules core never names
+Every game sound is synthesized in the browser with the Web Audio API; the game loads no sampled
+audio assets. Social MP4 recordings contain a silent AAC track for video-player compatibility. `src/audio.ts` owns the synthesizer; the rules core never names
 a sound, it only says what happened, and the weapon table says what a weapon sounds like through
 plain keys (`look.fireSound`, `look.flight`, `look.shotSound`, `look.hitSound`). Presentation
 therefore never switches on a weapon id, and a new weapon gets a voice by filling in its table row.

@@ -11,10 +11,11 @@ repository root are the ones a visitor and a tool expect there: [`README.md`](..
 | [`PERFORMANCE.md`](PERFORMANCE.md)                   | What was measured, how to measure it again, and what was done about it                        |
 | [`SOUND.md`](SOUND.md)                               | Every synthesized sound and how it is made — there are no audio files                         |
 | [`weapons_preview.md`](weapons_preview.md)           | A recorded clip of every weapon in action, each on a scenery of its own                       |
+| [`MEDIA.md`](MEDIA.md)                               | Feature gallery, capture commands, provenance and the Markdown review record                  |
 | [`I18N.md`](I18N.md)                                 | How the four languages work: adding a string, adding a language, what the tests enforce       |
 | [`tasks.md`](tasks.md)                               | Every request ever made, its status, and the version it landed in                             |
 | [`review.md`](review.md)                             | The latest code and architecture review, with how each finding was resolved                   |
-| [`PLAN.md`](PLAN.md)                                 | The original v2 plan; historical, kept because it explains why the rewrite looks like this    |
+| [`PLAN.md`](PLAN.md)                                 | Current implementation plan and the media/documentation refresh checklist                     |
 | [`touchdisplay-support.md`](touchdisplay-support.md) | A design study for playing the whole game on a touchscreen                                    |
 | [`archive/`](archive/)                               | Finished plans and the original research session                                              |
 

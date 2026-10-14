@@ -81,7 +81,7 @@ C4Container
 
 Two import rules are checked rather than trusted. `tests/imports.test.ts` fails on
 `from '@babylonjs/core'` anywhere in `src`, because the package root is a barrel that re-exports the
-whole engine and takes the bundle from 1.5 MB to 6.9 MB; it also insists that any module building a
+whole engine and takes the bundle from roughly 1.6 MB to 6.9 MB; it also insists that any module building a
 picking ray asks for `@babylonjs/core/Culling/ray`, the side-effect module that installs
 `createPickingRay` on `Scene.prototype`. Neither mistake shows up in a typecheck.
 
@@ -97,11 +97,12 @@ C4Component
     Component(game, "Game", "game.ts", "Match state machine, commands, weapon execution, damage, events")
     Component(match, "Match vocabulary", "match.ts", "Config, buddies, teams, projectiles, phases, turn actions, events and tuning constants; re-exported by game.ts")
     Component(ai, "AiDriver and planAttack", "ai.ts", "Samples trajectories, scores blasts, drives Game commands")
+    Component(navigation, "AI navigation", "aiNavigation.ts", "Copied-body walking and jumps, safe routes, complete rope simulations and shared steering")
     Component(terrain, "Terrain", "terrain.ts", "Density field, seeded generation, carve, spawn search, dirty chunks; also the arena: water level, gravity scale and placed platforms")
     Component(contour, "contourRegion", "contour.ts", "Marching squares: fill triangles and oriented edges")
     Component(physics, "Physics", "physics.ts", "stepBody for buddies, stepProjectile for shells")
     Component(weapons, "Weapon table", "weapons.ts", "Twenty-six weapons by kind, grouped thematically; fragments, arsenal flags, digit and letter hotkeys")
-    Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts, fire.ts, rope.ts", "Hopping sheep, steerable flyer, strike drop planning, napalm flames that eat into the ground, rope hook and swing")
+    Component(actors, "Weapon actors", "sheep.ts, flyer.ts, strike.ts, fire.ts, rope.ts, jetpack.ts, homing.ts", "Hopping sheep, steerable flyer, strike drop planning, napalm flames that eat into the ground, rope hook and swing, powered flight and rocket guidance")
     Component(crates, "Crates and mines", "crates.ts, mines.ts", "Health, weapon and mystery crates on seeded free land; mystery contents rolled on opening; mine arming, proximity and fuse")
     Component(stats, "MatchStats", "stats.ts", "Counts the match as it runs: damage by culprit, own goals, shots and hits, crates, kills; the honours board at the end")
     Component(support, "rng, math, constants, assert", "rng.ts, math.ts, constants.ts, assert.ts", "Seeded streams, helpers, tuning values, invariants")
@@ -117,6 +118,8 @@ C4Component
   Rel(game, ai, "update() during AI turns")
   Rel(ai, game, "selectWeapon, face, pressFire, releaseFire")
   Rel(ai, physics, "Simulates candidate shots")
+  Rel(ai, navigation, "Checks supply routes, repositioning and retreat")
+  Rel(navigation, terrain, "Checks real collision, water, fire and mines")
   Rel(stats, weapons, "Names the weapon of the match")
   Rel(physics, terrain, "sample, distance, normal")
   Rel(terrain, support, "Seeded noise streams")
@@ -250,6 +253,9 @@ stateDiagram-v2
   firing --> retreat: last bullet
   aiming --> spraying: flamethrower opened
   spraying --> retreat: after 3 s of fuel
+  aiming --> jetpacking: jetpack launched
+  jetpacking --> aiming: landed safely; may still attack
+  jetpacking --> settling: timeout or damage; descent governor persists until landing
   aiming --> roping: hook fired
   roping --> aiming: landed again — the rope is a utility, not the turn's shot
   roping --> settling: turn time runs out mid-swing
@@ -260,19 +266,19 @@ stateDiagram-v2
   retreat --> settling: retreat timer ends or active buddy hurt
   settling --> deaths: everything at rest for 0.6 s (15 s cap)
   deaths --> settling: a buddy at 0 HP explodes
-  deaths --> turnStart: two or more teams alive
-  deaths --> gameOver: one or no team alive
+  deaths --> turnStart: two or more opposing factions alive
+  deaths --> gameOver: one or no opposing faction alive
   gameOver --> [*]
 ```
 
 Rules enforced here:
 
 - ammo is consumed on a weapon's first shot,
-- in `guiding`, `torching`, `drilling`, `spraying`, `roping` and `firing` the buddy cannot walk; the
+- in `guiding`, `torching`, `drilling`, `spraying`, `jetpacking`, `roping` and `firing` the buddy cannot walk; the
   turn timer keeps running in all but `firing` (`COUNTDOWN_PHASES`), and hurting the active buddy in
-  any of them ends the turn (`ACTION_PHASES`),
-- `roping` is the one action phase that returns to `aiming` rather than ending the turn: the rope
-  moves the buddy instead of attacking with it, so once it lands it may still take its shot — and
+  any of them ends active control (`ACTION_PHASES`); jetpack descent remains governed until landing,
+- `roping` and `jetpacking` return to `aiming` rather than ending the turn: these utilities
+  move the buddy instead of attacking with it, so once it lands it may still take its shot — and
   the rope is only charged for once its hook actually bites,
 - `spraying` still reads the up and down keys, because steering the nozzle mid-burst is the whole
   point of the flamethrower; the nozzle swings past the limits the ordinary aim is held to,
@@ -322,17 +328,21 @@ flowchart TD
   melee --> score
   score --> cost["Subtract what reaching for it costs:<br/>limited ammo, uses already spent,<br/>a cluster weapon's whole payload"]
   cost --> noise["Add aim and power error by difficulty"]
-  noise --> shop{"Is a crate worth more<br/>than the best shot?"}
-  shop -- "walkable" --> walk["Walk to it"]
-  shop -- "rope, and rock overhead" --> swing["Fire the hook, swing across,<br/>reel in, let go over the crate<br/>(abandoned after 9 s)"]
-  shop -- no --> act["selectWeapon, face, aim via input,<br/>pressFire, releaseFire at planned power"]
+  noise --> shop{"Safe supply pickup fits<br/>before a useful attack?"}
+  shop -- "checked walk/jump" --> walk["Execute the shared walking controller"]
+  shop -- "completed rope route" --> swing["Hook, brake, reel and release<br/>same controller as simulation<br/>seven-second route budget"]
+  walk --> plan
+  swing --> plan
+  shop -- no --> position["Check safe nearby repositioning<br/>when the current attack is poor"]
+  position --> act["selectWeapon, lock enemy, face, aim,<br/>setStrikeDir explicitly for aircraft,<br/>pressFire, releaseFire at planned power"]
   act --> more{"Weapon has shots left?"}
   more -- yes --> replan["Re-plan restricted to the current weapon"] --> act
-  more -- no --> retreat["Walk away during retreat"]
+  more -- no --> retreat["Preview safe grounded retreat<br/>avoid water, mines, flames and hard falls"]
 ```
 
-Planning runs on the main thread. With the full arsenal a hard decision measures about 30 ms on the
-development machine — a hitch of a frame or two, once per AI turn, hidden behind the think delay.
+Planning runs on the main thread after a difficulty-dependent think delay. Attack trajectories
+and complete navigation routes both contribute to its cost; measure the current build with
+`npm run profile` instead of carrying an old timing estimate forward.
 
 Two things keep it from playing the same turn over and over. Reaching for a weapon costs something
 before its blast is even scored: a flat charge for anything limited, a share of the weapon's whole
@@ -341,8 +351,8 @@ on — a little even for one it can never run out of. Without that the AI found 
 highest-scoring weapon and played it until the ammo ran out, which for the concrete mule was almost
 anywhere and for the Ming vase was turn one of every match. And Normal and Hard go shopping: they
 already valued crates, and now reach the ones walking cannot get to by firing the rope and swinging
-across. The swing is abandoned after nine seconds however it is going, because a traversal that is
-not working must never eat the turn.
+across. The swing is abandoned at the seven-second route budget or when attack time must be preserved.
+The bot remembers failed crate routes for that turn rather than repeatedly launching the same hook.
 
 ## 9. Deployment and delivery
 
@@ -388,7 +398,7 @@ publish unless the tag matches the version in `package.json`.
 | Unit       | Vitest (`tests/`)                                                                                          | RNG, terrain generation, craters, contouring, body and projectile physics, turns, every weapon's rules, crates and mystery boxes, flames, tombstones, hotkeys, persisted settings and their migration, the four catalogues, match statistics and the honours board, AI plans and crate-hunting, a full AI-vs-AI match, and the Babylon import rules                                                                                                                                                                      |
 | End-to-end | Playwright + Google Chrome (`e2e/`)                                                                        | Title demo, a human turn with real keys, AI match to victory, custom setup, arsenal, settings persistence and Reset all, graphics budget, languages, one text scale across menu and HUD, the pinned Start button, the statistics screen, about screen, pause menu; every weapon with real keys and clicks (`weapons.spec.ts`); crates and mystery boxes, camera pan, tombstones, sceneries, audio cues, movement sounds and weapon bar (`features.spec.ts`) — sounds are checked through the synthesizer's play counters |
 | Static     | TypeScript strict; ESLint (type-checked), Prettier, Stylelint, markdownlint; SPDX check, REUSE, actionlint | Whole codebase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Coverage   | Vitest v8 over `src/core` (`npm run coverage`)                                                             | Thresholds of 98% on statements, branches, functions and lines, enforced in CI and in every release. `src/render`, `src/ui`, `src/app.ts` and `src/audio.ts` need a GPU or the DOM and are covered by the browser suite instead                                                                                                                                                                                                                                                                                          |
+| Coverage   | Vitest v8 over `src/core` (`npm run coverage`)                                                             | Thresholds of 98.1% on statements, branches, functions and lines, enforced in CI and in every release. `src/render`, `src/ui`, `src/app.ts` and `src/audio.ts` need a GPU or the DOM and are covered by the browser suite instead                                                                                                                                                                                                                                                                                        |
 | Profiling  | `npm run profile` over `bench/core.bench.ts`                                                               | One fixed step of the rules core, stage by stage, checked against a tenfold ceiling so an order-of-magnitude regression fails rather than merely printing. Numbers and method in `PERFORMANCE.md`                                                                                                                                                                                                                                                                                                                        |
 | Pipeline   | `npm run verify`, GitHub Actions                                                                           | All of the above on every push; releases and GitHub Pages deployment on tags, both gated on the browser suite                                                                                                                                                                                                                                                                                                                                                                                                            |
 

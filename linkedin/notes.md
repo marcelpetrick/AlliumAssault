@@ -1,6 +1,8 @@
 # LinkedIn post research — Allium Assault, five days from four weapons to seventeen
 
-Notes collected from the git history (118 commits) and `CHANGELOG.md` for a later LinkedIn post.
+Historical notes collected in September 2026 from the git history (118 commits) and `CHANGELOG.md`.
+Numbers below describe that earlier snapshot. Current drafts are in [post.md](post.md), and current
+features are in the [game README](../README.md).
 
 ## Where it started — v0.3.0, 14 September 2026
 

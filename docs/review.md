@@ -229,3 +229,34 @@ placement. It allows the compositor to present frames before capturing.
 Sudden Death still raises water once per turn, ordinary rope stock remains three, platforms remain
 two-use, and drilling cushions a fall only while active. Existing browser regressions verify these
 rules together with fire cleanup and the newly expanded arsenal.
+
+## Documentation and media review — 1.83.2
+
+- September screenshots and most GIFs showed an older arsenal and terrain. Every media family is
+  regenerated; new feature clips demonstrate real flooding, named factions and completed AI
+  crate/rope pickups. Captures use authored arenas, assert outcomes and fail on browser errors.
+- Eighteen local references still pointed at moved documents, and historical task anchors omitted
+  completion suffixes. These are repaired; local file/image references now have a regression test.
+- The document index called the active plan historical. Vision still claimed AI never ropes;
+  architecture omitted jetpack phases/navigation and described the old crate/rope heuristic.
+  Current controls, faction victory, the seven-second route budget and 98.1% thresholds are updated.
+- The coverage chart stopped before the latest game changes and still labelled 98%. It now includes
+  the verified 1.83.1 gameplay measurement and reads the threshold from the current configuration.
+- Security and current contributor prose claimed a clean audit despite the unresolved development
+  `braces` advisory. The 14 October audit has eight affected development package entries and no
+  production findings; documentation now states that scope. No dependency change is hidden here.
+- Social captions/post copy still advertised seventeen weapons, old test counts and unsupported
+  phone controls. Refreshed videos/drafts use current facts. Earlier personal post/research copy
+  stays explicitly historical; no social post is sent by these scripts.
+- The refreshed setup screenshot exposed pale faction-name text on a white default input. These
+  fields now have an explicit dark background, readable text and a visible keyboard-focus outline.
+  The existing faction browser flow checks the actual text/background contrast before editing.
+- The complete refresh exposed a missing JSON coverage reporter hidden by an overly broad catch.
+  It now explicitly generates the summary and reports file/JSON errors; only a genuine core diff
+  skips the historical cache update. A metadata-only command repeats the corrected final stages.
+- The media manifest records hashes, decoded frame counts, dimensions and capture provenance.
+  Visual checks supplement these checks; the same frame count alone cannot prove a useful clip.
+
+Performance numbers are dated observations. The current profile smoke run passes its ceilings;
+the old before/after import comparison remains labelled historical. Core and browser coverage
+continue to describe representative cases rather than every possible match.

@@ -1,9 +1,10 @@
 # Every weapon, in action
 
-Twenty-six clips, one per weapon, each filmed on a scenery of its own. They are recorded from the
-game rather than staged: `scripts/capture-weapons.mjs` drives a real match through the same test
+Twenty-six clips, one per weapon, filmed across all five sceneries in authored arenas. They record real
+game actions: `scripts/capture-weapons.mjs` drives a real match through the same test
 hook the browser suite uses, with a fixed seed and a fixed frame step, so re-running the script
-produces the same film. Nothing here is a mock-up.
+produces comparable footage. Fixtures position buddies and supply targets, but weapons use the
+real rules and renderer. The script asserts that the intended action actually happened.
 
 Each clip opens on the buddy holding the weapon, then fires it. What you see under the arena is the
 real weapon bar, with the weapon of the moment lit up.
@@ -229,6 +230,8 @@ then direct pursuit; intervening rock intercepts the flight.
 
 ## A note on the file sizes
 
-Each clip is 320 pixels wide, ten frames a second, 48 colours — about 400 kB. That is small enough
-that all of them fit in a repository somebody has to clone, and large enough to see what is
-going on. The settings live at the top of `scripts/capture-weapons.mjs` if you want them bigger.
+Each clip is 480 pixels wide, ten frames a second and up to 96 colours. Durations vary with the
+weapon so the action can finish; the long final jetpack descent is skipped after showing fuel
+exhaustion, then landing is recorded. Individual sizes and frame counts are retained in
+[the capture manifest](media-capture.json). See [MEDIA.md](MEDIA.md) for all capture commands and
+new feature animations.

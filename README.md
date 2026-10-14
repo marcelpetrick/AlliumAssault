@@ -25,21 +25,21 @@ browser and start a Quick Match.
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/action-1.jpg" alt="Bazooka rocket streaking towards the enemy team"></td>
-    <td width="50%"><img src="docs/screenshots/action-2.jpg" alt="Explosion carving a crater next to a garlic buddy, with floating damage"></td>
+    <td width="50%"><img src="docs/screenshots/action-2.jpg" alt="Bazooka explosion carving a scorched crater"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/candy-shop.jpg" alt="Flying sheep over the Candy Shop scenery with lollipop trees"></td>
+    <td width="50%"><img src="docs/screenshots/candy-shop.jpg" alt="Flying sheep over the pink Candy Shop terrain"></td>
     <td width="50%"><img src="docs/screenshots/frosty-peaks.jpg" alt="Air strike plane dropping bombs over the snowy Frosty Peaks"></td>
   </tr>
 </table>
 
 A turn-based 3D artillery game in the spirit of **Worms Armageddon**, starring teams of cute
 garlic buddies. Destructible islands, wind, twenty-six weapons from bazookas and banana bombs to
-a steerable flying sheep, a concrete mule and a napalm strike, random crates, comic tombstones,
-Sudden Death and five sceneries — rendered with real-time 3D graphics in your browser.
+a steerable flying sheep, a jetpack and a homing rocket, random crates, comic tombstones,
+Sudden Death, optional allied factions and five sceneries — rendered with real-time 3D graphics in your browser.
 
-**Status: almost feature complete.** Everything on the vision list is in and playable; what is
-left is polish, balance and the odd extra weapon.
+**Status: playable and actively maintained.** The current rules and arsenal are implemented;
+online multiplayer and a full touchscreen control overlay remain outside the shipped game.
 
 **Download:** grab the ready-to-host web build from the [latest release](https://github.com/marcelpetrick/AlliumAssault/releases/latest),
 unzip it and serve the folder with any static web server (e.g. `npx serve`).
@@ -87,16 +87,14 @@ the pixel density is halved.
 - **Random crates** — from the second turn on, crates teleport onto free land: health crates heal
   25 HP, weapon crates add one more of a special weapon. Off / Normal / Lots / Cratyness (two fresh
   crates every single turn, up to eight on the map) in the setup. A hopping
+  sheep or flying sheep collects crates for its launcher without detonating.
 - **Mystery boxes** — one crate in four is a clown box with a question mark on its side. What is
   in it is rolled when somebody opens it, not when it drops: usually health or a special weapon,
   and one time in four a live mine, armed on the spot under whoever was greedy.
-  sheep or a Super Sheep that runs over a crate collects it for the buddy that launched it, without
-  going off.
-- **Arsenal setting** — start with every weapon, find the special weapons (sheep, air strike,
-  self-destruct, minigun, holy grenade, banana bomb, flying sheep, concrete mule, napalm strike)
-  in crates only, or play with infinite supplies of everything. The basic weapons — bazooka,
-  grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch, drill, rope and platform
-  — are always in the loadout from turn one.
+- **Arsenal setting** — normal starting stock, special weapons found in crates, or infinite
+  supplies. Bazooka, grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch, drill,
+  rope, platform and jetpack remain available in the basic loadout. The Homing Rocket is crate-only
+  in both ordinary arsenal modes; Infinite Supplies also gives unlimited homing rockets.
 - **Sudden Death** — from the setup screen, pick the turn (10, 20 or 30, or off) on which every
   living buddy drops to 1 HP. From the next turn on the water climbs a world unit at the start of
   every turn — the camera shows it rising — flooding caves and low ground. Nobody dies from the
@@ -108,7 +106,8 @@ the pixel density is halved.
   while keeping their own turns and inventories; friendly fire remains active. Single teams may
   form their own faction. Disabled by default.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real
-  trajectories to find its shots.
+  trajectories to find its shots. Normal collects safe nearby supplies, jumps steps and repositions
+  to attack. Rope routes are checked through completed traversals; retreats account for hazards.
 - **Five sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,
   gumdrops, strawberry-milk sea) and Frosty Peaks (snowy pines, ice); seeded maps you can share.
 - **Gravity** — Moon, Normal (the usual world) or Heavy, chosen in the setup screen: lighter
@@ -129,20 +128,21 @@ the pixel density is halved.
 
 ## Controls
 
-| Key                        | Action                                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------------------------- |
-| ← →                        | Walk                                                                                              |
-| Enter                      | Jump forward                                                                                      |
-| Backspace                  | Back-flip (high jump)                                                                             |
-| ↑ ↓                        | Aim                                                                                               |
-| Space                      | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
-| 1–9, 0, Shift+1–0, T / Tab | Choose weapon (or click it in the weapon bar)                                                     |
-| Mouse wheel / drag         | Zoom / pan camera; the wheel tilts a platform while one is being placed                           |
-| Click                      | Call a strike, drop the concrete mule, set a platform or teleport to that spot                    |
-| ← → (air/napalm strike)    | Choose the side the plane flies in from; the buddy stays put while choosing                       |
-| ↑ ↓ ← → (on the rope)      | Reel in and out, swing left and right                                                             |
-| Arrow keys (flying sheep)  | Steer the flying sheep towards that direction                                                     |
-| M / Esc                    | Mute / pause menu (Esc also closes help and about); the HUD's Help and Pause buttons do the same  |
+| Key                                 | Action                                                                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| ← →                                 | Walk                                                                                              |
+| Enter                               | Jump forward                                                                                      |
+| Backspace                           | Back-flip (high jump)                                                                             |
+| ↑ ↓                                 | Aim                                                                                               |
+| Space                               | Hold to charge, release to fire (punch and shotgun fire instantly); sheep: release, then detonate |
+| 1–9, 0, Shift+1–0, T/K/V/F/J/H, Tab | Choose weapon (or click it in the weapon bar)                                                     |
+| Mouse wheel / drag                  | Zoom / pan camera; the wheel tilts a platform while one is being placed                           |
+| Click                               | Call a strike, drop the concrete mule, set a platform, teleport, or lock a homing target          |
+| ← → (air/napalm strike)             | Choose the side the plane flies in from; the buddy stays put while choosing                       |
+| ↑ ↓ ← → (on the rope)               | Reel in and out, swing left and right                                                             |
+| Arrow keys (flying sheep)           | Steer the flying sheep towards that direction                                                     |
+| Arrow keys (jetpack)                | Accelerate during six seconds of fuel; Space ends thrust early                                    |
+| M / Esc                             | Mute / pause menu (Esc also closes help and about); the HUD's Help and Pause buttons do the same  |
 
 ## Weapons
 
@@ -198,6 +198,8 @@ src/
 │   ├── fire.ts      napalm flames on the ground · crates.ts seeded crate contents and spots
 │   ├── mines.ts     proximity mines: arming delay, line of sight, trigger fuse
 │   ├── rope.ts      rope: swept hook, length constraint, corner wrapping, swing
+│   ├── jetpack.ts   accelerated flight and controlled descent · homing.ts direct guidance
+│   ├── aiNavigation.ts  shared walking/jump/rope route simulation and control
 │   └── ai.ts        trajectory-search AI driving the same commands as players
 ├── render/   Babylon.js presentation: terrain mesh, buddies, sceneries, effects, camera
 ├── ui/       HTML/CSS overlay: title, setup, HUD, help, about, pause, victory; persisted settings
@@ -256,24 +258,30 @@ publishes a GitHub release with the web build. Contributor and agent rules are i
 
 ## More screenshots
 
-| Title screen                                                   | Napalm strike                                                                 | Tombstone                                                                |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| ![Title screen with the live demo](docs/screenshots/title.jpg) | ![Napalm burning on a floating island at sunset](docs/screenshots/napalm.jpg) | ![R.I.P. tombstone in the Moonlit Grove](docs/screenshots/tombstone.jpg) |
+| Title screen                                                   | Napalm strike                                                          | Tombstone                                                                |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| ![Title screen with the live demo](docs/screenshots/title.jpg) | ![Napalm burning on the ground at sunset](docs/screenshots/napalm.jpg) | ![R.I.P. tombstone in the Moonlit Grove](docs/screenshots/tombstone.jpg) |
 
-Regenerate all media with `npm run capture-media -- <preview url>` against a running preview build (needs ffmpeg).
+The [media guide](docs/MEDIA.md) includes current feature animations, capture instructions and
+provenance. README screenshots, every weapon GIF, Firefox evidence, social videos/posters and the
+history chart have separate scripted capture commands; all use the current production build.
+
+| Jetpack                                                                | Homing Rocket                                                           | Faction setup                                                           |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| ![Jetpack with visible downward exhaust](docs/screenshots/jetpack.jpg) | ![Homing rocket after its ballistic phase](docs/screenshots/homing.jpg) | ![Named factions and wall preview in setup](docs/screenshots/setup.jpg) |
 
 ## History
 
-Version 1 replaced two earlier 2D prototypes with this 3D rewrite. See [`CHANGELOG.md`](CHANGELOG.md)
-for the release history.
+See [`CHANGELOG.md`](CHANGELOG.md) for the release history. The chart includes the recorded
+repository history through gameplay release v1.83.1; its endpoint is the committed revision used
+for this media refresh.
 
 ![Lines of code per area and core test coverage across the project's commits](docs/screenshots/history.png)
 
-Every commit measured straight out of git: the bands are the lines of code in the rules core, the
-renderer, the app and UI, the unit tests and the browser tests, and the drop is the day the 2D
-prototype was thrown away. Below it, the four Vitest coverage metrics of `src/core`, sampled at
-every tenth commit — running the suite at a past commit is not free — against the 98% that is
-enforced today.
+The bands count lines in the rules core, renderer, app/UI, unit tests and browser tests. Coverage
+uses cached historical measurements plus the verified latest gameplay commit; the dashed line
+reads the current **98.1%** threshold directly from the configuration. Historical measurements
+are dated observations, not claims about the current build.
 
 ```bash
 python3 scripts/history_chart.py              # redraw; measures the samples it does not know yet

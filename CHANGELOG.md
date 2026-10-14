@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.2] — 2026-10-14
+
+- Refresh screenshots, weapon and feature GIFs, social videos/posters and the development chart.
+- Improve deterministic capture scripts, verify real actions and record media provenance.
+- Fix faction-name input contrast exposed by the new setup captures; check readability in Chrome.
+- Review all Markdown, repair local links and update stale gameplay, testing and architecture facts.
+
 ## [1.83.1] — 2026-10-14
 
 This public release delivers the complete October gameplay batch (1.79.0–1.83.1).

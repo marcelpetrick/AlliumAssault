@@ -8,7 +8,7 @@
  *   node linkedin/capture-clip-b.mjs [url]  default http://localhost:4173
  *
  * Where clip A tours the game, this one tells the build story: it opens on day one's four weapons,
- * runs a hard-cut montage of five of the thirteen that followed while a counter climbs 04 → 17,
+ * runs a hard-cut montage of five of the twenty-two that followed while a counter climbs 04 → 26,
  * then lands on what the repository can prove — commits, tests, licence — and the call to action.
  *
  * Output: linkedin/clip-b-shiplog.mp4 (1080x1350, 4:5, 30 fps, H.264) and clip-b-poster.jpg.
@@ -43,7 +43,7 @@ const dayOne = (f) => ({
       ? {
           o: hold(f, 2, 44, 8, 10),
           s: 0.9 + 0.1 * easeOutBack(ramp(f, 2, 18)),
-          eyebrow: 'Five days ago',
+          eyebrow: 'Where it started',
           text: 'Four<br>weapons',
           sub: 'bazooka · grenade · shotgun · fist',
         }
@@ -58,11 +58,11 @@ await clip.record(64, dayOne, 1 / FPS, 14);
 
 /**
  * One weapon per beat, 56 frames each, hard cut to the next. The counter climbs across the first
- * two beats and then holds at seventeen.
+ * two beats and then holds at twenty-six.
  */
 const beat = (index, icon, name, note) => (f) => ({
   badge,
-  count: counter(index < 2 ? 4 + Math.round(13 * ramp(index * 56 + f, 10, 100)) : 17, 1),
+  count: counter(index < 2 ? 4 + Math.round(22 * ramp(index * 56 + f, 10, 100)) : 26, 1),
   label: { o: hold(f, 2, 56, 7, 9), y: 22 * (1 - easeOutBack(ramp(f, 2, 16))), icon, text: name, sub: note },
 });
 
@@ -140,14 +140,14 @@ await clip.zoom(26);
 
 /** Three facts, one at a time, each one checkable in the repository. */
 const facts = [
-  { icon: '⚡', text: '99 commits', sub: 'in five days' },
-  { icon: '✅', text: '95% covered', sub: '82 unit tests · an E2E test per weapon' },
-  { icon: '📖', text: 'Open source', sub: 'GPL-3.0 · REUSE compliant' },
+  { icon: '⚡', text: 'Named factions', sub: 'shared wins · friendly fire' },
+  { icon: '✅', text: '>98% core coverage', sub: '85 browser scenarios · every weapon' },
+  { icon: '📖', text: 'Open source', sub: 'GPL-3.0-or-later · REUSE compliant' },
 ];
 for (const [i, fact] of facts.entries()) {
   await clip.record(41, (f) => ({
     badge,
-    count: counter(17, 1),
+    count: counter(26, 1),
     label: { o: hold(f, 1, 41, 7, 8), y: 22 * (1 - easeOutBack(ramp(f, 1, 15))), ...fact },
   }));
   if (i < facts.length - 1) await clip.skip(1.2);
@@ -169,7 +169,7 @@ const card = (f) => ({
           o: easeOut(ramp(f, 32, 50)),
           s: 0.9 + 0.1 * easeOutBack(ramp(f, 32, 56)),
           eyebrow: 'Allium Assault',
-          text: '17<em>×</em>weapons',
+          text: '26<em>×</em>weapons',
           sub: 'Turn-based garlic warfare · free in your browser',
         }
       : {},
@@ -181,4 +181,4 @@ await clip.release();
 await clip.record(108, card, 1 / FPS, 12);
 
 await clip.close();
-clip.encode(join(out, 'clip-b-shiplog.mp4'), join(out, 'clip-b-poster.jpg'), 120);
+clip.encode(join(out, 'clip-b-shiplog.mp4'), join(out, 'clip-b-poster.jpg'), 570);

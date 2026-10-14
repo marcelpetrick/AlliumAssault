@@ -9,22 +9,17 @@
  *   node scripts/capture-weapons.mjs [url] bazooka grenade    just those two
  *
  * Every clip is a scripted match through the window.__allium hook: fixed seed, fixed frame step,
- * a scenery of its own, so re-running produces the same film. Needs ffmpeg on the PATH.
+ * a scenery of its own, so re-running repeats the same actions. Needs ffmpeg on the PATH.
  */
-import { execFileSync } from 'node:child_process';
+import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { chromium } from '@playwright/test';
+import { openCapture, startMatch, focus, frames, recordFrame, encodeGif } from './media-kit.mjs';
 
 const url = process.argv[2] ?? 'http://localhost:4173';
 const only = process.argv.slice(3);
 const out = 'docs/weapons';
-
-/** Small on purpose: many clips have to live in a git repository somebody clones. */
-const WIDTH = 320;
-const FPS = 10;
-const COLORS = 48;
 
 /**
  * One clip per weapon: where it is fired from, what it is aimed at, and how long to film.
@@ -38,7 +33,7 @@ const CLIPS = [
   { id: 'grenade', theme: 'sunset', aim: 0.85, hold: 8, frames: 46 },
   { id: 'cluster', theme: 'frost', aim: 0.85, hold: 9, frames: 52 },
   { id: 'banana', theme: 'candy', aim: 0.9, hold: 9, frames: 60 },
-  { id: 'holy', theme: 'night', aim: 0.8, hold: 9, frames: 64 },
+  { id: 'holy', theme: 'night', aim: 0.8, hold: 2, frames: 140 },
   { id: 'shotgun', theme: 'meadow', aim: 0.06, frames: 26 },
   { id: 'minigun', theme: 'sunset', aim: 0.05, frames: 40 },
   { id: 'punch', theme: 'candy', aim: 0, close: 1.1, frames: 26 },
@@ -48,170 +43,175 @@ const CLIPS = [
   { id: 'airstrike', theme: 'sunset', strike: true, frames: 56 },
   { id: 'napalm', theme: 'night', strike: true, frames: 70 },
   { id: 'mule', theme: 'frost', strike: true, frames: 56 },
-  { id: 'torch', theme: 'meadow', aim: -0.15, frames: 52 },
+  { id: 'torch', theme: 'meadow', aim: 0.35, frames: 52 },
   { id: 'drill', theme: 'candy', aim: 0, frames: 52 },
-  { id: 'rope', theme: 'frost', aim: 1.15, frames: 46 },
+  { id: 'rope', theme: 'frost', aim: 1.55, frames: 85 },
   { id: 'platform', theme: 'meadow', platform: true, frames: 26 },
   { id: 'surrender', theme: 'candy', aim: 0, frames: 30 },
-  { id: 'mine', theme: 'sunset', aim: 0, frames: 34 },
+  { id: 'mine', theme: 'sunset', aim: 0, frames: 65 },
   { id: 'teleport', theme: 'night', teleport: true, frames: 40 },
   { id: 'selfdestruct', theme: 'sunset', aim: 0, frames: 60 },
   { id: 'ming', theme: 'candy', aim: 0.85, hold: 10, frames: 70 },
   { id: 'flamer', theme: 'night', aim: -0.1, frames: 60 },
   { id: 'homing', theme: 'night', aim: 1.4, hold: 14, frames: 95 },
-  { id: 'jetpack', theme: 'sunset', aim: 0, frames: 110, after: [35, 'glide'] },
+  { id: 'jetpack', theme: 'sunset', aim: 0, frames: 105 },
 ];
 
-const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
-await page.goto(url);
-await page.waitForFunction(() => window.__allium?.ready, null, { timeout: 120_000 });
-
-const frames = (count, dt = 1 / FPS) => page.evaluate(([n, step]) => window.__allium.stepFrames(n, step), [count, dt]);
-
-/** A two-team match on a named scenery, run up to the first player turn. */
-async function match(clip) {
-  await page.evaluate(
-    ([seed, theme]) =>
-      window.__allium.startMatch({
-        seed,
-        teams: [
-          { name: 'Garlic Gang', color: '#ef4b3c', controller: 'human', aiLevel: 'normal', buddyNames: ['Clovis', 'Aioli'] },
-          { name: 'Clove Crew', color: '#3d8bfd', controller: 'human', aiLevel: 'normal', buddyNames: ['Chive', 'Sprout'] },
-        ],
-        turnTime: 120,
-        retreatTime: 3,
-        windMax: 0,
-        crates: 0,
-        suddenDeath: 0,
-        arsenal: 'all',
-        theme,
-      }),
-    [`clip-${clip.id}`, clip.theme],
-  );
-  await page.evaluate(() => window.__allium.setManual(true));
-  await page.evaluate(() => {
-    const app = window.__allium.app;
-    for (let k = 0; k < 600 && app.game.phase !== 'aiming'; k++) app.fastForward(1 / 60);
-  });
-  await frames(20);
-}
-
-/** Point the buddy at the nearest enemy and set the weapon up, optionally walking in close first. */
-async function setUp(clip) {
-  await page.evaluate((c) => {
-    const g = window.__allium.app.game;
-    const me = g.activeBuddy;
-    if (c.id === 'homing') {
-      g.terrain.fill((_x, y) => 20 - y);
-      g.buddies.forEach((b, i) => Object.assign(b.body, { x: b.team === me.team ? 40 + i : 80 + i, y: 20.65, vx: 0, vy: 0, grounded: true }));
-      g.crates.push({ id: 9999, kind: 'weapon', weapon: 'homing', body: { ...me.body, radius: 0.45 } });
-      g.simulate(0.1);
-    }
-    const enemy = g.buddies.filter((b) => b.team !== me.team).sort((a, b) => Math.abs(a.body.x - me.body.x) - Math.abs(b.body.x - me.body.x))[0];
-    const dir = enemy.body.x < me.body.x ? -1 : 1;
-    // Melee has to be within arm's reach, so put the buddy there rather than filming it walk.
-    if (c.close) me.body.x = enemy.body.x - dir * c.close;
-    g.selectWeapon(c.id);
-    g.face(dir);
-    if (c.id === 'homing') g.targetBuddy(enemy.id);
-    if (c.aim !== undefined) me.aim = c.aim;
-    window.__alliumClip = { target: enemy.body.x, x: me.body.x, y: me.body.y };
-  }, clip);
-}
-
-/** Pull the trigger, in whichever way this weapon is triggered. */
-async function pull(clip) {
-  if (clip.strike) {
-    await page.evaluate(() => window.__allium.app.game.strike(window.__alliumClip.target));
-    return;
-  }
-  if (clip.teleport) {
-    await page.evaluate(() => {
-      const g = window.__allium.app.game;
-      const spot = window.__alliumClip;
-      // Somewhere clearly elsewhere, and somewhere the buddy actually fits.
-      for (const dx of [26, -26, 34, -34, 18, -18]) {
-        if (g.canTeleportTo(spot.x + dx, spot.y + 6)) {
-          g.teleportTo(spot.x + dx, spot.y + 6);
-          return;
-        }
-      }
-    });
-    return;
-  }
-  if (clip.platform) {
-    await page.evaluate(() => {
-      const g = window.__allium.app.game;
-      const spot = window.__alliumClip;
-      for (const dy of [5, 7, 9]) g.placePlatform({ x: spot.x + 6, y: spot.y + dy, angle: 0.2 });
-    });
-    return;
-  }
-  await page.evaluate(() => window.__allium.app.game.pressFire());
-  if (clip.id === 'jetpack') {
-    await page.keyboard.down('ArrowUp');
-    await page.keyboard.down('ArrowRight');
-  }
-  if (clip.hold) await frames(clip.hold);
-  await page.evaluate(() => window.__allium.app.game.releaseFire());
-}
-
-/** A moment on the buddy with the weapon in its hands, before anything happens to look at. */
-const PREROLL = 5;
-
-/** Film the clip into `dir`, running whatever it asked for part-way through. */
-async function film(clip, dir, from = 0) {
-  for (let k = from; k < clip.frames; k++) {
-    if (clip.after && k === clip.after[0] && clip.after[1] === 'glide') {
-      await page.keyboard.up('ArrowUp');
-      await page.keyboard.up('ArrowRight');
-    } else if (clip.after && k === clip.after[0]) {
-      await page.evaluate(() => {
-        const g = window.__allium.app.game;
-        g.pressFire();
-        g.releaseFire();
-      });
-    }
-    await frames(1);
-    await page.screenshot({ path: join(dir, `f${String(k).padStart(4, '0')}.png`) });
-  }
-}
-
-function encode(dir, id) {
-  const palette = join(dir, 'palette.png');
-  const scale = `scale=${WIDTH}:-1:flags=lanczos`;
-  const common = ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(dir, 'f%04d.png')];
-  execFileSync('ffmpeg', [...common, '-vf', `${scale},palettegen=max_colors=${COLORS}:stats_mode=diff`, palette]);
-  execFileSync('ffmpeg', [
-    ...common,
-    '-i',
-    palette,
-    '-lavfi',
-    `${scale}[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`,
-    `${out}/${id}.gif`,
-  ]);
-}
-
+const capture = await openCapture(url);
+const { page } = capture;
 mkdirSync(out, { recursive: true });
 const wanted = only.length ? CLIPS.filter((c) => only.includes(c.id)) : CLIPS;
-let total = 0;
-for (const clip of wanted) {
-  const dir = mkdtempSync(join(tmpdir(), `allium-${clip.id}-`));
-  try {
-    await match(clip);
-    await setUp(clip);
-    await film({ ...clip, frames: PREROLL, after: null }, dir);
-    await pull(clip);
-    await film(clip, dir, PREROLL);
-    encode(dir, clip.id);
-    const size = statSync(`${out}/${clip.id}.gif`).size;
-    total += size;
-    console.log(`${clip.id.padEnd(14)} ${clip.frames} frames  ${(size / 1024).toFixed(0)} kB`);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
+assert.equal(wanted.length, only.length || CLIPS.length, 'unknown or repeated weapon id');
+try {
+  for (const clip of wanted) {
+    const dir = mkdtempSync(join(tmpdir(), `allium-${clip.id}-`));
+    try {
+      await startMatch(page, `clip-${clip.id}`, clip.theme);
+      await page.evaluate((c) => {
+        const h = window.__allium,
+          g = h.app.game,
+          me = g.activeBuddy,
+          enemy = g.buddies[1];
+        if (c.id === 'homing') {
+          enemy.body.x = 80;
+          g.crates.push({ id: 9999, kind: 'weapon', weapon: 'homing', body: { ...me.body, radius: 0.45 } });
+          h.fastForward(0.1);
+        }
+        if (c.close) enemy.body.x = me.body.x + c.close;
+        if (['shotgun', 'minigun'].includes(c.id)) enemy.body.x = 49;
+        if (c.close) g.terrain.fill((x, y) => Math.max(20 - y, Math.min(0.4 - Math.abs(x - 42.4), 24 - y)));
+        if (c.id === 'selfdestruct') enemy.body.x = me.body.x + 4;
+        if (c.id === 'torch') {
+          g.terrain.fill((x, y) => Math.max(20 - y, Math.min(1 - Math.abs(x - 44), 22.5 - y)));
+          enemy.body.x = 60;
+        }
+        if (c.id === 'rope') for (let x = 30; x <= 65; x++) g.terrain.addDisc(x, 34, 1.5);
+        if (c.id === 'drill') g.terrain.carve(40, 12, 4);
+        g.selectWeapon(c.id);
+        g.face(1);
+        me.aim = c.aim ?? 0;
+        window.__captureStart = { x: me.body.x, y: me.body.y, hp: enemy.hp, terrain: g.terrain.solidFraction(), guided: false, airborne: false };
+        window.__captureClipTarget = enemy.body.x;
+      }, clip);
+      await focus(page, clip.id === 'homing' ? 60 : 47, clip.id === 'jetpack' ? 29 : 24, clip.id === 'homing' ? 72 : clip.id === 'jetpack' ? 52 : 40);
+      for (let k = 0; k < 5; k++) {
+        await frames(page);
+        await recordFrame(page, dir, k);
+      }
+      await page.evaluate((c) => {
+        const h = window.__allium,
+          g = h.app.game,
+          me = g.activeBuddy;
+        if (c.strike) {
+          g.setStrikeDir(1);
+          g.strike(window.__captureClipTarget);
+        } else if (c.teleport) g.teleportTo(52, 28);
+        else if (c.platform) g.placePlatform({ x: 46, y: 24, angle: 0.2 });
+        else {
+          if (c.id === 'homing') g.targetBuddy(g.buddies[1].id);
+          g.pressFire();
+        }
+        if (c.id === 'jetpack') g.input.up = true;
+        if (c.id === 'rope') {
+          g.input.up = true;
+          g.input.right = true;
+        }
+        // Instant weapons ignore release; charged projectiles retain it until their hold expires.
+        if (!c.hold) g.releaseFire();
+        me.facing = 1;
+        h.fastForward(0);
+      }, clip);
+      if (clip.id === 'jetpack' || clip.id === 'rope') await page.keyboard.down('ArrowUp');
+      if (clip.id === 'rope') await page.keyboard.down('ArrowRight');
+      for (let k = 5; k < clip.frames; k++) {
+        if (clip.id === 'rope' && k === 30) await page.keyboard.up('ArrowUp');
+        if (clip.id === 'rope' && k === 45) await page.keyboard.up('ArrowRight');
+        if (clip.id === 'jetpack' && k === 65) await page.keyboard.up('ArrowUp');
+        await page.evaluate(
+          ([c, k]) => {
+            const g = window.__allium.app.game;
+            if (c.hold && k === 5 + c.hold) g.releaseFire();
+            if (c.after && k === c.after[0]) {
+              g.pressFire();
+              g.releaseFire();
+            }
+            if (c.id === 'shotgun' && k === 14) {
+              g.pressFire();
+              g.releaseFire();
+            }
+            if (c.id === 'rope' && k === 30) g.input.up = false;
+            if (c.id === 'rope' && k === 45) {
+              g.input.right = false;
+              g.pressFire();
+              g.releaseFire();
+            }
+            if (c.id === 'jetpack') {
+              g.input.up = k < 65;
+              // After showing fuel exhaustion, skip uneventful descent, preserving ordinary physics.
+              if (k === 80) window.__allium.fastForward(20);
+            }
+            if (c.id === 'mine' && k === 30) g.buddies[1].body.x = 41;
+            const s = window.__captureStart;
+            s.guided ||= g.projectiles.some((p) => p.weapon === 'homing' && p.age >= 3);
+            s.airborne ||= c.id === 'jetpack' && g.activeBuddy.body.y > s.y + 3;
+            s.attached ||= g.rope?.state === 'attached';
+          },
+          [clip, k],
+        );
+        await frames(page);
+        await recordFrame(page, dir, k);
+      }
+      await page.keyboard.up('ArrowUp');
+      await page.keyboard.up('ArrowRight');
+      const result = await page.evaluate((id) => {
+        const g = window.__allium.app.game;
+        return {
+          id,
+          events: window.__captureEvents.map((e) => e.type),
+          start: window.__captureStart,
+          x: g.buddies[0].body.x,
+          y: g.buddies[0].body.y,
+          hp: g.buddies[1].hp,
+          phase: g.phase,
+          platforms: g.terrain.platforms.length,
+        };
+      }, clip.id);
+      const required = clip.strike
+        ? 'airstrike'
+        : clip.platform
+          ? 'platformPlaced'
+          : clip.teleport
+            ? 'teleport'
+            : clip.id === 'surrender'
+              ? 'turnStart'
+              : clip.id === 'rope'
+                ? 'ropeBite'
+                : clip.id === 'mine'
+                  ? 'mineTriggered'
+                  : 'fire';
+      assert.ok(result.events.includes(required), `${clip.id}: missing ${required}`);
+      if (clip.id === 'homing') {
+        assert.ok(result.start.guided, 'homing phase recorded');
+        assert.ok(result.hp < result.start.hp, 'homing target hit');
+      }
+      if (clip.id === 'jetpack') {
+        assert.ok(result.start.airborne, 'jetpack rose');
+        assert.equal(result.phase, 'aiming', 'jetpack landed');
+      }
+      if (clip.id === 'rope') {
+        assert.ok(result.events.includes('ropeRelease'), 'rope released');
+        assert.equal(result.phase, 'aiming', 'rope landing recorded');
+      }
+      if (['shotgun', 'minigun', 'punch', 'bat'].includes(clip.id)) assert.ok(result.hp < result.start.hp, `${clip.id}: actual damage`);
+      if (['bazooka', 'grenade', 'cluster', 'banana', 'holy', 'ming', 'sheep', 'flysheep', 'mule', 'airstrike', 'napalm', 'selfdestruct'].includes(clip.id))
+        assert.ok(result.events.includes('explosion'), `${clip.id}: no explosion recorded`);
+      capture.check();
+      encodeGif(dir, `${out}/${clip.id}.gif`);
+      console.log(`${clip.id}: ${clip.frames} frames, ${Math.round(statSync(`${out}/${clip.id}.gif`).size / 1024)} kB; outcomes verified`);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   }
+} finally {
+  await capture.browser.close();
 }
-console.log(`${wanted.length} clips, ${(total / 1024 / 1024).toFixed(1)} MB total`);
-
-await browser.close();

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { hotkeyLabel, WEAPON_ORDER, WEAPONS, type WeaponId } from '../src/core/weapons';
 
@@ -183,5 +183,27 @@ describe('every document', () => {
       if (table.length) check();
     }
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('local documentation links', () => {
+  it('resolves Markdown, reference and HTML file/image targets, including historical documents', () => {
+    const broken: string[] = [];
+    for (const path of documents()) {
+      const body = readFileSync(path, 'utf8').replace(/```[\s\S]*?```/g, '');
+      const targets = [
+        ...[...body.matchAll(/\[[^\]]*\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g)].map((m) => m[1]),
+        ...[...body.matchAll(/(?:src|href)=["']([^"']+)["']/g)].map((m) => m[1]),
+        ...[...body.matchAll(/^\[[^\]]+\]:\s*(\S+)/gm)].map((m) => m[1]),
+      ];
+      for (const target of targets) {
+        if (/^(?:[a-z][\w+.-]*:|#|\/\/)/i.test(target)) continue;
+        const file = decodeURIComponent(target.split(/[?#]/)[0]);
+        if (!file) continue;
+        const actual = file.startsWith('/') ? resolve(file.slice(1)) : resolve(dirname(path), file);
+        if (!existsSync(actual)) broken.push(`${path}: ${target}`);
+      }
+    }
+    expect(broken).toEqual([]);
   });
 });

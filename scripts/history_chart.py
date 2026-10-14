@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -209,7 +210,7 @@ def draw(history: list[Commit], counts: list[dict[str, int]], coverage: dict[str
         if loss > 500:
             top.axvline(trough, color="#555", linestyle=":", linewidth=1)
             top.annotate(
-                "2D prototype dropped,\n3D game starts here",
+                "Core / renderer\nrewrite",
                 xy=(trough, max(total) * 0.5),
                 xytext=(8, 0),
                 textcoords="offset points",
@@ -234,9 +235,13 @@ def draw(history: list[Commit], counts: list[dict[str, int]], coverage: dict[str
         bottom.legend(loc="lower left", fontsize=9, ncol=4, framealpha=0.9)
     else:
         bottom.text(0.5, 0.5, "no coverage measured yet", ha="center", va="center", transform=bottom.transAxes)
-    bottom.axhline(98, color="#888", linestyle="--", linewidth=1)
+    thresholds = re.findall(r"(?:statements|branches|functions|lines):\s*([0-9.]+)", (ROOT / "vite.config.ts").read_text())
+    if len(thresholds) != 4:
+        raise ValueError("Expected four core coverage thresholds in vite.config.ts")
+    threshold = min(map(float, thresholds))
+    bottom.axhline(threshold, color="#888", linestyle="--", linewidth=1)
     bottom.annotate(
-        "enforced 98%", xy=(0.01, 98), xycoords=("axes fraction", "data"), fontsize=8, color="#666", va="bottom"
+        f"enforced {threshold:g}%", xy=(0.01, threshold), xycoords=("axes fraction", "data"), fontsize=8, color="#666", va="bottom"
     )
     bottom.set_ylabel("core coverage (%)")
     bottom.set_xlabel("commit")

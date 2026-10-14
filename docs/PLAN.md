@@ -82,3 +82,25 @@ requires safe grounded route completion and checks retreat terrain before walkin
 fire remains active without earning enemy-kill awards. Coverage is enforced above 98% with a
 98.1% threshold for all four core metrics. Firefox fire audit and screenshots are retained.
 The authorized final release tag publishes the static build, checksum and playable Pages site.
+
+## Media and documentation refresh — execution plan (T160–T163)
+
+1. **Audit (completed).** Review every tracked Markdown document and media reference against
+   current source, settings and release facts. Keep dated history accurate; label historical
+   material and repair its links rather than rewriting the past.
+2. **Capture tooling (completed).** Use deterministic scenes and real game actions. Assert that each weapon
+   actually acts, report browser errors, and record capture provenance. Add scripted feature
+   clips for terrain families, allied factions, rising water and improved AI where useful.
+3. **Regenerate media (completed).** Refresh every game screenshot, all weapon GIFs, the battle GIF, Firefox
+   evidence, the history chart and social video/poster assets against the current production build.
+   Inspect representative frames and check frame counts, durations and referenced files.
+4. **Update documentation (completed).** Correct stale gameplay, controls, architecture, testing, performance,
+   media instructions and document indexes. Check local links across all Markdown, including
+   archives and social copy; document the review and remaining limits.
+5. **Verify and deliver.** Run the full verification and REUSE gates, review the complete diff,
+   commit a versioned documentation/media refresh, push it and confirm GitHub CI.
+
+Capture review also found unreadable faction-name fields (T163). Explicit dark input styling and
+a browser contrast check fix the issue; setup images and faction/social clips are recaptured.
+All 56 assets have decoded format/hash records, and all 23 Markdown documents are reviewed.
+The final delivery gate verifies the exact staged tree before committing and pushing 1.83.2.
