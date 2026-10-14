@@ -199,7 +199,10 @@ export class Hud {
 
     // Top: turn card, timer, wind.
     if (team && active) {
-      this.text('.turn-team', team.config.name);
+      const faction = g.factionOf(team.index);
+      const customName = g.config.factions?.[faction] ?? '';
+      const factionName = customName.length > 0 ? customName : t('setup.factionNumber', { n: faction + 1 });
+      this.text('.turn-team', `${team.config.name}${g.config.tagTeams ? ` · ${factionName}` : ''}`);
       this.text('.turn-buddy', `${active.name} · ${Math.ceil(active.hp)} HP`);
       query(this.el, '.turn-card').style.setProperty('--team', team.config.color);
     }

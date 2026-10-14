@@ -170,7 +170,7 @@ Status: ☐ open · ☑ done
 | T155 | Punch and bat damage destructible walls; preserve indestructible arena walls                                    | ☑      | 1.80.1         |
 | T156 | Redesign seeded terrain: solid plains, cave-free hills, clustered islands and mixed caves; preview walls        | ☑      | 1.80.0         |
 | T157 | Crate-only homing rocket: target enemy, three ballistic seconds, then straight homing blocked by terrain        | ☑      | 1.82.0         |
-| T158 | Optional tag-team factions: editable names, shared victory, separate turns/inventory, friendly fire             | ☐      | —              |
+| T158 | Optional tag-team factions: editable names, shared victory, separate turns/inventory, friendly fire             | ☑      | 1.83.0         |
 | T159 | Update agent guidance, atomic verified commits, then publish the completed batch as a public release            | ☐      | —              |
 
 ## Current implementation plan

@@ -26,6 +26,8 @@ export interface TeamConfig {
   controller: Controller;
   aiLevel: AiLevel;
   buddyNames: string[];
+  /** Alliance slot, only interpreted when tagTeams is enabled. */
+  faction?: number;
 }
 
 export interface MatchConfig {
@@ -58,6 +60,8 @@ export interface MatchConfig {
    */
   walled?: boolean;
   theme: string;
+  tagTeams?: boolean;
+  factions?: string[];
 }
 
 export interface GameOverrides {

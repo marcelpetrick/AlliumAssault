@@ -395,3 +395,11 @@ publish unless the tag matches the version in `package.json`.
 Homing rockets carry a buddy id in projectile state. After three ballistic seconds they steer
 directly towards the living target, with the same swept terrain/body/crate collisions as other
 rockets. Target loss preserves the last heading; AI simulates the same guidance before firing.
+
+## Tag-team factions
+
+Optional and off by default. Setup assigns each team to a named faction; names and assignments
+persist with the rest of the match settings. Each team retains its turns and inventory. When only
+one faction survives, every team in it wins, including allies eliminated earlier. Friendly fire
+remains active; AI avoids allied targets and the scoreboard counts allied damage as friendly fire.
+At least two opposing factions are required to start.

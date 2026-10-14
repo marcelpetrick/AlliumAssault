@@ -48,6 +48,10 @@ const EN = {
   'setup.textSize': 'Text size',
   'setup.arsenal': 'Arsenal',
   'setup.gravity': 'Gravity',
+  'setup.tagTeams': 'Tag-team factions',
+  'setup.faction': 'Faction',
+  'setup.factionNumber': 'Faction {n}',
+  'setup.needFactions': 'Choose at least two opposing factions.',
   'setup.walled': 'Walled Landscape',
   'setup.walledHint':
     'An indestructible wall round the arena: nothing falls off the edge and every shot stays in play. Aircraft stay away, so no air strike and no napalm. Sudden Death still floods it.',
@@ -105,7 +109,7 @@ const EN = {
   // Help
   'help.heading': 'How to Play',
   'help.lead':
-    'Teams take turns. Walk your garlic buddy into position, pick a weapon, aim, and blast the enemy — then retreat before the smoke clears. Water is deadly, falls hurt, and the last team standing wins.',
+    'Teams take turns. Walk your garlic buddy into position, pick a weapon, aim, and blast the enemy — then retreat before the smoke clears. Water is deadly, falls hurt, and the last surviving team or faction wins.',
   'help.unlimited': 'unlimited',
   'help.perTeam': '{n} per team',
   'help.perCrate': '{n} per crate',
@@ -297,6 +301,10 @@ const DE: Catalogue = {
   'setup.textSize': 'Schriftgröße',
   'setup.arsenal': 'Arsenal',
   'setup.gravity': 'Schwerkraft',
+  'setup.tagTeams': 'Team-Allianzen',
+  'setup.faction': 'Fraktion',
+  'setup.factionNumber': 'Fraktion {n}',
+  'setup.needFactions': 'Wähle mindestens zwei gegnerische Fraktionen.',
   'setup.walled': 'Ummauerte Landschaft',
   'setup.walledHint':
     'Eine unzerstörbare Mauer rund um die Arena: Niemand fällt heraus, und jeder Schuss bleibt im Spiel. Flugzeuge bleiben weg, also kein Luftangriff und kein Napalm. Der Sudden-Death-Pegel steigt trotzdem.',
@@ -351,7 +359,7 @@ const DE: Catalogue = {
 
   'help.heading': 'Spielanleitung',
   'help.lead':
-    'Die Teams sind abwechselnd dran. Bring deine Knoblauchknolle in Stellung, wähle eine Waffe, ziele und jag den Gegner in die Luft — und zieh dich zurück, bevor sich der Rauch legt. Wasser ist tödlich, Stürze tun weh, und wer zuletzt steht, gewinnt.',
+    'Die Teams sind abwechselnd dran. Bring deine Knoblauchknolle in Stellung, wähle eine Waffe, ziele und jag den Gegner in die Luft — und zieh dich zurück, bevor sich der Rauch legt. Wasser ist tödlich, Stürze tun weh, und das letzte überlebende Team oder Bündnis gewinnt.',
   'help.unlimited': 'unbegrenzt',
   'help.perTeam': '{n} pro Team',
   'help.perCrate': '{n} pro Kiste',
@@ -544,6 +552,10 @@ const HR: Catalogue = {
   'setup.textSize': 'Veličina slova',
   'setup.arsenal': 'Arsenal',
   'setup.gravity': 'Gravitacija',
+  'setup.tagTeams': 'Ekipe u savezu',
+  'setup.faction': 'Savez',
+  'setup.factionNumber': 'Savez {n}',
+  'setup.needFactions': 'Izaberi bar dva suprotna saveza.',
   'setup.walled': 'Ograđeni teren',
   'setup.walledHint':
     'Neuništivi zid oko arene: niko ne ispada van, i svaki hitac ostaje u igri. Avioni ne dolaze, pa nima zračnog napada ni napalma. Voda kod iznenadne smrti svejedno raste.',
@@ -598,7 +610,7 @@ const HR: Catalogue = {
 
   'help.heading': 'Kako se igra',
   'help.lead':
-    'Ekipe idu na smine. Dovedi svoju glavicu di triba, uzmi oružje, nacilja i raznesi protivnika — pa se povuci prin nego se dim slegne. More ubija, pad boli, a dobiva ona ekipa šta ostane zadnja na nogan.',
+    'Ekipe idu na smine. Dovedi svoju glavicu di triba, uzmi oružje, nacilja i raznesi protivnika — pa se povuci prin nego se dim slegne. More ubija, pad boli, a dobiva zadnja ekipa ili savez na nogan.',
   'help.unlimited': 'bez kraja',
   'help.perTeam': '{n} po ekipi',
   'help.perCrate': '{n} po kutiji',
@@ -786,6 +798,10 @@ const ZH: Catalogue = {
   'setup.textSize': '字号',
   'setup.arsenal': '武器库',
   'setup.gravity': '重力',
+  'setup.tagTeams': '组队阵营',
+  'setup.faction': '阵营',
+  'setup.factionNumber': '阵营 {n}',
+  'setup.needFactions': '请至少设置两个对立阵营。',
   'setup.walled': '围墙地形',
   'setup.walledHint': '竞技场四周有一堵不可摧毁的墙：没人会掉出去，每一发子弹都留在场内。飞机不再出现，因此没有空袭和凝固汽油弹。突然死亡的水位照样上涨。',
   'setup.suddenDeath': '绝命时刻',
@@ -838,7 +854,7 @@ const ZH: Catalogue = {
   'stats.survivors': '幸存',
 
   'help.heading': '玩法说明',
-  'help.lead': '两队轮流行动。把你的蒜头走到位置上，选一件武器，瞄准，把对手炸飞——然后趁烟还没散赶紧撤。水会要命，摔下来会疼，最后站着的那一队获胜。',
+  'help.lead': '各队轮流行动。把你的蒜头走到位置上，选一件武器，瞄准，把对手炸飞——然后趁烟还没散赶紧撤。水会要命，摔下来会疼，最后存活的队伍或阵营获胜。',
   'help.unlimited': '无限',
   'help.perTeam': '每队 {n} 发',
   'help.perCrate': '每箱 {n} 发',

@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.0] — 2026-10-13
+
+- Add optional tag-team factions, off by default, with editable names and per-team assignments.
+- Keep team turns and inventories separate, retain friendly fire, and award shared victory to the
+  surviving faction, including allied teams eliminated earlier. Single teams may form a faction.
+- Persist validated assignments/names and show the faction in the HUD and victory screen.
+- Prevent setup from starting an all-allied match with no opponents; translate the explanation.
+- Teach AI to value faction allies as friends and avoid firing direct guns through them.
+- Wrap long team/faction names so the timer and pause controls stay visible at Huge text size.
+- Verify free-for-all compatibility, draws, ally elimination, friendly damage, independent ammo,
+  target rejection and the complete setup/persistence/shared-victory browser flow.
+
 ## [1.82.0] — 2026-10-13
 
 - Add the crate-only Homing Rocket on H, with one shot per pickup and no ordinary starting ammo.

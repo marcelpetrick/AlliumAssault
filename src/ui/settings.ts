@@ -138,6 +138,8 @@ export function parseSettings(raw: string): Settings | null {
       SUDDEN_DEATH_OPTIONS.map((o) => o.value),
       d.suddenDeath ?? 0,
     ),
+    tagTeams: m.tagTeams === true,
+    factions: Array.from({ length: 4 }, (_, i) => (Array.isArray(m.factions) && typeof m.factions[i] === 'string' ? m.factions[i].trim().slice(0, 24) : '')),
     walled: typeof m.walled === 'boolean' ? m.walled : (d.walled ?? false),
     gravity: pick(
       m.gravity,
@@ -179,6 +181,7 @@ function parseTeam(value: unknown): TeamConfig | null {
     controller: pick(controller, CONTROLLERS, 'human'),
     aiLevel: pick(aiLevel, AI_LEVELS, 'normal'),
     buddyNames: names,
+    faction: typeof value.faction === 'number' && Number.isInteger(value.faction) && value.faction >= 0 && value.faction < 4 ? value.faction : undefined,
   };
 }
 

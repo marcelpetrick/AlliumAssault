@@ -192,13 +192,14 @@ export function scoreWeapon(game: Game, me: Buddy, x: number, y: number, def: We
  */
 function enemyWeight(game: Game, me: Buddy, enemy: Buddy, know: AiKnowledge): number {
   if (!know.focus) return 1;
-  const rivals = game.teams.filter((t) => t.index !== me.team && t.buddies.some((b) => b.alive));
+  const rivals = game.teams.filter((t) => !game.allied(t.index, me.team) && t.buddies.some((b) => b.alive));
   if (rivals.length < 2) return 1;
   const health = (team: (typeof rivals)[number]) => team.buddies.reduce((sum, b) => sum + (b.alive ? Math.max(0, b.hp) : 0), 0);
   const total = rivals.reduce((sum, t) => sum + health(t), 0) || 1;
-  const mine = game.teams[enemy.team];
-  const lastOne = mine.buddies.filter((b) => b.alive).length === 1;
-  return 1 + (health(mine) / total - 1 / rivals.length) + (lastOne ? LAST_BUDDY_BONUS : 0);
+  const mine = rivals.filter((t) => game.allied(t.index, enemy.team));
+  const lastOne = mine.reduce((n, t) => n + t.buddies.filter((b) => b.alive).length, 0) === 1;
+  const groups = new Set(rivals.map((t) => game.factionOf(t.index))).size;
+  return 1 + (mine.reduce((n, t) => n + health(t), 0) / total - 1 / groups) + (lastOne ? LAST_BUDDY_BONUS : 0);
 }
 
 /**
@@ -263,7 +264,7 @@ function addBlast(game: Game, me: Buddy, tally: Tally, x: number, y: number, rad
       const ny = dist > 1e-3 ? dy / dist : 1;
       if (shovedOut(game, b, nx * force * falloff, ny * force * falloff + force * 0.35 * falloff)) value = b.hp;
     }
-    if (b.team === me.team) tally.loss += value * (b.id === me.id ? SELF_WEIGHT : FRIEND_WEIGHT);
+    if (game.allied(b.team, me.team)) tally.loss += value * (b.id === me.id ? SELF_WEIGHT : FRIEND_WEIGHT);
     else tally.gain += (value + (value >= b.hp ? KILL_BONUS : 0)) * enemyWeight(game, me, b, know);
   }
 }
@@ -273,7 +274,7 @@ export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: Wea
   const tally: Tally = { gain: 0, loss: 0 };
   let nearestEnemy = Infinity;
   for (const b of game.buddies) {
-    if (!b.alive || b.team === me.team) continue;
+    if (!b.alive || game.allied(b.team, me.team)) continue;
     nearestEnemy = Math.min(nearestEnemy, Math.max(0, Math.hypot(b.body.x - x, b.body.y - y) - BUDDY_RADIUS * 0.5));
   }
   addBlast(game, me, tally, x, y, def.radius, def.damage, def.force, know);
@@ -299,8 +300,7 @@ export function scoreBlast(game: Game, me: Buddy, x: number, y: number, def: Wea
  * Choose the best attack for `me`. With `only` set, just that weapon is considered — used when a
  * multi-shot weapon is already in use and cannot be switched.
  *
- * The rope is deliberately absent: rope path planning is its own problem and is not part of this
- * release. Nothing here can pick the `rope` kind up, so an AI never strands itself holding one.
+ * Rope is planned separately as a complete traversal to supplies, rather than valued as an attack.
  */
 export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only?: WeaponId, history: WeaponHistory = NO_HISTORY): AttackPlan {
   const cfg = LEVELS[level];
@@ -324,7 +324,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const scarcity = (payloadWeight(WEAPONS[weapon]) * SCARCITY_SHARE) / Math.max(1, left);
     return LIMITED_COST + scarcity + repeats * REPEAT_COST;
   };
-  const enemies = game.buddies.filter((b) => b.alive && b.team !== me.team);
+  const enemies = game.buddies.filter((b) => b.alive && !game.allied(b.team, me.team));
   const nearest = enemies.reduce<Buddy | null>((best, b) => (!best || Math.abs(b.body.x - me.body.x) < Math.abs(best.body.x - me.body.x) ? b : best), null);
   const directAim = (target: Buddy) => clamp(Math.atan2(target.body.y - me.body.y, Math.abs(target.body.x - me.body.x)), AIM_MIN, AIM_MAX);
   let best: AttackPlan = {
@@ -432,7 +432,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
     const def = WEAPONS.mine;
     const reach = Math.hypot(nearest.body.x - me.body.x, nearest.body.y - me.body.y);
     const friendClose = game.buddies.some(
-      (b) => b.alive && b.id !== me.id && b.team === me.team && Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) < MINE_TRIGGER_RANGE * 1.5,
+      (b) => b.alive && b.id !== me.id && game.allied(b.team, me.team) && Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) < MINE_TRIGGER_RANGE * 1.5,
     );
     const score = def.damage * Math.max(0, 1 - reach / MINE_BAIT_RANGE) * enemyWeight(game, me, nearest, know) - MINE_COST - (friendClose ? def.damage : 0);
     const facing: 1 | -1 = nearest.body.x < me.body.x ? -1 : 1;
@@ -448,7 +448,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const reach = Math.max(0, Math.hypot(b.body.x - me.body.x, b.body.y - me.body.y) - BUDDY_RADIUS * 0.5);
       if (reach >= blast.radius) continue;
       const dmg = blast.damage * (1 - reach / blast.radius);
-      score += b.team === me.team ? -dmg * FRIEND_WEIGHT : (dmg + (dmg >= b.hp ? KILL_BONUS : 0)) * enemyWeight(game, me, b, know);
+      score += game.allied(b.team, me.team) ? -dmg * FRIEND_WEIGHT : (dmg + (dmg >= b.hp ? KILL_BONUS : 0)) * enemyWeight(game, me, b, know);
     }
     if (score > best.score) best = { weapon: 'selfdestruct', facing: best.facing, aim: me.aim, power: 1, score };
   }
@@ -467,7 +467,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const score = (def.damage + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) + 5 - pickCost(weapon);
       if (score > best.score) best = { weapon, facing, aim, power: 1, score };
     }
-    if (allowed('minigun') && dist < WEAPONS.minigun.range && lineOfSight(game, me, enemy)) {
+    if (allowed('minigun') && dist < WEAPONS.minigun.range && clearShot(game, me, enemy)) {
       const def = WEAPONS.minigun;
       const { count } = defined(def.burst, 'minigun burst');
       const aim = directAim(enemy);
@@ -478,7 +478,7 @@ export function planAttack(game: Game, me: Buddy, level: AiLevel, rng: Rng, only
       const score = (def.damage * hits + (lethal ? enemy.hp + KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - 10 - pickCost('minigun');
       if (score > best.score) best = { weapon: 'minigun', facing, aim, power: 1, score };
     }
-    if (allowed('shotgun') && dist < WEAPONS.shotgun.range && lineOfSight(game, me, enemy)) {
+    if (allowed('shotgun') && dist < WEAPONS.shotgun.range && clearShot(game, me, enemy)) {
       const damage = WEAPONS.shotgun.damage * 2;
       const score = (damage * 0.9 + (enemy.hp <= damage ? KILL_BONUS : 0)) * enemyWeight(game, me, enemy, know) - pickCost('shotgun');
       if (score > best.score) best = { weapon: 'shotgun', facing, aim: directAim(enemy), power: 1, score };
@@ -524,6 +524,20 @@ function lineOfSight(game: Game, me: Buddy, target: Buddy): boolean {
     if (game.terrain.isSolid(me.body.x + (dx / dist) * d, me.body.y + (dy / dist) * d)) return false;
   }
   return true;
+}
+
+/** A direct shot must clear allied bodies as well as rock. */
+function clearShot(game: Game, me: Buddy, target: Buddy): boolean {
+  if (!lineOfSight(game, me, target)) return false;
+  const dx = target.body.x - me.body.x;
+  const dy = target.body.y - me.body.y;
+  const length = Math.hypot(dx, dy);
+  return !game.buddies.some((b) => {
+    if (!b.alive || b.id === me.id || !game.allied(b.team, me.team)) return false;
+    const along = ((b.body.x - me.body.x) * dx + (b.body.y - me.body.y) * dy) / length;
+    const across = Math.abs((b.body.x - me.body.x) * dy - (b.body.y - me.body.y) * dx) / length;
+    return along > 0 && along < length && across < b.body.radius + 0.1;
+  });
 }
 
 /** How deep the drill gets in one use, roughly. */
@@ -685,7 +699,7 @@ export class AiDriver {
   /** Home the flying sheep in on the nearest enemy: climb over obstacles first, then dive. */
   private steerFlyer(game: Game, f: Flyer, me: Buddy): void {
     const target = game.buddies
-      .filter((b) => b.alive && b.team !== me.team)
+      .filter((b) => b.alive && !game.allied(b.team, me.team))
       .reduce<Buddy | null>(
         (best, b) => (!best || Math.hypot(b.body.x - f.x, b.body.y - f.y) < Math.hypot(best.body.x - f.x, best.body.y - f.y) ? b : best),
         null,

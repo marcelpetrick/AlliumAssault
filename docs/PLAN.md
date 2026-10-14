@@ -57,7 +57,7 @@ straight line, with ordinary swept collision against walls, buddies and crates. 
 is gone, continue straight. Never fly through intervening rock. Give AI a target-aware simulation,
 show the selected target, translate instructions and test timing, walls, target loss and crate use.
 
-## 7. Tag-team factions (T158)
+## 7. Tag-team factions (T158 — delivered in 1.83.0)
 
 Optional mode, off by default. Assign teams to editable factions in setup; a single team can be its
 own faction. Keep normal team turns and inventories. All living teams in one faction win together

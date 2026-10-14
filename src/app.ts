@@ -12,6 +12,7 @@ import type { Quality } from './render/quality';
 import { World } from './render/world';
 import { Hud } from './ui/hud';
 import { Menu } from './ui/menu';
+import { t } from './ui/i18n';
 import { demoMatch, randomSeed } from './ui/presets';
 
 const STEP = 1 / 60;
@@ -288,7 +289,18 @@ export class App {
     }
     const winner = game.winner === null ? null : game.teams[game.winner].config;
     this.audio.play('victory');
-    this.menu.showVictory(winner && { name: winner.name, color: winner.color }, game.turn, game.summary());
+    const faction = game.winner === null ? null : game.factionOf(game.winner);
+    const customName = faction === null ? '' : (game.config.factions?.[faction] ?? '');
+    const name = game.config.tagTeams && faction !== null ? (customName.length > 0 ? customName : t('setup.factionNumber', { n: faction + 1 })) : winner?.name;
+    this.menu.showVictory(
+      winner && {
+        name: name ?? winner.name,
+        color: winner.color,
+        members: game.config.tagTeams ? game.winnerTeams.map((i) => game.teams[i].config.name) : undefined,
+      },
+      game.turn,
+      game.summary(),
+    );
   }
 
   private dispatch(events: GameEvent[]): void {
@@ -552,6 +564,10 @@ export class App {
       choosingApproach: g?.choosingApproach ?? false,
       lastStrike: this.lastStrike,
       winner: g?.winner ?? null,
+      winnerTeams: g?.winnerTeams ?? [],
+      factions: g?.config.tagTeams
+        ? g.teams.map((team) => ({ team: team.index, faction: g.factionOf(team.index), name: g.config.factions?.[g.factionOf(team.index)] ?? null }))
+        : null,
       terrainRevision: g?.terrain.revision ?? 0,
       platforms: g?.terrain.platforms ?? [],
       waterLevel: g?.terrain.waterLevel ?? 0,

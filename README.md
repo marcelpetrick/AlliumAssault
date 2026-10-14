@@ -104,6 +104,9 @@ the pixel density is halved.
   before it can act hands the turn straight on.
 - **Tombstones** — fallen buddies leave a comic R.I.P. tombstone with their name that explosions
   knock around.
+- **Tag-team factions** — optionally assign teams to named factions in setup. Allies share victory
+  while keeping their own turns and inventories; friendly fire remains active. Single teams may
+  form their own faction. Disabled by default.
 - **Hot-seat and AI** — mix human and AI teams freely; AI (easy / normal / hard) simulates real
   trajectories to find its shots.
 - **Five sceneries** — Garlic Meadow, Golden Sunset, Moonlit Grove, Candy Shop (lollipop trees,

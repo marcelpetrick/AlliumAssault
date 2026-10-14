@@ -143,6 +143,15 @@ export class Menu {
       </div>`;
   }
 
+  private factionName(index: number): string {
+    const name = this.draft.factions?.[index] ?? '';
+    return name.length > 0 ? name : t('setup.factionNumber', { n: index + 1 });
+  }
+
+  private alliedOnly(): boolean {
+    return !!this.draft.tagTeams && new Set(this.draft.teams.map((team, i) => team.faction ?? i)).size < 2;
+  }
+
   showSetup(): void {
     this.screen = 'setup';
     const d = this.draft;
@@ -172,6 +181,15 @@ export class Menu {
                   'controller',
                   i,
                 )}
+                ${
+                  d.tagTeams
+                    ? `<label class="field-label">${t('setup.faction')}</label>${segmented(
+                        Array.from({ length: 4 }, (_, f) => ({ label: esc(this.factionName(f)), value: f, on: f === (cfg.faction ?? i) })),
+                        'faction',
+                        i,
+                      )}`
+                    : ''
+                }
                 <label class="field-label">${t('setup.buddies')}</label>
                 <div class="buddies">
                   <div class="stepper">
@@ -191,7 +209,15 @@ export class Menu {
               .join('')}
             ${d.teams.length < 4 ? `<button class="team-card add" data-action="add-team">＋<span>${t('setup.addTeam')}</span></button>` : ''}
           </section>
+          ${d.tagTeams ? `<section class="faction-names">${Array.from({ length: 4 }, (_, i) => `<label>${esc(t('setup.factionNumber', { n: i + 1 }))}<input data-field="faction-name" data-faction="${i}" value="${esc(this.factionName(i))}" maxlength="24" /></label>`).join('')}</section>` : ''}
           <section class="options">
+            <div><label class="field-label">${t('setup.tagTeams')}</label>${segmented(
+              [
+                { label: t('opt.off'), value: 0, on: !d.tagTeams },
+                { label: t('title.on'), value: 1, on: !!d.tagTeams },
+              ],
+              'tag-teams',
+            )}</div>
             <div><label class="field-label">${t('setup.turnTime')}</label>${segmented(
               TURN_OPTIONS.map((s) => ({ label: t('opt.seconds', { n: s }), value: s, on: s === d.turnTime })),
               'turn',
@@ -252,7 +278,8 @@ export class Menu {
           </section>
           <footer class="panel-foot">
             <button class="ghost" data-action="reset" title="${t('setup.resetTitle')}">${t('setup.reset')}</button>
-            <button class="primary big" data-action="start">${t('setup.start')}</button>
+            ${this.alliedOnly() ? `<p class="field-label">${t('setup.needFactions')}</p>` : ''}
+            <button class="primary big" data-action="start" ${this.alliedOnly() ? 'disabled' : ''}>${t('setup.start')}</button>
           </footer>
         </div>
       </div>`;
@@ -347,9 +374,9 @@ export class Menu {
 
   /** The result of the match that just ended, kept so the two screens can be flipped between. */
   private summary: MatchSummary | null = null;
-  private result: { winner: { name: string; color: string } | null; turns: number } = { winner: null, turns: 0 };
+  private result: { winner: { name: string; color: string; members?: string[] } | null; turns: number } = { winner: null, turns: 0 };
 
-  showVictory(winner: { name: string; color: string } | null, turns: number, summary?: MatchSummary | null): void {
+  showVictory(winner: { name: string; color: string; members?: string[] } | null, turns: number, summary?: MatchSummary | null): void {
     if (summary !== undefined) {
       this.summary = summary;
       this.result = { winner, turns };
@@ -361,6 +388,7 @@ export class Menu {
         <div class="panel narrow victory" style="--team:${winner?.color ?? '#999'}">
           <div class="trophy">${winner ? '🏆' : '🧄'}</div>
           <h2>${winner ? esc(t('victory.wins', { name: winner.name })) : t('victory.draw')}</h2>
+          ${winner?.members ? `<p class="faction-members">${winner.members.map(esc).join(' · ')}</p>` : ''}
           <p class="lead">${winner ? t('victory.after', { turns }) : t('victory.everybody')}</p>
           <div class="stack">
             ${this.summary ? `<button class="glass" data-action="stats">${t('victory.stats')}</button>` : ''}
@@ -477,6 +505,13 @@ export class Menu {
         this.paintPreview();
       }, 250);
     }
+    if (input.dataset.field === 'faction-name') {
+      const i = Number(input.dataset.faction);
+      this.draft.factions ??= ['', '', '', ''];
+      this.draft.factions[i] = input.value.trim().slice(0, 24);
+      for (const button of this.el.querySelectorAll<HTMLButtonElement>(`[data-action="faction"][data-value="${String(i)}"]`))
+        button.textContent = this.factionName(i);
+    }
     if (input.dataset.field === 'team-name') this.draft.teams[Number(input.dataset.team)].name = input.value || 'Team';
     if (input.dataset.field === 'buddy-name') {
       // An empty field would leave a nameless buddy in the HUD, so it falls back to what it was
@@ -525,6 +560,7 @@ export class Menu {
         return;
       }
       case 'start':
+        if (this.alliedOnly()) return;
         // Only the custom setup is remembered for next time; quick matches leave it alone.
         this.persist();
         this.actions.start(structuredClone(d));
@@ -599,6 +635,12 @@ export class Menu {
         break;
       case 'sudden-death':
         d.suddenDeath = Number(value);
+        break;
+      case 'tag-teams':
+        d.tagTeams = value === '1';
+        break;
+      case 'faction':
+        team.faction = Number(value);
         break;
       case 'walled':
         d.walled = value === '1';

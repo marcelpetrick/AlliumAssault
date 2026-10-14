@@ -173,3 +173,11 @@ general-purpose physics engines cannot do arbitrarily destructible Worms terrain
 ## Out of scope (for now)
 
 Online multiplayer, persistent statistics.
+
+## Tag-team factions
+
+Optional and off by default. Setup assigns each team to a named faction; names and assignments
+persist with the rest of the match settings. Each team retains its turns and inventory. When only
+one faction survives, every team in it wins, including allies eliminated earlier. Friendly fire
+remains active; AI avoids allied targets and the scoreboard counts allied damage as friendly fire.
+At least two opposing factions are required to start.

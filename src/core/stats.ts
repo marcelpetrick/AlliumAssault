@@ -136,7 +136,7 @@ export interface MatchSummary {
 /** Buddies and teams as the recorder needs to know them, without importing the whole Game. */
 export interface StatsRoster {
   buddies: { id: number; name: string; team: number; alive: boolean }[];
-  teams: { index: number; name: string; colour: string }[];
+  teams: { index: number; name: string; colour: string; faction?: number }[];
   turns: number;
   seconds: number;
   groundLost: number;
@@ -187,7 +187,10 @@ export class MatchStats {
     hurt.taken += amount;
     if (!by) return;
     const culprit = this.record(by.buddy, roster);
-    const own = this.buddies.get(by.buddy)?.team === victim.team;
+    const culpritTeam = culprit.team;
+    const own =
+      culpritTeam === victim.team ||
+      (culpritTeam >= 0 && roster.teams[culpritTeam].faction !== undefined && roster.teams[culpritTeam].faction === roster.teams[victim.team].faction);
     if (own) {
       culprit.friendly += amount;
       return;

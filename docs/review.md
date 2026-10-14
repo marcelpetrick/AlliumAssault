@@ -164,3 +164,17 @@ Review corrected the help stock to one per crate rather than one per team, and a
 browser camera setup so its click actually reaches the visible enemy. The existing powered-rocket
 sounds are reused through presentation metadata. Help now lists the actual digit and letter keys
 rather than extending Shift+numbers past nine.
+
+## Faction review — 1.83.0
+
+Faction membership now drives enemy relationships and the victory condition, while ordinary team
+turns and inventories remain separate. Friendly fire stays active. Core tests include an ally
+eliminated before victory, independent team ammo, draws and old settings with the mode disabled.
+Direct gun planning rejects allied bodies between shooter and target; homing locks reject allies.
+The browser checks editing/persisting faction names, friendly damage and the shared victory UI.
+Review caught all-one-faction setup silently starting without opponents; Start is now disabled
+with a translated explanation until two opposing factions are configured.
+
+A long-name browser case reproduced the timer/pause controls reaching 1177 pixels on a 960-pixel
+viewport at Huge text size. Team and buddy labels now wrap unbroken names, keeping every top HUD
+control within the viewport; the test measures each control rather than only its fixed parent.

@@ -168,6 +168,8 @@ export class Game {
   shotsLeft = 0;
   homingTarget: number | null = null;
   winner: number | null = null;
+  /** All teams in the winning faction, including allies eliminated earlier. */
+  winnerTeams: number[] = [];
   /** Sudden Death keeps flooding the map until the match ends. */
   waterRising = false;
 
@@ -286,6 +288,15 @@ export class Game {
     return this.teams[this.activeTeam] ?? null;
   }
 
+  factionOf(team: number): number {
+    const faction = this.teams[team].config.faction;
+    return this.config.tagTeams && faction !== undefined && Number.isInteger(faction) && faction >= 0 && faction < 4 ? faction : team;
+  }
+
+  allied(a: number, b: number): boolean {
+    return this.factionOf(a) === this.factionOf(b);
+  }
+
   get isHumanTurn(): boolean {
     return this.activeTeamData?.config.controller === 'human';
   }
@@ -395,7 +406,7 @@ export class Game {
       this.charge !== null ||
       !target?.alive ||
       target.hp <= 0 ||
-      target.team === me.team
+      this.allied(target.team, me.team)
     )
       return false;
     this.homingTarget = id;
@@ -1247,8 +1258,11 @@ export class Game {
           break;
         }
         const standing = this.teams.filter((t) => t.buddies.some((b) => b.alive));
-        if (standing.length <= 1) {
-          this.winner = standing[0]?.index ?? null;
+        const factions = new Set(standing.map((t) => this.factionOf(t.index)));
+        if (factions.size <= 1) {
+          const winner = standing.at(0)?.index ?? null;
+          this.winner = winner;
+          this.winnerTeams = winner === null ? [] : this.teams.filter((t) => this.allied(t.index, winner)).map((t) => t.index);
           this.setPhase('gameOver');
           this.emit({ type: 'gameOver', winner: this.winner });
         } else {
@@ -1623,7 +1637,7 @@ export class Game {
   private roster(): StatsRoster {
     return {
       buddies: this.buddies.map((b) => ({ id: b.id, name: b.name, team: b.team, alive: b.alive })),
-      teams: this.teams.map((t) => ({ index: t.index, name: t.config.name, colour: t.config.color })),
+      teams: this.teams.map((t) => ({ index: t.index, name: t.config.name, colour: t.config.color, faction: this.factionOf(t.index) })),
       turns: this.turn,
       seconds: this.time,
       groundLost: Math.max(0, this.groundAtStart - this.terrain.solidFraction()) / Math.max(this.groundAtStart, 1e-6),

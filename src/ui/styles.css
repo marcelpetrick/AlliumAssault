@@ -611,6 +611,11 @@ kbd {
   box-shadow: 0 0 14px var(--team, #fff);
 }
 
+.turn-team,
+.turn-buddy {
+  overflow-wrap: anywhere;
+}
+
 .turn-team {
   font-size: 20px;
   font-weight: 700;
@@ -1348,4 +1353,21 @@ kbd {
 
 .buddy-name input:focus {
   border-color: var(--team, var(--accent));
+}
+
+.faction-names {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.faction-names label {
+  display: grid;
+  gap: 6px;
+}
+
+.faction-names input {
+  min-width: 0;
+  width: 100%;
 }
