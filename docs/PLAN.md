@@ -104,3 +104,13 @@ Capture review also found unreadable faction-name fields (T163). Explicit dark i
 a browser contrast check fix the issue; setup images and faction/social clips are recaptured.
 All 56 assets have decoded format/hash records, and all 23 Markdown documents are reviewed.
 The final delivery gate verifies the exact staged tree before committing and pushing 1.83.2.
+
+## Dependency update and release — 15 October 2026 (T164)
+
+1. Check every direct dependency and override against the npm registry; confirm stable, exact pins
+   and compatibility with the Node 24 runtime and the type-aware linter.
+2. Update Playwright to 1.64.1 and typescript-eslint to 8.71.2, reinstall and inspect the lockfile.
+   Retain Node 24 typings and TypeScript 6 while the latest linter excludes TypeScript 7.
+3. Review the dependency diff and audit results; run the complete verification and REUSE gates.
+4. Commit version 1.83.3, push master and its single release tag, then confirm the published archive,
+   checksum and Pages deployment. The user explicitly authorized pushing and releasing.

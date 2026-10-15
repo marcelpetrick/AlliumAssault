@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.3] — 2026-10-15
+
+- Update exact development pins: `@playwright/test` 1.64.0 → 1.64.1 and
+  `typescript-eslint` 8.71.1 → 8.71.2, including their matching transitive packages.
+- Check every direct dependency and override against the npm registry. Keep TypeScript 6.0.3
+  because typescript-eslint still requires TypeScript below 6.1; keep Node typings at 24.19.2
+  to match the Node 24 runtime. All other direct pins and overrides are current stable releases.
+- Publish the refreshed media/documentation and faction-name contrast fix delivered in 1.83.2.
+
 ## [1.83.2] — 2026-10-14
 
 - Refresh screenshots, weapon and feature GIFs, social videos/posters and the development chart.

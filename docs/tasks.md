@@ -176,6 +176,7 @@ Status: ☐ open · ☑ done
 | T161 | Review every Markdown document, repair links and refresh stale gameplay and engineering documentation           | ☑      | 1.83.2         |
 | T162 | Verify, self-review, commit and push the complete media/documentation refresh                                   | ☑      | 1.83.2         |
 | T163 | Fix unreadable faction-name inputs discovered during media review and verify editing contrast                   | ☑      | 1.83.2         |
+| T164 | Review all dependency pins, update compatible stable releases, verify, push and publish a new public release    | ☑      | 1.83.3         |
 
 ## Current implementation plan
 
@@ -1120,3 +1121,11 @@ routes. Audit all 23 Markdown documents, repair moved links and add local-link r
 coverage. Capture review also fixes unreadable faction-name fields with a browser contrast check.
 Reproducible commands, media hashes and the audit record are in [MEDIA.md](MEDIA.md).
 The versioned commit is gated by full verification and then pushed to the public repository.
+
+### Dependency review and public release — 1.83.3
+
+Review all npm direct dependencies and overrides on 15 October 2026. Update exact pins for
+Playwright 1.64.1 and typescript-eslint 8.71.2 and their matching packages; retain compatible
+TypeScript 6 and Node 24 typings. The full verification and REUSE gates precede the single
+versioned dependency commit. Push master and publish v1.83.3 through the verified release and
+Pages workflows, including the media/documentation and contrast fix from 1.83.2.

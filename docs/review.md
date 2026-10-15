@@ -260,3 +260,21 @@ rules together with fire cleanup and the newly expanded arsenal.
 Performance numbers are dated observations. The current profile smoke run passes its ceilings;
 the old before/after import comparison remains labelled historical. Core and browser coverage
 continue to describe representative cases rather than every possible match.
+
+## Dependency and release review — 1.83.3
+
+The 15 October npm registry review checked all 16 direct dependencies and both overrides.
+Every entry was already pinned exactly. Playwright 1.64.1 and typescript-eslint 8.71.2 are stable,
+non-deprecated patch updates; their matching packages account for all 14 lockfile version changes.
+No runtime dependency, application rule, linter policy or coverage threshold changes.
+
+TypeScript 7.0.2 is deferred because the current linter declares `typescript >=4.8.4 <6.1.0`.
+TypeScript 6.0.3 is the latest compatible stable release. Node typings 24.19.2 are the latest
+24.x release and match the configured runtime; the 26.x typings describe a different runtime.
+The `braces` advisory remains unresolved in the latest published 3.0.3; the dependency update
+retains eight affected development-package entries and zero production audit findings.
+
+The complete repository verification and official REUSE checks gate the release commit.
+The authorized v1.83.3 tag runs independent release packaging and Pages verification, publishing
+the static archive and SHA-256 checksum alongside the updated playable site. Capture provenance
+continues to describe the 1.83.2 recordings rather than relabelling them as freshly captured.
