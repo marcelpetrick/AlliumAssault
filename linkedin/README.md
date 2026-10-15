@@ -19,7 +19,9 @@ assets ready for review; capture scripts do not post to LinkedIn.
 | [gource-minimal.mp4](gource-minimal.mp4) | Gource history, square, only the growing tree on black                          |
 | [gource-glow.mp4](gource-glow.mp4)       | Gource history, square, strong glow                                             |
 | [gource-wide.mp4](gource-wide.mp4)       | Gource history, 16:9, with a file-type legend                                   |
-| `render-gource.sh`                       | Renders the five Gource clips                                                   |
+| [gource-names.mp4](gource-names.mp4)     | Gource history, 4:5, file names, light colours and a frosted legend             |
+| `gource-legend.py`                       | Draws the background and legend overlay for `gource-names.mp4`                  |
+| `render-gource.sh`                       | Renders the six Gource clips                                                    |
 | `clipkit.mjs`                            | Shared capture, captions, camera and encoding                                   |
 | `capture-clip*.mjs`                      | Scene scripts for the three clips                                               |
 
@@ -38,10 +40,10 @@ a touchscreen overlay is only a [design study](../docs/touchdisplay-support.md).
 
 Ten seconds each, 60 fps, H.264 without audio. The repository history is played back with
 [Gource](https://gource.io/); every commit gets the same screen time and the last second holds
-the finished tree. Needs `gource` and `ffmpeg`, but no display:
+the finished tree. Needs `gource` and `ffmpeg` (the names clip also Python with Pillow), but no display:
 
 ```bash
-linkedin/render-gource.sh          # all five
+linkedin/render-gource.sh          # all six
 linkedin/render-gource.sh garlic   # one look
 ```
 

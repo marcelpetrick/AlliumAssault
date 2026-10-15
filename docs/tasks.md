@@ -177,6 +177,7 @@ Status: ☐ open · ☑ done
 | T162 | Verify, self-review, commit and push the complete media/documentation refresh                                   | ☑      | 1.83.2         |
 | T163 | Fix unreadable faction-name inputs discovered during media review and verify editing contrast                   | ☑      | 1.83.2         |
 | T165 | Gource animations of the repository history for a LinkedIn post, several looks of ten seconds each              | ☑      | 1.83.4         |
+| T166 | Gource clip with file names, light colours and a readable, styled legend                                        | ☑      | 1.83.5         |
 | T164 | Review all dependency pins, update compatible stable releases, verify, push and publish a new public release    | ☑      | 1.83.3         |
 
 ## Current implementation plan
@@ -1138,3 +1139,9 @@ looks (bloom, garlic), two squares (minimal, glow) and one widescreen version wi
 legend. `linkedin/render-gource.sh` renders through SDL's offscreen driver, so it needs no
 display. Each commit gets the same screen time, so the busy September weeks do not finish the
 tree in two seconds.
+
+### Gource clip with file names — 1.83.5
+
+A sixth look, `gource-names.mp4`, shows the file names and colours every file by its group in a
+light palette. Gource's own extension key is tiny and cannot be styled, so a frosted,
+half-transparent legend with file counts is drawn separately and laid over the video.

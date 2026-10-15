@@ -1,7 +1,7 @@
 {
-  "packageVersion": "1.83.4",
-  "recordedAt": "2026-10-15T15:52:41.306Z",
-  "sourceRevision": "ed5235af4cf7c94471df39ec8aa804bc2a2bfef9",
+  "packageVersion": "1.83.5",
+  "recordedAt": "2026-10-15T19:37:43.716Z",
+  "sourceRevision": "3d1611e1de2bb81cb5f72805a1b1163093495bc3",
   "runtimeSourceSha256": "dc26e90c6aa28819bcffde480ff23b37a515a473c4da1326715666664945e387",
   "buildEntry": "assets/index-BE7d3Owj.js",
   "buildEntrySha256": "9a5847805006561e33db604e37f5619c1857cffd195022dfd2dde9b8870dd356",
@@ -672,6 +672,17 @@
       "codec": "h264",
       "durationSeconds": 10,
       "modifiedAt": "2026-10-15T15:48:39.040Z"
+    },
+    {
+      "path": "linkedin/gource-names.mp4",
+      "sha256": "6a9352657dda85261efb8287b521cb503e4a5c1c197a8c1834460d94fae696a8",
+      "bytes": 7771140,
+      "width": 1080,
+      "height": 1350,
+      "frames": 600,
+      "codec": "h264",
+      "durationSeconds": 10,
+      "modifiedAt": "2026-10-15T19:36:42.644Z"
     },
     {
       "path": "linkedin/gource-wide.mp4",

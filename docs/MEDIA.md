@@ -92,7 +92,7 @@ headless fallback. Headed Firefox uses its ordinary WebGL preferences.
 | `scripts/check-firefox-fire.mjs` | Three Firefox fire PNGs at two quality budgets/resolutions             |
 | `scripts/history_chart.py`       | `screenshots/history.png` and measured coverage cache                  |
 | `linkedin/capture-clip*.mjs`     | Three MP4 social clips and their JPEG posters                          |
-| `linkedin/render-gource.sh`      | Five Gource MP4s of the repository history                             |
+| `linkedin/render-gource.sh`      | Six Gource MP4s of the repository history                              |
 | `scripts/media-manifest.mjs`     | File hashes, dimensions, frame counts, duration and capture provenance |
 
 Weapon GIFs use 480-pixel width, ten frames per second and up to 96 colours. Feature GIFs use

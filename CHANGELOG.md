@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.5] — 2026-10-15
+
+- Add a sixth Gource clip, `linkedin/gource-names.mp4` (4:5): file names shown, files coloured in
+  light colours by group (TypeScript, docs, images, videos, scripts, web, config), on a night-sky
+  gradient. A frosted, half-transparent legend with file counts replaces Gource's built-in key,
+  which is too small to read and cannot be styled. `linkedin/gource-legend.py` draws both images.
+
 ## [1.83.4] — 2026-10-15
 
 - Add five ten-second Gource animations of the repository history for LinkedIn
