@@ -14,6 +14,12 @@ assets ready for review; capture scripts do not post to LinkedIn.
 | [clip-a-poster.jpg](clip-a-poster.jpg)   | Tour poster                                                                     |
 | [clip-b-poster.jpg](clip-b-poster.jpg)   | Ship-log poster                                                                 |
 | [clip-c-poster.jpg](clip-c-poster.jpg)   | Browser-story poster                                                            |
+| [gource-bloom.mp4](gource-bloom.mp4)     | Gource history, 4:5, neon glow on near-black, no labels                         |
+| [gource-garlic.mp4](gource-garlic.mp4)   | Gource history, 4:5, aubergine and cream with folder names                      |
+| [gource-minimal.mp4](gource-minimal.mp4) | Gource history, square, only the growing tree on black                          |
+| [gource-glow.mp4](gource-glow.mp4)       | Gource history, square, strong glow                                             |
+| [gource-wide.mp4](gource-wide.mp4)       | Gource history, 16:9, with a file-type legend                                   |
+| `render-gource.sh`                       | Renders the five Gource clips                                                   |
 | `clipkit.mjs`                            | Shared capture, captions, camera and encoding                                   |
 | `capture-clip*.mjs`                      | Scene scripts for the three clips                                               |
 
@@ -27,6 +33,17 @@ are illustrative overlays. Gameplay runs locally against a production preview du
 The current game has 26 weapons, optional named factions, a six-second jetpack, crate-only homing
 rockets, varied terrain and improved crate/rope AI. The full game still needs keyboard and mouse;
 a touchscreen overlay is only a [design study](../docs/touchdisplay-support.md).
+
+## Gource history clips
+
+Ten seconds each, 60 fps, H.264 without audio. The repository history is played back with
+[Gource](https://gource.io/); every commit gets the same screen time and the last second holds
+the finished tree. Needs `gource` and `ffmpeg`, but no display:
+
+```bash
+linkedin/render-gource.sh          # all five
+linkedin/render-gource.sh garlic   # one look
+```
 
 ## Re-record
 

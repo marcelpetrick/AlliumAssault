@@ -176,6 +176,7 @@ Status: ☐ open · ☑ done
 | T161 | Review every Markdown document, repair links and refresh stale gameplay and engineering documentation           | ☑      | 1.83.2         |
 | T162 | Verify, self-review, commit and push the complete media/documentation refresh                                   | ☑      | 1.83.2         |
 | T163 | Fix unreadable faction-name inputs discovered during media review and verify editing contrast                   | ☑      | 1.83.2         |
+| T165 | Gource animations of the repository history for a LinkedIn post, several looks of ten seconds each              | ☑      | 1.83.4         |
 | T164 | Review all dependency pins, update compatible stable releases, verify, push and publish a new public release    | ☑      | 1.83.3         |
 
 ## Current implementation plan
@@ -1129,3 +1130,11 @@ Playwright 1.64.1 and typescript-eslint 8.71.2 and their matching packages; reta
 TypeScript 6 and Node 24 typings. The full verification and REUSE gates precede the single
 versioned dependency commit. Push master and publish v1.83.3 through the verified release and
 Pages workflows, including the media/documentation and contrast fix from 1.83.2.
+
+### Gource history animations — 1.83.4
+
+Render the repository history with Gource as five ten-second clips for LinkedIn: two 4:5 portrait
+looks (bloom, garlic), two squares (minimal, glow) and one widescreen version with a file-type
+legend. `linkedin/render-gource.sh` renders through SDL's offscreen driver, so it needs no
+display. Each commit gets the same screen time, so the busy September weeks do not finish the
+tree in two seconds.

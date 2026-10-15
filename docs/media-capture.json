@@ -1,10 +1,10 @@
 {
-  "packageVersion": "1.83.2",
-  "recordedAt": "2026-10-14T11:56:22.473Z",
-  "sourceRevision": "e947fbc852b6ee8e066abc59b3197d503bea088a",
+  "packageVersion": "1.83.4",
+  "recordedAt": "2026-10-15T15:52:41.306Z",
+  "sourceRevision": "ed5235af4cf7c94471df39ec8aa804bc2a2bfef9",
   "runtimeSourceSha256": "dc26e90c6aa28819bcffde480ff23b37a515a473c4da1326715666664945e387",
-  "buildEntry": "assets/index-DMAymRXO.js",
-  "buildEntrySha256": "949dd4455653e0d0c831ff9f3bba3434887c2b260ed67f5a2a9123a44fd2d654",
+  "buildEntry": "assets/index-BE7d3Owj.js",
+  "buildEntrySha256": "9a5847805006561e33db604e37f5619c1857cffd195022dfd2dde9b8870dd356",
   "buildStyles": [
     {
       "path": "assets/index-DViyQPIP.css",
@@ -628,6 +628,61 @@
       "codec": "mjpeg",
       "durationSeconds": 0.04,
       "modifiedAt": "2026-10-14T11:46:51.150Z"
+    },
+    {
+      "path": "linkedin/gource-bloom.mp4",
+      "sha256": "e7a5053bdbea9415e58fed99cd02a6d8498a96da15e1541052229b733799d98c",
+      "bytes": 5895643,
+      "width": 1080,
+      "height": 1350,
+      "frames": 600,
+      "codec": "h264",
+      "durationSeconds": 10,
+      "modifiedAt": "2026-10-15T15:46:14.888Z"
+    },
+    {
+      "path": "linkedin/gource-garlic.mp4",
+      "sha256": "2a85fd6b2fb29af84ba6575bb6077a7e71d1fea54dae8f19281c6e6188c06ef6",
+      "bytes": 5568511,
+      "width": 1080,
+      "height": 1350,
+      "frames": 600,
+      "codec": "h264",
+      "durationSeconds": 10,
+      "modifiedAt": "2026-10-15T15:46:38.318Z"
+    },
+    {
+      "path": "linkedin/gource-glow.mp4",
+      "sha256": "cf14631ac78b04664e38f8ce0148dd9afc8c28eca922b6543d46ff1dbd5f4aa2",
+      "bytes": 4393300,
+      "width": 1080,
+      "height": 1080,
+      "frames": 600,
+      "codec": "h264",
+      "durationSeconds": 10,
+      "modifiedAt": "2026-10-15T15:49:00.670Z"
+    },
+    {
+      "path": "linkedin/gource-minimal.mp4",
+      "sha256": "d0edb3bc89472d42f31bfb5121005646b2d8045e3b2f52a4d0c8457ccbc048be",
+      "bytes": 1789377,
+      "width": 1080,
+      "height": 1080,
+      "frames": 600,
+      "codec": "h264",
+      "durationSeconds": 10,
+      "modifiedAt": "2026-10-15T15:48:39.040Z"
+    },
+    {
+      "path": "linkedin/gource-wide.mp4",
+      "sha256": "89cc42ed6b8f6420a2c016bb6727b7d869d756628cb57240df4f0008cfbe292f",
+      "bytes": 9223193,
+      "width": 1920,
+      "height": 1080,
+      "frames": 600,
+      "codec": "h264",
+      "durationSeconds": 10,
+      "modifiedAt": "2026-10-15T15:47:32.792Z"
     }
   ]
 }

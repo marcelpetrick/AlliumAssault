@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.4] — 2026-10-15
+
+- Add five ten-second Gource animations of the repository history for LinkedIn
+  (`linkedin/gource-*.mp4`: bloom, garlic, minimal, wide, glow) and `linkedin/render-gource.sh`,
+  which renders them offscreen. Commits are paced evenly, because most of them landed in two
+  September weeks and calendar time would leave the tree idle for most of the clip.
+
 ## [1.83.3] — 2026-10-15
 
 - Update exact development pins: `@playwright/test` 1.64.0 → 1.64.1 and
