@@ -28,7 +28,7 @@
     "media-manifest": "node scripts/media-manifest.mjs"
   },
   "dependencies": {
-    "@babylonjs/core": "9.30.0",
+    "@babylonjs/core": "9.31.0",
     "simplex-noise": "4.0.3"
   },
   "devDependencies": {
