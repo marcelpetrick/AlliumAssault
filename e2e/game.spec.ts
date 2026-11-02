@@ -432,7 +432,7 @@ test('about screen: author, free to play on GitHub Pages, tech stack and license
   const about = page.locator('.panel.about');
   await expect(about).toContainText('mail@marcelpetrick.it');
   await expect(about).toContainText('free to play');
-  await expect(about.getByRole('link', { name: /marcelpetrick.github.io\/AlliumAssault/ })).toHaveAttribute(
+  await expect(about.getByRole('link', { name: /marcelpetrick\.github\.io\/AlliumAssault/ })).toHaveAttribute(
     'href',
     'https://marcelpetrick.github.io/AlliumAssault/',
   );

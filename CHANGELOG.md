@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.4] — 2026-11-02
+
+- Refresh exact dependencies and overrides to remove known development dependency advisories.
+- Keep TypeScript 6.0.3 while typescript-eslint requires a version below 6.1.
+- Match the GitHub Pages hostname literally in the About screen test.
+
 ## [1.83.3] — 2026-10-15
 
 - Update exact development pins: `@playwright/test` 1.64.0 → 1.64.1 and

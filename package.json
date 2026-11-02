@@ -1,6 +1,6 @@
 {
   "name": "allium-assault",
-  "version": "1.83.3",
+  "version": "1.83.4",
   "description": "Turn-based 3D artillery game with garlic buddies, in the spirit of Worms Armageddon. Runs in the browser.",
   "private": true,
   "type": "module",
@@ -28,27 +28,30 @@
     "media-manifest": "node scripts/media-manifest.mjs"
   },
   "dependencies": {
-    "@babylonjs/core": "9.30.0",
+    "@babylonjs/core": "9.33.1",
     "simplex-noise": "4.0.3"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.64.1",
-    "@types/node": "24.19.2",
-    "@vitest/coverage-v8": "5.0.4",
-    "eslint": "10.12.0",
-    "globals": "17.13.0",
-    "markdownlint-cli2": "0.23.3",
+    "@types/node": "26.6.6",
+    "@vitest/coverage-v8": "5.0.5",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "markdownlint-cli2": "0.24.0",
     "prettier": "3.9.10",
     "stylelint": "17.16.0",
     "stylelint-config-standard": "40.0.0",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.2",
-    "vite": "8.3.4",
-    "vitest": "5.0.4"
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
   },
   "overrides": {
     "smol-toml": "1.9.1",
-    "katex": "0.19.0"
+    "katex": "0.19.1",
+    "fast-uri": "3.1.9",
+    "minimatch": "11.0.4",
+    "re2js": "2.9.1"
   }
 }
