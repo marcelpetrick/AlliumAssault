@@ -222,7 +222,6 @@ export interface InputState {
 /** Ammo a team starts with for `id` under the given arsenal setting. */
 export function startingAmmo(arsenal: Arsenal | undefined, id: WeaponId): number {
   const def = WEAPONS[id];
-  if (def.crateOnly && arsenal !== 'infinite') return 0;
   if (!WEAPON_ORDER.includes(id)) return def.ammo;
   if (arsenal === 'infinite') return Infinity;
   if (arsenal === 'crates' && def.special) return 0;

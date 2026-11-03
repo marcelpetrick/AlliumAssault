@@ -129,7 +129,16 @@ The final delivery gate verifies the exact staged tree before committing and pus
    Record deliberate balance differences from Worms and fix reproducible defects with outcome tests.
 4. Update gameplay instructions, translations and affected media; review the changes, retain all
    four core coverage metrics above 98%, run full verification before each atomic commit, and push
-   the completed fixes. A release tag is outside this request to push the code.
+   the completed fixes.
 
 The next dependency version is 1.83.6: 1.83.4 and 1.83.5 already label the preserved local media
 commits, while current master contains an independent 1.83.4 security update.
+
+Dependency work is verified and pushed as 62b4c55. Player-input reproduction found zero initial
+homing stock, an overly precise world-space click test, and a normal charged shot ending after
+2.08 seconds before the old three-second delay. The fix uses a one-second ballistic opening,
+screen-space buddy picking and normal starting stock. The arsenal audit additionally verifies
+actual damage/knockback and tools, corrects damage help, enables live burst aiming, and aligns
+returning-rocket predictions with owner collision. Full verification passed with 428 unit tests
+and 86 browser tests; Firefox and refreshed media checks passed. See [review.md](review.md) for
+the measured coverage and complete arsenal findings.

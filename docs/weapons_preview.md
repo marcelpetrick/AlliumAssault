@@ -73,6 +73,8 @@ Two instant shots along the aim line.
 
 ### 🔫 Minigun
 
+Use ↑↓ while the burst is firing to keep its fourteen rounds on target.
+
 ![Minigun in action](weapons/minigun.gif)
 
 **7** · 1 per match · Sunset
@@ -223,7 +225,7 @@ Three seconds of burning fuel. Up and down steer the nozzle while it runs; wind 
 
 ### 🎯 Homing Rocket
 
-**H** · One rocket per crate; click an enemy, then aim and charge. Three ballistic seconds,
+**H** · One rocket per team in normal stock, with crate refills; click an enemy, then aim and charge. One ballistic second,
 then direct pursuit; intervening rock intercepts the flight.
 
 ![Homing Rocket flight](weapons/homing.gif)

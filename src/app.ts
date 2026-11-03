@@ -531,12 +531,36 @@ export class App {
     if (!game || !this.world || this.demo || this.paused || this.menu.screen || !game.isHumanTurn) return;
     const kind = WEAPONS[game.weapon].kind;
     if (!MAP_WEAPONS.includes(kind) && !WEAPONS[game.weapon].homing) return;
+    if (WEAPONS[game.weapon].homing) {
+      const canvas = this.canvas.getBoundingClientRect();
+      const label = this.hud.buddyAt(cssX + canvas.left, cssY + canvas.top);
+      if (label !== null) {
+        game.targetBuddy(label);
+        return;
+      }
+      // Pick the visible garlic body in screen pixels. A fixed world-space circle made heads and
+      // slightly imprecise clicks miss, especially after zooming out or changing graphics quality.
+      let closest: number | null = null;
+      let bestDistance = Infinity;
+      for (const buddy of game.buddies) {
+        if (!buddy.alive || buddy.hp <= 0) continue;
+        const body = this.world.project(buddy.body.x, buddy.body.y + 0.35);
+        const edge = this.world.project(buddy.body.x + buddy.body.radius, buddy.body.y + 0.35);
+        if (!body || !edge) continue;
+        const distance = Math.hypot(body.x - cssX, body.y - cssY);
+        const radius = Math.max(18, Math.hypot(edge.x - body.x, edge.y - body.y) * 1.8);
+        if (distance <= radius && distance < bestDistance) {
+          closest = buddy.id;
+          bestDistance = distance;
+        }
+      }
+      // The core still rejects allies and attempts to change a lock while charging.
+      if (closest !== null) game.targetBuddy(closest);
+      return;
+    }
     const at = this.world.pick(cssX, cssY);
     if (!at) return;
-    if (WEAPONS[game.weapon].homing) {
-      const target = game.buddies.find((b) => b.alive && Math.hypot(b.body.x - at.x, b.body.y - at.y) < b.body.radius * 2);
-      if (target) game.targetBuddy(target.id);
-    } else if (kind === 'strike') game.strike(at.x);
+    if (kind === 'strike') game.strike(at.x);
     else if (kind === 'platform') game.placePlatform({ ...at, angle: this.world.platformAngle });
     else game.teleportTo(at.x, at.y);
   }

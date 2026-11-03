@@ -295,3 +295,87 @@ zero findings. Full repository verification and REUSE checks gate the dependency
 
 The current workspace contains a separate, unmerged Gource branch. Dependency and weapon work
 uses an isolated checkout of current master, preserving those existing media commits and files.
+
+## Homing and complete arsenal review — 1.83.7
+
+### Reproduction and resolutions
+
+A normal fully charged homing shot at aim 0.65 struck flat terrain after **2.08 seconds**,
+before its old three-second guidance delay. A nearly vertical shot survived and hit, explaining
+why the old authored test passed. Normal starting stock was zero, and a head/label click could
+silently miss the small world-space lock circle. The corrected weapon has one normal starting
+use, a one-second ballistic opening and screen-space body/name selection. Enemy-only validation
+and the core's collision solver remain authoritative. Chrome checks exercise actual mouse/key
+input at 800×600 and 1280×720; Firefox repeats the flight at both graphics budgets.
+
+[Team17's Worms 2 guide](https://w2.worms2d.info/main.html?area=weap&page=good&weap=one)
+describes selecting a target and allowing launch clearance before guidance, with objects still
+intercepting the missile. The [Armageddon manual](https://ftp.zx.net.nz/pub/archive/ftp.team17.com/pub/t17/manuals/Worms_Armageddon.pdf)
+also describes target selection followed by a charged launch. The one-second timing is chosen
+for Allium's measured world scale; these references do not establish an exact one-second timer.
+Allium keeps the previously requested moving-buddy tracking. Armageddon's underwater capability
+and fixed map-point selection are different features from this game's current design.
+
+A separate returning-shot fixture exposed a predictor that ignored its owner throughout the
+flight: it predicted an enemy hit where real play hit the shooter. Prediction now uses the same
+initial safety window as real collision. Minigun burst physics already read the current aim, but
+player aiming stopped outside the aiming phase; arrows now control the live burst.
+
+Help formerly printed a spray's zero direct damage and omitted payload quantities. It now shows
+shots, fragments, crushing impacts and fuel/burning damage, with translated labels. Self-destruct
+help uses current HP; the README no longer incorrectly caps it at 100. The optional victory
+screenshot that repeatedly timed out is removed; DOM victory/rematch assertions verify the flow.
+
+### All 26 selectable weapons
+
+The values below are configured maximum/direct or payload values. Explosion falloff, missed
+rounds and victim motion affect actual damage. The [physical outcome suite](../tests/weapon-outcomes.test.ts)
+checks health loss, actual motion, ammunition, digging and utility outcomes. Existing core and
+[browser weapon tests](../e2e/weapons.spec.ts) cover timing, collisions, sound and controls.
+
+| Weapon              | Normal stock | Damage configuration | Behavior reviewed                                                                          |
+| ------------------- | -----------: | -------------------- | ------------------------------------------------------------------------------------------ |
+| Bazooka             |            ∞ | 50                   | Wind/gravity arc; contact blast carves ground and launches its victim.                     |
+| Grenade             |            ∞ | 50                   | Bounces, waits for its fuse, then blasts and launches.                                     |
+| Cluster Bomb        |            3 | 25 + 5 × 10          | Main burst releases five physical bomblets.                                                |
+| Banana Bomb         |            1 | 40 + 5 × 30          | Main blast plus five staggered explosive bananas.                                          |
+| Holy Garlic Grenade |            1 | 100                  | Arms after rest, sings, then produces its large blast.                                     |
+| Shotgun             |            2 | 2 × 22               | Two independently fired instant shots; one stock use for both.                             |
+| Minigun             |            1 | 14 × 5               | Fourteen shots; arrows now steer their actual directions during the burst.                 |
+| Garlic Punch        |            ∞ | 45                   | Uppercut launches upwards and can cut rock.                                                |
+| Baseball Bat        |            2 | 25                   | Lower damage than punch, stronger horizontal launch; cuts rock.                            |
+| Sheep               |            1 | 75                   | Hops; manual detonation and crate collection.                                              |
+| Flying Sheep        |            1 | 75                   | Arrow steering, manual detonation and crate collection.                                    |
+| Air Strike          |            1 | 5 × 25               | Plane direction and five wind-aware drops; terrain/body collision.                         |
+| Napalm Strike       |            1 | 4 × 5 + burn         | Wind-sensitive drops ignite damaging, temporary ground flames.                             |
+| Concrete Mule       |            1 | 6 × 35               | Repeated crushing impacts dig downward.                                                    |
+| Blowtorch           |            2 | 15                   | Three-second aimed tunnel and one hit per buddy.                                           |
+| Drill               |            2 | 15                   | Downward digging; cushions falls only while active.                                        |
+| Rope                |            3 | —                    | Attachment consumes stock; reel/swing/release and land to attack.                          |
+| Platform            |            2 | —                    | Place/rotate a five-unit board; a normal jump reaches it and it supports walking.          |
+| French Attack       |            ∞ | —                    | Ends the turn without damage or terrain destruction.                                       |
+| Proximity Mine      |            2 | 40                   | Arming, proximity detection and triggered explosion.                                       |
+| Teleport            |            1 | —                    | Reject invalid destinations; valid arrivals fall under ordinary physics.                   |
+| Self-Destruct       |            1 | Current HP           | Three-second panic; blast damage/radius scale with actual remaining health.                |
+| Ming Vase           |            1 | 70 + 8 × 38          | Large main blast followed by eight contact-exploding shards.                               |
+| Flamethrower        |            2 | 7 per gob + burn     | Three seconds of steered fuel, impact damage and lingering burn; help no longer says zero. |
+| Jetpack             |            2 | —                    | Six seconds of acceleration, controlled descent, safe landing and follow-up action.        |
+| Homing Rocket       |            1 | 45                   | One starting rocket; one ballistic second, then pursuit. Terrain and bodies intercept it.  |
+
+The audit preserves the documented Allium balance. Punch/bat emphasize different launch
+directions; sprays and napalm emphasize repeated damage and ground denial; utility items cause
+no direct enemy damage. The new suite covers representative authored arenas rather than every
+possible map/weapon/gravity combination. Homing tests additionally check both facings, moving
+and lost targets, intervening walls, crates, restricted/infinite stock and owner interception.
+
+The homing/minigun recordings and Firefox evidence are refreshed for this version. The media
+manifest preserves earlier capture dates when content hashes are unchanged, so a fresh checkout
+does not relabel an old recording as newly captured. Full verification and REUSE gate delivery.
+
+Verified on 3 November: `npm run verify` passed with 428 unit tests and 86 Chrome E2E tests.
+Core coverage is 99.66% statements, 98.22% branches, 100% functions and 99.91% lines. Official
+REUSE checks pass. Ordinary headed Firefox passed low-quality 800×600 and 1280×720, plus
+high-quality 1280×720: visible torch/ground fire/blast, successful target clicks and actual
+homing hits (target 61 HP, one rocket consumed), with no browser errors. The six refreshed
+media files were visually inspected; all 56 manifest hashes validate, 50 unchanged recordings
+retain their capture dates, and all 87 local links in changed Markdown resolve.

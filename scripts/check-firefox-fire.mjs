@@ -77,8 +77,49 @@ try {
     await page.waitForTimeout(500);
     const screenshot = `${out}/firefox-${quality}-${width}.png`;
     await page.screenshot({ path: screenshot });
+    // Exercise the actual homing UI under the same ordinary Firefox quality/viewport settings.
+    const launch = await page.evaluate(() => {
+      const h = window.__allium;
+      h.setManual(true);
+      h.startMatch({ ...h.app.game.config, seed: 'firefox-homing-audit', windMax: 0, arsenal: 'all' });
+      const g = h.app.game;
+      g.terrain.fill((_x, y) => 20 - y);
+      g.buddies.forEach((b, i) => Object.assign(b.body, { x: i ? 65 : 40, y: 20.65, vx: 0, vy: 0, grounded: true }));
+      h.fastForward(4);
+      const w = h.app.world;
+      Object.assign(w.goal, { x: 52, y: 24 });
+      Object.assign(w.focus, { x: 52, y: 24 });
+      w.goalDistance = w.distance = 78;
+      w.manualUntil = w.time + 1000;
+      g.selectWeapon('homing');
+      g.face(1);
+      g.activeBuddy.aim = 0.5;
+      h.stepFrames(1, 0);
+      return { at: h.project(g.buddies[1].body.x, g.buddies[1].body.y + 2), ammo: g.teams[0].ammo.homing };
+    });
+    assert.equal(launch.ammo, 1, 'normal starting homing stock');
+    await page.mouse.click(launch.at.x, launch.at.y);
+    assert.equal(await page.evaluate(() => window.__allium.app.game.homingTarget), await page.evaluate(() => window.__allium.app.game.buddies[1].id));
+    await page.keyboard.down('Space');
+    await page.evaluate(() => window.__allium.fastForward(1.4));
+    await page.keyboard.up('Space');
+    const homing = await page.evaluate(() => {
+      const h = window.__allium,
+        g = h.app.game;
+      h.fastForward(0.8);
+      const ballisticAge = g.projectiles[0]?.age;
+      h.fastForward(0.3);
+      const guided = g.projectiles[0];
+      const speed = guided && Math.hypot(guided.vx, guided.vy);
+      h.fastForward(5);
+      return { ballisticAge, guidedSpeed: speed, targetHP: g.buddies[1].hp, ammo: g.teams[0].ammo.homing };
+    });
+    assert.ok(homing.ballisticAge < 1, 'ballistic opening');
+    assert.ok(Math.abs(homing.guidedSpeed - 24) < 0.01, 'homing speed after arming');
+    assert.ok(homing.targetHP < 100, 'actual homing hit');
+    assert.equal(homing.ammo, 0, 'one use consumed');
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ viewport: { width, height }, ...report, errors, screenshot }));
+    console.log(JSON.stringify({ viewport: { width, height }, ...report, homing, errors, screenshot }));
     await page.close();
   }
 } finally {

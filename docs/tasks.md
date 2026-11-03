@@ -178,8 +178,8 @@ Status: ☐ open · ☑ done
 | T163 | Fix unreadable faction-name inputs discovered during media review and verify editing contrast                   | ☑      | 1.83.2         |
 | T164 | Review all dependency pins, update compatible stable releases, verify, push and publish a new public release    | ☑      | 1.83.3         |
 | T167 | November dependency review: exact compatible pins, complete verification and push                               | ☑      | 1.83.6         |
-| T168 | Diagnose and fix homing rocket targeting/flight; start normal matches with one rocket                           | ☐      | planned        |
-| T169 | Audit every weapon: damage, knockback, timing, collision, controls and meaningful outcome coverage              | ☐      | planned        |
+| T168 | Diagnose and fix homing rocket targeting/flight; start normal matches with one rocket                           | ☑      | 1.83.7         |
+| T169 | Audit every weapon: damage, knockback, timing, collision, controls and meaningful outcome coverage              | ☑      | 1.83.7         |
 
 ## Current implementation plan
 
@@ -1132,3 +1132,17 @@ Playwright 1.64.1 and typescript-eslint 8.71.2 and their matching packages; reta
 TypeScript 6 and Node 24 typings. The full verification and REUSE gates precede the single
 versioned dependency commit. Push master and publish v1.83.3 through the verified release and
 Pages workflows, including the media/documentation and contrast fix from 1.83.2.
+
+### Homing and arsenal review — 1.83.7
+
+Reproduce the missing starting rocket, failed head/label clicks, and ordinary shots landing before
+the old three-second arming delay. Supply one rocket in normal stock, use a one-second ballistic
+opening and pick the visible buddy/name label in screen pixels. Preserve enemy-only locks,
+tracking, crate refills and collision with intervening terrain and bodies.
+
+Run physical outcomes for all 26 selectable weapons: damage and victim motion, digging/falls,
+rope traversal, platform jumping/support, teleport and jetpack landing. Correct the returning
+rocket prediction's missing owner collision, enable live burst aiming, and show real payload/
+burst/burning damage in help. Refresh affected media and Firefox evidence; preserve unchanged
+media capture dates across checkouts. Record the balance decisions and reference comparison
+in [review.md](review.md). Full verification gates the atomic weapon commit and push.

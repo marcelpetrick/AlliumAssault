@@ -92,7 +92,7 @@ test('human turn: walk, jump, aim, shotgun crater, bazooka and retreat', async (
   expect(errors).toEqual([]);
 });
 
-test('AI vs AI match reaches the victory screen and offers a rematch', async ({ page }, info) => {
+test('AI vs AI match reaches the victory screen and offers a rematch', async ({ page }) => {
   const errors = await boot(page);
   await page.evaluate(() => {
     window.__allium.startMatch({
@@ -123,7 +123,6 @@ test('AI vs AI match reaches the victory screen and offers a rematch', async ({ 
     window.__allium.stepFrames(30, 1 / 10);
   });
   await expect(page.getByText(/wins!|Draw!/)).toBeVisible({ timeout: 90_000 });
-  await info.attach('victory', { body: await page.screenshot(), contentType: 'image/png' });
   await page.getByRole('button', { name: /Rematch/ }).click();
   await page.evaluate(() => {
     window.__allium.setManual(false);

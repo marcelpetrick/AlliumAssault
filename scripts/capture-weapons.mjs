@@ -12,6 +12,7 @@
  * a scenery of its own, so re-running repeats the same actions. Needs ffmpeg on the PATH.
  */
 import assert from 'node:assert/strict';
+import { WEAPONS } from '../src/core/weapons.ts';
 import { mkdirSync, mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -53,7 +54,7 @@ const CLIPS = [
   { id: 'selfdestruct', theme: 'sunset', aim: 0, frames: 60 },
   { id: 'ming', theme: 'candy', aim: 0.85, hold: 10, frames: 70 },
   { id: 'flamer', theme: 'night', aim: -0.1, frames: 60 },
-  { id: 'homing', theme: 'night', aim: 1.4, hold: 14, frames: 95 },
+  { id: 'homing', theme: 'night', aim: 0.65, hold: 14, frames: 45, homingDelay: WEAPONS.homing.homing.delay },
   { id: 'jetpack', theme: 'sunset', aim: 0, frames: 105 },
 ];
 
@@ -74,8 +75,7 @@ try {
           enemy = g.buddies[1];
         if (c.id === 'homing') {
           enemy.body.x = 80;
-          g.crates.push({ id: 9999, kind: 'weapon', weapon: 'homing', body: { ...me.body, radius: 0.45 } });
-          h.fastForward(0.1);
+          if (g.teams[0].ammo.homing !== 1) throw new Error('Expected one starting homing rocket');
         }
         if (c.close) enemy.body.x = me.body.x + c.close;
         if (['shotgun', 'minigun'].includes(c.id)) enemy.body.x = 49;
@@ -124,6 +124,15 @@ try {
       if (clip.id === 'jetpack' || clip.id === 'rope') await page.keyboard.down('ArrowUp');
       if (clip.id === 'rope') await page.keyboard.down('ArrowRight');
       for (let k = 5; k < clip.frames; k++) {
+        if (clip.id === 'minigun') {
+          if (k === 7) await page.keyboard.down('ArrowUp');
+          if (k === 9) {
+            await page.keyboard.up('ArrowUp');
+            await page.keyboard.down('ArrowDown');
+          }
+          if (k === 11) await page.keyboard.up('ArrowDown');
+        }
+
         if (clip.id === 'rope' && k === 30) await page.keyboard.up('ArrowUp');
         if (clip.id === 'rope' && k === 45) await page.keyboard.up('ArrowRight');
         if (clip.id === 'jetpack' && k === 65) await page.keyboard.up('ArrowUp');
@@ -152,7 +161,7 @@ try {
             }
             if (c.id === 'mine' && k === 30) g.buddies[1].body.x = 41;
             const s = window.__captureStart;
-            s.guided ||= g.projectiles.some((p) => p.weapon === 'homing' && p.age >= 3);
+            s.guided ||= g.projectiles.some((p) => p.weapon === 'homing' && p.age >= c.homingDelay);
             s.airborne ||= c.id === 'jetpack' && g.activeBuddy.body.y > s.y + 3;
             s.attached ||= g.rope?.state === 'attached';
           },
@@ -163,6 +172,7 @@ try {
       }
       await page.keyboard.up('ArrowUp');
       await page.keyboard.up('ArrowRight');
+      await page.keyboard.up('ArrowDown');
       const result = await page.evaluate((id) => {
         const g = window.__allium.app.game;
         return {

@@ -313,6 +313,15 @@ export class Hud {
     this.bannerEl.classList.toggle('show', this.bannerTime > 0);
   }
 
+  /** A name/health label uses the same CSS pixels as the visible UI, including its text scale. */
+  buddyAt(x: number, y: number): number | null {
+    for (const [id, label] of [...this.labels].reverse()) {
+      const rect = label.el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0 && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) return id;
+    }
+    return null;
+  }
+
   /** One line of help for whatever the player can do right now. */
   private hint(g: Game, def: WeaponDef, teamName: string | undefined, human: boolean, retreat: boolean): string {
     if (g.phase === 'gameOver') return t('hud.matchOver');
@@ -323,7 +332,7 @@ export class Hud {
     }
     if (def.homing && g.phase === 'aiming') {
       const target = g.buddies.find((b) => b.id === g.homingTarget && b.alive && b.hp > 0);
-      return target ? t('hud.homingLocked', { name: target.name }) : t('hud.homingTarget');
+      return target ? t('hud.homingLocked', { name: target.name }) : t('hud.homingTarget', { seconds: def.homing.delay });
     }
     if (def.kind === 'platform' && g.phase === 'aiming') return t('hud.platform');
     if (def.kind === 'teleport' && g.phase === 'aiming') return t('hud.teleport');

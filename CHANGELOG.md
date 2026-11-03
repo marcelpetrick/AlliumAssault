@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.7] — 2026-11-03
+
+- Start normal matches with one Homing Rocket per team and retain crate refills. Use one ballistic
+  second before guidance so ordinary charged shots home before landing; preserve wind/gravity
+  during launch and ordinary terrain/body collision throughout flight.
+- Pick homing targets using a forgiving screen-space hit area at different zooms and resolutions.
+- Match returning-projectile predictions to the shooter's collision after the initial safety window.
+- Let arrow keys steer the live minigun burst. Show payload, burst and fire damage accurately in
+  help instead of reporting zero damage for the flamethrower; translate the updated controls.
+- Audit all 26 selectable weapons with actual physical outcomes and refresh affected homing media.
+- Remove an optional victory screenshot that repeatedly timed out after the match assertions.
+
 ## [1.83.6] — 2026-11-03
 
 - Update Babylon.js 9.33.1 → 9.33.2, Vitest/coverage-v8 5.0.5 → 5.1.0, Stylelint

@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 function files(dir) {
@@ -23,6 +23,8 @@ const assets = ['docs/screenshots', 'docs/weapons', 'docs/features', 'linkedin']
   .flatMap(files)
   .filter((p) => /\.(png|jpg|gif|mp4)$/.test(p))
   .sort();
+const previous = existsSync('docs/media-capture.json') ? JSON.parse(readFileSync('docs/media-capture.json', 'utf8')).media : [];
+const previousByPath = new Map(previous.map((asset) => [asset.path, asset]));
 const media = assets.map((path) => {
   const bytes = readFileSync(path);
   const probe = JSON.parse(
@@ -52,16 +54,18 @@ const media = assets.map((path) => {
     const loop = bytes.indexOf('NETSCAPE2.0');
     assert.ok(loop >= 0 && bytes.readUInt16LE(loop + 13) === 0, `${path}: infinite GIF loop`);
   }
+  const digest = sha256(bytes);
+  const prior = previousByPath.get(path);
   return {
     path,
-    sha256: sha256(bytes),
+    sha256: digest,
     bytes: bytes.length,
     width: stream.width,
     height: stream.height,
     frames,
     codec: stream.codec_name,
     durationSeconds: probe.format.duration ? Number(probe.format.duration) : null,
-    modifiedAt: statSync(path).mtime.toISOString(),
+    modifiedAt: prior?.sha256 === digest ? prior.modifiedAt : statSync(path).mtime.toISOString(),
   };
 });
 const manifest = {

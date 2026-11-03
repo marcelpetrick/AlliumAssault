@@ -402,7 +402,7 @@ publish unless the tag matches the version in `package.json`.
 | Profiling  | `npm run profile` over `bench/core.bench.ts`                                                               | One fixed step of the rules core, stage by stage, checked against a tenfold ceiling so an order-of-magnitude regression fails rather than merely printing. Numbers and method in `PERFORMANCE.md`                                                                                                                                                                                                                                                                                                                        |
 | Pipeline   | `npm run verify`, GitHub Actions                                                                           | All of the above on every push; releases and GitHub Pages deployment on tags, both gated on the browser suite                                                                                                                                                                                                                                                                                                                                                                                                            |
 
-Homing rockets carry a buddy id in projectile state. After three ballistic seconds they steer
+Homing rockets carry a buddy id in projectile state. After one ballistic second they steer
 directly towards the living target, with the same swept terrain/body/crate collisions as other
 rockets. Target loss preserves the last heading; AI simulates the same guidance before firing.
 

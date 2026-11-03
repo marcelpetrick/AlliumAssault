@@ -1,10 +1,10 @@
 {
-  "packageVersion": "1.83.2",
-  "recordedAt": "2026-10-14T11:56:22.473Z",
-  "sourceRevision": "e947fbc852b6ee8e066abc59b3197d503bea088a",
-  "runtimeSourceSha256": "dc26e90c6aa28819bcffde480ff23b37a515a473c4da1326715666664945e387",
-  "buildEntry": "assets/index-DMAymRXO.js",
-  "buildEntrySha256": "949dd4455653e0d0c831ff9f3bba3434887c2b260ed67f5a2a9123a44fd2d654",
+  "packageVersion": "1.83.7",
+  "recordedAt": "2026-11-03T21:55:42.707Z",
+  "sourceRevision": "62b4c55f3bc6be38bc9d49d445c175648cefa187",
+  "runtimeSourceSha256": "0fd5a9fb9ed569a7736cb902764ddcd870dbfa76264626c9e07470528a843c05",
+  "buildEntry": "assets/index-DQzy86Cf.js",
+  "buildEntrySha256": "25a608aabddd90712b16a7faae3cd9eea454cf67a297990b0ad6300e1b3b60ff",
   "buildStyles": [
     {
       "path": "assets/index-DViyQPIP.css",
@@ -114,36 +114,36 @@
     },
     {
       "path": "docs/screenshots/firefox-high-1280.png",
-      "sha256": "8a578f6ad494dba149e72edf2249b7608b357e6be5506bb3b7b381b88dda3503",
-      "bytes": 848937,
+      "sha256": "0d994f1374ca5357c2fe21e31b7a2e5c03ee44d74923c1fdbe9bd646f9e896d9",
+      "bytes": 858333,
       "width": 1280,
       "height": 720,
       "frames": 1,
       "codec": "png",
       "durationSeconds": null,
-      "modifiedAt": "2026-10-14T11:36:16.038Z"
+      "modifiedAt": "2026-11-03T21:55:21.749Z"
     },
     {
       "path": "docs/screenshots/firefox-low-1280.png",
-      "sha256": "561a3608460f4371d9fb541559d3870286ebd4dfa96fea813932118e60dbcf28",
-      "bytes": 623867,
+      "sha256": "5b6f5bfeeb73ca1ef716490756d68bcb1c84a950ae11632f23c5e01f83175cb8",
+      "bytes": 627735,
       "width": 1280,
       "height": 720,
       "frames": 1,
       "codec": "png",
       "durationSeconds": null,
-      "modifiedAt": "2026-10-14T11:36:10.775Z"
+      "modifiedAt": "2026-11-03T21:55:05.820Z"
     },
     {
       "path": "docs/screenshots/firefox-low-800.png",
-      "sha256": "c841d6b3459a8e8ea0b282a62d48197fa5cdf4af97e537ebb7a389ab7312928f",
-      "bytes": 379662,
+      "sha256": "c56b67adb87659f05158c298e0ada86bbe448b65bd658dbfa91b7035f7387ee3",
+      "bytes": 383201,
       "width": 800,
       "height": 600,
       "frames": 1,
       "codec": "png",
       "durationSeconds": null,
-      "modifiedAt": "2026-10-14T11:36:13.242Z"
+      "modifiedAt": "2026-11-03T21:55:12.970Z"
     },
     {
       "path": "docs/screenshots/frosty-peaks.jpg",
@@ -169,14 +169,14 @@
     },
     {
       "path": "docs/screenshots/homing.jpg",
-      "sha256": "485a70a501c108f30168b5f56985f03828fc9cf7481173100b2032f4407dc68c",
-      "bytes": 104668,
+      "sha256": "8ba7a48da2140ff050d972e8c51b02c802070e91aa4e4a1cb375f7db9efcc7dc",
+      "bytes": 102901,
       "width": 1280,
       "height": 720,
       "frames": 1,
       "codec": "mjpeg",
       "durationSeconds": 0.04,
-      "modifiedAt": "2026-10-14T11:48:45.828Z"
+      "modifiedAt": "2026-11-03T21:54:50.959Z"
     },
     {
       "path": "docs/screenshots/jetpack.jpg",
@@ -389,14 +389,14 @@
     },
     {
       "path": "docs/weapons/homing.gif",
-      "sha256": "314b37fa1404f803d527c9cef3512c087f8185923cb3fed4a871a19db51002ae",
-      "bytes": 880756,
+      "sha256": "dbeb1cf05510593c9f5fc5b550daea2eee860cf61ef7561588eae14ed10765c9",
+      "bytes": 280404,
       "width": 480,
       "height": 270,
-      "frames": 95,
+      "frames": 45,
       "codec": "gif",
-      "durationSeconds": 9.5,
-      "modifiedAt": "2026-10-14T11:34:25.285Z"
+      "durationSeconds": 4.5,
+      "modifiedAt": "2026-11-03T21:54:38.512Z"
     },
     {
       "path": "docs/weapons/jetpack.gif",
@@ -433,14 +433,14 @@
     },
     {
       "path": "docs/weapons/minigun.gif",
-      "sha256": "5767c331d769298e0360e65693e43afe90501dccc6248cbc3a68b1c50564d702",
-      "bytes": 311962,
+      "sha256": "304f2f8d280796f02f99f4f4f2f744541f20c135a7bf6c65482c7d8e981ef5b9",
+      "bytes": 294954,
       "width": 480,
       "height": 270,
       "frames": 40,
       "codec": "gif",
       "durationSeconds": 4,
-      "modifiedAt": "2026-10-14T11:32:18.218Z"
+      "modifiedAt": "2026-11-03T21:54:30.716Z"
     },
     {
       "path": "docs/weapons/mule.gif",

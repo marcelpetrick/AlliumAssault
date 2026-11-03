@@ -9,7 +9,7 @@ import { LETTER_KEYS, WEAPON_ORDER, WEAPONS, type WeaponId } from '../core/weapo
 import { THEME_IDS, THEMES } from '../render/themes';
 import { QUALITY_OPTIONS, type Quality } from '../render/quality';
 import { LANGUAGES, t, type Language, type TextKey } from './i18n';
-import { weaponBlurb, weaponName } from './i18nWeapons';
+import { weaponBlurb, weaponDamage, weaponName } from './i18nWeapons';
 import {
   ARSENAL_OPTIONS,
   CRATE_OPTIONS,
@@ -340,7 +340,7 @@ export class Menu {
               ${WEAPON_ORDER.map((id) => {
                 const w = WEAPONS[id];
                 return `<div class="weapon-row"><span class="weapon-icon">${w.icon}</span><div><b>${esc(weaponName(id))}</b>
-                  <small>${w.ammo === Infinity ? t('help.unlimited') : t(w.crateOnly ? 'help.perCrate' : 'help.perTeam', { n: w.ammo })} · ${w.damage} ${t('help.damage')}</small><p>${esc(weaponBlurb(id))}</p></div></div>`;
+                  <small>${w.ammo === Infinity ? t('help.unlimited') : t('help.perTeam', { n: w.ammo })} · ${esc(weaponDamage(id))}</small><p>${esc(weaponBlurb(id))}</p></div></div>`;
               }).join('')}
             </div>
           </div>

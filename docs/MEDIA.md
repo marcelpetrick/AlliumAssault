@@ -7,6 +7,10 @@ They are demonstrations, not recordings of unscripted player matches. Seeded wea
 fixtures repeat their actions; the live title/demo background and GPU particles can vary between
 recordings.
 
+The homing rocket GIF/screenshot, minigun GIF and Firefox evidence were refreshed on 3 November
+for 1.83.7: one starting rocket, a one-second ballistic opening and live burst aiming. Other
+recordings retain their original capture dates.
+
 ## Feature animations
 
 ### Adaptive landscapes
@@ -61,7 +65,7 @@ An already running preview can be supplied with `npm run refresh-media -- http:/
 the Chrome capture helpers reject a build whose displayed version differs from package.json.
 
 Capture commands can also be run separately against a preview. Append weapon ids to
-`capture-weapons` or feature ids to `capture-features` to record selected clips; for example,
+`capture-weapons`, screenshot names to `capture-media`, or feature ids to `capture-features` to record selected clips; for example,
 `npm run capture-features -- http://localhost:4174 factions`. Feature checks still simulate all
 scenarios to verify their outcomes.
 
@@ -103,7 +107,7 @@ silent. Game sounds remain synthesized live in Web Audio.
 The scripts assert real outcomes: detonation, damage, crate pickup, guidance, rope attachment and
 release, jetpack landing, flooding and shared victory. Browser errors fail a capture. The
 [manifest](media-capture.json) inventories every checked-in media asset with its SHA-256 and format
-facts. It records the game source fingerprint and build entry hash, avoiding an unsupported claim
+facts. Unchanged hashes preserve their earlier capture timestamps across checkouts. It records the game source fingerprint and build entry hash, avoiding an unsupported claim
 that an uncommitted capture already belongs to a future Git commit.
 
 The history chart describes committed repository history through the last gameplay commit used

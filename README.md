@@ -93,8 +93,8 @@ the pixel density is halved.
   and one time in four a live mine, armed on the spot under whoever was greedy.
 - **Arsenal setting** — normal starting stock, special weapons found in crates, or infinite
   supplies. Bazooka, grenade, shotgun, garlic punch, cluster bomb, baseball bat, blowtorch, drill,
-  rope, platform and jetpack remain available in the basic loadout. The Homing Rocket is crate-only
-  in both ordinary arsenal modes; Infinite Supplies also gives unlimited homing rockets.
+  rope, platform and jetpack remain available in the basic loadout. The Homing Rocket starts with one per team in normal stock and can be refilled from crates.
+  Infinite Supplies gives unlimited homing rockets.
 - **Sudden Death** — from the setup screen, pick the turn (10, 20 or 30, or off) on which every
   living buddy drops to 1 HP. From the next turn on the water climbs a world unit at the start of
   every turn — the camera shows it rising — flooding caves and low ground. Nobody dies from the
@@ -159,7 +159,7 @@ and the two ways of taking others with you. There is a recorded clip of every on
 | 4   | 🍌 Banana Bomb         | 1    | 40 for the burst, then 30 per banana (×5)  | 3 s fuse, then five bouncing bananas explode one after another                                                                          |
 | 5   | ✨ Holy Garlic Grenade | 1    | 100 over a radius of 7                     | Rolls to a stop, sings Hallelujah, then erupts 1.6 s later                                                                              |
 | 6   | 💥 Shotgun             | 2    | 22 per shot (×2)                           | Two instant shots along the aim line                                                                                                    |
-| 7   | 🔫 Minigun             | 1    | 5 per bullet (×14)                         | A burst whose kicks shove the victim far across the map                                                                                 |
+| 7   | 🔫 Minigun             | 1    | 5 per bullet (×14)                         | Fourteen rounds; ↑↓ steers the live burst and its kicks shove the victim across the map                                                 |
 | 8   | 👊 Garlic Punch        | ∞    | 45 and a launch                            | Close-range uppercut; carves nearby rock, including walls and ceilings                                                                  |
 | 9   | 🏏 Baseball Bat        | 2    | 25 and a long flight                       | Carves nearby walls; knocks the victim along the aim line, at least 20° upwards                                                         |
 | 0   | 🐑 Sheep               | 1    | 75 for the blast                           | Space releases it, it hops forward in small 45° leaps; Space again detonates it, at the latest after 10 s                               |
@@ -174,13 +174,13 @@ and the two ways of taking others with you. There is a recorded clip of every on
 | ⇧9  | 🏳️ French Attack       | ∞    | —                                          | Wave the white flag: nothing is fired and the turn passes straight to the next buddy. Always available                                  |
 | ⇧0  | 🛞 Proximity Mine      | 2    | 40 for the blast                           | Space drops it at your feet; it arms after 1.5 s and blows up the first buddy within 2 units — friend, foe or the one who laid it       |
 | T   | 🌀 Teleport            | 1    | —                                          | Press T, then click any free spot: the buddy appears there and falls, lands hard or drowns from there like anybody else. One per match  |
-| K   | ☠️ Self-Destruct       | 1    | Its own health, up to 100                  | "Oh no!": the buddy panics for three seconds, then blows itself up; blast radius is its health ÷ 10                                     |
+| K   | ☠️ Self-Destruct       | 1    | Its own health (100 at start)              | "Oh no!": the buddy panics for three seconds, then blows itself up; blast radius is its health ÷ 10                                     |
 | V   | 🏺 Ming Vase           | 1    | 70 for the burst, then 38 per shard (×8)   | Six hundred years of porcelain, thrown once; the shards are contact bombs. One per match                                                |
 | F   | 🧯 Flamethrower        | 2    | 7 per burning gob                          | Three seconds of fuel out of a nozzle. Up and down steer it while it runs; wind and gravity carry the gobs and the ground keeps burning |
 | J   | 🎒 Jetpack             | 2    | —                                          | Space launches; arrows accelerate for six seconds. Slow safe descent, then land and attack; Space stops thrust early                    |
-| H   | 🎯 Homing Rocket       | 1    | 45                                         | Crate-only: click an enemy, aim and charge; three ballistic seconds, then direct pursuit. Rock blocks the flight                        |
+| H   | 🎯 Homing Rocket       | 1    | 45                                         | One from the start: click an enemy, aim and charge; one ballistic second, then direct pursuit. Rock blocks the flight                   |
 
-The Homing Rocket starts with no ammo and supplies one rocket per weapon crate; its table stock is the pickup amount.
+Normal stock gives each team one Homing Rocket; a weapon crate adds one more.
 
 ## Architecture
 
