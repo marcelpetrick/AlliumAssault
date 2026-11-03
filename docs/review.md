@@ -278,3 +278,20 @@ The complete repository verification and official REUSE checks gate the release 
 The authorized v1.83.3 tag runs independent release packaging and Pages verification, publishing
 the static archive and SHA-256 checksum alongside the updated playable site. Capture provenance
 continues to describe the 1.83.2 recordings rather than relabelling them as freshly captured.
+
+## November dependency review — 1.83.6
+
+The npm registry review on 3 November checked all direct dependencies and existing overrides.
+Babylon.js advances to 9.33.2; Vitest and coverage-v8 advance together to 5.1.0; Stylelint 18
+uses its matching standard configuration 41. Existing styles pass the new defaults without
+changing policy or suppressing any new rule. Node typings return to the latest supported 24.x
+line, matching the actual Node 24 local/CI runtime. TypeScript 7 remains outside the current
+typescript-eslint peer range, so the compatible 6.0.3 compiler stays pinned.
+
+The updated Stylelint dependency tree no longer includes the table/AJV consumer of fast-uri.
+Remove its unused override instead of forcing the incompatible 4.x major into a 3.x consumer.
+Remaining overrides are exact, used and current. Both full and production npm audits report
+zero findings. Full repository verification and REUSE checks gate the dependency commit.
+
+The current workspace contains a separate, unmerged Gource branch. Dependency and weapon work
+uses an isolated checkout of current master, preserving those existing media commits and files.

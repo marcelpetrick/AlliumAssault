@@ -177,6 +177,9 @@ Status: ☐ open · ☑ done
 | T162 | Verify, self-review, commit and push the complete media/documentation refresh                                   | ☑      | 1.83.2         |
 | T163 | Fix unreadable faction-name inputs discovered during media review and verify editing contrast                   | ☑      | 1.83.2         |
 | T164 | Review all dependency pins, update compatible stable releases, verify, push and publish a new public release    | ☑      | 1.83.3         |
+| T167 | November dependency review: exact compatible pins, complete verification and push                               | ☑      | 1.83.6         |
+| T168 | Diagnose and fix homing rocket targeting/flight; start normal matches with one rocket                           | ☐      | planned        |
+| T169 | Audit every weapon: damage, knockback, timing, collision, controls and meaningful outcome coverage              | ☐      | planned        |
 
 ## Current implementation plan
 

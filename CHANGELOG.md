@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.6] — 2026-11-03
+
+- Update Babylon.js 9.33.1 → 9.33.2, Vitest/coverage-v8 5.0.5 → 5.1.0, Stylelint
+  17.16.0 → 18.0.0 and its standard configuration 40.0.0 → 41.0.0, retaining exact pins.
+- Match Node typings to the configured Node 24 runtime (26.6.6 → 24.19.2). Keep TypeScript
+  6.0.3 within typescript-eslint’s supported range. Remove the now-unused fast-uri override
+  after Stylelint drops the table/AJV dependency that needed it.
+- Record the requested homing-rocket investigation, starting stock and complete weapon audit.
+
 ## [1.83.4] — 2026-11-02
 
 - Refresh exact dependencies and overrides to remove known development dependency advisories.

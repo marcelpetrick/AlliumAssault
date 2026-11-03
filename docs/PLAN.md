@@ -114,3 +114,22 @@ The final delivery gate verifies the exact staged tree before committing and pus
 3. Review the dependency diff and audit results; run the complete verification and REUSE gates.
 4. Commit version 1.83.3, push master and its single release tag, then confirm the published archive,
    checksum and Pages deployment. The user explicitly authorized pushing and releasing.
+
+## November dependency and weapon investigation (T167–T169)
+
+1. Base the update on current master in an isolated checkout; preserve the unmerged Gource branch.
+   Check every npm dependency/override against the registry, retain supported compiler/runtime
+   versions, run the complete gate, then make one dependency commit and push it first.
+2. Reproduce the homing problem through real player input before changing the rules. Compare the
+   launch, target selection and guidance with Team17’s Worms 2 guide and Armageddon manual.
+   Preserve the requested ballistic opening and terrain collision; supply one rocket in the
+   normal starting inventory. Cover both the interface and the actual flight outcome.
+3. Review all selectable weapons against their documented damage and intended physical behavior.
+   Check launch/charge, knockback, terrain and body hits, fuses, repeated shots, tools and stock.
+   Record deliberate balance differences from Worms and fix reproducible defects with outcome tests.
+4. Update gameplay instructions, translations and affected media; review the changes, retain all
+   four core coverage metrics above 98%, run full verification before each atomic commit, and push
+   the completed fixes. A release tag is outside this request to push the code.
+
+The next dependency version is 1.83.6: 1.83.4 and 1.83.5 already label the preserved local media
+commits, while current master contains an independent 1.83.4 security update.
