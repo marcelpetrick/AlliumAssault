@@ -105,8 +105,6 @@ export interface WeaponDef {
   range: number;
   /** Seconds of ballistic flight before direct pursuit begins. */
   homing?: { delay: number; speed: number };
-  /** Supplied only by crates, even with the ordinary full arsenal. */
-  crateOnly?: boolean;
   /** Melee: 'uppercut' launches victims skywards, 'swing' bats them away along the aim line. */
   knock?: 'uppercut' | 'swing';
   /**
@@ -215,7 +213,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     special: true,
     name: 'Minigun',
     icon: '🔫',
-    blurb: 'A long rattling burst of 14 bullets that shoves victims right across the map.',
+    blurb: 'A rattling burst of 14 bullets. Steer with ↑↓ while firing; it shoves victims across the map.',
     kind: 'hitscan',
     ammo: 1,
     charge: false,
@@ -863,10 +861,9 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     name: 'Homing Rocket',
     icon: '🎯',
     blurb:
-      'Click an enemy to lock on, then aim and charge. After three ballistic seconds it homes straight towards that buddy; walls stop it. Found in crates.',
+      'Click an enemy to lock on, then aim and charge. After one ballistic second it homes straight towards that buddy; walls stop it. One per team; crates refill it.',
     kind: 'projectile',
     special: true,
-    crateOnly: true,
     ammo: 1,
     charge: true,
     shots: 1,
@@ -880,7 +877,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     damage: 45,
     force: 16,
     range: 0,
-    homing: { delay: 3, speed: 24 },
+    homing: { delay: 1, speed: 24 },
   },
 };
 

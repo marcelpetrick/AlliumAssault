@@ -3,6 +3,7 @@
 
 /** Refresh the README gallery and battle GIF from real actions in authored arenas. */
 import assert from 'node:assert/strict';
+import { WEAPONS } from '../src/core/weapons.ts';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -10,10 +11,17 @@ import { openCapture, startMatch, frames, focus, encodeGif, recordFrame } from '
 
 const url = process.argv[2] ?? 'http://localhost:4173';
 const out = 'docs/screenshots';
+const only = process.argv.slice(3);
+const names = ['title', 'action-1', 'action-2', 'candy-shop', 'frosty-peaks', 'napalm', 'tombstone', 'jetpack', 'homing', 'setup', 'battle'];
+assert.ok(
+  only.every((name) => names.includes(name)),
+  'unknown media selection',
+);
 mkdirSync(out, { recursive: true });
 const capture = await openCapture(url, { width: 1280, height: 720 });
 const { page } = capture;
 const shoot = async (name) => {
+  if (only.length && !only.includes(name)) return;
   capture.check();
   await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 88 });
   console.log(`${name}.jpg`);
@@ -118,25 +126,21 @@ try {
     const h = window.__allium,
       g = h.app.game;
     g.buddies[1].body.x = 80;
-    g.crates.push({ id: 9901, kind: 'weapon', weapon: 'homing', body: { ...g.activeBuddy.body, radius: 0.45 } });
-    h.fastForward(0.1);
     g.selectWeapon('homing');
     g.targetBuddy(g.buddies[1].id);
-    g.activeBuddy.aim = 1.4;
+    g.activeBuddy.aim = 0.65;
     g.face(1);
   });
-  // Let the pickup floater expire before moving the camera above the launcher.
-  await frames(page, 20);
   await page.evaluate(() => {
     const h = window.__allium,
       g = h.app.game;
     g.pressFire();
     h.fastForward(1.5);
     g.releaseFire();
-    h.fastForward(3.1);
+    h.fastForward(1.1);
   });
   const guided = await page.evaluate(() => window.__allium.app.game.projectiles[0]);
-  assert.ok(guided?.age >= 3, 'rocket guidance active');
+  assert.ok(guided?.age >= WEAPONS.homing.homing.delay, 'rocket guidance active');
   await focus(page, 60, 31, 68);
   await shoot('homing');
 
@@ -160,17 +164,19 @@ try {
     g.face(1);
     g.pressFire();
   });
-  const dir = mkdtempSync(join(tmpdir(), 'allium-battle-'));
-  try {
-    for (let k = 0; k < 110; k++) {
-      if (k === 9) await page.evaluate(() => window.__allium.app.game.releaseFire());
-      await frames(page, 1, 1 / 12);
-      await recordFrame(page, dir, k);
+  if (only.length === 0 || only.includes('battle')) {
+    const dir = mkdtempSync(join(tmpdir(), 'allium-battle-'));
+    try {
+      for (let k = 0; k < 110; k++) {
+        if (k === 9) await page.evaluate(() => window.__allium.app.game.releaseFire());
+        await frames(page, 1, 1 / 12);
+        await recordFrame(page, dir, k);
+      }
+      assert.ok(await page.evaluate(() => window.__captureEvents.filter((e) => e.type === 'explosion').length > 2), 'banana fragments exploded');
+      encodeGif(dir, `${out}/battle.gif`, 12, 640);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
     }
-    assert.ok(await page.evaluate(() => window.__captureEvents.filter((e) => e.type === 'explosion').length > 2), 'banana fragments exploded');
-    encodeGif(dir, `${out}/battle.gif`, 12, 640);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
   }
   capture.check();
 } finally {

@@ -127,17 +127,19 @@ export function simulateShot(
   const p = { x: me.body.x + dx * MUZZLE_OFFSET, y: me.body.y + dy * MUZZLE_OFFSET, vx: dx * speed, vy: dy * speed, radius: 0.15, bounces: 0 };
   // Contact fuses go off on the first thing they touch. Game.stepProjectiles() counts crates as
   // well as buddies, so leaving them out here planned rockets straight through them.
+  let age = 0;
   const hitTest =
     def.restitution === null
       ? (x: number, y: number) =>
-          game.buddies.some((b) => b.alive && b.id !== me.id && Math.hypot(b.body.x - x, b.body.y - y) < BUDDY_RADIUS + 0.15) ||
+          game.buddies.some((b) => b.alive && (b.id !== me.id || age > 0.3) && Math.hypot(b.body.x - x, b.body.y - y) < BUDDY_RADIUS + 0.15) ||
           game.crates.some((c) => Math.hypot(c.body.x - x, c.body.y - y) < c.body.radius + 0.15)
       : undefined;
   const dt = 1 / 20;
   const ax = game.wind * WIND_ACCEL * def.windInfluence;
   let rest = 0;
   for (let t = 0; t < (def.homing ? def.fuse : 7); t += dt) {
-    const guided = def.homing && t + dt >= def.homing.delay ? def.homing : undefined;
+    age = t + dt;
+    const guided = def.homing && age >= def.homing.delay ? def.homing : undefined;
     if (guided) steerHoming(p, game.buddies.find((b) => b.id === buddyTarget && b.alive && b.hp > 0)?.body, guided.speed);
     const hit = stepProjectile(
       game.terrain,

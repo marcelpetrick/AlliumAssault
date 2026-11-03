@@ -7,7 +7,7 @@ import { ARSENAL_OPTIONS, CRATE_OPTIONS, GRAVITY_OPTIONS, SUDDEN_DEATH_OPTIONS, 
 import { TEXT_SIZES } from '../src/ui/settings';
 import { QUALITY_OPTIONS } from '../src/render/quality';
 import { THEME_IDS, THEMES } from '../src/render/themes';
-import { untranslatedWeapons, weaponBlurb, weaponName } from '../src/ui/i18nWeapons';
+import { untranslatedWeapons, weaponBlurb, weaponDamage, weaponName } from '../src/ui/i18nWeapons';
 import { WEAPON_ORDER, WEAPONS } from '../src/core/weapons';
 
 // setLanguage touches the document; jsdom is not loaded here, so stand in for it.
@@ -139,5 +139,29 @@ describe('languages', () => {
   it('tell the document which language it is in, for the browser’s sake', () => {
     setLanguage('hr');
     expect(html.lang).toBe('hr');
+  });
+});
+
+describe('weapon damage shown in help', () => {
+  it.each([
+    ['shotgun', '2 × 22 dmg'],
+    ['minigun', '14 × 5 dmg'],
+    ['cluster', '25 + 5 × 10 dmg'],
+    ['flamer', '7 dmg per fireball + burning'],
+    ['selfdestruct', 'Damage equals current health'],
+    ['platform', 'Utility'],
+  ] as const)('shows meaningful damage for %s', (id, expected) => {
+    setLanguage('en');
+    expect(weaponDamage(id)).toBe(expected);
+  });
+
+  it('translates the special damage labels in all four languages', () => {
+    for (const lang of LANGUAGES) {
+      setLanguage(lang.value);
+      expect(weaponDamage('flamer')).toContain('7');
+      expect(weaponDamage('flamer')).toContain(t('help.burning'));
+      expect(weaponDamage('selfdestruct')).toBe(t('help.healthDamage'));
+      expect(weaponDamage('rope')).toBe(t('help.utility'));
+    }
   });
 });

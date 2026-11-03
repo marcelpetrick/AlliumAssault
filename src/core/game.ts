@@ -558,7 +558,7 @@ export class Game {
 
     if (this.acting && !this.isHumanTurn) this.ai.get(this.activeTeam)?.update(this, dt);
 
-    if (active && this.phase === 'aiming') {
+    if (active && (this.phase === 'aiming' || this.phase === 'firing')) {
       const dir = Number(this.input.up) - Number(this.input.down);
       // The aim keeps answering while the shot charges, but more slowly: holding Space is meant to
       // be a commitment, and at full speed you could swing a quarter turn without letting go. Slow

@@ -2,6 +2,37 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.83.8] — 2026-11-03
+
+- Integrate the latest master fixes with the Gource media branch and preserve capture provenance.
+
+## [1.83.7] — 2026-11-03
+
+- Start normal matches with one Homing Rocket per team and retain crate refills. Use one ballistic
+  second before guidance so ordinary charged shots home before landing; preserve wind/gravity
+  during launch and ordinary terrain/body collision throughout flight.
+- Pick homing targets using a forgiving screen-space hit area at different zooms and resolutions.
+- Match returning-projectile predictions to the shooter's collision after the initial safety window.
+- Let arrow keys steer the live minigun burst. Show payload, burst and fire damage accurately in
+  help instead of reporting zero damage for the flamethrower; translate the updated controls.
+- Audit all 26 selectable weapons with actual physical outcomes and refresh affected homing media.
+- Remove an optional victory screenshot that repeatedly timed out after the match assertions.
+
+## [1.83.6] — 2026-11-03
+
+- Update Babylon.js 9.33.1 → 9.33.2, Vitest/coverage-v8 5.0.5 → 5.1.0, Stylelint
+  17.16.0 → 18.0.0 and its standard configuration 40.0.0 → 41.0.0, retaining exact pins.
+- Match Node typings to the configured Node 24 runtime (26.6.6 → 24.19.2). Keep TypeScript
+  6.0.3 within typescript-eslint’s supported range. Remove the now-unused fast-uri override
+  after Stylelint drops the table/AJV dependency that needed it.
+- Record the requested homing-rocket investigation, starting stock and complete weapon audit.
+
+## [1.83.4] — 2026-11-02
+
+- Refresh exact dependencies and overrides to remove known development dependency advisories.
+- Keep TypeScript 6.0.3 while typescript-eslint requires a version below 6.1.
+- Match the GitHub Pages hostname literally in the About screen test.
+
 ## [1.83.5] — 2026-10-15
 
 - Add a sixth Gource clip, `linkedin/gource-names.mp4` (4:5): file names shown, files coloured in
@@ -9,7 +40,7 @@ All notable changes to this project are documented here. Versions follow SemVer.
   gradient. A frosted, half-transparent legend with file counts replaces Gource's built-in key,
   which is too small to read and cannot be styled. `linkedin/gource-legend.py` draws both images.
 
-## [1.83.4] — 2026-10-15
+## [1.83.4] — 2026-10-15 (Gource branch)
 
 - Add five ten-second Gource animations of the repository history for LinkedIn
   (`linkedin/gource-*.mp4`: bloom, garlic, minimal, wide, glow) and `linkedin/render-gource.sh`,

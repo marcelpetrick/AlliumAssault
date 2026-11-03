@@ -1057,3 +1057,39 @@ test('air strike: a drag pans the camera, a click calls the plane and five bombs
   expect(after.terrainRevision).toBeGreaterThan(s.terrainRevision);
   expect(errors).toEqual([]);
 });
+
+test('minigun: arrow keys adjust aim while the burst is firing', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => {
+    const h = window.__allium;
+    h.setManual(true);
+    const g = h.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    g.buddies.forEach((b, i) => Object.assign(b.body, { x: i ? 100 : 40, y: 20.65, vx: 0, vy: 0, grounded: true }));
+    g.activeBuddy!.aim = 0;
+    g.selectWeapon('minigun');
+  });
+  await page.keyboard.press('Space');
+  expect((await state(page)).phase).toBe('firing');
+  await page.keyboard.down('ArrowUp');
+  await page.evaluate(() => {
+    window.__allium.stepFrames(1, 1 / 60);
+    window.__allium.fastForward(0.25);
+  });
+  await page.keyboard.up('ArrowUp');
+  expect(await page.evaluate(() => window.__allium.app.game!.activeBuddy!.aim)).toBeGreaterThan(0.3);
+  await page.keyboard.down('ArrowDown');
+  await page.evaluate(() => {
+    window.__allium.stepFrames(1, 1 / 60);
+    window.__allium.fastForward(0.1);
+  });
+  await page.keyboard.up('ArrowDown');
+  expect(await page.evaluate(() => window.__allium.app.game!.activeBuddy!.aim)).toBeLessThan(0.3);
+  await page.evaluate(() => {
+    window.__allium.stepFrames(1, 1 / 60);
+    window.__allium.fastForward(2);
+  });
+  expect((await state(page)).phase).not.toBe('firing');
+  expect(errors).toEqual([]);
+});

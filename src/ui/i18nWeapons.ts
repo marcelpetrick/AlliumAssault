@@ -9,7 +9,7 @@
 
 import type { WeaponId } from '../core/weapons';
 import { WEAPONS } from '../core/weapons';
-import { language, type Language } from './i18n';
+import { language, t, type Language } from './i18n';
 
 interface Words {
   name: string;
@@ -25,7 +25,7 @@ const DE: WeaponWords = {
   banana: { name: 'Bananenbombe', blurb: '3 Sekunden Zünder, dann hüpfen fünf explosive Bananen überall hin und gehen nacheinander hoch.' },
   holy: { name: 'Heilige Knoblauchgranate', blurb: 'Rollt aus, singt Halleluja und bricht dann in einer gewaltigen Explosion los.' },
   shotgun: { name: 'Schrotflinte', blurb: 'Zwei sofortige Schüsse entlang der Ziellinie.' },
-  minigun: { name: 'Minigun', blurb: 'Eine lange ratternde Salve aus 14 Kugeln, die das Opfer quer über die Karte schiebt.' },
+  minigun: { name: 'Minigun', blurb: 'Eine Salve aus 14 Kugeln, die das Opfer über die Karte schiebt. Während des Feuerns mit ↑↓ zielen.' },
   punch: { name: 'Knoblauchfaust', blurb: 'Aufwärtshaken aus der Nähe, der das Opfer in den Himmel schickt.' },
   bat: { name: 'Baseballschläger', blurb: 'Homerun! Weniger Schaden als die Faust, schlägt das Opfer aber weit über die Karte.' },
   sheep: { name: 'Schaf', blurb: 'Leertaste lässt es in kleinen Sprüngen davonhüpfen; nochmal Leertaste sprengt es.' },
@@ -42,7 +42,8 @@ const DE: WeaponWords = {
   jetpack: { name: 'Jetpack', blurb: 'Leertaste startet; Pfeile beschleunigen sechs Sekunden lang. Leertaste stoppt den Schub. Sanft landen, dann schießen.' },
   homing: {
     name: 'Lenkrakete',
-    blurb: 'Gegner anklicken, dann wie eine Bazooka laden. Nach drei Sekunden fliegt sie direkt zum Ziel; Felsen halten sie auf. Nur in Kisten.',
+    blurb:
+      'Gegner anklicken, dann zielen und aufladen. Nach einer ballistischen Sekunde verfolgt sie den Buddy direkt; Fels stoppt sie. Eine pro Team, Nachschub aus Kisten.',
   },
   platform: { name: 'Plattform', blurb: 'Maus bewegen, um ein fünf Einheiten langes Brett zu setzen, Mausrad kippt es, Linksklick legt es ab.' },
   mine: { name: 'Annäherungsmine', blurb: 'Leertaste legt sie vor die Füße. Sie schärft sich, während du wegläufst, und geht dann für jeden hoch.' },
@@ -70,7 +71,7 @@ const HR: WeaponWords = {
   banana: { name: 'Banana bomba', blurb: '3 sekunde, pa pet eksplozivnih banana skakuće svuda i pucaju jedna po jedna.' },
   holy: { name: 'Sveta bomba od češnjaka', blurb: 'Dokotrlja se, otpiva Aleluja, pa prasne ka nikad ništa.' },
   shotgun: { name: 'Sačmarica', blurb: 'Dva trenutna hica po liniji nišanjenja.' },
-  minigun: { name: 'Minigun', blurb: 'Duga rafalna tutnjava od 14 metaka šta gurne žrtvu čak prik karte.' },
+  minigun: { name: 'Minigun', blurb: 'Rafal od 14 metaka šta gurne žrtvu prik karte. Dok pucaš, ciljaj s ↑↓.' },
   punch: { name: 'Češnjakov direkt', blurb: 'Aperkat iz blizine šta pošalje protivnika u nebo.' },
   bat: { name: 'Palica', blurb: 'Home run! Manje štete nego šaka, ali odalami protivnika dobrano daleko.' },
   sheep: { name: 'Ovca', blurb: 'Space je pusti da skakuće; opet Space pa je raznese.' },
@@ -84,7 +85,8 @@ const HR: WeaponWords = {
   jetpack: { name: 'Mlazni ruksak', blurb: 'Space za poletit; strelice ubrzavaju šest sekundi. Space gasi potisak. Lagano sliti pa pucaj.' },
   homing: {
     name: 'Navodeća raketa',
-    blurb: 'Klikni protivnika pa napuni ka bazuku. Posli tri sekunde ide ravno na njega; stina je zaustavlja. Samo iz kutija.',
+    blurb:
+      'Klikni protivnika pa naciljaj i napuni. Nakon sekunde balističkog leta prati odabranog lika; stijene je zaustavljaju. Jedna po ekipi, još iz sanduka.',
   },
   platform: { name: 'Daska', blurb: 'Miči miša da postaviš dasku od pet jedinica, kotačić je naginje, lijevi klik je spušta.' },
   mine: { name: 'Mina', blurb: 'Space je spusti pod noge. Naoruža se dok bižiš, pa plane svakomu tko dođe blizu.' },
@@ -108,7 +110,7 @@ const ZH: WeaponWords = {
   banana: { name: '香蕉炸弹', blurb: '3 秒引信，然后五根会爆炸的香蕉到处乱弹，一个接一个炸开。' },
   holy: { name: '神圣蒜头手雷', blurb: '滚到停下，唱一段哈利路亚，然后爆出惊天一击。' },
   shotgun: { name: '霰弹枪', blurb: '沿瞄准线立即打出两发。' },
-  minigun: { name: '转管机枪', blurb: '一长串 14 发子弹，把对手一路推到地图另一头。' },
+  minigun: { name: '转管机枪', blurb: '一连串14发子弹，把对手推向远处。连发时用↑↓调整瞄准。' },
   punch: { name: '蒜头重拳', blurb: '近身上勾拳，把对手打上天。' },
   bat: { name: '棒球棒', blurb: '全垒打！伤害比拳头低，但能把对手打得老远。' },
   sheep: { name: '绵羊', blurb: '空格放它一蹦一蹦地跑；再按空格把它引爆。' },
@@ -120,7 +122,7 @@ const ZH: WeaponWords = {
   drill: { name: '电钻', blurb: '垂直向下钻 3 秒。钻的时候不吃摔落伤害。' },
   rope: { name: '钩索', blurb: '空格打出钩索；挂着时 ↑↓ 收放、←→ 摆荡、空格松手。落地后还能再开一枪。' },
   jetpack: { name: '喷气背包', blurb: '空格启动；方向键加速，燃料持续六秒。空格停止推进。缓慢下降，落地后还能射击。' },
-  homing: { name: '追踪火箭', blurb: '点击敌人后像火箭筒一样蓄力。弹道飞行三秒后直接追踪目标；岩石会挡住它。只能从箱子获得。' },
+  homing: { name: '追踪火箭', blurb: '点击敌人锁定，再瞄准蓄力。先像火箭筒一样飞行一秒，再直接追踪目标；岩石会挡住它。每队初始一枚，可从箱子补充。' },
   platform: { name: '木板', blurb: '移动鼠标放置一块五单位长的木板，滚轮调整角度，左键放下。' },
   mine: { name: '感应地雷', blurb: '空格放在脚边。你跑开时它完成布设，之后谁靠近都炸。' },
   selfdestruct: { name: '自爆', blurb: '蒜头把自己炸掉：伤害等于剩余血量，爆炸范围也随之变大。' },
@@ -141,3 +143,22 @@ export const weaponBlurb = (id: WeaponId): string => WEAPON_WORDS[language()][id
 /** Which weapons a language has no words for; empty for a finished one. Used by the tests. */
 export const untranslatedWeapons = (lang: Language, ids: readonly WeaponId[]): WeaponId[] =>
   lang === 'en' ? [] : ids.filter((id) => WEAPON_WORDS[lang][id] === undefined);
+
+/** Damage shown in help: include shots, fragments and fire rather than a spray's zero direct damage. */
+export function weaponDamage(id: WeaponId): string {
+  const w = WEAPONS[id];
+  if (w.kind === 'self') return t('help.healthDamage');
+  if (w.spray) {
+    const fuel = WEAPONS[w.spray.weapon];
+    return `${t('help.damagePerProjectile', { n: fuel.damage })}${fuel.napalm ? ` + ${t('help.burning')}` : ''}`;
+  }
+  if (w.cluster) return `${w.damage} + ${w.cluster.count} × ${WEAPONS[w.cluster.weapon].damage} ${t('help.damage')}`;
+  if (w.strike) {
+    const bomb = WEAPONS[w.strike.weapon];
+    const count = w.strike.count * (bomb.impacts ?? 1);
+    return `${count} × ${bomb.damage} ${t('help.damage')}${bomb.napalm ? ` + ${t('help.burning')}` : ''}`;
+  }
+  if (w.damage === 0) return t('help.utility');
+  const count = w.burst?.count ?? w.shots;
+  return `${count > 1 ? `${count} × ` : ''}${w.damage} ${t('help.damage')}`;
+}

@@ -2665,3 +2665,26 @@ describe('gravity', () => {
     expect(bazookaRange(2.5)).toBeLessThan(width * 0.4);
   });
 });
+
+it('steers the live minigun burst with the aiming keys and changes the actual shot directions', () => {
+  const g = flatGame([40, 100], [team('A', 1), team('B', 1)]);
+  toAiming(g);
+  g.selectWeapon('minigun');
+  g.buddies[0].aim = 0;
+  g.buddies[0].facing = 1;
+  g.drainEvents();
+  g.pressFire();
+  g.step();
+  const first = g.drainEvents().find((e) => e.type === 'shot');
+  expect(first?.type).toBe('shot');
+  g.input.up = true;
+  g.simulate(0.25);
+  g.input.up = false;
+  const aimed = g.drainEvents().filter((e) => e.type === 'shot');
+  expect(g.buddies[0].aim).toBeGreaterThan(0.3);
+  expect(aimed.length).toBeGreaterThan(0);
+  const last = aimed.at(-1)!;
+  if (first?.type !== 'shot') throw new Error('shots were not emitted');
+  expect((last.y1 - last.y0) / (last.x1 - last.x0)).toBeGreaterThan(0.25);
+  expect(Math.abs(first.y1 - first.y0)).toBeLessThan(0.01);
+});
