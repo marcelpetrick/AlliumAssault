@@ -219,7 +219,8 @@ Three seconds of burning fuel. Up and down steer the nozzle while it runs; wind 
 
 ### 🎒 Jetpack
 
-**J** · Two flights; arrows accelerate for six seconds, then land gently and attack. Space stops thrust early.
+**J** · Two flights; arrows accelerate for six seconds and Space stops thrust early. A fall starts
+gently, then accelerates; long drops can hurt and end the turn.
 
 ![Jetpack flight](weapons/jetpack.gif)
 

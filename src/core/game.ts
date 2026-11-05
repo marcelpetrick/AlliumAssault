@@ -925,7 +925,7 @@ export class Game {
             powered ? Number(this.input.right) - Number(this.input.left) : 0,
             powered ? Number(this.input.up) - Number(this.input.down) : 0,
           );
-          this.landing(b, true);
+          this.landing(b, false);
           this.checkRopeBounds(b);
           if (landed) {
             this.action = null;
@@ -1404,7 +1404,7 @@ export class Game {
       return;
     } else if (def.kind === 'jetpack') {
       this.shotsLeft = def.shots;
-      this.action = { kind: 'jetpack', left: JETPACK_TIME, airborne: false, thrust: false };
+      this.action = { kind: 'jetpack', left: JETPACK_TIME, airborne: false, thrust: false, coasting: false };
       b.body.vy = Math.max(b.body.vy, 4);
       b.body.grounded = false;
       this.setPhase('jetpacking');
@@ -1634,7 +1634,7 @@ export class Game {
     this.charge = null;
     // A guided sheep goes off; torch, drill and bursts simply stop.
     this.detonateGuided();
-    // Exhaustion or the turn clock cuts the engine, but the descent governor stays until landing.
+    // Exhaustion or the turn clock cuts the engine; reduced-gravity descent lasts until landing.
     if (this.action?.kind === 'jetpack' && this.activeBuddy?.alive && this.activeBuddy.hp > 0) this.action.left = 0;
     else this.action = null;
     this.setPhase('settling');

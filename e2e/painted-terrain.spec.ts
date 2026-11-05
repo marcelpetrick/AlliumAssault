@@ -11,6 +11,9 @@ test('painted landscape: reject empty canvas, draw separate islands and play the
   await page.locator('[data-action="paint-open"]').click();
   await page.locator('[data-action="paint-apply"]').click();
   await expect(page.getByRole('alert')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await page.locator('[data-action="paint-open"]').click();
   const canvas = page.locator('[data-paint]');
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();

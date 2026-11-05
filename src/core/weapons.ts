@@ -838,7 +838,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     look: { fireSound: 'torchLight' },
     name: 'Jetpack',
     icon: '🎒',
-    blurb: 'Space launches; arrows accelerate for six seconds. Space stops thrust. Descend gently, land, then shoot.',
+    blurb: 'Space launches; arrows accelerate for six seconds. Space stops thrust. Falls start gently, but long drops hurt.',
     kind: 'jetpack',
     ammo: 2,
     charge: false,

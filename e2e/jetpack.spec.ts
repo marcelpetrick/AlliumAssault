@@ -4,7 +4,7 @@
 import { expect, test } from '@playwright/test';
 import { boot, select, startDuel, state } from './support';
 
-test('jetpack: J launches, arrows accelerate with visible exhaust, fuel runs out and landing permits a shot', async ({ page }, info) => {
+test('jetpack: J launches, fuel runs out and a high fall hurts after a gentle start', async ({ page }, info) => {
   const errors = await boot(page);
   await startDuel(page);
   await page.evaluate(() => {
@@ -39,13 +39,49 @@ test('jetpack: J launches, arrows accelerate with visible exhaust, fuel runs out
   });
   await page.keyboard.up('ArrowUp');
   expect((await state(page)).jetpack?.fuel).toBe(0);
+  const high = await page.evaluate(() => window.__allium.app.game!.buddies[0].body.y);
   await page.evaluate(() => {
-    window.__allium.fastForward(22);
+    window.__allium.fastForward(1);
+    window.__allium.stepFrames(1, 0);
+  });
+  const falling = await page.evaluate(() => ({ ...window.__allium.app.game!.buddies[0].body }));
+  expect(falling.y).toBeLessThan(high);
+  expect(falling.vy).toBeLessThan(-3);
+  await page.evaluate(() => {
+    window.__allium.fastForward(10);
     window.__allium.stepFrames(1, 0);
   });
   expect((await state(page)).phase).toBe('aiming');
-  expect((await state(page)).buddies[0].hp).toBe(100);
+  expect((await state(page)).buddies[0].hp).toBeLessThan(100);
+  expect((await state(page)).buddies[0].hp).toBeGreaterThan(0);
   expect(await page.evaluate(() => window.__allium.app.world!.scene.getMeshByName('jetpackOuter')?.isEnabled())).toBe(false);
+  expect(errors).toEqual([]);
+});
+
+test('jetpack: a short flight lands without damage and allows a follow-up shot', async ({ page }) => {
+  const errors = await boot(page);
+  await startDuel(page);
+  await page.evaluate(() => {
+    window.__allium.setManual(true);
+    const g = window.__allium.app.game!;
+    g.terrain.fill((_x, y) => 20 - y);
+    g.buddies.forEach((b, i) => Object.assign(b.body, { x: i ? 100 : 40, y: 20.65, vx: 0, vy: 0, grounded: true }));
+  });
+  await select(page, 'KeyJ', 'jetpack');
+  await page.keyboard.press('Space');
+  await page.keyboard.down('ArrowUp');
+  await page.evaluate(() => {
+    window.__allium.stepFrames(1, 1 / 60);
+    window.__allium.fastForward(1);
+  });
+  await page.keyboard.up('ArrowUp');
+  await page.keyboard.press('Space');
+  await page.evaluate(() => {
+    window.__allium.fastForward(8);
+    window.__allium.stepFrames(1, 0);
+  });
+  expect((await state(page)).buddies[0].hp).toBe(100);
+  expect((await state(page)).phase).toBe('aiming');
   await select(page, '1', 'bazooka');
   await page.keyboard.down('Space');
   await page.evaluate(() => {

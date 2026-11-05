@@ -409,7 +409,29 @@ Under simultaneous builds on the shared host, the existing full-match AI variety
 its five-second timeout while retaining its assertions. Its timeout is now 20 seconds so host
 contention does not turn a slow but correct simulation into a spurious failure.
 
+## Performance and gameplay review — 1.84.1
+
+At the start of this review, the checked-out branch had no committed changes beyond master.
+The subsequent code review found that Escape did not close the paint editor and an old invalid-map
+warning could remain after cancelling. Both paths now return to setup without the stale warning.
+
+The jetpack formerly capped all descent at three units per second and suppressed landing damage.
+After cutoff, it now begins gently, accelerates at reduced gravity, and uses ordinary impact damage
+on a long fall. A short landing still permits a follow-up shot; falling damage ends the turn.
+Ming fragments were actually miniature complete vases, while brown blocks were generic earth
+debris. They are now distinct porcelain shard meshes with cobalt marks.
+
+The [performance investigation](PERFORMANCE.md) records an individual AI decision spike and
+startup terrain mesh costs, alongside measured HUD text and painted-preview improvements. Only
+the optional profiling configuration was moved out of the root; the other root files serve normal
+package, tool-discovery, licensing or project-entry roles.
+
 Verification on 5 November passed: 433 unit tests, 87 Chrome browser tests, and core coverage
 of 99.67% statements, 98.24% branches, 100% functions and 99.91% lines. The paint flow tests
 drawing, erasing, empty-map rejection, cancellation, reload and starting a faction match. REUSE
 and all 63 media hashes passed; the scripted setup/editor screenshots were refreshed.
+
+Verification passed on 5 November: 434 unit tests, 88 Chrome browser tests, core coverage of
+99.67% statements, 98.24% branches, 100% functions and 99.91% lines. The changed recordings
+were inspected, all media hashes checked, and the official REUSE check passed. `npm run profile`
+and `npm run profile:decisions` both run from their new locations.

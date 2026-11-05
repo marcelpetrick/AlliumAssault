@@ -29,7 +29,7 @@ entirely in the browser as a static site: local hot-seat and human-vs-AI.
 | `scripts/`                | `spdx.mjs` (SPDX check and fixer), `capture-media.mjs` (README screenshots and GIF), `capture-weapons.mjs` (one clip per weapon for `docs/weapons_preview.md`), `history_chart.py` (README growth and coverage chart)                                        |                                                                  |
 | `.github/`                | Workflows, Dependabot, `CONTRIBUTING.md`, `SECURITY.md` — where GitHub looks for them                                                                                                                                                                        |                                                                  |
 | `REUSE.toml`, `LICENSES/` | REUSE annotations for files without headers, license texts                                                                                                                                                                                                   |                                                                  |
-| `docs/`                   | `README-index`, `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `PERFORMANCE.md`, `SOUND.md`, `I18N.md`, `archive/`                                                                                                                                |                                                                  |
+| `docs/`                   | `README.md`, `VISION.md`, `ARCHITECTURE.md` (C4 + Mermaid), `PLAN.md`, `PERFORMANCE.md`, `SOUND.md`, `I18N.md`, `archive/`                                                                                                                                   |                                                                  |
 | `docs/tasks.md`           | Every request with status and version                                                                                                                                                                                                                        | Update in every commit: add new requests, tick off finished ones |
 | `docs/review.md`          | Latest code and architecture review with resolutions                                                                                                                                                                                                         |                                                                  |
 
@@ -48,6 +48,7 @@ npm run lint:reuse # official REUSE check (needs uv)
 npm run typecheck
 npm test           # Vitest
 npm run profile    # measure the rules core stage by stage (bench/, see docs/PERFORMANCE.md)
+npm run profile:decisions # measure individual AI attack searches
 npm run coverage   # Vitest with v8 coverage of src/core (thresholds enforced), report in coverage/
 npm run e2e        # Playwright, Google Chrome, builds and serves on :4173
 npm run verify     # lint, typecheck, coverage, build, e2e

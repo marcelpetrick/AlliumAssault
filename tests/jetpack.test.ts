@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { JETPACK_DESCENT, JETPACK_SPEED, JETPACK_TIME, stepJetpack, type JetpackAction } from '../src/core/jetpack';
+import { JETPACK_DESCENT, JETPACK_FALL_ACCEL, JETPACK_FALL_LIMIT, JETPACK_SPEED, JETPACK_TIME, stepJetpack, type JetpackAction } from '../src/core/jetpack';
 import { createBody } from '../src/core/physics';
 import { flatGame, flatTerrain, runUntil, team } from './helpers';
 
@@ -15,7 +15,7 @@ const flyingGame = (overrides = {}) => {
 };
 
 describe('jetpack', () => {
-  it('has default supplies, accelerates for six seconds, then lands gently and permits an attack', () => {
+  it('has default supplies, accelerates for six seconds, then can take damage on a high landing', () => {
     const g = flyingGame();
     const b = g.activeBuddy!;
     const start = b.body.y;
@@ -36,19 +36,16 @@ describe('jetpack', () => {
     expect(b.body.vy).toBeLessThan(5);
     g.input.up = false;
     expect(runUntil(g, () => g.phase === 'aiming', 25)).toBe(true);
-    expect(b.hp).toBe(100);
+    expect(b.hp).toBeLessThan(100);
+    expect(b.hp).toBeGreaterThan(0);
+    expect(g.activeTeam).toBe(1);
     expect(g.action).toBeNull();
-    g.selectWeapon('bazooka');
-    g.pressFire();
-    g.simulate(0.2);
-    g.releaseFire();
-    expect(g.projectiles).toHaveLength(1);
   });
 
-  it('stops thrust early, allows controlled downward acceleration, and never exceeds descent speed', () => {
+  it('stops thrust early and accelerates from a gentle start to a bounded descent', () => {
     const t = flatTerrain();
     const b = createBody(40, 45, 0.6);
-    const pack: JetpackAction = { kind: 'jetpack', left: JETPACK_TIME, airborne: true, thrust: false };
+    const pack: JetpackAction = { kind: 'jetpack', left: JETPACK_TIME, airborne: true, thrust: false, coasting: false };
     b.vx = -100;
     b.vy = -100;
     stepJetpack(t, b, pack, 1 / 60, -1, -1);
@@ -57,7 +54,8 @@ describe('jetpack', () => {
     pack.left = 0;
     stepJetpack(t, b, pack, 1 / 60, 1, 1);
     expect(pack.thrust).toBe(false);
-    expect(b.vy).toBe(-JETPACK_DESCENT);
+    expect(b.vy).toBeCloseTo(-JETPACK_DESCENT - JETPACK_FALL_ACCEL / 60);
+    expect(b.vy).toBeGreaterThan(-JETPACK_FALL_LIMIT);
     const g = flyingGame();
     g.input.up = true;
     g.simulate(1);
@@ -65,9 +63,15 @@ describe('jetpack', () => {
     expect(g.action).toMatchObject({ kind: 'jetpack', left: 0 });
     g.input.up = false;
     expect(runUntil(g, () => g.phase === 'aiming', 8)).toBe(true);
+    expect(g.activeBuddy!.hp).toBe(100);
+    g.selectWeapon('bazooka');
+    g.pressFire();
+    g.simulate(0.2);
+    g.releaseFire();
+    expect(g.projectiles).toHaveLength(1);
   });
 
-  it.each([0.5, 1, 2.5])('respects terrain, headroom and safe landing at gravity %s', (gravity) => {
+  it.each([0.5, 1, 2.5])('respects terrain and headroom at gravity %s', (gravity) => {
     const g = flyingGame({ gravity });
     const b = g.activeBuddy!;
     g.input.up = true;
@@ -81,10 +85,30 @@ describe('jetpack', () => {
     g.pressFire();
     g.input.left = g.input.up = false;
     expect(runUntil(g, () => g.phase === 'aiming', 25)).toBe(true);
-    expect(b.hp).toBe(100);
+    expect(b.hp).toBeGreaterThanOrEqual(85);
   });
 
-  it('preserves gentle descent after turn timeout, and advances once the buddy lands', () => {
+  it('lands safely from a short drop and takes less damage than an ordinary high fall', () => {
+    const drop = (height: number, jetpack: boolean) => {
+      const g = jetpack ? flyingGame() : flatGame([40, 100], [team('A', 1), team('B', 1)]);
+      if (!jetpack) runUntil(g, () => g.phase === 'aiming', 5);
+      const b = g.activeBuddy!;
+      Object.assign(b.body, { y: height, vx: 0, vy: 0, grounded: false });
+      if (jetpack) g.pressFire();
+      g.simulate(0.25);
+      if (jetpack) expect(b.body.vy).toBeGreaterThan(-JETPACK_DESCENT);
+      expect(runUntil(g, () => b.body.grounded, 10)).toBe(true);
+      g.simulate(0.3);
+      return b.hp;
+    };
+    expect(drop(25, true)).toBe(100);
+    const protectedHigh = drop(60, true);
+    const ordinaryHigh = drop(60, false);
+    expect(protectedHigh).toBeLessThan(100);
+    expect(protectedHigh).toBeGreaterThan(ordinaryHigh);
+  });
+
+  it('continues the accelerating descent after turn timeout and advances after landing', () => {
     const g = flyingGame({ turnTime: 3 });
     const b = g.activeBuddy!;
     g.input.up = true;
@@ -92,8 +116,7 @@ describe('jetpack', () => {
     expect(g.phase).toBe('settling');
     expect(g.action).toMatchObject({ kind: 'jetpack', left: 0 });
     g.simulate(9);
-    expect(b.hp).toBe(100);
-    expect(g.activeTeam).toBe(0);
+    expect(b.hp).toBeLessThan(100);
     expect(runUntil(g, () => g.activeTeam === 1, 15)).toBe(true);
   });
 

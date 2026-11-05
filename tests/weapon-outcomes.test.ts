@@ -98,7 +98,8 @@ describe('the complete selectable arsenal', () => {
       expect(travel, 'the victim must really move').toBeGreaterThan(0.1);
     } else {
       expect(enemy.hp).toBe(1000);
-      expect(me.hp).toBe(ownerHealth);
+      if (id === 'jetpack') expect(me.hp).toBeGreaterThan(ownerHealth - 20);
+      else expect(me.hp).toBe(ownerHealth);
     }
     const hits = events.flatMap((e) => (e.type === 'damage' && e.buddy === enemy.id ? [e.amount] : []));
     if (id === 'punch' || id === 'bat' || id === 'torch' || id === 'drill') expect(hits).toEqual([def.damage]);

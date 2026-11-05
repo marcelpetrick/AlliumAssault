@@ -1,7 +1,7 @@
 # Documentation
 
-Everything about Allium Assault that is not the code itself. The three files that stay in the
-repository root are the ones a visitor and a tool expect there: [`README.md`](../README.md),
+Everything about Allium Assault that is not the code itself. The three Markdown guides kept in
+the repository root are the ones a visitor and a tool expect there: [`README.md`](../README.md),
 [`CHANGELOG.md`](../CHANGELOG.md) and [`AGENTS.md`](../AGENTS.md).
 
 | Document                                             | What it is                                                                                    |

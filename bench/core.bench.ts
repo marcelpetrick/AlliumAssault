@@ -11,7 +11,7 @@
  *   npm run profile
  *
  * For the function-level picture, run it under a profiler and open the result in Chrome DevTools:
- *   node --cpu-prof --cpu-prof-dir=.profile ./node_modules/vitest/vitest.mjs run --config vitest.profile.config.ts
+ *   node --cpu-prof --cpu-prof-dir=.profile ./node_modules/vitest/vitest.mjs run --config bench/vitest.config.ts
  */
 
 import { expect, it } from 'vitest';

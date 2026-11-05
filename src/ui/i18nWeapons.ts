@@ -39,7 +39,10 @@ const DE: WeaponWords = {
     name: 'Seil',
     blurb: 'Leertaste schießt den Haken; hängen, ↑↓ einholen, ←→ schwingen, Leertaste loslassen. Nach der Landung darfst du noch schießen.',
   },
-  jetpack: { name: 'Jetpack', blurb: 'Leertaste startet; Pfeile beschleunigen sechs Sekunden lang. Leertaste stoppt den Schub. Sanft landen, dann schießen.' },
+  jetpack: {
+    name: 'Jetpack',
+    blurb: 'Leertaste startet; Pfeile beschleunigen sechs Sekunden lang. Leertaste stoppt den Schub. Der Fall beginnt sanft, lange Stürze verletzen.',
+  },
   homing: {
     name: 'Lenkrakete',
     blurb:
@@ -82,7 +85,10 @@ const HR: WeaponWords = {
   torch: { name: 'Plamenik', blurb: 'Gori tunel po liniji nišana 3 sekunde i vuče te sobon — nacilja gori za okno.' },
   drill: { name: 'Bušilica', blurb: 'Buši ravno doli 3 sekunde. Dok buši, nema štete od pada.' },
   rope: { name: 'Kuka', blurb: 'Space baca kuku; visi, ↑↓ vuci, ←→ njiši se, Space pušta. Kad slitiš, još moreš pucat.' },
-  jetpack: { name: 'Mlazni ruksak', blurb: 'Space za poletit; strelice ubrzavaju šest sekundi. Space gasi potisak. Lagano sliti pa pucaj.' },
+  jetpack: {
+    name: 'Mlazni ruksak',
+    blurb: 'Space za poletit; strelice ubrzavaju šest sekundi. Space gasi potisak. Pad počinje lagano, ali dug pad ozljeđuje.',
+  },
   homing: {
     name: 'Navodeća raketa',
     blurb:
@@ -121,7 +127,7 @@ const ZH: WeaponWords = {
   torch: { name: '喷焊枪', blurb: '沿瞄准线烧出隧道，持续 3 秒并带着你前进——往上瞄就能开竖井。' },
   drill: { name: '电钻', blurb: '垂直向下钻 3 秒。钻的时候不吃摔落伤害。' },
   rope: { name: '钩索', blurb: '空格打出钩索；挂着时 ↑↓ 收放、←→ 摆荡、空格松手。落地后还能再开一枪。' },
-  jetpack: { name: '喷气背包', blurb: '空格启动；方向键加速，燃料持续六秒。空格停止推进。缓慢下降，落地后还能射击。' },
+  jetpack: { name: '喷气背包', blurb: '空格启动；方向键加速，燃料持续六秒。空格停止推进。下落开始较慢，但高处坠落仍会受伤。' },
   homing: { name: '追踪火箭', blurb: '点击敌人锁定，再瞄准蓄力。先像火箭筒一样飞行一秒，再直接追踪目标；岩石会挡住它。每队初始一枚，可从箱子补充。' },
   platform: { name: '木板', blurb: '移动鼠标放置一块五单位长的木板，滚轮调整角度，左键放下。' },
   mine: { name: '感应地雷', blurb: '空格放在脚边。你跑开时它完成布设，之后谁靠近都炸。' },

@@ -605,6 +605,13 @@ test('Ming vase: V throws it once, it shatters into eight shards and takes the h
     return 0;
   });
   expect(shards).toBe(8);
+  const visuals = await page.evaluate(() => {
+    window.__allium.stepFrames(1, 0);
+    const scene = window.__allium.app.world!.scene;
+    const pieces = scene.meshes.filter((mesh) => mesh.name === 'porcelainShard' && mesh.isEnabled());
+    return { pieces: pieces.length, markings: scene.meshes.filter((mesh) => mesh.name === 'cobaltShardMark' && mesh.isEnabled()).length };
+  });
+  expect(visuals).toEqual({ pieces: 8, markings: 8 });
   await fastForward(page, 6);
   const after = await state(page);
   expect(after.projectiles).toBe(0);

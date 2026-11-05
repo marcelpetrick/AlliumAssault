@@ -161,9 +161,19 @@ try {
             }
             if (c.id === 'mine' && k === 30) g.buddies[1].body.x = 41;
             const s = window.__captureStart;
+            const shards = c.id === 'ming' ? g.projectiles.filter((p) => p.weapon === 'shard') : [];
+            if (shards.length && !s.focusedShards) {
+              const world = window.__allium.app.world;
+              Object.assign(world.goal, { x: shards[0].x, y: shards[0].y + 3 });
+              Object.assign(world.focus, { x: shards[0].x, y: shards[0].y + 3 });
+              world.goalDistance = world.distance = 25;
+              world.manualUntil = world.time + 1000;
+              s.focusedShards = true;
+            }
             s.guided ||= g.projectiles.some((p) => p.weapon === 'homing' && p.age >= c.homingDelay);
             s.airborne ||= c.id === 'jetpack' && g.activeBuddy.body.y > s.y + 3;
             s.attached ||= g.rope?.state === 'attached';
+            s.shards ||= c.id === 'ming' && window.__allium.app.world.scene.meshes.some((mesh) => mesh.name === 'porcelainShard' && mesh.isEnabled());
           },
           [clip, k],
         );
@@ -182,6 +192,8 @@ try {
           x: g.buddies[0].body.x,
           y: g.buddies[0].body.y,
           hp: g.buddies[1].hp,
+          ownerHp: g.buddies[0].hp,
+          activeTeam: g.activeTeam,
           phase: g.phase,
           platforms: g.terrain.platforms.length,
         };
@@ -207,7 +219,9 @@ try {
       if (clip.id === 'jetpack') {
         assert.ok(result.start.airborne, 'jetpack rose');
         assert.equal(result.phase, 'aiming', 'jetpack landed');
+        assert.ok(result.ownerHp < 100 && result.activeTeam !== 0, 'high fall hurt the pilot and ended the turn');
       }
+      if (clip.id === 'ming') assert.ok(result.start.shards && result.start.focusedShards, 'porcelain shards visible and in view');
       if (clip.id === 'rope') {
         assert.ok(result.events.includes('ropeRelease'), 'rope released');
         assert.equal(result.phase, 'aiming', 'rope landing recorded');

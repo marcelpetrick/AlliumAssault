@@ -17,6 +17,13 @@ import { paintedTerrain, validPaint } from '../core/paintedTerrain';
 /** Generated maps for seeds already previewed: typing through seeds must not regenerate them twice. */
 const cache = new Map<string, Terrain>();
 const CACHE_LIMIT = 24;
+let lastPaint: { mask: string; terrain: Terrain } | null = null;
+
+/** Preview terrain is read-only; retain only the most recent painting to bound memory use. */
+function paintedPreview(mask: string): Terrain {
+  if (lastPaint?.mask !== mask) lastPaint = { mask, terrain: paintedTerrain(mask) };
+  return lastPaint.terrain;
+}
 
 function terrainFor(seed: string): Terrain {
   const known = cache.get(seed);
@@ -32,7 +39,7 @@ export function drawMapPreview(canvas: HTMLCanvasElement, seed: string, theme: s
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const { width, height } = canvas;
-  const t = validPaint(painted) ? paintedTerrain(painted) : terrainFor(seed);
+  const t = validPaint(painted) ? paintedPreview(painted) : terrainFor(seed);
   const palette = THEMES[theme] ?? THEMES.meadow;
   const hex = (color: { toHexString: () => string }) => color.toHexString();
 

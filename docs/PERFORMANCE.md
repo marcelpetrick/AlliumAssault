@@ -8,6 +8,7 @@ test suite can hold still, and the **browser**, which cannot.
 
 ```bash
 npm run profile        # the rules core, stage by stage (bench/core.bench.ts)
+npm run profile:decisions # individual AI attack searches at different match sizes
 npm run build          # bundle sizes, printed by Vite
 npm run e2e            # the browser suite; add --trace on to collect Playwright traces
 ```
@@ -16,8 +17,40 @@ For the function-level picture of the core, run the profiler under V8's own prof
 result in Chrome DevTools (Performance → Load profile):
 
 ```bash
-node --cpu-prof --cpu-prof-dir=.profile ./node_modules/vitest/vitest.mjs run --config vitest.profile.config.ts
+node --cpu-prof --cpu-prof-dir=.profile ./node_modules/vitest/vitest.mjs run --config bench/vitest.config.ts
 ```
+
+## Investigation — 5 November 2026
+
+Measurements below are local observations on an Intel i9-12900H, Node 24.20.0 and a 1280×720
+headless Chrome session using ANGLE/SwiftShader. They are not GPU frame-rate claims. The individual
+AI measurements use a seeded generated map, two warmups and five timed plans; real terrain,
+weapons, caches and concurrent load can change the result.
+
+| Attack search | Normal median | Hard median |
+| ------------- | ------------: | ----------: |
+| 2 buddies     |       14.6 ms |     23.4 ms |
+| 8 buddies     |       30.6 ms |     49.6 ms |
+| 16 buddies    |       89.0 ms |    148.1 ms |
+
+An AI turn can also perform additional searches while evaluating repositioning. These are
+individual synchronous decisions, not average frame costs. Spreading search over frames or moving
+it to a worker is a promising next improvement, but requires preserving deterministic decisions,
+terrain snapshots, turn timing and cancellation; it has not been implemented here.
+
+Five warm starts under Chrome's CPU sampler showed terrain `rebuild`, vertex colouring, terrain
+sampling and garbage collection among the prominent startup work. Three match starts in the
+software-rendered probe took roughly 278–422 ms; this includes scene construction and disposal.
+Reducing mesh rebuild allocations and duplicated per-vertex work is worth measuring next. The
+ordinary core benchmark reports 4.5–14.6 µs for its idle, walking and crowded/projectile cases
+and 171.8 µs for its carve/contour case; it does not capture expensive AI decisions.
+
+Two small changes were measured with the same local browser probe. For 100 HUD-only updates with
+eight buddies, unchanged text assignments fell from 3,500 to 100; median update time changed from
+about 0.6 ms to 0.1 ms. For 15 repeated setup redraws, a painted map's median changed from about
+8.4 ms to 1.6 ms by retaining its most recent preview terrain. These short, instrumented runs are
+directional rather than guarantees. Other frame and GPU measurements need a real hardware-backed
+browser before deciding which visual settings or rendering changes to prioritize.
 
 In the browser, the tools that pay off are Chrome DevTools' Performance panel against
 `npm run dev`, and Babylon's own instrumentation, which can be switched on from the console of a

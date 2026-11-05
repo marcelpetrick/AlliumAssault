@@ -231,7 +231,9 @@ export class Hud {
       const ammo = team?.ammo[id] ?? 0;
       slot.classList.toggle('on', g.weapon === id);
       slot.classList.toggle('empty', ammo <= 0);
-      query(slot, '.slot-ammo').textContent = ammo === Infinity ? '∞' : `×${ammo}`;
+      const ammoEl = query(slot, '.slot-ammo');
+      const amount = ammo === Infinity ? '∞' : `×${ammo}`;
+      if (ammoEl.textContent !== amount) ammoEl.textContent = amount;
     });
     this.el.querySelectorAll<HTMLElement>('.team-bar').forEach((bar, k) => {
       const t = g.teams[k];
@@ -271,7 +273,8 @@ export class Hud {
       label.el.classList.toggle('active', b === active && (g.phase === 'aiming' || g.phase === 'turnStart'));
       if (label.shown > b.hp) label.shown = Math.max(b.hp, label.shown - dt * 40);
       else label.shown = b.hp;
-      label.hpEl.textContent = String(Math.ceil(label.shown));
+      const hp = String(Math.ceil(label.shown));
+      if (label.hpEl.textContent !== hp) label.hpEl.textContent = hp;
     }
 
     // Grenade and sheep fuse countdown.

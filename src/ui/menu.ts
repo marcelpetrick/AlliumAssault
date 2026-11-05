@@ -552,7 +552,10 @@ export class Menu {
     if (this.screen === 'help') this.returnFromHelp();
     else if (this.screen === 'about') this.showTitle();
     else if (this.screen === 'setup') this.showTitle();
-    else if (this.screen === 'paint') this.showSetup();
+    else if (this.screen === 'paint') {
+      this.paintError = false;
+      this.showSetup();
+    }
   }
 
   private returnFromHelp(): void {

@@ -1,10 +1,10 @@
 {
-  "packageVersion": "1.84.0",
-  "recordedAt": "2026-11-05T12:44:14.481Z",
-  "sourceRevision": "1efb154d5e562b082e72b8f3ca61fd8a52c2a08e",
-  "runtimeSourceSha256": "8d958db833f9bf26e857392becc31941ca6f2515fcf3c933e4d1c57cfd3a75b3",
-  "buildEntry": "assets/index-Cre8ZLdF.js",
-  "buildEntrySha256": "b50e9d20cf6457a2f05dfef8ac447da64b0c9a21a0f1746d2e9a4d13f614f5bb",
+  "packageVersion": "1.84.1",
+  "recordedAt": "2026-11-05T13:38:59.672Z",
+  "sourceRevision": "e666f9cdbed7e60405ae83837a57fb5e73a137bb",
+  "runtimeSourceSha256": "667f35db9f2fb785d950c13b1b149b6d64e439a4370fab4bb0f32e022a6b9e7b",
+  "buildEntry": "assets/index-BWvqMf4E.js",
+  "buildEntrySha256": "d824758c389a19d941ec08e8ec30768d3d8b08d0c48df846eb90cdb802e5589f",
   "buildStyles": [
     {
       "path": "assets/index-BdTovL07.css",
@@ -180,14 +180,14 @@
     },
     {
       "path": "docs/screenshots/jetpack.jpg",
-      "sha256": "435522e1336a198459166428064bb7fc936ba6233405a83c0a80144aa1d1e8e2",
-      "bytes": 90399,
+      "sha256": "d543a061c763cee7fad8869c83d110794d0e711eb877be7c6ab9bd3d425c3125",
+      "bytes": 92385,
       "width": 1280,
       "height": 720,
       "frames": 1,
       "codec": "mjpeg",
       "durationSeconds": 0.04,
-      "modifiedAt": "2026-10-14T11:48:44.837Z"
+      "modifiedAt": "2026-11-05T13:37:56.764Z"
     },
     {
       "path": "docs/screenshots/landscape-caverns.jpg",
@@ -411,14 +411,14 @@
     },
     {
       "path": "docs/weapons/jetpack.gif",
-      "sha256": "9e5355b2e1bfa2b4e9a1f3a98080f300098d6cdac648b4e69a6767feb9ccc5c5",
-      "bytes": 258936,
+      "sha256": "525793a02ab1a15e0328648e64a6544cc1a6b0481d6b47c2c3a68865e21ff5e3",
+      "bytes": 625882,
       "width": 480,
       "height": 270,
       "frames": 105,
       "codec": "gif",
       "durationSeconds": 10.5,
-      "modifiedAt": "2026-10-14T11:34:37.463Z"
+      "modifiedAt": "2026-11-05T13:35:43.991Z"
     },
     {
       "path": "docs/weapons/mine.gif",
@@ -433,14 +433,14 @@
     },
     {
       "path": "docs/weapons/ming.gif",
-      "sha256": "0f4550e3ac081043c4f940bd0ba9a5bfd647354bec32aec6c09b97abcbc34640",
-      "bytes": 372740,
+      "sha256": "dfe17abd2388ebd4e4d0841381fb2a2832365a60d86f27a01f2fb062bb010cb9",
+      "bytes": 433978,
       "width": 480,
       "height": 270,
       "frames": 70,
       "codec": "gif",
       "durationSeconds": 7,
-      "modifiedAt": "2026-10-14T11:34:05.921Z"
+      "modifiedAt": "2026-11-05T13:36:22.069Z"
     },
     {
       "path": "docs/weapons/minigun.gif",

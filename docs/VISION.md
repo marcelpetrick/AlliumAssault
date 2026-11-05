@@ -3,7 +3,7 @@
 A turn-based artillery game in the spirit of **Worms Armageddon**, running entirely in the
 browser, starring teams of cute **garlic buddies**. Smooth, real-time **3D graphics** present a classic artillery gameplay plane.
 
-**Status as of v1.84.0:** the rules and arsenal below are implemented. Touch controls remain a
+**Status as of v1.84.1:** the rules and arsenal below are implemented. Touch controls remain a
 design study; online multiplayer is out of scope. Representative core and browser outcomes are
 tested; arbitrary weapon/terrain combinations are not exhaustive.
 
@@ -67,7 +67,7 @@ Twenty-six weapons. _Special_ weapons can be restricted to crates with the arsen
 | Ming Vase (special)           | 1    | A porcelain heirloom thrown once: a huge first blast, then eight shards that each land like a grenade                                   |
 | Flamethrower (special)        | 2    | Three seconds of lit fuel, steered with up and down while it runs; wind carries it, the ground burns on                                 |
 | French Attack                 | ∞    | The white flag: nothing is fired and the turn passes to the next buddy. Always in the list                                              |
-| Jetpack                       | 2    | Six seconds of accelerated flight, then a safe descent; land and attack in the same turn                                                |
+| Jetpack                       | 2    | Six seconds of thrust; falling accelerates gently and long drops can hurt. A safe landing permits a follow-up attack                    |
 | Homing Rocket (special)       | 1    | Click an enemy and launch; one ballistic second, then direct pursuit blocked by terrain. One in normal starting stock; crates refill it |
 
 ## Rope

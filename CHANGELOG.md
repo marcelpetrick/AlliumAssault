@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.84.1] — 2026-11-05
+
+- Let an unpowered jetpack descent accelerate gently, with reduced but possible damage from a long fall.
+- Render Ming vase fragments as blue-and-white porcelain shards instead of miniature intact vases.
+- Avoid unchanged HUD text writes and cache the current painted-map preview; record measurements and AI planning hotspots.
+- Let Escape cancel the landscape painter, and move the optional profiling configuration under `bench/`.
+
 ## [1.84.0] — 2026-11-05
 
 - Paint a custom destructible landscape in match setup, including separate floating islands;

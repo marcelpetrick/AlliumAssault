@@ -1,5 +1,20 @@
 # Implementation plan
 
+## Performance review, jetpack and porcelain — November 2026
+
+1. Measure simulation, individual AI plans, map setup, browser frame work and startup; record the
+   machine and renderer limitations, rank candidate improvements, and distinguish experiments
+   from proven speedups.
+2. Change unpowered jetpack descent to start gently, accelerate more slowly than an ordinary fall,
+   and permit reduced damage on a long fall. Verify fuel exhaustion, manual cutoff, damage,
+   timeout, gravity settings, water and short safe falls.
+3. Replace the Ming vase's miniature-vase fragment models with visible blue-and-white porcelain
+   shards. Check actual fragmentation, graphics budgets and cleanup, and refresh affected media.
+4. Review the branch and current code for concrete problems; inspect root files and move only
+   suitable tool configuration while preserving standard discovery and CI behavior.
+5. Update active documentation and tasks, review the complete diff, run full verification and
+   REUSE, then commit the finished changes with an appropriate version bump.
+
 ## Painted landscapes and release — November 2026
 
 1. Recheck homing with real controls, collision and a moving target. Investigate the tree in water

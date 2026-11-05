@@ -14,6 +14,9 @@ recordings retain their original capture dates.
 Version 1.84.0 refreshes the setup screenshot and adds a paint-editor screenshot using the
 scripted brush flow in `capture-media.mjs`; the capture asserts the resulting map is accepted.
 
+Version 1.84.1 refreshes the jetpack and Ming vase weapon clips and the jetpack screenshot to
+show the revised descent and porcelain fragments.
+
 ## Feature animations
 
 ### Adaptive landscapes

@@ -134,8 +134,9 @@ C4Component
 - the renderer extracts the surface with marching squares.
 
 **Jetpack action.** Its movement owns the active body for six seconds of powered acceleration.
-A descent governor remains until ground contact, including after turn timeout, so ordinary gravity
-and fall damage are not applied a second time and the next team cannot take over an airborne body.
+After cutoff it starts falling gently and accelerates at reduced gravity until ground contact,
+including after a timeout; a sufficiently hard impact causes fall damage. The next team cannot
+take over an airborne body.
 
 **Generation.** Independent seeded streams select a layout family and vary its profile, island
 spacing and cavern features. Plains and hills are monotonic heightfields, guaranteeing no buried
@@ -277,9 +278,9 @@ Rules enforced here:
 - in `guiding`, `torching`, `drilling`, `spraying`, `jetpacking`, `roping` and `firing` the buddy cannot walk; the
   turn timer keeps running in all but `firing` (`COUNTDOWN_PHASES`), and hurting the active buddy in
   any of them ends active control (`ACTION_PHASES`); jetpack descent remains governed until landing,
-- `roping` and `jetpacking` return to `aiming` rather than ending the turn: these utilities
-  move the buddy instead of attacking with it, so once it lands it may still take its shot — and
-  the rope is only charged for once its hook actually bites,
+- `roping` and `jetpacking` return to `aiming` after a safe landing: these utilities move the
+  buddy instead of attacking. A damaging landing ends the turn; the rope is charged only once
+  its hook actually bites,
 - `spraying` still reads the up and down keys, because steering the nozzle mid-burst is the whole
   point of the flamethrower; the nozzle swings past the limits the ordinary aim is held to,
 - the active buddy takes no fall damage while drilling,

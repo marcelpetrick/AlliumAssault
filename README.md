@@ -69,7 +69,8 @@ the pixel density is halved.
 - **Smooth 3D world** — Babylon.js 9: rounded terrain slabs, cascaded soft shadows, bloom, ACES
   tone mapping, animated water, parallax hills with forests, drifting clouds, particle explosions.
 - **Jetpack** — two flights per team, six seconds of directional acceleration each. Rise with Up,
-  steer sideways or descend; when fuel ends, glide down safely and fire another weapon after landing.
+  steer sideways or descend. After thrust stops, descent begins gently and accelerates; a long fall
+  can hurt, while a safe landing leaves the turn available for another weapon.
 - **Adaptive landscapes** — seeds choose broad solid plains, cave-free rolling hills, clustered
   islands or cavernous terrain, with varied shapes scaled to the arena. The map preview shows the
   selected side walls as well as the exact landscape.
@@ -182,7 +183,7 @@ and the two ways of taking others with you. There is a recorded clip of every on
 | K   | ☠️ Self-Destruct       | 1    | Its own health (100 at start)              | "Oh no!": the buddy panics for three seconds, then blows itself up; blast radius is its health ÷ 10                                     |
 | V   | 🏺 Ming Vase           | 1    | 70 for the burst, then 38 per shard (×8)   | Six hundred years of porcelain, thrown once; the shards are contact bombs. One per match                                                |
 | F   | 🧯 Flamethrower        | 2    | 7 per burning gob                          | Three seconds of fuel out of a nozzle. Up and down steer it while it runs; wind and gravity carry the gobs and the ground keeps burning |
-| J   | 🎒 Jetpack             | 2    | —                                          | Space launches; arrows accelerate for six seconds. Slow safe descent, then land and attack; Space stops thrust early                    |
+| J   | 🎒 Jetpack             | 2    | —                                          | Six seconds of directional thrust; Space stops it. Falls accelerate gently and long drops can hurt                                      |
 | H   | 🎯 Homing Rocket       | 1    | 45                                         | One from the start: click an enemy, aim and charge; one ballistic second, then direct pursuit. Rock blocks the flight                   |
 
 Normal stock gives each team one Homing Rocket; a weapon crate adds one more.
@@ -210,7 +211,7 @@ src/
 ├── ui/       HTML/CSS overlay: title, setup, HUD, help, about, pause, victory; persisted settings
 ├── audio.ts  Web Audio synthesizer
 └── app.ts    engine, fixed 60 Hz loop, input, wiring
-bench/        core.bench.ts — what one simulation step costs, stage by stage (npm run profile)
+bench/        Simulation-step and individual AI-decision profiles (docs/PERFORMANCE.md)
 scripts/      SPDX check and fixer, README media capture, README history chart
 ```
 
@@ -232,6 +233,7 @@ npm run lint         # type-aware ESLint, Prettier, Stylelint, markdownlint, SPD
 npm run typecheck    # TypeScript strict
 npm test             # Vitest: terrain, physics, every weapon's rules, crates, mines, the rope, settings, AI
 npm run profile      # measure the rules core stage by stage (docs/PERFORMANCE.md)
+npm run profile:decisions # measure individual AI attack searches
 npm run e2e          # Playwright in Google Chrome: menus, settings, every weapon, crates, tombstones, sceneries, sounds
 npm run coverage     # Vitest with v8 coverage of the game rules in src/core; HTML report in coverage/
 npm run verify       # all of the above plus production build

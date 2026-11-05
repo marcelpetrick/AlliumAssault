@@ -1021,7 +1021,7 @@ export class Effects {
       case 'vase':
         return this.createVase(1);
       case 'shard':
-        return this.createVase(0.42);
+        return this.createPorcelainShard();
       case 'fuel':
         return this.createFuelGob();
       case 'grenade':
@@ -1048,8 +1048,7 @@ export class Effects {
 
   /**
    * Blue-and-white porcelain: a swelling body on a foot, a narrow neck and a flared lip, with a
-   * painted band around the belly. A shard is the same vase at less than half the size, which
-   * reads as a broken-off piece of it rather than as a different object.
+   * painted band around the belly.
    */
   private createVase(scale: number): ProjectileView {
     const node = new TransformNode('vase', this.scene);
@@ -1076,6 +1075,36 @@ export class Effects {
     // The cobalt band, the thing that makes it a Ming vase and not a pot.
     part(MeshBuilder.CreateTorus('vaseBand', { diameter: 0.45, thickness: 0.07, tessellation: 16 }, this.scene), this.materials.cobalt, 0.02);
     part(MeshBuilder.CreateTorus('vaseBandLow', { diameter: 0.36, thickness: 0.04, tessellation: 16 }, this.scene), this.materials.cobalt, -0.16);
+    return { node, trail: null };
+  }
+
+  /** A thick, irregular porcelain splinter with a cobalt marking on its visible face. */
+  private createPorcelainShard(): ProjectileView {
+    const node = new TransformNode('mingShard', this.scene);
+    const shard = new Mesh('porcelainShard', this.scene);
+    const data = new VertexData();
+    const positions = [
+      -0.32, -0.17, -0.08, 0.3, -0.1, -0.08, 0.17, 0.31, -0.08, -0.22, 0.22, -0.08, -0.32, -0.17, 0.08, 0.3, -0.1, 0.08, 0.17, 0.31, 0.08, -0.22, 0.22, 0.08,
+    ];
+    const indices = [0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7];
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, indices, normals);
+    Object.assign(data, { positions, indices, normals });
+    data.applyToMesh(shard);
+    shard.material = this.materials.porcelain;
+    shard.parent = node;
+    shard.isPickable = false;
+    const marking = new Mesh('cobaltShardMark', this.scene);
+    const ink = new VertexData();
+    Object.assign(ink, {
+      positions: [-0.22, -0.05, -0.085, 0.22, 0, -0.085, 0.19, 0.1, -0.085, -0.24, 0.05, -0.085],
+      indices: [0, 2, 1, 0, 3, 2],
+      normals: [0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1],
+    });
+    ink.applyToMesh(marking);
+    marking.material = this.materials.cobalt;
+    marking.parent = node;
+    marking.isPickable = false;
     return { node, trail: null };
   }
 

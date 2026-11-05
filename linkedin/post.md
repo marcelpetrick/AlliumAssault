@@ -1,4 +1,4 @@
-# Current post drafts — October 2026
+# Current post drafts — November 2026
 
 Draft copy for the refreshed local clips. Nothing here has been posted automatically. Earlier
 September copy and measurements remain in [notes.md](notes.md) and [finalLI.md](finalLI.md).
@@ -10,8 +10,8 @@ September copy and measurements remain in [notes.md](notes.md) and [finalLI.md](
 > Allium Assault is a turn-based 3D artillery game inspired by Worms Armageddon: destructible
 > landscapes, wind, sheep, a concrete mule and twenty-six weapons and tools.
 >
-> The latest additions include a six-second jetpack, a rocket that starts ballistic and then homes
-> onto a selected enemy, and named factions that win together while friendly fire stays active.
+> Paint your own landscape, fly a six-second jetpack, or aim a homing rocket. Named factions win
+> together while friendly fire stays active.
 >
 > No install or account. Open the link on a desktop browser and play hot-seat or against the AI.
 > Game graphics and sounds are generated in code. The project is GPL-3.0-or-later.
@@ -26,7 +26,7 @@ September copy and measurements remain in [notes.md](notes.md) and [finalLI.md](
 > steps, check rope routes and retreat along safe ground. Terrain now ranges from solid plains
 > to clustered islands and caverns; the preview shows the selected walls too.
 >
-> There are hundreds of core tests and 85 browser scenarios, including every weapon. Core coverage
+> There are hundreds of core tests and over 80 browser scenarios, including every weapon. Core coverage
 > stays above 98% for statements, branches, functions and lines, with a 98.1% enforced threshold.
 > CI checks the game before releases and deployment.
 >

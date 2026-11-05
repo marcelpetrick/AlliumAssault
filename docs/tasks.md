@@ -185,6 +185,10 @@ Status: ☐ open · ☑ done
 | T170 | Integrate current master into Gource branch, review and verify before pushing                                   | ☑      | 1.83.8         |
 | T171 | Recheck homing and fix tree placement on background hill triangles                                              | ☑      | 1.84.0         |
 | T172 | Add, review and verify painted landscapes; update documentation and publish a minor release                     | ☑      | 1.84.0         |
+| T173 | Profile rules, AI and browser; apply and measure low-risk responsiveness improvements                           | ☑      | 1.84.1         |
+| T174 | Make unpowered jetpack falls accelerate and cause reduced long-fall damage                                      | ☑      | 1.84.1         |
+| T175 | Replace miniature Ming vase fragments with visible porcelain shards                                             | ☑      | 1.84.1         |
+| T176 | Review current code and root files, fix findings and refresh current documentation                              | ☑      | 1.84.1         |
 
 ## Current implementation plan
 
@@ -1170,8 +1174,15 @@ in [review.md](review.md). Full verification gates the atomic weapon commit and 
 
 Integrate current master with the Gource recordings, preserve both histories and verify the merged branch before pushing.
 
-### Painted landscapes and release — planned
+### Painted landscapes and release — 1.84.0
 
 Recheck homing, diagnose and fix the tree in water, and implement a playable brush-painted
 landscape editor with preview, validation, translations, tests and documentation. Review the
 design and implementation, bump the minor version, verify and publish the public release.
+
+### Performance and gameplay review — 1.84.1
+
+Profile rules, AI planning, startup, HUD and rendering; record measured opportunities and limits.
+Make unpowered jetpack falls accelerate from a gentle start and cause reduced damage for long
+falls. Give Ming vase fragments visible shard geometry. Review code, root files and documentation,
+then verify and commit the results.
