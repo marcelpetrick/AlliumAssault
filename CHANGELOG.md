@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.84.0] — 2026-11-05
+
+- Paint a custom destructible landscape in match setup, including separate floating islands;
+  brush and erase, preview the result, and ensure enough safe starts for the chosen teams.
+- Place background trees against the same triangles used to render the hills.
+
 ## [1.83.8] — 2026-11-03
 
 - Integrate the latest master fixes with the Gource media branch and preserve capture provenance.

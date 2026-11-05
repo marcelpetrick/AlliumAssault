@@ -1,14 +1,14 @@
 {
-  "packageVersion": "1.83.7",
-  "recordedAt": "2026-11-03T21:55:42.707Z",
-  "sourceRevision": "62b4c55f3bc6be38bc9d49d445c175648cefa187",
-  "runtimeSourceSha256": "0fd5a9fb9ed569a7736cb902764ddcd870dbfa76264626c9e07470528a843c05",
-  "buildEntry": "assets/index-DQzy86Cf.js",
-  "buildEntrySha256": "25a608aabddd90712b16a7faae3cd9eea454cf67a297990b0ad6300e1b3b60ff",
+  "packageVersion": "1.84.0",
+  "recordedAt": "2026-11-05T12:44:14.481Z",
+  "sourceRevision": "1efb154d5e562b082e72b8f3ca61fd8a52c2a08e",
+  "runtimeSourceSha256": "8d958db833f9bf26e857392becc31941ca6f2515fcf3c933e4d1c57cfd3a75b3",
+  "buildEntry": "assets/index-Cre8ZLdF.js",
+  "buildEntrySha256": "b50e9d20cf6457a2f05dfef8ac447da64b0c9a21a0f1746d2e9a4d13f614f5bb",
   "buildStyles": [
     {
-      "path": "assets/index-DViyQPIP.css",
-      "sha256": "2b61ef98aa065bf435ae5254145a326969f2f95d762f699558642e903b27eecb"
+      "path": "assets/index-BdTovL07.css",
+      "sha256": "c92ccf71a665785b5095b0a95949c24b4048f01b4a3c76cfe08a725657db30f0"
     }
   ],
   "note": "Authored capture fixtures use real rules and rendering. Source fingerprint describes the working tree; sourceRevision identifies checkout HEAD at recording time. History chart describes committed history.",
@@ -245,15 +245,26 @@
       "modifiedAt": "2026-10-14T11:48:42.515Z"
     },
     {
-      "path": "docs/screenshots/setup.jpg",
-      "sha256": "a35becc722cc579ea34608b38324f96c62fa75b860821fdd58c292e093f3c23f",
-      "bytes": 104053,
+      "path": "docs/screenshots/paint.jpg",
+      "sha256": "e8ec16afabef63cee255bc6908e97e5915f408cb6bf58cbef1d013d7a1c098e6",
+      "bytes": 64022,
       "width": 1280,
       "height": 720,
       "frames": 1,
       "codec": "mjpeg",
       "durationSeconds": 0.04,
-      "modifiedAt": "2026-10-14T11:48:47.234Z"
+      "modifiedAt": "2026-11-05T12:43:45.832Z"
+    },
+    {
+      "path": "docs/screenshots/setup.jpg",
+      "sha256": "df1f88f547d0b3877f8fabf32170c65087ab4ce189d7c6fe9ad806b8a3f685c0",
+      "bytes": 104128,
+      "width": 1280,
+      "height": 720,
+      "frames": 1,
+      "codec": "mjpeg",
+      "durationSeconds": 0.04,
+      "modifiedAt": "2026-11-05T12:36:48.565Z"
     },
     {
       "path": "docs/screenshots/title.jpg",

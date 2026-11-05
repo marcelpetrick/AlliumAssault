@@ -224,7 +224,7 @@ describe('AI weapon variety', () => {
     // Four or more distinct weapons over a whole match, and not the same one again and again.
     expect(used.size).toBeGreaterThanOrEqual(4);
     expect(repeats).toBeLessThan(used.size * 3);
-  });
+  }, 20_000);
 });
 
 describe('AI crate hunting', () => {

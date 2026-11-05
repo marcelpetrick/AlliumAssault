@@ -183,6 +183,8 @@ Status: ☐ open · ☑ done
 | T168 | Diagnose and fix homing rocket targeting/flight; start normal matches with one rocket                           | ☑      | 1.83.7         |
 | T169 | Audit every weapon: damage, knockback, timing, collision, controls and meaningful outcome coverage              | ☑      | 1.83.7         |
 | T170 | Integrate current master into Gource branch, review and verify before pushing                                   | ☑      | 1.83.8         |
+| T171 | Recheck homing and fix tree placement on background hill triangles                                              | ☑      | 1.84.0         |
+| T172 | Add, review and verify painted landscapes; update documentation and publish a minor release                     | ☑      | 1.84.0         |
 
 ## Current implementation plan
 
@@ -1167,3 +1169,9 @@ in [review.md](review.md). Full verification gates the atomic weapon commit and 
 ### Branch integration and review — 1.83.8
 
 Integrate current master with the Gource recordings, preserve both histories and verify the merged branch before pushing.
+
+### Painted landscapes and release — planned
+
+Recheck homing, diagnose and fix the tree in water, and implement a playable brush-painted
+landscape editor with preview, validation, translations, tests and documentation. Review the
+design and implementation, bump the minor version, verify and publish the public release.

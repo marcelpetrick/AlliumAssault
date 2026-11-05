@@ -32,8 +32,8 @@ chosen output settings, not a claim about current LinkedIn platform limits or re
 algorithms. Every scene records the actual game; the tab/address bar, cursor and captions in clip C
 are illustrative overlays. Gameplay runs locally against a production preview during recording.
 
-The current game has 26 weapons, optional named factions, a six-second jetpack, crate-only homing
-rockets, varied terrain and improved crate/rope AI. The full game still needs keyboard and mouse;
+The current game has 26 weapons, optional named factions, a six-second jetpack, a starting homing
+rocket, varied terrain and improved crate/rope AI. The full game still needs keyboard and mouse;
 a touchscreen overlay is only a [design study](../docs/touchdisplay-support.md).
 
 ## Gource history clips

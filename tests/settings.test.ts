@@ -4,8 +4,16 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSettings, parseSettings, SETTINGS_VERSION } from '../src/ui/settings';
 import { quickMatch } from '../src/ui/presets';
+import { EMPTY_PAINT } from '../src/core/paintedTerrain';
 
 describe('persisted settings', () => {
+  it('retains a valid painted map and rejects malformed saved masks', () => {
+    const settings = defaultSettings();
+    settings.match.painted = EMPTY_PAINT;
+    expect(parseSettings(JSON.stringify(settings))?.match.painted).toBe(EMPTY_PAINT);
+    settings.match.painted = 'broken';
+    expect(parseSettings(JSON.stringify(settings))?.match.painted).toBeUndefined();
+  });
   it('write the schema version, so a later build knows what it is reading', () => {
     const stored = JSON.parse(JSON.stringify({ version: SETTINGS_VERSION, ...defaultSettings() })) as { version: number };
     expect(stored.version).toBe(SETTINGS_VERSION);

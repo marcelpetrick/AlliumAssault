@@ -1138,7 +1138,7 @@ kbd {
   display: flex;
   flex: 1 1 100%;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 18px;
 }
 
@@ -1381,4 +1381,25 @@ kbd {
 .faction-names input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.paint-canvas {
+  display: block;
+  width: min(100%, 640px);
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+  border: 2px solid #8292ad;
+  border-radius: 8px;
+}
+
+.paint-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.paint-controls button[aria-pressed='true'] {
+  outline: 2px solid #96e79a;
 }

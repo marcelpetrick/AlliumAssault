@@ -406,6 +406,13 @@ Homing rockets carry a buddy id in projectile state. After one ballistic second 
 directly towards the living target, with the same swept terrain/body/crate collisions as other
 rockets. Target loss preserves the last heading; AI simulates the same guidance before firing.
 
+## Painted landscapes
+
+The setup brush edits a bounded binary mask. The rules core converts its interpolated boundary to
+the same destructible terrain field used by generated landscapes. Preview and match use that same
+conversion. Applying the sketch and starting a match check the real spawn-clearance and spacing
+rules for the selected team sizes; malformed saved masks are ignored. Walls remain separate.
+
 ## Tag-team factions
 
 Optional and off by default. Setup assigns each team to a named faction; names and assignments

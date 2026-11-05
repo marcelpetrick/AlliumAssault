@@ -55,6 +55,7 @@ import { releaseSheep, stepSheep, type Sheep } from './sheep';
 import { ropePath, shootRope, stepRope, type Rope } from './rope';
 import { PLANE_SPEED, planStrike } from './strike';
 import { findSpawnCandidates, generateTerrain, pickSpawns, type Platform, type Terrain } from './terrain';
+import { paintedTerrain, validPaint } from './paintedTerrain';
 import { WEAPON_IDS, WEAPON_ORDER, WEAPONS, type WeaponDef, type WeaponId } from './weapons';
 
 import {
@@ -192,8 +193,17 @@ export class Game {
     let spawns = overrides.spawns;
     for (let attempt = 0; !terrain || !spawns || spawns.length < total; attempt++) {
       const seed = attempt === 0 ? config.seed : `${config.seed}#${attempt}`;
-      terrain = overrides.terrain ?? generateTerrain({ seed, width: WORLD_WIDTH, height: WORLD_HEIGHT, waterLevel: WATER_LEVEL });
-      spawns = pickSpawns(findSpawnCandidates(terrain, BUDDY_RADIUS), total, rngFor(seed, 'spawns'));
+      terrain =
+        overrides.terrain ??
+        (validPaint(config.painted)
+          ? paintedTerrain(config.painted)
+          : generateTerrain({ seed, width: WORLD_WIDTH, height: WORLD_HEIGHT, waterLevel: WATER_LEVEL }));
+      spawns = pickSpawns(
+        findSpawnCandidates(terrain, BUDDY_RADIUS),
+        total,
+        rngFor(!overrides.terrain && validPaint(config.painted) ? 'painted' : seed, 'spawns'),
+      );
+      if (!overrides.terrain && validPaint(config.painted) && spawns.length < total) throw new Error('Painted landscape has insufficient safe spawn positions');
       if (attempt >= 8 || overrides.terrain) break;
     }
     this.terrain = defined(terrain, 'generated terrain');

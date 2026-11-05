@@ -99,6 +99,9 @@ python3 scripts/history_chart.py                 # redraw the README history cha
 - **Authored test arenas:** tests about a particular wall, bounce, rope anchor, cave or sound
   sequence should create that geometry explicitly. Generated-map tests exercise seeds and topology;
   procedural variety must not silently change a feature fixture's intended floor or ceiling.
+- **Painted terrain:** preserve the shared mask-to-terrain conversion for setup preview and gameplay,
+  validate saved masks and safe spawn capacity, and keep spawn selection stable across rematches.
+  Cover real brush input, cancellation, persistence, floating islands and faction compatibility.
 - **AI movement:** planning and play share jump/rope control and real body collision. Aircraft
   approach arrows apply only to humans; AI uses `setStrikeDir()` explicitly. Check actual crate
   collection, landing and damage, including hazards and faction allies.

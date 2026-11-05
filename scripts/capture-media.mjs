@@ -12,7 +12,7 @@ import { openCapture, startMatch, frames, focus, encodeGif, recordFrame } from '
 const url = process.argv[2] ?? 'http://localhost:4173';
 const out = 'docs/screenshots';
 const only = process.argv.slice(3);
-const names = ['title', 'action-1', 'action-2', 'candy-shop', 'frosty-peaks', 'napalm', 'tombstone', 'jetpack', 'homing', 'setup', 'battle'];
+const names = ['title', 'action-1', 'action-2', 'candy-shop', 'frosty-peaks', 'napalm', 'tombstone', 'jetpack', 'homing', 'setup', 'paint', 'battle'];
 assert.ok(
   only.every((name) => names.includes(name)),
   'unknown media selection',
@@ -154,6 +154,24 @@ try {
   await page.locator('[data-action="walled"][data-value="1"]').click();
   await page.waitForTimeout(300);
   await shoot('setup');
+
+  if (only.length === 0 || only.includes('paint')) {
+    await page.locator('[data-action="paint-open"]').click();
+    const box = await page.locator('[data-paint]').boundingBox();
+    assert.ok(box, 'paint canvas visible');
+    for (const [x1, x2, y] of [
+      [0.12, 0.88, 0.7],
+      [0.36, 0.55, 0.35],
+    ]) {
+      await page.mouse.move(box.x + box.width * x1, box.y + box.height * y);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width * x2, box.y + box.height * y, { steps: 5 });
+      await page.mouse.up();
+    }
+    await shoot('paint');
+    await page.locator('[data-action="paint-apply"]').click();
+    assert.equal(await page.locator('[data-action="paint-remove"]').count(), 1, 'painted landscape accepted');
+  }
 
   await startMatch(page, 'readme-gif', 'meadow');
   await focus(page, 55, 23, 56);

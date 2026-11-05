@@ -386,3 +386,30 @@ The Gource branch diverged before the dependency and homing fixes and independen
 version 1.83.4. Integrating master preserves both dated changelog entries and the six existing
 media records, takes the current dependency pins and game rules, and advances the merged
 branch to 1.83.8. The recordings remain historical captures of their original source revision.
+
+## Painted landscapes and scenery — 1.84.0
+
+Homing was rechecked using the browser test: a normal starting rocket accepts a target and hits
+after its ballistic phase. Background tree placement previously interpolated hill heights
+bilinearly even though Babylon draws two triangles per quad. The new calculation uses those
+triangles, preventing the resulting mismatch between the visible hill and tree base.
+
+The editor stores a bounded 64 × 32 mask and converts it to a smooth destructible field for both
+preview and gameplay. Empty or cramped sketches cannot start a match. Review found a rematch
+hazard: randomizing the seed could alter spawn selection on the same painting. Painted maps now
+use a stable spawn seed, and tests cover different rematch seeds. Storage validates the mask;
+setup checks the current team count again before starting. The ordinary terrain generator remains
+available by removing the painting. Factions still use their existing victory and friendly-fire
+rules on either kind of terrain.
+
+The new setup button initially displaced the seed below its preview. The existing browser layout
+test exposed this; aligning both fields at the top restores their shared row.
+
+Under simultaneous builds on the shared host, the existing full-match AI variety test exceeded
+its five-second timeout while retaining its assertions. Its timeout is now 20 seconds so host
+contention does not turn a slow but correct simulation into a spurious failure.
+
+Verification on 5 November passed: 433 unit tests, 87 Chrome browser tests, and core coverage
+of 99.67% statements, 98.24% branches, 100% functions and 99.91% lines. The paint flow tests
+drawing, erasing, empty-map rejection, cancellation, reload and starting a faction match. REUSE
+and all 63 media hashes passed; the scripted setup/editor screenshots were refreshed.

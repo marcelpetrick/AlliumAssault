@@ -3,7 +3,7 @@
 A turn-based artillery game in the spirit of **Worms Armageddon**, running entirely in the
 browser, starring teams of cute **garlic buddies**. Smooth, real-time **3D graphics** present a classic artillery gameplay plane.
 
-**Status as of v1.83.7:** the rules and arsenal below are implemented. Touch controls remain a
+**Status as of v1.84.0:** the rules and arsenal below are implemented. Touch controls remain a
 design study; online multiplayer is out of scope. Representative core and browser outcomes are
 tested; arbitrary weapon/terrain combinations are not exhaustive.
 
@@ -174,6 +174,12 @@ general-purpose physics engines cannot do arbitrarily destructible Worms terrain
 ## Out of scope (for now)
 
 Online multiplayer, persistent statistics.
+
+## Painted landscapes
+
+The setup brush adds or removes land, including floating islands. The match uses the previewed
+shape and requires safe starting ground for the selected teams. The saved custom setup remembers
+the painting, and the player can return to a seeded landscape.
 
 ## Tag-team factions
 

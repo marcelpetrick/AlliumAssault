@@ -6,6 +6,7 @@ import { QUALITY_OPTIONS, type Quality } from '../render/quality';
 import { LANGUAGES, preferredLanguage, setLanguage, type Language, type TextKey } from './i18n';
 import { THEME_IDS } from '../render/themes';
 import { ARSENAL_OPTIONS, CRATE_OPTIONS, GRAVITY_OPTIONS, quickMatch, randomSeed, SUDDEN_DEATH_OPTIONS, TURN_OPTIONS, WIND_OPTIONS } from './presets';
+import { validPaint } from '../core/paintedTerrain';
 
 export type TextSize = 'normal' | 'large' | 'huge';
 
@@ -115,6 +116,7 @@ export function parseSettings(raw: string): Settings | null {
   const teams = Array.isArray(m.teams) ? m.teams.map(parseTeam) : [];
   const match: MatchConfig = {
     seed: typeof m.seed === 'string' ? m.seed.slice(0, 24) : d.seed,
+    painted: validPaint(m.painted) ? m.painted : undefined,
     teams: teams.length >= 2 && teams.length <= 4 && teams.every((t) => t !== null) ? teams : d.teams,
     turnTime: pick(m.turnTime, TURN_OPTIONS, d.turnTime),
     retreatTime: typeof m.retreatTime === 'number' && m.retreatTime >= 1 && m.retreatTime <= 10 ? m.retreatTime : d.retreatTime,

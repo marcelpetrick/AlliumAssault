@@ -32,6 +32,8 @@ export interface TeamConfig {
 
 export interface MatchConfig {
   seed: string;
+  /** Optional player-painted terrain mask. */
+  painted?: string;
   teams: TeamConfig[];
   turnTime: number;
   retreatTime: number;

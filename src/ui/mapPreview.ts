@@ -5,6 +5,7 @@ import { WATER_LEVEL, WORLD_HEIGHT, WORLD_WIDTH } from '../core/constants';
 import { defined } from '../core/assert';
 import { generateTerrain, type Terrain } from '../core/terrain';
 import { THEMES } from '../render/themes';
+import { paintedTerrain, validPaint } from '../core/paintedTerrain';
 
 /**
  * Flat picture of the island a seed produces, drawn on a 2D canvas in the setup screen so a player
@@ -27,11 +28,11 @@ function terrainFor(seed: string): Terrain {
 }
 
 /** Draw the map for `seed` in the colours of `theme`. */
-export function drawMapPreview(canvas: HTMLCanvasElement, seed: string, theme: string, walled = false): void {
+export function drawMapPreview(canvas: HTMLCanvasElement, seed: string, theme: string, walled = false, painted?: string): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   const { width, height } = canvas;
-  const t = terrainFor(seed);
+  const t = validPaint(painted) ? paintedTerrain(painted) : terrainFor(seed);
   const palette = THEMES[theme] ?? THEMES.meadow;
   const hex = (color: { toHexString: () => string }) => color.toHexString();
 

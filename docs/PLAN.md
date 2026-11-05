@@ -1,4 +1,17 @@
-# Implementation plan — October 2026
+# Implementation plan
+
+## Painted landscapes and release — November 2026
+
+1. Recheck homing with real controls, collision and a moving target. Investigate the tree in water
+   against the actual rendered hill triangles and the water surface; reproduce and correct it.
+2. Design a brush editor beside the setup preview with drawing, erasing, reset, cancel and apply.
+   Convert the sketch deterministically into destructible terrain, including floating islands.
+3. Validate playable spawn space for all selected buddies; do not silently replace the drawing or
+   start an unplayable match. Keep the preview and match terrain identical, including walls.
+4. Validate stored sketches, pointer input and cancellation; translate all text, preserve settings,
+   cover core and browser flows, and review malformed, empty and crowded sketches.
+5. Update documentation and affected media, review the changes, run the full verification and
+   REUSE checks, bump the minor version, commit, push and publish the public release and Pages.
 
 Status and delivery versions live in [tasks.md](tasks.md). Architecture is documented in
 [ARCHITECTURE.md](ARCHITECTURE.md). This is the execution plan for the current user requests.

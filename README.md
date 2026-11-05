@@ -73,6 +73,11 @@ the pixel density is halved.
 - **Adaptive landscapes** — seeds choose broad solid plains, cave-free rolling hills, clustered
   islands or cavernous terrain, with varied shapes scaled to the arena. The map preview shows the
   selected side walls as well as the exact landscape.
+- **Paint a landscape** — open the brush editor beside the map preview, draw or erase land and
+  floating islands, then apply it. A match needs enough safe, level starting positions above the
+  water for every buddy. The shape is saved with custom setup; remove it to return to seeded
+  terrain. Walls, scenery and tag-team factions work with painted maps too.
+  [See the paint editor](docs/screenshots/paint.jpg).
 - **Destructible terrain** — every explosion carves a round, scorched crater and throws tumbling
   lumps of earth out of it; props on the ground
   get blown away.

@@ -56,9 +56,11 @@ export function gridSurface(xs: readonly number[], ts: readonly number[], at: (x
   while (r < ts.length - 2 && ts[r + 1] < t) r++;
   const fx = (x - xs[c]) / (xs[c + 1] - xs[c]);
   const ft = (t - ts[r]) / (ts[r + 1] - ts[r]);
-  const near = at(xs[c], ts[r]) * (1 - fx) + at(xs[c + 1], ts[r]) * fx;
-  const far = at(xs[c], ts[r + 1]) * (1 - fx) + at(xs[c + 1], ts[r + 1]) * fx;
-  return near * (1 - ft) + far * ft;
+  const a = at(xs[c], ts[r]);
+  const b = at(xs[c + 1], ts[r]);
+  const d = at(xs[c], ts[r + 1]);
+  const e = at(xs[c + 1], ts[r + 1]);
+  return fx + ft <= 1 ? a + (b - a) * fx + (d - a) * ft : e + (d - e) * (1 - fx) + (b - e) * (1 - ft);
 }
 
 /**

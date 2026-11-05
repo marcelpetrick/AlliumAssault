@@ -67,7 +67,7 @@ The following before/after table records the earlier deep-import audit; it is hi
 | Before — `import … from '@babylonjs/core'` |    6,889 kB | 1,522 kB |            7,308 kB |
 | After — deep imports per module            |    1,510 kB |   374 kB |            2,556 kB |
 
-**Current production build, 1.83.2 (14 October 2026):** entry JavaScript 1,602.9 kB,
+**Measured build, 1.83.2 (14 October 2026):** entry JavaScript 1,602.9 kB,
 404.6 kB gzipped as reported by Vite; all assets 2,378.2 kB before compression.
 Vite's own gzip figure is printed by `npm run build`; neither figure is a runtime frame benchmark.
 

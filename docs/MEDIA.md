@@ -11,6 +11,9 @@ The homing rocket GIF/screenshot, minigun GIF and Firefox evidence were refreshe
 for 1.83.7: one starting rocket, a one-second ballistic opening and live burst aiming. Other
 recordings retain their original capture dates.
 
+Version 1.84.0 refreshes the setup screenshot and adds a paint-editor screenshot using the
+scripted brush flow in `capture-media.mjs`; the capture asserts the resulting map is accepted.
+
 ## Feature animations
 
 ### Adaptive landscapes

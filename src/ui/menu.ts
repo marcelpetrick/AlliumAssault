@@ -25,9 +25,11 @@ import {
   WIND_OPTIONS,
 } from './presets';
 import { drawMapPreview } from './mapPreview';
+import { EMPTY_PAINT, PAINT_HEIGHT, PAINT_WIDTH, paintedPlayable } from '../core/paintedTerrain';
+import { WATER_LEVEL, WORLD_HEIGHT } from '../core/constants';
 import { applyLanguage, applyTextSize, clearSettings, defaultSettings, loadSettings, saveSettings, TEXT_SIZES, type TextSize } from './settings';
 
-export type Screen = 'title' | 'setup' | 'help' | 'about' | 'pause' | 'victory' | 'stats';
+export type Screen = 'title' | 'setup' | 'paint' | 'help' | 'about' | 'pause' | 'victory' | 'stats';
 
 export interface MenuActions {
   start(config: MatchConfig): void;
@@ -94,6 +96,9 @@ export class Menu {
   private helpReturn: Screen = 'title';
   /** Pending repaint of the map preview while the seed is being typed. */
   private previewTimer = 0;
+  private paint = EMPTY_PAINT;
+  private erasing = false;
+  private paintError = false;
 
   constructor(
     uiRoot: HTMLElement,
@@ -264,6 +269,9 @@ export class Menu {
               </div>
               <div class="preview-field"><label class="field-label">${t('setup.preview')}</label>
                 <canvas class="map-preview" data-preview width="384" height="192" aria-label="${t('setup.previewAlt')}"></canvas>
+                <button data-action="paint-open">${t('paint.open')}</button>
+                ${d.painted ? `<button data-action="paint-remove">${t('paint.remove')}</button>` : ''}
+                ${this.paintError ? `<p role="alert">${t('paint.invalid')}</p>` : ''}
               </div>
             </div>
           </section>
@@ -289,7 +297,63 @@ export class Menu {
   /** Draw the island the current seed and scenery produce, whenever the setup screen is on. */
   private paintPreview(): void {
     const canvas = this.el.querySelector('canvas[data-preview]');
-    if (canvas instanceof HTMLCanvasElement) drawMapPreview(canvas, this.draft.seed, this.draft.theme, this.draft.walled);
+    if (canvas instanceof HTMLCanvasElement) drawMapPreview(canvas, this.draft.seed, this.draft.theme, this.draft.walled, this.draft.painted);
+  }
+
+  private showPaint(): void {
+    this.screen = 'paint';
+    this.el.innerHTML = `<div class="screen"><div class="panel wide">
+      <header class="panel-head"><button data-action="paint-cancel">${t('setup.back')}</button><h2>${t('paint.heading')}</h2><span></span></header>
+      <p>${t('paint.instructions')}</p>
+      <canvas class="paint-canvas" data-paint width="640" height="320" aria-label="${t('paint.heading')}"></canvas>
+      <div class="paint-controls"><button data-action="paint-brush" aria-pressed="${String(!this.erasing)}">${t('paint.brush')}</button><button data-action="paint-erase" aria-pressed="${String(this.erasing)}">${t('paint.erase')}</button><button data-action="paint-clear">${t('paint.clear')}</button><button data-action="paint-apply">${t('paint.apply')}</button></div>
+      ${this.paintError ? `<p role="alert">${t('paint.invalid')}</p>` : ''}
+    </div></div>`;
+    const canvas = defined(this.el.querySelector<HTMLCanvasElement>('canvas[data-paint]'), 'paint canvas');
+    const ctx = defined(canvas.getContext('2d'), 'paint canvas context');
+    const draw = () => {
+      ctx.fillStyle = '#273b5d';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#7bbf70';
+      for (let y = 0; y < PAINT_HEIGHT; y++)
+        for (let x = 0; x < PAINT_WIDTH; x++) if (this.paint[y * PAINT_WIDTH + x] === '1') ctx.fillRect(x * 10, y * 10, 10, 10);
+      ctx.fillStyle = 'rgba(36, 150, 220, 0.65)';
+      ctx.fillRect(0, canvas.height * (1 - WATER_LEVEL / WORLD_HEIGHT), canvas.width, (canvas.height * WATER_LEVEL) / WORLD_HEIGHT);
+    };
+    let previous: { x: number; y: number } | null = null;
+    const stroke = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(PAINT_WIDTH, ((e.clientX - rect.left) / rect.width) * PAINT_WIDTH));
+      const y = Math.max(0, Math.min(PAINT_HEIGHT, ((e.clientY - rect.top) / rect.height) * PAINT_HEIGHT));
+      const from = previous ?? { x, y };
+      const steps = Math.max(1, Math.ceil(Math.hypot(x - from.x, y - from.y) * 2));
+      const cells = this.paint.split('');
+      for (let i = 0; i <= steps; i++) {
+        const cx = from.x + ((x - from.x) * i) / steps,
+          cy = from.y + ((y - from.y) * i) / steps;
+        for (let py = Math.max(0, Math.floor(cy - 2)); py <= Math.min(PAINT_HEIGHT - 1, Math.ceil(cy + 2)); py++)
+          for (let px = Math.max(0, Math.floor(cx - 2)); px <= Math.min(PAINT_WIDTH - 1, Math.ceil(cx + 2)); px++)
+            if (Math.hypot(px + 0.5 - cx, py + 0.5 - cy) <= 2) cells[py * PAINT_WIDTH + px] = this.erasing ? '0' : '1';
+      }
+      this.paint = cells.join('');
+      previous = { x, y };
+      draw();
+    };
+    canvas.addEventListener('pointerdown', (e) => {
+      canvas.setPointerCapture(e.pointerId);
+      previous = null;
+      stroke(e);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (canvas.hasPointerCapture(e.pointerId)) stroke(e);
+    });
+    canvas.addEventListener('pointerup', () => {
+      previous = null;
+    });
+    canvas.addEventListener('pointercancel', () => {
+      previous = null;
+    });
+    draw();
   }
 
   showAbout(): void {
@@ -488,6 +552,7 @@ export class Menu {
     if (this.screen === 'help') this.returnFromHelp();
     else if (this.screen === 'about') this.showTitle();
     else if (this.screen === 'setup') this.showTitle();
+    else if (this.screen === 'paint') this.showSetup();
   }
 
   private returnFromHelp(): void {
@@ -532,6 +597,43 @@ export class Menu {
     const team = d.teams[Number(button.dataset.team)];
     const value = button.dataset.value ?? '';
     switch (button.dataset.action) {
+      case 'paint-open':
+        this.paint = d.painted ?? EMPTY_PAINT;
+        this.paintError = false;
+        this.erasing = false;
+        this.showPaint();
+        return;
+      case 'paint-cancel':
+        this.paintError = false;
+        this.showSetup();
+        return;
+      case 'paint-brush':
+      case 'paint-erase':
+        this.erasing = button.dataset.action === 'paint-erase';
+        this.showPaint();
+        return;
+      case 'paint-clear':
+        this.paint = EMPTY_PAINT;
+        this.paintError = false;
+        this.showPaint();
+        return;
+      case 'paint-apply':
+        this.paintError = !paintedPlayable(
+          this.paint,
+          d.teams.reduce((n, t) => n + t.buddyNames.length, 0),
+        );
+        if (this.paintError) {
+          this.showPaint();
+          return;
+        }
+        d.painted = this.paint;
+        this.persist();
+        this.showSetup();
+        return;
+      case 'paint-remove':
+        delete d.painted;
+        this.paintError = false;
+        break;
       case 'quick':
         this.actions.start(quickMatch());
         return;
@@ -561,6 +663,17 @@ export class Menu {
       }
       case 'start':
         if (this.alliedOnly()) return;
+        if (
+          d.painted &&
+          !paintedPlayable(
+            d.painted,
+            d.teams.reduce((n, t) => n + t.buddyNames.length, 0),
+          )
+        ) {
+          this.paintError = true;
+          this.showSetup();
+          return;
+        }
         // Only the custom setup is remembered for next time; quick matches leave it alone.
         this.persist();
         this.actions.start(structuredClone(d));

@@ -91,6 +91,11 @@ describe('onViewRay', () => {
 });
 
 describe('gridSurface', () => {
+  it('follows the mesh triangles across a non-planar hill quad', () => {
+    const at = (x: number, y: number) => (x === 1 && y === 1 ? 8 : 0);
+    expect(gridSurface([0, 1], [0, 1], at, 0.25, 0.25)).toBe(0);
+    expect(gridSurface([0, 1], [0, 1], at, 0.75, 0.75)).toBe(4);
+  });
   const xs = [0, 10, 20];
   const ts = [0, 0.5, 1];
 
