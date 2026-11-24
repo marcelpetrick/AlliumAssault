@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.84.2] — 2026-11-24
+
+- Update Babylon.js to 9.37.2 and refresh the exact pins for Playwright, Vitest, ESLint,
+  markdownlint, Prettier, Stylelint, typescript-eslint, Vite, minimatch and re2js.
+- Keep TypeScript 6.0.3 within typescript-eslint’s supported range and keep the Node typings
+  aligned with the Node 24 runtime.
+- Scope a lint exception to renderer modules where Babylon.js material mixins cause false positives.
+
 ## [1.84.1] — 2026-11-05
 
 - Let an unpowered jetpack descent accelerate gently, with reduced but possible damage from a long fall.

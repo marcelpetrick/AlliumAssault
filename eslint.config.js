@@ -25,6 +25,13 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/render/{buddyView,decorations,effects,environment,platformView,terrainView,world}.ts'],
+    rules: {
+      // The rule loses the Material base class through Babylon's StandardMaterial mixin.
+      '@typescript-eslint/no-unsafe-class-instance-assignment': 'off',
+    },
+  },
+  {
     // Tests assert on state they just set up: a non-null assertion that fails is a failing test.
     files: ['tests/**', 'e2e/**'],
     rules: { '@typescript-eslint/no-non-null-assertion': 'off' },

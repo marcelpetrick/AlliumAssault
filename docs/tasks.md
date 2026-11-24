@@ -189,6 +189,7 @@ Status: ☐ open · ☑ done
 | T174 | Make unpowered jetpack falls accelerate and cause reduced long-fall damage                                      | ☑      | 1.84.1         |
 | T175 | Replace miniature Ming vase fragments with visible porcelain shards                                             | ☑      | 1.84.1         |
 | T176 | Review current code and root files, fix findings and refresh current documentation                              | ☑      | 1.84.1         |
+| T177 | Refresh exact dependency pins to compatible stable releases and verify the patch                                | ☑      | 1.84.2         |
 
 ## Current implementation plan
 
