@@ -3,9 +3,8 @@
 A turn-based artillery game in the spirit of **Worms Armageddon**, running entirely in the
 browser, starring teams of cute **garlic buddies**. Smooth, real-time **3D graphics** present a classic artillery gameplay plane.
 
-**Status as of v1.84.1:** the rules and arsenal below are implemented. Touch controls remain a
-design study; online multiplayer is out of scope. Representative core and browser outcomes are
-tested; arbitrary weapon/terrain combinations are not exhaustive.
+The game implements the rules and arsenal below. The [touch controls](touchdisplay-support.md)
+are a design study. The core and Chrome suites cover representative outcomes.
 
 ## Pillars
 

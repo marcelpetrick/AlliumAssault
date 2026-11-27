@@ -1,6 +1,6 @@
 {
   "name": "allium-assault",
-  "version": "1.84.2",
+  "version": "1.84.3",
   "description": "Turn-based 3D artillery game with garlic buddies, in the spirit of Worms Armageddon. Runs in the browser.",
   "private": true,
   "type": "module",
@@ -29,15 +29,15 @@
     "profile:decisions": "node --experimental-transform-types bench/decisions.mjs"
   },
   "dependencies": {
-    "@babylonjs/core": "9.37.2",
+    "@babylonjs/core": "9.38.0",
     "simplex-noise": "4.0.3"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.65.1",
-    "@types/node": "24.19.2",
-    "@vitest/coverage-v8": "5.1.1",
-    "eslint": "10.15.0",
+    "@types/node": "24.19.4",
+    "@vitest/coverage-v8": "5.1.2",
+    "eslint": "10.16.0",
     "globals": "17.14.0",
     "markdownlint-cli2": "0.24.2",
     "prettier": "3.10.1",
@@ -45,8 +45,8 @@
     "stylelint-config-standard": "41.1.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.74.0",
-    "vite": "8.3.8",
-    "vitest": "5.1.1"
+    "vite": "8.4.0",
+    "vitest": "5.1.2"
   },
   "overrides": {
     "smol-toml": "1.9.1",

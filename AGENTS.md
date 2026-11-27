@@ -39,7 +39,7 @@ projectiles in flight) is read from the game every frame instead.
 ## Commands
 
 ```bash
-npm install
+npm ci
 npm run dev        # http://localhost:5173
 npm run lint       # ESLint (type-checked), Prettier, Stylelint, markdownlint, SPDX check
 npm run format     # apply Prettier, Stylelint and markdownlint fixes

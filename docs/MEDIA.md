@@ -58,7 +58,7 @@ Install project dependencies, Google Chrome, Playwright Firefox, ffmpeg/ffprobe 
 matplotlib. On a Linux host without a display, install Xvfb as well.
 
 ```bash
-npm install
+npm ci
 npx playwright install chrome firefox
 npm run refresh-media
 ```

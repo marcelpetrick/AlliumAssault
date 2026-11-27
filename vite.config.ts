@@ -7,9 +7,9 @@ export default defineConfig({
   base: './',
   build: {
     target: 'es2022',
-    // Just above the real entry chunk, so importing Babylon from its package root again — which
-    // quadrupled the bundle before 1.56.0 — is loud instead of silent. See docs/PERFORMANCE.md.
-    chunkSizeWarningLimit: 1800,
+    // Vite 8.4 folds previously preloaded modules into the 1,875 kB entry chunk.
+    // Keep the warning close enough to catch large regressions. See docs/PERFORMANCE.md.
+    chunkSizeWarningLimit: 1900,
   },
   test: {
     include: ['tests/**/*.test.ts'],

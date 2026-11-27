@@ -4,6 +4,8 @@
 [![CI](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/ci.yml)
 [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/marcelpetrick/AlliumAssault/pages.yml?label=GitHub%20Pages&logo=github)](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/pages.yml)
 [![Release](https://img.shields.io/github/v/release/marcelpetrick/AlliumAssault)](https://github.com/marcelpetrick/AlliumAssault/releases/latest)
+[![Release build](https://img.shields.io/github/actions/workflow/status/marcelpetrick/AlliumAssault/release.yml?label=Release%20build&logo=github)](https://github.com/marcelpetrick/AlliumAssault/actions/workflows/release.yml)
+[![Release downloads](https://img.shields.io/github/downloads/marcelpetrick/AlliumAssault/latest/total?label=Release%20downloads)](https://github.com/marcelpetrick/AlliumAssault/releases/latest)
 [![License: GPL v3 or later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![REUSE 3.3 compliant](https://img.shields.io/badge/REUSE-3.3%20compliant-green.svg)](https://reuse.software/)
 [![Babylon.js](https://img.shields.io/github/package-json/dependency-version/marcelpetrick/AlliumAssault/@babylonjs/core?label=Babylon.js&color=bb464b)](https://www.babylonjs.com/)
@@ -50,10 +52,10 @@ unzip it and serve the folder with any static web server (e.g. `npx serve`).
 
 Online: **<https://marcelpetrick.github.io/AlliumAssault/>** (updated with every release).
 
-Locally:
+Locally, with Node.js 24:
 
 ```bash
-npm install
+npm ci
 npm run dev          # http://localhost:5173
 ```
 
@@ -236,14 +238,14 @@ npm run profile      # measure the rules core stage by stage (docs/PERFORMANCE.m
 npm run profile:decisions # measure individual AI attack searches
 npm run e2e          # Playwright in Google Chrome: menus, settings, every weapon, crates, tombstones, sceneries, sounds
 npm run coverage     # Vitest with v8 coverage of the game rules in src/core; HTML report in coverage/
-npm run verify       # all of the above plus production build
+npm run verify       # lint, typecheck, coverage, production build and Chrome E2E
 ```
 
 The page exposes `window.__allium` (`state()`, `startMatch()`, `fastForward()`, `stepFrames()`,
 `project()`) for automated tests.
 
-Continuous integration runs all linters, typecheck, unit tests, build and the Chrome E2E suite on
-every push, plus a REUSE compliance check and actionlint on the workflows.
+CI runs on pushes to `master` and on pull requests. It runs the verification gate, checks REUSE
+compliance and lints the workflows with actionlint.
 
 ```bash
 npm run lint:spdx    # every file has SPDX headers or a REUSE.toml annotation
@@ -251,14 +253,16 @@ npm run spdx:fix     # add the SPDX header to new files
 npm run lint:reuse   # official REUSE tool (needs uv)
 ```
 
-Pushing a `v*` tag builds and publishes a GitHub release with the zipped static site and
-deploys the game to GitHub Pages: <https://marcelpetrick.github.io/AlliumAssault/>.
+A `v*` tag triggers the Release and Pages workflows. They run the verification gate before
+publishing the static web ZIP and its SHA-256 checksum or deploying the playable site to
+[GitHub Pages](https://marcelpetrick.github.io/AlliumAssault/).
 
 ## Versioning
 
 The project follows [Semantic Versioning](https://semver.org/). Every commit on `master` carries
-its own version: bump `package.json` (patch for fixes, docs and dependency updates; minor for
-features; major for breaking changes) and add a matching entry to [`CHANGELOG.md`](CHANGELOG.md).
+its own version. Update `package.json` and `package-lock.json`, then add a matching entry to
+[`CHANGELOG.md`](CHANGELOG.md). Use a patch for fixes, docs and dependency updates, a minor for
+features and a major for breaking changes.
 Commits are not tagged individually: a `vX.Y.Z` tag is created only for a release, and pushing it
 publishes a GitHub release with the web build. Contributor and agent rules are in
 [`AGENTS.md`](AGENTS.md).

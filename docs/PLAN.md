@@ -1,5 +1,22 @@
 # Implementation plan
 
+## Dependency update and public release — 27 November 2026 (T178)
+
+1. Build on the published v1.84.2 commit so its dependency upgrades also reach `master`. Compare
+   both open Dependabot PRs against the final manifest and lockfile, then record each disposition
+   on its PR after integration.
+2. Check npm releases, compatible Node 24 typings and TypeScript peer requirements. Pin workflow
+   actions to the commit of each upstream stable release. Run the full verification gate, REUSE,
+   workflow lint and npm audits of the complete and production dependency trees.
+3. Review the release diff, update the docs and badges, then publish v1.84.3 through the existing
+   tag workflows.
+
+The [v1.84.3 workflow runs](https://github.com/marcelpetrick/AlliumAssault/actions?query=branch%3Av1.84.3)
+record the verification and Pages deployment. The [release downloads](https://github.com/marcelpetrick/AlliumAssault/releases/tag/v1.84.3)
+include the web ZIP and its SHA-256 checksum. Run `sha256sum -c allium-assault-1.84.3-web.zip.sha256`
+beside the downloaded ZIP, then open the [public game](https://marcelpetrick.github.io/AlliumAssault/)
+and check for v1.84.3 on the title screen.
+
 ## Performance review, jetpack and porcelain — November 2026
 
 1. Measure simulation, individual AI plans, map setup, browser frame work and startup; record the
@@ -77,7 +94,10 @@ reproducibility, enough safe separated spawns and headroom. Preview uses the exa
 toggling walls repaints visible side barriers without changing the seed. Test seed matrices,
 dimensions, topology, spawn clearance and browser preview/match consistency.
 
-## 6. Homing rocket (T157 — delivered in 1.82.0)
+## 6. Homing rocket (T157 — original design delivered in 1.82.0)
+
+Version 1.83.7 added one rocket to normal starting stock and shortened the ballistic phase to one
+second. The original implementation plan follows.
 
 Crate-only weapon with one use per pickup. Click an enemy to lock it, then aim and charge like a
 bazooka. First three seconds are ballistic. Afterwards track that buddy's current location in a

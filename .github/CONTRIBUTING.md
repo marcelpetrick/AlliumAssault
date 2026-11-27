@@ -15,8 +15,10 @@ are welcome as long as they keep it that way.
 
 ## Getting set up
 
+Use Node.js 24 and install Google Chrome for the browser tests.
+
 ```bash
-npm install
+npm ci
 npm run dev        # http://localhost:5173  (?quality=low on a weak GPU)
 npm run verify     # lint, typecheck, coverage, build and the browser tests
 ```
@@ -34,8 +36,9 @@ REUSE licence check and a workflow lint.
   test. Core coverage is enforced at 98.1% for statements, branches, functions and lines.
 - **Presentation never switches on a weapon id.** Weapons describe themselves through `look` keys
   that the renderer and the synthesizer map to models and sounds.
-- **Every commit bumps the version** in `package.json` and adds a `CHANGELOG.md` entry: patch for
-  fixes, docs, balance and dependencies, minor for features. Tags are only created for releases.
+- **Every commit bumps the version** in `package.json` and `package-lock.json` and adds a
+  `CHANGELOG.md` entry. Use a patch for fixes, docs, balance and dependencies, a minor for
+  features and a major for breaking changes. Tags are only created for releases.
 - **Conventional commits**: `feat(core): …`, `fix(render): …`, `docs: …`, with a body that says why.
 - **Licensing.** Every file carries `SPDX-FileCopyrightText` and `SPDX-License-Identifier`
   (GPL-3.0-or-later) or is annotated in `REUSE.toml`. `npm run spdx:fix` adds headers to new files.

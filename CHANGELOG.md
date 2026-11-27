@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow SemVer.
 
+## [1.84.3] — 2026-11-27
+
+- Update Babylon.js to 9.38.0, ESLint to 10.16.0, Vite to 8.4.0, Vitest and its V8 coverage
+  provider to 5.1.2, and Node 24 typings to 24.19.4.
+- Pin all workflow actions to upstream release commits.
+- Add README badges for the release workflow and downloads. Update contributor instructions
+  and document how to verify the public release and GitHub Pages deployment.
+
 ## [1.84.2] — 2026-11-24
 
 - Update Babylon.js to 9.37.2 and refresh the exact pins for Playwright, Vitest, ESLint,

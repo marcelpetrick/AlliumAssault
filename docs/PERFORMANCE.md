@@ -10,7 +10,7 @@ test suite can hold still, and the **browser**, which cannot.
 npm run profile        # the rules core, stage by stage (bench/core.bench.ts)
 npm run profile:decisions # individual AI attack searches at different match sizes
 npm run build          # bundle sizes, printed by Vite
-npm run e2e            # the browser suite; add --trace on to collect Playwright traces
+npm run e2e            # the browser suite; add -- --trace on to collect Playwright traces
 ```
 
 For the function-level picture of the core, run the profiler under V8's own profiler and open the
@@ -19,6 +19,13 @@ result in Chrome DevTools (Performance → Load profile):
 ```bash
 node --cpu-prof --cpu-prof-dir=.profile ./node_modules/vitest/vitest.mjs run --config bench/vitest.config.ts
 ```
+
+## Startup JavaScript — 27 November 2026
+
+The v1.84.2 release loaded 1,878 kB of JavaScript across the entry script and ten module preloads.
+Vite 8.4 combines those modules into one 1,875 kB entry script in v1.84.3. Each script was compressed
+individually with gzip level 6 for comparison. The total went from 473 kB to 469 kB. The chunk
+warning threshold is 1,900 kB so it remains close to the measured entry size.
 
 ## Investigation — 5 November 2026
 
@@ -52,17 +59,9 @@ about 0.6 ms to 0.1 ms. For 15 repeated setup redraws, a painted map's median ch
 directional rather than guarantees. Other frame and GPU measurements need a real hardware-backed
 browser before deciding which visual settings or rendering changes to prioritize.
 
-In the browser, the tools that pay off are Chrome DevTools' Performance panel against
-`npm run dev`, and Babylon's own instrumentation, which can be switched on from the console of a
-running game:
-
-```js
-// Per-frame cost of the pieces, in milliseconds.
-const { SceneInstrumentation } = await import('@babylonjs/core/Instrumentation/sceneInstrumentation');
-const probe = new SceneInstrumentation(window.__allium.app.world.scene);
-probe.captureRenderTime = probe.captureParticlesRenderTime = true;
-setInterval(() => console.log(probe.renderTimeCounter.lastSecAverage.toFixed(2), 'ms/frame'), 1000);
-```
+For a browser profile, open the game with `npm run dev` and record a match start in the
+Chrome DevTools Performance panel. Use the Bottom-up view to see the time spent in terrain
+rebuilds, mesh creation and garbage collection.
 
 ## Rules-core measurements — 14 October 2026
 

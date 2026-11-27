@@ -1,6 +1,31 @@
-# Repository review — October 2026
+# Repository review
 
-## Current findings and resolutions
+## Dependency and release review — 1.84.3
+
+Reviewed the branch against `origin/master` at `f89211b`, including the v1.84.2 dependency
+commit that was already published. Both open Dependabot PRs target older pins or pins carried
+forward unchanged. PR #17 failed on Babylon.js material assignments. Re-enabling the rule
+reproduces the false positives in the seven renderer modules, so the scoped exception from
+v1.84.2 remains necessary.
+
+- **Medium · Architecture.** The released v1.84.2 commit was missing from `master`. The v1.84.3
+  branch descends from that release, so integrating it also lands the previous pins and lint fix.
+- **Low · Code.** Workflow actions used moving major tags. All action invocations now use the
+  full commit SHA of an upstream stable release.
+- **Low · Code.** Vite 8.4 combines the entry script and its preloads, triggering the old
+  single-chunk warning even though total startup JavaScript fell. The threshold now sits just
+  above the measured chunk size. The [performance guide](PERFORMANCE.md) records the comparison.
+- **Low · Code.** The performance guide's DevTools snippet used a bare module specifier that
+  the browser could not resolve from the console. The guide now describes the Chrome recording
+  process used for the measured startup investigation.
+
+The Markdown audit covered all 23 tracked documents. Setup, verification, release and gameplay
+status instructions were refreshed where needed. The documentation tests check the weapon tables,
+gallery and local links, including historical documents. The complete and production npm audits
+report zero vulnerabilities. Core tests pass at 99.67% statements, 98.24% branches, 100% functions
+and 99.91% lines. The [release plan](PLAN.md) links to the release and deployment evidence.
+
+## October 2026 findings and resolutions
 
 Reviewed the v1.78.6 baseline and the completed October changes through v1.83.1: rules, AI,
 renderer, setup, tests, documentation and release workflows.
